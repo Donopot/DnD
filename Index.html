@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carte interactive - Île aux Tempêtes</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f2f2f2; margin: 0; padding: 0; }
+    .map-container { position: relative; max-width: 1000px; margin: auto; }
+    .map-container img { width: 100%; height: auto; display: block; }
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      background-color: rgba(255, 0, 0, 0.6);
+      transform: translate(-50%, -50%);
+    }
+    .popup {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: white;
+      border: 2px solid #333;
+      padding: 20px;
+      z-index: 1000;
+    }
+    .popup img { max-width: 100%; height: auto; }
+    .close-btn {
+      background: crimson;
+      color: white;
+      padding: 4px 8px;
+      border: none;
+      float: right;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-container">
+    <img src="Map_ile_au_tempete.png" alt="Carte de l'île aux tempêtes">
+    <div class="hotspot" style="top: 43%; left: 51%;" onclick="openPopup('Map_repos_du_dragon.png')" title="Le Repos du Dragon"></div>
+    <div class="hotspot" style="top: 63%; left: 30%;" onclick="openPopup('Map_Grotte_Poussemer.png')" title="Grottes de Poussemer"></div>
+    <div class="hotspot" style="top: 29%; left: 41%;" onclick="openPopup('Map_epave.png')" title="Épave de la Rose des Vents"></div>
+    <div class="hotspot" style="top: 69%; left: 66%;" onclick="openPopup('Map_temple_dragon.png')" title="Observatoire de la falaise"></div>
+  </div>
+
+  <div class="popup" id="popup">
+    <button class="close-btn" onclick="closePopup()">Fermer</button>
+    <div id="popup-content"></div>
+  </div>
+
+  <script>
+    function openPopup(imagePath) {
+      document.getElementById('popup-content').innerHTML = `<img src="${imagePath}" alt="Vue détaillée">`;
+      document.getElementById('popup').style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
