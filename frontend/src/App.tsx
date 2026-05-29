@@ -2,7 +2,6 @@ import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   Castle,
   Copy,
-  Dices,
   DoorOpen,
   HeartPulse,
   Plus,
@@ -1212,107 +1211,15 @@ export default function App() {
                   onToggleDefeated={(combatant) => void handleToggleDefeated(combatant)}
                 />
 
-                <div className="session-section">
-                  <div className="section-heading">
-                    <h3>Des & journal</h3>
-                    <Dices aria-hidden="true" />
-                  </div>
-                  <div className="session-layout">
-                    <form className="roll-form" onSubmit={handleRoll}>
-                      <label>
-                        Formule
-                        <input name="formula" placeholder="1d20+5" required />
-                      </label>
-                      <label>
-                        Libelle
-                        <input name="label" maxLength={120} placeholder="Attaque, perception..." />
-                      </label>
-                      <div className="mini-grid three">
-                        <label>
-                          Mode
-                          <select name="mode" defaultValue="normal">
-                            <option value="normal">Normal</option>
-                            <option value="advantage">Avantage</option>
-                            <option value="disadvantage">Desavantage</option>
-                          </select>
-                        </label>
-                        <label>
-                          Visibilite
-                          <select name="visibility" defaultValue="public">
-                            <option value="public">Public</option>
-                            <option value="gm">MJ</option>
-                          </select>
-                        </label>
-                        <label>
-                          Personnage
-                          <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
-                            <option value="">Sans fiche</option>
-                            {characters.map((character) => (
-                              <option key={character.id} value={character.id}>
-                                {character.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                      <button className="primary-button" disabled={isBusy} type="submit">
-                        <Dices aria-hidden="true" />
-                        Lancer
-                      </button>
-                    </form>
-
-                    <form className="log-note-form" onSubmit={handleLogNote}>
-                      <label>
-                        Note de session
-                        <textarea name="message" rows={3} maxLength={2000} required />
-                      </label>
-                      <label>
-                        Visibilite
-                        <select name="visibility" defaultValue="public">
-                          <option value="public">Public</option>
-                          <option value="gm">MJ</option>
-                        </select>
-                      </label>
-                      <button className="ghost-button" disabled={isBusy} type="submit">
-                        Ajouter au journal
-                      </button>
-                    </form>
-                  </div>
-
-                  <div className="roll-log-layout">
-                    <section className="log-panel">
-                      <h4>Derniers jets</h4>
-                      {rolls.length === 0 ? (
-                        <p className="muted">Aucun jet pour cette campagne.</p>
-                      ) : (
-                        rolls.slice(0, 8).map((roll) => (
-                          <article className="roll-row" key={roll.id}>
-                            <span>
-                              <strong>{roll.label || roll.formula}</strong>
-                              <small>
-                                {roll.formula} - {roll.mode} - {roll.visibility}
-                              </small>
-                            </span>
-                            <em>{roll.total}</em>
-                          </article>
-                        ))
-                      )}
-                    </section>
-                    <section className="log-panel">
-                      <h4>Journal</h4>
-                      {logEntries.length === 0 ? (
-                        <p className="muted">Le journal est vide.</p>
-                      ) : (
-                        logEntries.slice(0, 10).map((entry) => (
-                          <article className={`log-row ${entry.entry_type}`} key={entry.id}>
-                            <span>{entry.message}</span>
-                            <small>{entry.visibility}</small>
-                          </article>
-                        ))
-                      )}
-                    </section>
-                  </div>
-                </div>
+                <SessionLogPanel
+                  characters={characters}
+                  selectedCharacter={selectedCharacter}
+                  rolls={rolls}
+                  logEntries={logEntries}
+                  isBusy={isBusy}
+                  onRoll={handleRoll}
+                  onAddNote={handleLogNote}
+                />
               </>
             ) : (
               <p className="muted">Cree ou selectionne une campagne.</p>
