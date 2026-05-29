@@ -481,7 +481,7 @@ export function VttBoard({
   return (
     <div className={`vtt-section gm-mode-${gmInterfaceMode}`}>
       <div className="section-heading">
-        <h3>Table virtuelle</h3>
+        <h3>Carte de session</h3>
         <Swords aria-hidden="true" />
       </div>
 
@@ -754,7 +754,7 @@ export function VttBoard({
           ) : (
             <div className="empty-state compact-empty">
               <Castle aria-hidden="true" />
-              <p>Aucune scene. Cree la premiere carte de combat.</p>
+              <p>Aucune scène. Crée ou sélectionne une scène.</p>
             </div>
           )}
         </section>

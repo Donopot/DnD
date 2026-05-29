@@ -14,12 +14,12 @@ type CampaignViewTabsProps = {
 
 const views: Array<{ id: CampaignView; label: string; description: string }> = [
   { id: "campaign", label: "Campagne", description: "Infos, membres et invitations" },
-  { id: "preparation", label: "Preparation", description: "Scenes, cartes, notes et ressources" },
+  { id: "preparation", label: "Préparation", description: "Scènes, cartes et ressources" },
   { id: "live", label: "Session Live", description: "Carte, modes et panneaux MJ" },
-  { id: "characters", label: "Personnages", description: "Fiches et resume du groupe" },
-  { id: "journal", label: "Journal", description: "Archive complete de session" },
-  { id: "library", label: "Bibliotheque", description: "PNJ, monstres, cartes et documents" },
-  { id: "settings", label: "Parametres", description: "Permissions, layouts et options" },
+  { id: "characters", label: "Personnages", description: "Fiches et résumé du groupe" },
+  { id: "journal", label: "Journal", description: "Archive complète de session" },
+  { id: "library", label: "Bibliothèque", description: "PNJ, monstres, cartes et documents" },
+  { id: "settings", label: "Paramètres", description: "Permissions, layouts et options" },
 ];
 
 export function CampaignViewTabs({ activeView, onChange }: CampaignViewTabsProps) {

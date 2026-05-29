@@ -16,7 +16,6 @@ import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
-import { CombatPanel } from "./components/CombatPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
@@ -1212,6 +1211,7 @@ export default function App() {
                   </div>
                 </section>
 
+                {activeCampaignView === "live" || activeCampaignView === "preparation" ? (
                 <VttBoard
                   scenes={scenes}
                   selectedScene={selectedScene}
@@ -1233,25 +1233,7 @@ export default function App() {
                   onMoveToken={(tokenToMove, dx, dy) => void handleMoveToken(tokenToMove, dx, dy)}
                   sessionLiveMode={activeCampaignView === "live" ? activeSessionLiveMode : undefined}
                 />
-
-                <CombatPanel
-                  encounters={encounters}
-                  selectedEncounter={selectedEncounter}
-                  combatants={combatants}
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                  sceneTokens={sceneTokens}
-                  isBusy={isBusy}
-                  onCreateEncounter={handleCreateEncounter}
-                  onSelectEncounter={setSelectedEncounterId}
-                  onLoadEncounterDetail={(encounterId) => void loadEncounterDetail(encounterId)}
-                  onStartEncounter={() => void handleStartEncounter()}
-                  onNextTurn={() => void handleNextTurn()}
-                  onEndEncounter={() => void handleEndEncounter()}
-                  onAddCombatant={handleAddCombatant}
-                  onAdjustCombatantHp={(combatant, delta) => void handleAdjustCombatantHp(combatant, delta)}
-                  onToggleDefeated={(combatant) => void handleToggleDefeated(combatant)}
-                />
+                ) : null}
 
                 <SessionLogPanel
                   characters={characters}
