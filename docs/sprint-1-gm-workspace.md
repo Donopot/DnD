@@ -631,3 +631,64 @@ La modification directe de visibilite sera ajoutee dans une phase backend/token.
 - voir comme joueur ;
 - historique des revelations ;
 - confirmation avant revelation publique.
+
+## Phase de stabilisation UI panneaux
+
+### Objectif
+
+Stabiliser tous les panneaux GM avant d'ajouter de nouveaux panneaux.
+
+### Corrections
+
+- registre unique frontend/src/config/vttPanels.ts ;
+- detection des panneaux via data-vtt-panel ;
+- menu Panneaux base sur le registre ;
+- bouton Afficher un panneau toujours utilisable ;
+- passage automatique en mode Avance pour ouvrir un panneau ;
+- hook useFloatingWidgets stabilise ;
+- dock des panneaux reduits et fermes ;
+- reouverture robuste ;
+- etat pinned ajoute ;
+- preset personnalise sauvegardable ;
+- scripts de verification ;
+- CSS de stabilisation ;
+- suppression progressive des doubles headers.
+
+### Scripts
+
+- scripts/check-vtt-panels.sh ;
+- scripts/check-panel-system.sh ;
+- scripts/check-frontend-types.sh.
+
+### Validation navigateur
+
+Pour chaque panneau :
+
+- ouvrir depuis Panneaux ;
+- reduire ;
+- rouvrir depuis dock ;
+- fermer ;
+- rouvrir depuis dock ;
+- fermer ;
+- rouvrir depuis Panneaux ;
+- epingler ;
+- detacher ;
+- verrouiller ;
+- deverrouiller ;
+- deplacer ;
+- redimensionner.
+
+### Panneaux concernes
+
+- Mini-map ;
+- Detail token ;
+- Visibilite ;
+- Actions rapides ;
+- Initiative ;
+- Resume du groupe ;
+- Notes MJ ;
+- Scenes ;
+- Upload carte ;
+- Fond de carte ;
+- Ajout token ;
+- Liste tokens.
