@@ -70,6 +70,54 @@ Scripts are provided in `scripts/`:
 
 - `backup-postgres.sh`
 - `backup-minio.sh`
+- `smoke-phase2.sh`
+- `smoke-phase3.sh`
+- `smoke-phase4.sh`
+- `smoke-phase5.sh`
 
 They write to `./backups` by default when run from the repository root on the
 server.
+
+## Current Product Phase
+
+Phase 2 is implemented in the app skeleton:
+
+- email/password auth;
+- JWT session token;
+- campaign creation and listing;
+- campaign members;
+- player invitation links;
+- minimal React dashboard.
+
+Phase 3 is also implemented:
+
+- campaign-scoped character sheets;
+- HP, AC, speed, level, class and ancestry;
+- flexible JSONB blocks for attributes, skills, attacks, inventory, spells and resources;
+- dashboard character creation and sheet preview.
+
+Phase 4 is implemented:
+
+- campaign dice rolls;
+- normal, advantage and disadvantage modes;
+- public and GM-only visibility;
+- campaign game log;
+- dashboard dice and journal panel.
+
+Phase 5 is implemented:
+
+- campaign WebSocket endpoint;
+- authenticated campaign membership check;
+- presence count;
+- realtime notifications for rolls and log notes;
+- dashboard realtime status.
+
+Run the smoke test on the HP Mini:
+
+```bash
+cd /home/donopot/dnd-saas
+sh scripts/smoke-phase2.sh
+sh scripts/smoke-phase3.sh
+sh scripts/smoke-phase4.sh
+sh scripts/smoke-phase5.sh
+```

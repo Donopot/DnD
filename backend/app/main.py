@@ -5,6 +5,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.db import close_db, connect_db
+from app.routers import auth, campaigns, characters, session
 
 settings = get_settings()
 
@@ -17,6 +19,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
+app.include_router(campaigns.router)
+app.include_router(characters.router)
+app.include_router(session.router)
+app.include_router(session.ws_router)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    await connect_db()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await close_db()
 
 
 @app.get("/api/health")
@@ -59,4 +77,3 @@ async def websocket_health(websocket: WebSocket) -> None:
             await websocket.send_json({"echo": message})
     except WebSocketDisconnect:
         return
-
