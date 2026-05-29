@@ -1196,3 +1196,65 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.tool-card {
+  border: 1px solid #d7d0c0;
+  border-radius: 10px;
+  background: #fffdf7;
+  overflow: hidden;
+}
+
+.tool-card summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  color: #253028;
+  font-weight: 950;
+  list-style: none;
+  border-bottom: 1px solid transparent;
+}
+
+.tool-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-card summary::after {
+  content: "+";
+  float: right;
+  font-weight: 950;
+}
+
+.tool-card[open] summary {
+  border-bottom-color: #e7dfd0;
+  background: #f4f1e8;
+}
+
+.tool-card[open] summary::after {
+  content: "−";
+}
+
+.tool-card > form,
+.tool-card > div {
+  padding: 12px;
+}
+
+.vtt-control-panel {
+  gap: 10px;
+}
+
+.session-workspace .vtt-control-panel {
+  max-height: 72vh;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.session-workspace .tool-card {
+  box-shadow: 0 6px 16px rgba(35, 48, 40, 0.06);
+}
+
+.session-workspace .vtt-board-panel {
+  min-height: 70vh;
+}
+
+.session-workspace .map-board {
+  min-height: 60vh;
+}

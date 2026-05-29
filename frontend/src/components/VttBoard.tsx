@@ -126,7 +126,10 @@ export function VttBoard({
         </section>
 
         <section className="vtt-control-panel">
-          <form className="scene-form" onSubmit={onCreateScene}>
+          <details className="tool-card" open>
+            <summary>Scene</summary>
+
+<form className="scene-form" onSubmit={onCreateScene}>
             <h4>Nouvelle scene</h4>
 
             <label>
@@ -160,8 +163,12 @@ export function VttBoard({
               Creer scene
             </button>
           </form>
+          </details>
 
-          <form className="asset-form" onSubmit={onUploadAsset}>
+          <details className="tool-card">
+            <summary>Uploader une carte</summary>
+
+<form className="asset-form" onSubmit={onUploadAsset}>
             <h4>Fond de carte</h4>
 
             <label>
@@ -173,8 +180,12 @@ export function VttBoard({
               Uploader carte
             </button>
           </form>
+          </details>
 
-          <div className="asset-picker">
+          <details className="tool-card">
+            <summary>Choisir le fond</summary>
+
+<div className="asset-picker">
             <h4>Assets de campagne</h4>
 
             {assets.length === 0 ? (
@@ -203,8 +214,12 @@ export function VttBoard({
               </>
             )}
           </div>
+          </details>
 
-          <form className="token-form" onSubmit={onCreateToken}>
+          <details className="tool-card" open>
+            <summary>Ajouter un token</summary>
+
+<form className="token-form" onSubmit={onCreateToken}>
             <h4>Nouveau token</h4>
 
             <label>
@@ -250,8 +265,12 @@ export function VttBoard({
               Ajouter token
             </button>
           </form>
+          </details>
 
-          <div className="token-list">
+          <details className="tool-card" open>
+            <summary>Tokens sur la scene</summary>
+
+<div className="token-list">
             <h4>Tokens</h4>
 
             {sceneTokens.length === 0 ? (
@@ -288,6 +307,7 @@ export function VttBoard({
               })
             )}
           </div>
+          </details>
         </section>
       </div>
     </div>
