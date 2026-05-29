@@ -3978,3 +3978,113 @@ select {
 }
 
 /* End Phase 10-3H intuitive GM panel manager */
+
+/* Sprint 1 Lot 1 - persistent presets and custom GM layout */
+
+.gm-mode-play .vtt-panels-menu,
+.gm-mode-prepare .vtt-panels-menu {
+  display: block !important;
+}
+
+.gm-mode-play .reset-panels-button,
+.gm-mode-prepare .reset-panels-button {
+  display: none !important;
+}
+
+.vtt-panels-menu[open] {
+  z-index: 7000;
+}
+
+.vtt-panels-menu[open] .vtt-panels-menu-content {
+  position: fixed;
+  top: 74px;
+  right: 18px;
+  z-index: 7000;
+  display: grid;
+  width: min(380px, calc(100vw - 36px));
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(31, 95, 67, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 253, 247, 0.98);
+  box-shadow: 0 24px 64px rgba(35, 48, 40, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.vtt-panels-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.vtt-panels-preset-grid .preset-button {
+  display: grid;
+  gap: 2px;
+  min-height: 46px;
+  padding: 7px 8px;
+  border: 1px solid #cfe5d2;
+  border-radius: 8px;
+  background: #eef8ef;
+  color: #1f5f43;
+  text-align: left;
+}
+
+.vtt-panels-preset-grid .preset-button:last-child {
+  grid-column: 1 / -1;
+  border-color: #d8c28c;
+  background: #fff7df;
+  color: #6f4c11;
+}
+
+.vtt-panels-preset-grid .preset-button span,
+.save-layout-button span {
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.vtt-panels-preset-grid .preset-button small,
+.save-layout-button small {
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.save-layout-button {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 7px 8px;
+  border: 1px solid #d8c28c;
+  border-radius: 8px;
+  background: #fff7df;
+  color: #6f4c11;
+  text-align: left;
+}
+
+.save-layout-button:hover:not(:disabled),
+.vtt-panels-preset-grid .preset-button:hover {
+  border-color: #1f5f43;
+  background: #ddf3df;
+  color: #1f5f43;
+}
+
+.save-layout-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-menu[open] .vtt-panels-menu-content {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+
+  .vtt-panels-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Sprint 1 Lot 1 - persistent presets and custom GM layout */

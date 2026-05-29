@@ -20,12 +20,14 @@ const presets: Array<{ id: FloatingWidgetPreset; label: string; hint: string }> 
   { id: "exploration", label: "Exploration", hint: "Carte + mini-map + contexte" },
   { id: "combat", label: "Combat", hint: "Tokens + actions rapides" },
   { id: "preparation", label: "Préparation", hint: "Scènes, cartes et tokens" },
+  { id: "custom", label: "Personnalisé", hint: "Ton layout sauvegardé" },
 ];
 
 type VttPanelsMenuProps = {
   enabled: boolean;
   onShowPanel: (panelId: string) => void;
   onApplyPreset: (preset: FloatingWidgetPreset) => void;
+  onSaveCustomPreset: () => void;
   onResetPanels: () => void;
 };
 
@@ -33,20 +35,21 @@ export function VttPanelsMenu({
   enabled,
   onShowPanel,
   onApplyPreset,
+  onSaveCustomPreset,
   onResetPanels,
 }: VttPanelsMenuProps) {
   return (
     <details className={`vtt-panels-menu ${enabled ? "active" : ""}`}>
-      <summary>{enabled ? "Gestion panneaux" : "Panneaux"}</summary>
+      <summary>Gestion panneaux</summary>
 
       <div className="vtt-panels-menu-content" role="menu">
         <header className="vtt-panels-manager-header">
           <span>Gestionnaire MJ</span>
-          <strong>{enabled ? "Mode avancé actif" : "Choisis un preset pour activer le mode avancé"}</strong>
+          <strong>{enabled ? "Mode avancé actif" : "Les presets activent le mode avancé"}</strong>
         </header>
 
         <section className="vtt-panels-menu-group">
-          <strong>Layouts rapides</strong>
+          <strong>Presets toujours accessibles</strong>
 
           <div className="vtt-panels-preset-grid">
             {presets.map((preset) => (
@@ -61,6 +64,20 @@ export function VttPanelsMenu({
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="vtt-panels-menu-group">
+          <strong>Layout personnalisé</strong>
+
+          <button
+            className="save-layout-button"
+            disabled={!enabled}
+            onClick={onSaveCustomPreset}
+            type="button"
+          >
+            <span>Sauvegarder layout actuel</span>
+            <small>Positions, tailles, panneaux fermés, réduits et verrouillés</small>
+          </button>
         </section>
 
         <section className="vtt-panels-menu-group">
