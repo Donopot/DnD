@@ -63,7 +63,7 @@ export default function App() {
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [mode, setMode] = useState<"login" | "register">("register");
   const [message, setMessage] = useState("");
-  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("overview");
+  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("campaign");
   const [isBusy, setIsBusy] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -1232,6 +1232,28 @@ export default function App() {
                   onRoll={handleRoll}
                   onAddNote={handleLogNote}
                 />
+
+                <section className="gm-placeholder-tab gm-library-placeholder">
+                  <h3>Bibliotheque</h3>
+                  <p className="muted">Espace prevu pour les ressources reutilisables de campagne.</p>
+                  <ul>
+                    <li>PNJ, monstres et creatures</li>
+                    <li>Objets, sorts et regles</li>
+                    <li>Cartes, tokens et documents</li>
+                    <li>Tables aleatoires et modeles de rencontre</li>
+                  </ul>
+                </section>
+
+                <section className="gm-placeholder-tab gm-settings-placeholder">
+                  <h3>Parametres</h3>
+                  <p className="muted">Espace prevu pour la configuration de campagne et de session.</p>
+                  <ul>
+                    <li>Permissions joueurs</li>
+                    <li>Systeme de jeu</li>
+                    <li>Options de visibilite</li>
+                    <li>Layouts, raccourcis et import/export</li>
+                  </ul>
+                </section>
               </>
             ) : (
               <p className="muted">Cree ou selectionne une campagne.</p>

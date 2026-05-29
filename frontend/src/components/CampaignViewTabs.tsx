@@ -1,4 +1,11 @@
-export type CampaignView = "overview" | "characters" | "session" | "table" | "combat" | "journal";
+export type CampaignView =
+  | "campaign"
+  | "preparation"
+  | "live"
+  | "characters"
+  | "journal"
+  | "library"
+  | "settings";
 
 type CampaignViewTabsProps = {
   activeView: CampaignView;
@@ -6,17 +13,18 @@ type CampaignViewTabsProps = {
 };
 
 const views: Array<{ id: CampaignView; label: string; description: string }> = [
-  { id: "overview", label: "Vue d'ensemble", description: "Campagne, membres et invitations" },
-  { id: "characters", label: "Personnages", description: "Fiches et joueurs" },
-  { id: "session", label: "Session", description: "Carte, combat et journal live" },
-  { id: "table", label: "Table", description: "Carte, scenes, tokens et assets" },
-  { id: "combat", label: "Combat", description: "Initiative et tours" },
-  { id: "journal", label: "Journal", description: "Jets, notes et historique" },
+  { id: "campaign", label: "Campagne", description: "Infos, membres et invitations" },
+  { id: "preparation", label: "Preparation", description: "Scenes, cartes, notes et ressources" },
+  { id: "live", label: "Session Live", description: "Carte, modes et panneaux MJ" },
+  { id: "characters", label: "Personnages", description: "Fiches et resume du groupe" },
+  { id: "journal", label: "Journal", description: "Archive complete de session" },
+  { id: "library", label: "Bibliotheque", description: "PNJ, monstres, cartes et documents" },
+  { id: "settings", label: "Parametres", description: "Permissions, layouts et options" },
 ];
 
 export function CampaignViewTabs({ activeView, onChange }: CampaignViewTabsProps) {
   return (
-    <nav className="campaign-view-tabs" aria-label="Navigation campagne">
+    <nav className="campaign-view-tabs gm-workspace-tabs" aria-label="Navigation campagne">
       {views.map((view) => (
         <button
           className={activeView === view.id ? "active" : ""}

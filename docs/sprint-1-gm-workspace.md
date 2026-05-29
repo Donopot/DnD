@@ -344,3 +344,37 @@ Cela surchargeait l'interface GM et rendait la navigation moins claire.
 10. Verifier que seul le combat est visible.
 11. Cliquer Session.
 12. Verifier que Table, Combat et Journal sont visibles ensemble.
+
+## Refonte plan d'action interface GM
+
+### Nouvelle logique
+
+Les onglets deviennent des espaces de travail.
+Les panneaux deviennent des outils contextuels dans Session Live.
+
+### Onglets cibles
+
+- Campagne ;
+- Preparation ;
+- Session Live ;
+- Personnages ;
+- Journal ;
+- Bibliotheque ;
+- Parametres.
+
+### Transformation
+
+- Vue d'ensemble devient Campagne ;
+- Table est integree a Session Live ;
+- Combat devient un mode de Session Live ;
+- Journal reste une archive complete ;
+- Session devient Session Live ;
+- Preparation est ajoutee ;
+- Bibliotheque est ajoutee ;
+- Parametres est ajoute.
+
+### Priorite suivante
+
+- transformer Session Live en cockpit principal ;
+- ajouter les modes Exploration, Combat, Roleplay, Preparation rapide et Minimal ;
+- associer les layouts de panneaux aux modes.
