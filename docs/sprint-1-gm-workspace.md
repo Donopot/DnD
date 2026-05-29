@@ -307,3 +307,40 @@ Cela provoquait des comportements incoherents selon les panneaux.
 - les actions reduire, fermer, rouvrir, epingler, verrouiller sont uniformes ;
 - le menu ne diverge plus du code reel ;
 - le systeme est plus facile a maintenir.
+
+## Correction interface GM - Onglets principaux
+
+### Objectif
+
+Separer les grosses sections de l'interface GM afin d'eviter une page trop longue.
+
+### Comportement
+
+Les vues principales sont maintenant separees :
+
+- Vue d'ensemble : description campagne, invitation, membres ;
+- Personnages : creation et consultation des fiches personnages ;
+- Table : VTT, carte, scenes, tokens et panneaux ;
+- Combat : gestion du combat ;
+- Journal : jets, notes et historique ;
+- Session : vue live complete avec table, combat et journal.
+
+### Motivation
+
+Avant cette correction, les sections Personnages, Table, Combat et Journal etaient empilees dans le meme ecran.
+Cela surchargeait l'interface GM et rendait la navigation moins claire.
+
+### Validation
+
+1. Selectionner une campagne.
+2. Verifier que les onglets sont visibles.
+3. Cliquer Personnages.
+4. Verifier que seule la section Personnages est visible.
+5. Cliquer Journal.
+6. Verifier que seul le Journal est visible.
+7. Cliquer Table.
+8. Verifier que seule la table virtuelle est visible.
+9. Cliquer Combat.
+10. Verifier que seul le combat est visible.
+11. Cliquer Session.
+12. Verifier que Table, Combat et Journal sont visibles ensemble.

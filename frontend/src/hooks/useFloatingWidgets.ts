@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { VTT_PANELS, isVttPanelId, type FloatingWidgetPreset } from "../config/vttPanels";
+import type { FloatingWidgetPreset } from "../config/vttPanels";
 
 type WidgetLayout = {
   left: number;
@@ -37,19 +37,8 @@ function slugify(value: string) {
 }
 
 function getWidgetTitle(widget: HTMLElement, index: number) {
-  const widgetId =
-    widget.getAttribute("data-vtt-panel") ||
-    widget.getAttribute("data-floating-widget") ||
-    widget.getAttribute("data-quick-panel") ||
-    "";
-
-  const registryLabel = isVttPanelId(widgetId)
-    ? VTT_PANELS.find((panel) => panel.id === widgetId)?.label
-    : undefined;
-
   return (
     widget.getAttribute("data-floating-title") ||
-    registryLabel ||
     widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
       ?.textContent
       ?.trim() ||
@@ -59,7 +48,6 @@ function getWidgetTitle(widget: HTMLElement, index: number) {
 
 function getWidgetId(widget: HTMLElement, index: number) {
   return (
-    widget.getAttribute("data-vtt-panel") ||
     widget.getAttribute("data-floating-widget") ||
     widget.getAttribute("data-quick-panel") ||
     slugify(getWidgetTitle(widget, index)) ||
@@ -122,13 +110,15 @@ function clearRuntimeWidgetState(widget: HTMLElement) {
 }
 
 function getControlledWidgets(root: HTMLElement) {
-  const panelOrder = new Map(VTT_PANELS.map((panel, index) => [panel.id, index]));
-
-  return Array.from(root.querySelectorAll<HTMLElement>("[data-vtt-panel]")).sort((left, right) => {
-    const leftId = left.getAttribute("data-vtt-panel") || "";
-    const rightId = right.getAttribute("data-vtt-panel") || "";
-
-    return (panelOrder.get(leftId as never) ?? 999) - (panelOrder.get(rightId as never) ?? 999);
+  return Array.from(root.children).filter((child): child is HTMLElement => {
+    return (
+      child instanceof HTMLElement &&
+      (
+        child.classList.contains("map-overview") ||
+        child.classList.contains("token-detail-panel") ||
+        child.classList.contains("tool-card")
+      )
+    );
   });
 }
 
@@ -219,14 +209,13 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
 function reopenFloatingWidgetDom(widgetId: string) {
   const widgets = Array.from(
     document.querySelectorAll<HTMLElement>(
-      "[data-floating-runtime-id], [data-vtt-panel], [data-floating-widget], [data-quick-panel]",
+      "[data-floating-runtime-id], [data-floating-widget], [data-quick-panel]",
     ),
   );
 
   const widget = widgets.find((candidate) => {
     return (
       candidate.getAttribute("data-floating-runtime-id") === widgetId ||
-      candidate.getAttribute("data-vtt-panel") === widgetId ||
       candidate.getAttribute("data-floating-widget") === widgetId ||
       candidate.getAttribute("data-quick-panel") === widgetId
     );
