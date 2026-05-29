@@ -126,7 +126,7 @@ export function VttBoard({
         </section>
 
         <section className="vtt-control-panel">
-          <details className="tool-card" open>
+          <details className="tool-card" data-quick-panel="scene" open>
             <summary>Scene</summary>
 
 <form className="scene-form" onSubmit={onCreateScene}>
@@ -216,7 +216,7 @@ export function VttBoard({
           </div>
           </details>
 
-          <details className="tool-card" open>
+          <details className="tool-card" data-quick-panel="token" open>
             <summary>Ajouter un token</summary>
 
 <form className="token-form" onSubmit={onCreateToken}>
@@ -267,7 +267,7 @@ export function VttBoard({
           </form>
           </details>
 
-          <details className="tool-card" open>
+          <details className="tool-card" data-quick-panel="tokens" open>
             <summary>Tokens sur la scene</summary>
 
 <div className="token-list">

@@ -12,6 +12,7 @@ import type {
 } from "../api/types";
 import { CombatPanel } from "./CombatPanel";
 import { SessionLogPanel } from "./SessionLogPanel";
+import { SessionQuickActions } from "./SessionQuickActions";
 import { VttBoard } from "./VttBoard";
 
 type SessionWorkspaceProps = {
@@ -89,6 +90,13 @@ export function SessionWorkspace({
 }: SessionWorkspaceProps) {
   return (
     <div className="session-workspace">
+      <SessionQuickActions
+        selectedScene={selectedScene}
+        selectedEncounter={selectedEncounter}
+        combatants={combatants}
+        isBusy={isBusy}
+        onNextTurn={onNextTurn}
+      />
       <section className="session-map-zone">
         <VttBoard
           scenes={scenes}

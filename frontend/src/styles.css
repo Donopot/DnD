@@ -1919,3 +1919,73 @@ select {
 }
 
 /* End R4-6 global workspace polish */
+
+/* R4-7 session quick actions */
+
+.session-quick-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(37, 48, 40, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 12px 30px rgba(35, 48, 40, 0.08);
+}
+
+.quick-context {
+  display: grid;
+  gap: 2px;
+  min-width: 220px;
+}
+
+.quick-context span {
+  color: #1f5f43;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quick-context strong {
+  color: #253028;
+  font-size: 1rem;
+}
+
+.quick-context small {
+  color: #657068;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.quick-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.quick-action-buttons .ghost-button,
+.quick-action-buttons .primary-button {
+  min-height: 40px;
+  padding: 8px 12px;
+}
+
+.quick-action-buttons svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 900px) {
+  .session-quick-actions {
+    display: grid;
+  }
+
+  .quick-action-buttons {
+    justify-content: flex-start;
+  }
+}
+
+/* End R4-7 session quick actions */

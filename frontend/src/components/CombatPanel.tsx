@@ -152,7 +152,7 @@ export function CombatPanel({
         </section>
 
         <aside className="combat-tools-card">
-          <details className="tool-card">
+          <details className="tool-card" data-quick-panel="encounter">
             <summary>Nouveau combat</summary>
 
             <form className="encounter-form" onSubmit={onCreateEncounter}>
@@ -167,7 +167,7 @@ export function CombatPanel({
             </form>
           </details>
 
-          <details className="tool-card" open>
+          <details className="tool-card" data-quick-panel="combatant" open>
             <summary>Ajouter un combattant</summary>
 
             <form className="combatant-form" onSubmit={onAddCombatant}>

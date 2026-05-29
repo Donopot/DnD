@@ -45,7 +45,7 @@ export function SessionLogPanel({
 
       <div className="session-compact-layout">
         <aside className="session-tools-card">
-          <details className="tool-card" open>
+          <details className="tool-card" data-quick-panel="roll" open>
             <summary>Lancer les des</summary>
 
             <form className="form-stack" onSubmit={onRoll}>
@@ -96,7 +96,7 @@ export function SessionLogPanel({
             </form>
           </details>
 
-          <details className="tool-card">
+          <details className="tool-card" data-quick-panel="note">
             <summary>Note de session</summary>
 
             <form className="form-stack" onSubmit={onAddNote}>

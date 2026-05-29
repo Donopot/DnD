@@ -157,3 +157,21 @@ Critere d'acceptation :
 - smoke tests Phase 2 a 8 OK ;
 - frontend accessible sur http://127.0.0.1:8090 ;
 - navigation campagne plus confortable.
+
+## Etape R4-7 - Actions rapides MJ
+
+Objectif :
+
+- ajouter une barre d'actions rapides dans la vue Session ;
+- permettre au MJ d'acceder rapidement a la carte ;
+- ouvrir rapidement le panneau ajouter token ;
+- ouvrir rapidement le lancer de de ;
+- ouvrir rapidement l'ajout de combattant ;
+- avancer au tour suivant sans chercher dans les panneaux.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la vue Session affiche une barre d'actions rapides ;
+- les boutons ouvrent les panneaux correspondants.
