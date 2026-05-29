@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, type PointerEvent } from "react";
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
@@ -63,6 +63,12 @@ export function VttBoard({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [viewportRatio, setViewportRatio] = useState({
+    left: 0,
+    top: 0,
+    width: 1,
+    height: 1,
+  });
 
   const selectedToken = useMemo(
     () => sceneTokens.find((token) => token.id === selectedTokenId),
@@ -183,6 +189,69 @@ export function VttBoard({
       scrollRef.current.scrollLeft = 0;
       scrollRef.current.scrollTop = 0;
     }
+  }
+
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+
+    if (!scrollElement || !selectedScene) {
+      setViewportRatio({
+        left: 0,
+        top: 0,
+        width: 1,
+        height: 1,
+      });
+      return;
+    }
+
+    const element = scrollElement;
+
+    function updateViewportRatio() {
+      const maxScrollLeft = Math.max(1, element.scrollWidth - element.clientWidth);
+      const maxScrollTop = Math.max(1, element.scrollHeight - element.clientHeight);
+
+      setViewportRatio({
+        left: clamp(element.scrollLeft / maxScrollLeft, 0, 1),
+        top: clamp(element.scrollTop / maxScrollTop, 0, 1),
+        width: clamp(element.clientWidth / Math.max(1, element.scrollWidth), 0.05, 1),
+        height: clamp(element.clientHeight / Math.max(1, element.scrollHeight), 0.05, 1),
+      });
+    }
+
+    updateViewportRatio();
+
+    element.addEventListener("scroll", updateViewportRatio);
+    window.addEventListener("resize", updateViewportRatio);
+
+    return () => {
+      element.removeEventListener("scroll", updateViewportRatio);
+      window.removeEventListener("resize", updateViewportRatio);
+    };
+  }, [selectedScene, zoom]);
+
+  function centerMapFromOverview(event: MouseEvent<HTMLButtonElement>) {
+    if (!selectedScene || !scrollRef.current) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratioX = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+    const ratioY = clamp((event.clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+
+    const targetX = selectedScene.width * zoom * ratioX;
+    const targetY = selectedScene.height * zoom * ratioY;
+
+    scrollRef.current.scrollLeft = clamp(
+      targetX - scrollRef.current.clientWidth / 2,
+      0,
+      Math.max(0, scrollRef.current.scrollWidth - scrollRef.current.clientWidth),
+    );
+
+    scrollRef.current.scrollTop = clamp(
+      targetY - scrollRef.current.clientHeight / 2,
+      0,
+      Math.max(0, scrollRef.current.scrollHeight - scrollRef.current.clientHeight),
+    );
   }
 
   function centerSelectedToken() {
