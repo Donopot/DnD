@@ -546,3 +546,47 @@ Ajouter un panneau Initiative pour préparer le futur mode Combat.
 - cacher ennemis non reveles ;
 - historique des rounds ;
 - expiration automatique des conditions.
+
+## Sprint GM-2F - Panneau Actions rapides
+
+### Objectif
+
+Ajouter un panneau Actions rapides pour accelerer les actions courantes du MJ pendant Session Live.
+
+### Fonctionnalites
+
+- ouvrir rapidement les panneaux importants ;
+- appliquer rapidement un layout Exploration, Combat, Roleplay, Preparation rapide ou Minimal ;
+- lancer des des simples ;
+- voir le contexte scene/token ;
+- copier un resume rapide de la scene ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Panneaux accessibles
+
+- Detail token ;
+- Initiative ;
+- Resume du groupe ;
+- Notes MJ ;
+- Scenes ;
+- Ajout token ;
+- Mini-map.
+
+### Comportement attendu
+
+- Actions rapides visible dans tous les modes ;
+- boutons fonctionnels ;
+- compatible reduire, fermer, dock, rouvrir, epingler, verrouiller.
+
+### Evolution future
+
+- demander un jet a tous les joueurs ;
+- appliquer degats ;
+- appliquer soin ;
+- appliquer etat ;
+- reveler document ;
+- reveler zone ;
+- ping carte ;
+- envoyer message prive ;
+- lancer musique ;
+- creer note de session.

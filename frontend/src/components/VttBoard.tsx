@@ -6,6 +6,7 @@ import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/ses
 import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { QuickActionsPanel } from "./QuickActionsPanel";
 import { InitiativePanel } from "./InitiativePanel";
 
 type Position = {
@@ -868,6 +869,23 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
+          <details
+            data-vtt-panel="quick-actions"
+            data-floating-widget="quick-actions"
+            data-floating-title="Actions rapides"
+            className="tool-card quick-actions-card"
+            open
+          >
+            <summary>Actions rapides</summary>
+
+            <QuickActionsPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              sceneTokens={sceneTokens}
+            />
+          </details>
+
+
           <details
             data-vtt-panel="initiative"
             data-floating-widget="initiative"
