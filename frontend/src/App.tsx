@@ -14,6 +14,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import "./styles.css";
+import { MessageDock } from "./components/common";
 import type {
   Asset,
   AuthResponse,
@@ -1719,7 +1720,7 @@ export default function App() {
             )}
           </section>
         </div>
-        {message && <p className="message docked">{message}</p>}
+        <MessageDock message={message} />
       </section>
     </main>
   );
