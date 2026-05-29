@@ -8,16 +8,27 @@ from pathlib import Path
 import re
 import sys
 
-config = Path("frontend/src/config/vttPanels.ts").read_text()
-board = Path("frontend/src/components/VttBoard.tsx").read_text()
+config_path = Path("frontend/src/config/vttPanels.ts")
+board_path = Path("frontend/src/components/VttBoard.tsx")
 
-panels_match = re.search(r"export const VTT_PANELS:.*?\[(.*?)\];", config, re.S)
-
-if not panels_match:
-    print("Impossible de lire VTT_PANELS dans frontend/src/config/vttPanels.ts")
+if not config_path.exists():
+    print("Manque frontend/src/config/vttPanels.ts")
     sys.exit(1)
 
-registry_ids = set(re.findall(r'id: "([^"]+)"', panels_match.group(1)))
+if not board_path.exists():
+    print("Manque frontend/src/components/VttBoard.tsx")
+    sys.exit(1)
+
+config = config_path.read_text()
+board = board_path.read_text()
+
+registry_match = re.search(r"export const VTT_PANELS:.*?\[(.*?)\];", config, re.S)
+
+if not registry_match:
+    print("Impossible de lire VTT_PANELS")
+    sys.exit(1)
+
+registry_ids = set(re.findall(r'id: "([^"]+)"', registry_match.group(1)))
 board_ids = set(re.findall(r'data-vtt-panel="([^"]+)"', board))
 
 missing = sorted(registry_ids - board_ids)
@@ -27,10 +38,10 @@ print("Registry panels:", ", ".join(sorted(registry_ids)))
 print("Board panels:   ", ", ".join(sorted(board_ids)))
 
 if missing:
-    print("Panneaux présents dans le registre mais absents de VttBoard:", ", ".join(missing))
+    print("Panneaux du registre absents de VttBoard:", ", ".join(missing))
 
 if extra:
-    print("Panneaux présents dans VttBoard mais absents du registre:", ", ".join(extra))
+    print("Panneaux de VttBoard absents du registre:", ", ".join(extra))
 
 if missing or extra:
     sys.exit(1)

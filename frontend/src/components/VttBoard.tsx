@@ -746,7 +746,7 @@ export function VttBoard({
 
         <section className="vtt-control-panel">
           {selectedScene && (
-            <div data-vtt-panel="minimap" data-floating-widget="minimap" className="map-overview" data-floating-title="Mini-map">
+            <div data-vtt-panel="minimap" data-floating-widget="minimap" data-floating-title="Mini-map" className="map-overview">
               <div className="map-overview-header">
                 <span>Mini-map</span>
                 <small>
@@ -795,7 +795,7 @@ export function VttBoard({
               </button>
             </div>
           )}
-          <section data-vtt-panel="token-detail" data-floating-widget="token-detail" className="token-detail-panel" data-floating-title="Detail token">
+          <section data-vtt-panel="token-detail" data-floating-widget="token-detail" data-floating-title="Détail token" className="token-detail-panel">
             <div className="token-detail-heading">
               <h4>Token selectionne</h4>
               {selectedToken && <span>{selectedToken.name}</span>}
@@ -870,10 +870,10 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
-          <details
-            data-vtt-panel="visibility-inspector"
-            data-floating-widget="visibility-inspector"
-            data-floating-title="Visibilité"
+          <details data-vtt-panel="visibility-inspector" data-floating-widget="visibility-inspector" data-floating-title="Visibilité"
+           
+           
+           
             className="tool-card visibility-inspector-card"
             open
           >
@@ -887,10 +887,10 @@ export function VttBoard({
           </details>
 
 
-          <details
-            data-vtt-panel="quick-actions"
-            data-floating-widget="quick-actions"
-            data-floating-title="Actions rapides"
+          <details data-vtt-panel="quick-actions" data-floating-widget="quick-actions" data-floating-title="Actions rapides"
+           
+           
+           
             className="tool-card quick-actions-card"
             open
           >
@@ -904,10 +904,10 @@ export function VttBoard({
           </details>
 
 
-          <details
-            data-vtt-panel="initiative"
-            data-floating-widget="initiative"
-            data-floating-title="Initiative"
+          <details data-vtt-panel="initiative" data-floating-widget="initiative" data-floating-title="Initiative"
+           
+           
+           
             className="tool-card initiative-card"
             open
           >
@@ -920,10 +920,10 @@ export function VttBoard({
           </details>
 
 
-          <details
-            data-vtt-panel="party-summary"
-            data-floating-widget="party-summary"
-            data-floating-title="Résumé du groupe"
+          <details data-vtt-panel="party-summary" data-floating-widget="party-summary" data-floating-title="Résumé du groupe"
+           
+           
+           
             className="tool-card party-summary-card"
             open
           >
@@ -982,7 +982,7 @@ export function VttBoard({
           </details>
 
 
-          <details data-vtt-panel="gm-notes" data-floating-widget="gm-notes" className="tool-card" open>
+          <details data-vtt-panel="gm-notes" data-floating-widget="gm-notes" data-floating-title="Notes MJ" className="tool-card" open>
             <summary>Notes MJ</summary>
 
             <div className="gm-notes-panel">
@@ -1005,7 +1005,7 @@ export function VttBoard({
 
 
 
-          <details data-vtt-panel="scene" data-floating-widget="scene" className="tool-card" data-floating-title="Scene" open>
+          <details data-vtt-panel="scene" data-floating-widget="scene" data-floating-title="Scènes" className="tool-card" open>
             <summary>Scene</summary>
 
             <form className="scene-form" onSubmit={onCreateScene}>
@@ -1044,7 +1044,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details data-vtt-panel="upload-map" data-floating-widget="upload-map" className="tool-card" data-floating-title="Upload carte">
+          <details data-vtt-panel="upload-map" data-floating-widget="upload-map" data-floating-title="Upload carte" className="tool-card">
             <summary>Uploader une carte</summary>
 
             <form className="asset-form" onSubmit={onUploadAsset}>
@@ -1061,7 +1061,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details data-vtt-panel="background" data-floating-widget="background" className="tool-card" data-floating-title="Fond de carte">
+          <details data-vtt-panel="background" data-floating-widget="background" data-floating-title="Fond de carte" className="tool-card">
             <summary>Choisir le fond</summary>
 
             <div className="asset-picker">
@@ -1095,7 +1095,7 @@ export function VttBoard({
             </div>
           </details>
 
-          <details data-vtt-panel="token" data-floating-widget="token" className="tool-card" data-floating-title="Ajout token" open>
+          <details data-vtt-panel="token" data-floating-widget="token" data-floating-title="Ajout token" className="tool-card" open>
             <summary>Ajouter un token</summary>
 
             <form className="token-form" onSubmit={onCreateToken}>
@@ -1146,7 +1146,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details data-vtt-panel="tokens" data-floating-widget="tokens" className="tool-card" data-floating-title="Liste tokens" open>
+          <details data-vtt-panel="tokens" data-floating-widget="tokens" data-floating-title="Liste tokens" className="tool-card" open>
             <summary>Tokens sur la scene</summary>
 
             <div className="token-list">
