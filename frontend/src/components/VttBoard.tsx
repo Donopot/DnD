@@ -6,6 +6,7 @@ import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/ses
 import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { InitiativePanel } from "./InitiativePanel";
 
 type Position = {
   x: number;
@@ -867,6 +868,22 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
+          <details
+            data-vtt-panel="initiative"
+            data-floating-widget="initiative"
+            data-floating-title="Initiative"
+            className="tool-card initiative-card"
+            open
+          >
+            <summary>Initiative</summary>
+
+            <InitiativePanel
+              sceneId={selectedScene?.id ?? ""}
+              sceneTokens={sceneTokens}
+            />
+          </details>
+
+
           <details
             data-vtt-panel="party-summary"
             data-floating-widget="party-summary"

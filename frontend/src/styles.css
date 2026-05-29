@@ -5527,3 +5527,146 @@ select {
 }
 
 /* End Sprint GM-2D - Party summary panel */
+
+/* Sprint GM-2E - Initiative panel */
+
+.initiative-card {
+  min-height: 260px;
+}
+
+.initiative-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.initiative-panel-header {
+  display: grid;
+  gap: 8px;
+}
+
+.initiative-panel-header span {
+  display: grid;
+  gap: 2px;
+}
+
+.initiative-panel-header strong {
+  color: #253028;
+  font-size: 0.86rem;
+}
+
+.initiative-panel-header small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.initiative-panel-header div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.initiative-panel button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.initiative-panel button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.initiative-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.initiative-list {
+  display: grid;
+  gap: 7px;
+}
+
+.initiative-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 64px 44px;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.initiative-row.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  box-shadow: inset 0 0 0 1px rgba(31, 95, 67, 0.24);
+}
+
+.initiative-turn-button {
+  width: 28px;
+  min-width: 28px;
+  padding: 0 !important;
+}
+
+.initiative-row span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.initiative-row strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.initiative-row small {
+  overflow: hidden;
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.initiative-row input {
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 6px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.initiative-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .initiative-row {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .initiative-row input,
+  .initiative-row > button:last-child {
+    grid-column: span 1;
+  }
+}
+
+/* End Sprint GM-2E - Initiative panel */

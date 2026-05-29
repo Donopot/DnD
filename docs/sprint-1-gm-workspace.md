@@ -509,3 +509,40 @@ Ajouter un panneau MJ permettant de voir rapidement l'etat du groupe pendant la 
 - inspiration ;
 - perception passive avec competences ;
 - notes MJ dediees.
+
+## Sprint GM-2E - Panneau Initiative
+
+### Objectif
+
+Ajouter un panneau Initiative pour préparer le futur mode Combat.
+
+### Fonctionnalites
+
+- liste des tokens de la scene ;
+- initiative par token ;
+- tirage d20 par token ;
+- tirage d20 pour tous ;
+- round actuel ;
+- tour actif ;
+- bouton tour suivant ;
+- reset initiative ;
+- stockage local par scene ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Comportement attendu
+
+- Combat : Initiative visible ;
+- Exploration : Initiative disponible ;
+- Roleplay : Initiative reduite ;
+- Preparation rapide : Initiative disponible ;
+- Minimal : Initiative reduite.
+
+### Evolution future
+
+- integration backend ;
+- initiative liee aux personnages ;
+- bonus dexterite ;
+- groupes de monstres ;
+- cacher ennemis non reveles ;
+- historique des rounds ;
+- expiration automatique des conditions.
