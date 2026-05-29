@@ -77,3 +77,22 @@ Critere d'acceptation :
 - avec snap actif, le token s'aligne sur la grille ;
 - avec snap inactif, le token peut etre place librement ;
 - le zoom ne casse pas le placement des tokens.
+
+## Etape 9-2 - Pan de la carte
+
+Objectif :
+
+- ajouter un mode pan de carte ;
+- permettre de deplacer la vue sans modifier les tokens ;
+- conserver le zoom existant ;
+- ajouter un bouton reset de vue ;
+- garder le drag token fonctionnel.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- le bouton Pan carte active/desactive le mode pan ;
+- clic-glisser sur la carte deplace la vue ;
+- le bouton Reset remet le zoom a 100% et recentre la vue ;
+- les tokens restent deplacables.

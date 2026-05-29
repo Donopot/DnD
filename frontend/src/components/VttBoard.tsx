@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
-import { Castle, Crosshair, Minus, Plus, Swords } from "lucide-react";
+import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
 
@@ -53,10 +53,15 @@ export function VttBoard({
   onMoveToken,
 }: VttBoardProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const panStartRef = useRef<Position>({ x: 0, y: 0 });
+  const panOriginRef = useRef<Position>({ x: 0, y: 0 });
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [dragTokenId, setDragTokenId] = useState<string>("");
   const [draftPositions, setDraftPositions] = useState<Record<string, Position>>({});
   const [snapToGrid, setSnapToGrid] = useState(true);
+  const [panMode, setPanMode] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
 
   const selectedToken = useMemo(
@@ -158,6 +163,53 @@ export function VttBoard({
     setZoom((current) => clamp(Number((current + delta).toFixed(2)), 0.5, 2));
   }
 
+  function resetMapView() {
+    setZoom(1);
+    setPanMode(false);
+
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+      scrollRef.current.scrollTop = 0;
+    }
+  }
+
+  function handlePanPointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (!panMode || dragTokenId || event.button !== 0 || !scrollRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsPanning(true);
+
+    panStartRef.current = { x: event.clientX, y: event.clientY };
+    panOriginRef.current = {
+      x: scrollRef.current.scrollLeft,
+      y: scrollRef.current.scrollTop,
+    };
+  }
+
+  function handlePanPointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!isPanning || !scrollRef.current) {
+      return;
+    }
+
+    const deltaX = event.clientX - panStartRef.current.x;
+    const deltaY = event.clientY - panStartRef.current.y;
+
+    scrollRef.current.scrollLeft = panOriginRef.current.x - deltaX;
+    scrollRef.current.scrollTop = panOriginRef.current.y - deltaY;
+  }
+
+  function handlePanPointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (!isPanning) {
+      return;
+    }
+
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setIsPanning(false);
+  }
+
   return (
     <div className="vtt-section">
       <div className="section-heading">
@@ -215,6 +267,20 @@ export function VttBoard({
               Snap grille
             </button>
 
+            <button
+              className={`pan-toggle ${panMode ? "active" : ""}`}
+              type="button"
+              aria-pressed={panMode}
+              onClick={() => setPanMode((current) => !current)}
+            >
+              Pan carte
+            </button>
+
+            <button className="reset-map-button" type="button" onClick={resetMapView}>
+              <RotateCcw aria-hidden="true" />
+              Reset
+            </button>
+
             {selectedToken ? (
               <div className="selected-token-card">
                 <span>Token actif</span>
@@ -229,7 +295,14 @@ export function VttBoard({
           </div>
 
           {selectedScene ? (
-            <div className="map-scroll">
+            <div
+              ref={scrollRef}
+              className={`map-scroll ${panMode ? "pan-mode" : ""} ${isPanning ? "panning" : ""}`}
+              onPointerDown={handlePanPointerDown}
+              onPointerMove={handlePanPointerMove}
+              onPointerUp={handlePanPointerUp}
+              onPointerCancel={handlePanPointerUp}
+            >
               <div
                 className="map-zoom-surface"
                 style={{

@@ -2123,3 +2123,53 @@ select {
 }
 
 /* End Phase 9-1 map drag, snap and zoom */
+
+/* Phase 9-2 map pan */
+
+.pan-toggle,
+.reset-map-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+  color: #253028;
+  font-weight: 900;
+}
+
+.pan-toggle.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.reset-map-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.map-scroll.pan-mode {
+  cursor: grab;
+}
+
+.map-scroll.panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.map-scroll.pan-mode .map-board {
+  cursor: grab;
+}
+
+.map-scroll.panning .map-board {
+  cursor: grabbing;
+}
+
+.map-scroll.pan-mode .map-token {
+  cursor: pointer;
+}
+
+/* End Phase 9-2 map pan */
