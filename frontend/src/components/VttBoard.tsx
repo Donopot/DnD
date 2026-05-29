@@ -334,6 +334,22 @@ export function VttBoard({
             ) : (
               <p className="muted compact-help">Clique un token pour le selectionner. Glisse-le pour le deplacer.</p>
             )}
+
+            <details className="keyboard-help">
+              <summary>Raccourcis</summary>
+              <div>
+                <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>
+                <span>Deplacer token</span>
+              </div>
+              <div>
+                <kbd>+</kbd><kbd>-</kbd><kbd>0</kbd>
+                <span>Zoom / reset</span>
+              </div>
+              <div>
+                <kbd>Espace</kbd><kbd>G</kbd><kbd>Esc</kbd>
+                <span>Pan / snap / quitter</span>
+              </div>
+            </details>
           </div>
 
           {selectedScene ? (

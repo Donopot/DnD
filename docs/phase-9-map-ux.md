@@ -116,3 +116,26 @@ Critere d'acceptation :
 - clic sur un token dans la liste le selectionne ;
 - le bouton Centrer remet le token au centre de la vue ;
 - les boutons directionnels deplacent le token d'une case.
+
+## Etape 9-4 - Raccourcis clavier carte
+
+Objectif :
+
+- deplacer le token selectionne avec les fleches ;
+- zoomer avec + ;
+- dezoomer avec - ;
+- reset la vue avec 0 ;
+- activer/desactiver le pan avec Espace ;
+- activer/desactiver le snap avec G ;
+- quitter la selection et le pan avec Echap ;
+- afficher une aide visuelle des raccourcis.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- les raccourcis ne se declenchent pas dans les champs de formulaire ;
+- les fleches deplacent le token selectionne d'une case ;
+- Espace bascule le mode pan ;
+- G bascule le snap-to-grid ;
+- 0 remet la vue a 100%.
