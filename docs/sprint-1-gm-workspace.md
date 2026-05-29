@@ -378,3 +378,37 @@ Les panneaux deviennent des outils contextuels dans Session Live.
 - transformer Session Live en cockpit principal ;
 - ajouter les modes Exploration, Combat, Roleplay, Preparation rapide et Minimal ;
 - associer les layouts de panneaux aux modes.
+
+## Sprint GM-2A - Modes Session Live
+
+### Objectif
+
+Transformer Session Live en cockpit principal avec des modes internes.
+
+### Modes ajoutes
+
+- Exploration ;
+- Combat ;
+- Roleplay ;
+- Preparation rapide ;
+- Minimal.
+
+### Comportement actuel
+
+Le selecteur de mode est affiche dans l'onglet Session Live.
+
+Chaque mode affiche :
+
+- un nom ;
+- une description ;
+- un bouton actif.
+
+### Prochaine etape
+
+Brancher chaque mode a un layout de panneaux :
+
+- Exploration -> scenes, mini-map, detail token, journal compact ;
+- Combat -> initiative, detail token, actions combat, journal combat ;
+- Roleplay -> PNJ, relations, notes MJ, documents ;
+- Preparation rapide -> scenes, tokens, notes, documents ;
+- Minimal -> carte dominante, detail token compact, journal reduit.

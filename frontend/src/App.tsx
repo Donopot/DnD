@@ -14,6 +14,7 @@ import {
 import "./styles.css";
 import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
+import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
 import { CombatPanel } from "./components/CombatPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
@@ -64,6 +65,7 @@ export default function App() {
   const [mode, setMode] = useState<"login" | "register">("register");
   const [message, setMessage] = useState("");
   const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("campaign");
+  const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -84,6 +86,11 @@ export default function App() {
   const selectedEncounter = useMemo(
     () => encounters.find((encounter) => encounter.id === selectedEncounterId) ?? encounters[0],
     [encounters, selectedEncounterId],
+  );
+
+  const activeSessionLiveModeDetail = useMemo(
+    () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
+    [activeSessionLiveMode],
   );
 
   useEffect(() => {
@@ -1182,6 +1189,28 @@ export default function App() {
                     )}
                   </div>
                 </div>
+
+                <section className="session-live-mode-bar">
+                  <div>
+                    <span className="session-status">Session Live</span>
+                    <h3>Mode {activeSessionLiveModeDetail.label}</h3>
+                    <p>{activeSessionLiveModeDetail.description}</p>
+                  </div>
+
+                  <div className="session-live-mode-buttons" aria-label="Modes Session Live">
+                    {SESSION_LIVE_MODES.map((mode) => (
+                      <button
+                        className={activeSessionLiveMode === mode.id ? "active" : ""}
+                        key={mode.id}
+                        onClick={() => setActiveSessionLiveMode(mode.id)}
+                        type="button"
+                      >
+                        <strong>{mode.label}</strong>
+                        <small>{mode.description}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
 
                 <VttBoard
                   scenes={scenes}
