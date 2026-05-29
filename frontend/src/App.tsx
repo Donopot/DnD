@@ -16,6 +16,8 @@ import { AuthView } from "./components/AuthView";
 import { CombatPanel } from "./components/CombatPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
+import { CampaignViewTabs } from "./components/CampaignViewTabs";
+import type { CampaignView } from "./components/CampaignViewTabs";
 import { MessageDock } from "./components/common";
 import type {
   Asset,
@@ -61,6 +63,7 @@ export default function App() {
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [mode, setMode] = useState<"login" | "register">("register");
   const [message, setMessage] = useState("");
+  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("overview");
   const [isBusy, setIsBusy] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
