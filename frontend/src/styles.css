@@ -2551,3 +2551,110 @@ select {
 }
 
 /* End Phase 9-6 VTT usable layout */
+
+/* Phase 10-1 free UX panels */
+
+.floating-toggle,
+.reset-panels-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+  color: #253028;
+  font-weight: 900;
+}
+
+.floating-toggle.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.reset-panels-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.vtt-control-panel.floating-widgets-active {
+  min-height: 180px;
+  padding: 10px;
+  border: 1px dashed rgba(31, 95, 67, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 253, 247, 0.55);
+}
+
+.floating-widget {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  border: 1px solid rgba(31, 95, 67, 0.28) !important;
+  box-shadow: 0 20px 48px rgba(35, 48, 40, 0.2) !important;
+  backdrop-filter: blur(12px);
+}
+
+.floating-widget-drag-handle {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  margin: -1px -1px 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d8d1c2;
+  border-radius: 12px 12px 0 0;
+  background: #1f5f43;
+  color: #fffdf7;
+  cursor: move;
+  font-size: 0.78rem;
+  font-weight: 950;
+  user-select: none;
+}
+
+.floating-widget-resize-handle {
+  position: sticky;
+  right: 6px;
+  bottom: 6px;
+  z-index: 4;
+  float: right;
+  width: 18px;
+  height: 18px;
+  margin-top: 6px;
+  border-right: 3px solid #1f5f43;
+  border-bottom: 3px solid #1f5f43;
+  border-radius: 2px;
+  cursor: nwse-resize;
+  opacity: 0.8;
+}
+
+.floating-widget-resize-handle:hover {
+  opacity: 1;
+}
+
+.floating-widget.map-overview {
+  padding: 10px;
+}
+
+.floating-widget.token-detail-panel,
+.floating-widget.tool-card {
+  background: rgba(255, 253, 247, 0.96);
+}
+
+@media (max-width: 760px) {
+  .floating-toggle,
+  .reset-panels-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .floating-widget {
+    left: 8px !important;
+    width: calc(100vw - 16px) !important;
+  }
+}
+
+/* End Phase 10-1 free UX panels */

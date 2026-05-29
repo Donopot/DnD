@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
+import { resetFloatingWidgetLayouts, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 
 type Position = {
   x: number;
@@ -63,6 +64,7 @@ export function VttBoard({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
   const [viewportRatio, setViewportRatio] = useState({
     left: 0,
     top: 0,
@@ -86,6 +88,8 @@ export function VttBoard({
   const selectedTokenPosition = selectedToken
     ? draftPositions[selectedToken.id] ?? { x: selectedToken.x, y: selectedToken.y }
     : undefined;
+
+  useFloatingWidgets(freePanelsEnabled, ".vtt-control-panel");
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -394,6 +398,24 @@ export function VttBoard({
             <button className="reset-map-button" type="button" onClick={resetMapView}>
               <RotateCcw aria-hidden="true" />
               Reset
+            </button>
+
+            <button
+              className={`floating-toggle ${freePanelsEnabled ? "active" : ""}`}
+              type="button"
+              aria-pressed={freePanelsEnabled}
+              onClick={() => setFreePanelsEnabled((current) => !current)}
+            >
+              Panneaux libres
+            </button>
+
+            <button
+              className="reset-panels-button"
+              type="button"
+              onClick={resetFloatingWidgetLayouts}
+              disabled={!freePanelsEnabled}
+            >
+              Reset panneaux
             </button>
 
             {selectedToken ? (
