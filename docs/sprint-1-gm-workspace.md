@@ -590,3 +590,44 @@ Ajouter un panneau Actions rapides pour accelerer les actions courantes du MJ pe
 - envoyer message prive ;
 - lancer musique ;
 - creer note de session.
+
+## Sprint GM-2G - Inspecteur de visibilite
+
+### Objectif
+
+Ajouter un panneau permettant au MJ de verifier ce qui est visible ou cache pour les joueurs.
+
+### Fonctionnalites
+
+- scene active ;
+- token selectionne ;
+- nombre de tokens visibles ;
+- nombre de tokens caches ;
+- pourcentage visible joueurs ;
+- liste des tokens avec statut visible/cache ;
+- filtres Tous, Visibles, Caches ;
+- alertes MJ ;
+- raccourcis vers Detail token, Notes MJ et Mini-map ;
+- copie d'un resume de visibilite.
+
+### Limite actuelle
+
+Le panneau est en lecture seule.
+La modification directe de visibilite sera ajoutee dans une phase backend/token.
+
+### Comportement attendu
+
+- Combat : Inspecteur visible ;
+- Exploration : Inspecteur visible ;
+- Roleplay : Inspecteur visible ;
+- Preparation rapide : Inspecteur visible ;
+- Minimal : Inspecteur reduit.
+
+### Evolution future
+
+- cacher/reveler token ;
+- cacher/reveler nom ;
+- cacher/reveler barre de vie ;
+- voir comme joueur ;
+- historique des revelations ;
+- confirmation avant revelation publique.

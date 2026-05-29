@@ -10,6 +10,7 @@ export type FloatingWidgetPreset =
 export type VttPanelId =
   | "minimap"
   | "token-detail"
+  | "visibility-inspector"
   | "quick-actions"
   | "initiative"
   | "party-summary"
@@ -29,6 +30,7 @@ export type VttPanelDefinition = {
 export const VTT_PANELS: VttPanelDefinition[] = [
   { id: "minimap", label: "Mini-map", description: "Vue globale de la scène" },
   { id: "token-detail", label: "Détail token", description: "Token sélectionné" },
+  { id: "visibility-inspector", label: "Visibilité", description: "Contrôle de ce que voient les joueurs" },
   { id: "quick-actions", label: "Actions rapides", description: "Raccourcis MJ, dés et layouts" },
   { id: "initiative", label: "Initiative", description: "Ordre de tour et rounds" },
   { id: "party-summary", label: "Résumé du groupe", description: "PV, CA, vitesse et perception passive" },

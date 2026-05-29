@@ -6,6 +6,7 @@ import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/ses
 import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
 import { QuickActionsPanel } from "./QuickActionsPanel";
 import { InitiativePanel } from "./InitiativePanel";
 
@@ -869,6 +870,23 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
+          <details
+            data-vtt-panel="visibility-inspector"
+            data-floating-widget="visibility-inspector"
+            data-floating-title="Visibilité"
+            className="tool-card visibility-inspector-card"
+            open
+          >
+            <summary>Visibilité</summary>
+
+            <VisibilityInspectorPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              sceneTokens={sceneTokens}
+            />
+          </details>
+
+
           <details
             data-vtt-panel="quick-actions"
             data-floating-widget="quick-actions"
