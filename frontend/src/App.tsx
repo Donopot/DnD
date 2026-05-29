@@ -1172,248 +1172,26 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="vtt-section">
-                  <div className="section-heading">
-                    <h3>Table virtuelle</h3>
-                    <Swords aria-hidden="true" />
-                  </div>
-
-                  <div className="vtt-layout">
-                    <section className="vtt-board-panel">
-                      <div className="vtt-toolbar">
-                        <div>
-                          <strong>{selectedScene?.name ?? "Aucune scene"}</strong>
-                          {selectedScene && (
-                            <small>
-                              {selectedScene.width} x {selectedScene.height} - grille {selectedScene.grid_size}px
-                            </small>
-                          )}
-                        </div>
-
-                        {scenes.length > 1 && (
-                          <select
-                            value={selectedScene?.id ?? ""}
-                            onChange={(event) => {
-                              setSelectedSceneId(event.target.value);
-                              void loadSceneTokens(event.target.value);
-                            }}
-                          >
-                            {scenes.map((scene) => (
-                              <option key={scene.id} value={scene.id}>
-                                {scene.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-
-                      {selectedScene ? (
-                        <div className="map-scroll">
-                          <div
-                            className={`map-board ${sceneBackgroundObjectUrl ? "with-background" : ""}`}
-                            style={{
-                              width: selectedScene.width,
-                              height: selectedScene.height,
-                              backgroundSize: `${selectedScene.grid_size}px ${selectedScene.grid_size}px`,
-                            }}
-                          >
-                            {sceneBackgroundObjectUrl && (
-                              <img
-                                alt=""
-                                aria-hidden="true"
-                                className="map-background-image"
-                                src={sceneBackgroundObjectUrl}
-                              />
-                            )}
-
-                            {sceneTokens.map((token) => (
-                              <button
-                                className="map-token"
-                                key={token.id}
-                                style={{
-                                  left: token.x,
-                                  top: token.y,
-                                  width: token.size * selectedScene.grid_size,
-                                  height: token.size * selectedScene.grid_size,
-                                  background: token.color,
-                                }}
-                                title={`${token.name} (${token.x}, ${token.y})`}
-                                type="button"
-                              >
-                                {token.name.slice(0, 2).toUpperCase()}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="empty-state compact-empty">
-                          <Castle aria-hidden="true" />
-                          <p>Aucune scene. Cree la premiere carte de combat.</p>
-                        </div>
-                      )}
-                    </section>
-
-                    <section className="vtt-control-panel">
-                      <form className="scene-form" onSubmit={handleCreateScene}>
-                        <h4>Nouvelle scene</h4>
-
-                        <label>
-                          Nom
-                          <input name="name" minLength={2} maxLength={120} placeholder="Salle du donjon" required />
-                        </label>
-
-                        <label>
-                          Description
-                          <textarea name="description" rows={2} maxLength={2000} />
-                        </label>
-
-                        <div className="mini-grid three">
-                          <label>
-                            Grille
-                            <input name="grid_size" type="number" min={16} max={200} defaultValue={50} />
-                          </label>
-
-                          <label>
-                            Largeur
-                            <input name="width" type="number" min={200} max={10000} defaultValue={1200} />
-                          </label>
-
-                          <label>
-                            Hauteur
-                            <input name="height" type="number" min={200} max={10000} defaultValue={800} />
-                          </label>
-                        </div>
-
-                        <button className="ghost-button" disabled={isBusy} type="submit">
-                          Creer scene
-                        </button>
-                      </form>
-
-                      <form className="asset-form" onSubmit={handleUploadAsset}>
-                        <h4>Fond de carte</h4>
-
-                        <label>
-                          Uploader une image
-                          <input accept="image/png,image/jpeg,image/webp,image/gif" name="file" type="file" />
-                        </label>
-
-                        <button className="ghost-button" disabled={isBusy} type="submit">
-                          Uploader carte
-                        </button>
-                      </form>
-
-                      <div className="asset-picker">
-                        <h4>Assets de campagne</h4>
-
-                        {assets.length === 0 ? (
-                          <p className="muted">Aucune carte uploadee.</p>
-                        ) : (
-                          <>
-                            <label>
-                              Image
-                              <select value={selectedAssetId} onChange={(event) => setSelectedAssetId(event.target.value)}>
-                                {assets.map((asset) => (
-                                  <option key={asset.id} value={asset.id}>
-                                    {asset.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-
-                            <button className="ghost-button" disabled={isBusy || !selectedScene || !selectedAssetId} onClick={handleSetSceneBackground} type="button">
-                              Utiliser comme fond
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      <form className="token-form" onSubmit={handleCreateToken}>
-                        <h4>Nouveau token</h4>
-
-                        <label>
-                          Personnage
-                          <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
-                            <option value="">Token libre</option>
-                            {characters.map((character) => (
-                              <option key={character.id} value={character.id}>
-                                {character.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-
-                        <label>
-                          Nom du token
-                          <input name="name" maxLength={120} placeholder={selectedCharacter?.name ?? "Gobelin"} />
-                        </label>
-
-                        <div className="mini-grid three">
-                          <label>
-                            X
-                            <input name="x" type="number" min={0} defaultValue={100} />
-                          </label>
-
-                          <label>
-                            Y
-                            <input name="y" type="number" min={0} defaultValue={100} />
-                          </label>
-
-                          <label>
-                            Taille
-                            <input name="size" type="number" min={1} max={8} defaultValue={1} />
-                          </label>
-                        </div>
-
-                        <label>
-                          Couleur
-                          <input name="color" defaultValue="#7c3aed" />
-                        </label>
-
-                        <button className="primary-button" disabled={isBusy || !selectedScene} type="submit">
-                          Ajouter token
-                        </button>
-                      </form>
-
-                      <div className="token-list">
-                        <h4>Tokens</h4>
-
-                        {sceneTokens.length === 0 ? (
-                          <p className="muted">Aucun token sur cette scene.</p>
-                        ) : (
-                          sceneTokens.map((token) => {
-                            const step = selectedScene?.grid_size ?? 50;
-
-                            return (
-                              <article className="token-row" key={token.id}>
-                                <span>
-                                  <strong>{token.name}</strong>
-                                  <small>
-                                    x {token.x} - y {token.y}
-                                  </small>
-                                </span>
-
-                                <div className="token-move-grid" aria-label={`Deplacer ${token.name}`}>
-                                  <button type="button" onClick={() => void handleMoveToken(token, 0, -step)}>
-                                    ↑
-                                  </button>
-                                  <button type="button" onClick={() => void handleMoveToken(token, -step, 0)}>
-                                    ←
-                                  </button>
-                                  <button type="button" onClick={() => void handleMoveToken(token, step, 0)}>
-                                    →
-                                  </button>
-                                  <button type="button" onClick={() => void handleMoveToken(token, 0, step)}>
-                                    ↓
-                                  </button>
-                                </div>
-                              </article>
-                            );
-                          })
-                        )}
-                      </div>
-                    </section>
-                  </div>
-                </div>
+                <VttBoard
+                  scenes={scenes}
+                  selectedScene={selectedScene}
+                  selectedSceneId={selectedSceneId}
+                  sceneTokens={sceneTokens}
+                  characters={characters}
+                  selectedCharacter={selectedCharacter}
+                  assets={assets}
+                  selectedAssetId={selectedAssetId}
+                  sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
+                  isBusy={isBusy}
+                  onSelectScene={setSelectedSceneId}
+                  onLoadSceneTokens={(sceneId) => void loadSceneTokens(sceneId)}
+                  onCreateScene={handleCreateScene}
+                  onUploadAsset={handleUploadAsset}
+                  onSelectAsset={setSelectedAssetId}
+                  onSetSceneBackground={() => void handleSetSceneBackground()}
+                  onCreateToken={handleCreateToken}
+                  onMoveToken={(tokenToMove, dx, dy) => void handleMoveToken(tokenToMove, dx, dy)}
+                />
 
                 <div className="combat-section">
                   <div className="section-heading">
