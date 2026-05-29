@@ -5670,3 +5670,121 @@ select {
 }
 
 /* End Sprint GM-2E - Initiative panel */
+
+/* Sprint GM-2F - Quick actions panel */
+
+.quick-actions-card {
+  min-height: 240px;
+}
+
+.quick-actions-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.quick-actions-panel section {
+  display: grid;
+  gap: 7px;
+}
+
+.quick-actions-panel section > strong {
+  color: #253028;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quick-actions-context {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.quick-actions-context span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #e7dfd0;
+  border-radius: 9px;
+  background: #fffdf7;
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.quick-actions-context b {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-actions-grid,
+.quick-actions-dice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.quick-actions-dice {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quick-actions-panel button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.quick-actions-panel button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.quick-actions-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.quick-actions-roll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid #d8c28c;
+  border-radius: 9px;
+  background: #fff7df;
+  color: #6f4c11;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.quick-actions-roll strong {
+  font-size: 1rem;
+}
+
+.quick-actions-roll small {
+  margin-left: auto;
+  color: #7b6c4a;
+  font-size: 0.62rem;
+}
+
+@media (max-width: 760px) {
+  .quick-actions-context,
+  .quick-actions-grid,
+  .quick-actions-dice {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Sprint GM-2F - Quick actions panel */
