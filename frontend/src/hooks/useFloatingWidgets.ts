@@ -124,6 +124,14 @@ export function resetFloatingWidgetLayouts() {
   window.dispatchEvent(new Event("dnd:reset-floating-widgets"));
 }
 
+export function showFloatingWidget(widgetId: string) {
+  window.dispatchEvent(
+    new CustomEvent("dnd:show-floating-widget", {
+      detail: { widgetId },
+    }),
+  );
+}
+
 export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(rootSelector);
@@ -189,16 +197,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         writeStoredValue(layoutKey, currentLayout);
       }
 
-      function saveMeta(nextMeta: Partial<WidgetMeta>) {
-        currentMeta = {
-          ...currentMeta,
-          ...nextMeta,
-        };
-
-        writeStoredValue(metaKey, currentMeta);
-        applyMeta();
-      }
-
       function applyLayout(layout: WidgetLayout) {
         widget.style.position = "fixed";
         widget.style.left = `${layout.left}px`;
@@ -206,29 +204,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         widget.style.width = `${layout.width}px`;
         widget.style.height = `${layout.height}px`;
       }
-
-      function applyMeta() {
-        widget.style.display = currentMeta.hidden ? "none" : "";
-        widget.style.zIndex = `${currentMeta.zIndex}`;
-
-        widget.classList.toggle("floating-widget-locked", currentMeta.locked);
-        widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
-
-        lockButton.textContent = currentMeta.locked ? "Deverr." : "Verrou";
-        lockButton.title = currentMeta.locked ? "Deverrouiller le panneau" : "Verrouiller le panneau";
-        lockButton.setAttribute("aria-label", lockButton.title);
-
-        collapseButton.textContent = currentMeta.collapsed ? "Ouvrir" : "Reduire";
-        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
-        collapseButton.setAttribute("aria-label", collapseButton.title);
-      }
-
-      function bringToFront() {
-        topZIndex += 1;
-        saveMeta({ zIndex: topZIndex });
-      }
-
-      widget.classList.add("floating-widget");
 
       const toolbar = document.createElement("div");
       toolbar.className = "floating-widget-toolbar";
@@ -254,6 +229,38 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       resizeHandle.setAttribute("aria-hidden", "true");
       widget.append(resizeHandle);
 
+      function applyMeta() {
+        widget.style.display = currentMeta.hidden ? "none" : "";
+        widget.style.zIndex = `${currentMeta.zIndex}`;
+
+        widget.classList.toggle("floating-widget-locked", currentMeta.locked);
+        widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
+
+        lockButton.textContent = currentMeta.locked ? "Deverr." : "Verrou";
+        lockButton.title = currentMeta.locked ? "Deverrouiller le panneau" : "Verrouiller le panneau";
+        lockButton.setAttribute("aria-label", lockButton.title);
+
+        collapseButton.textContent = currentMeta.collapsed ? "Ouvrir" : "Reduire";
+        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
+        collapseButton.setAttribute("aria-label", collapseButton.title);
+      }
+
+      function saveMeta(nextMeta: Partial<WidgetMeta>) {
+        currentMeta = {
+          ...currentMeta,
+          ...nextMeta,
+        };
+
+        writeStoredValue(metaKey, currentMeta);
+        applyMeta();
+      }
+
+      function bringToFront() {
+        topZIndex += 1;
+        saveMeta({ zIndex: topZIndex });
+      }
+
+      widget.classList.add("floating-widget");
       applyLayout(currentLayout);
       applyMeta();
 
@@ -353,6 +360,22 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         applyMeta();
       }
 
+      function handleShowWidget(event: Event) {
+        const detail = (event as CustomEvent<{ widgetId?: string }>).detail;
+
+        if (detail?.widgetId !== id) {
+          return;
+        }
+
+        saveMeta({
+          hidden: false,
+          collapsed: false,
+          zIndex: topZIndex + 1,
+        });
+
+        topZIndex += 1;
+      }
+
       function handleFrontClick(event: MouseEvent) {
         event.stopPropagation();
         bringToFront();
@@ -383,6 +406,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       hideButton.addEventListener("click", handleHideClick);
 
       window.addEventListener("dnd:reset-floating-widgets", handleReset);
+      window.addEventListener("dnd:show-floating-widget", handleShowWidget);
 
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
@@ -395,6 +419,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         hideButton.removeEventListener("click", handleHideClick);
 
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
+        window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
+
         clearRuntimeWidgetState(widget);
       });
     });

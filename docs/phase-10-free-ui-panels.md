@@ -71,3 +71,31 @@ Critere d'acceptation :
 - la mini-map peut etre reduite ;
 - le panneau ajout token peut etre ferme ;
 - Reset panneaux restaure les panneaux fermes.
+
+## Etape 10-2B - Menu Panneaux
+
+Objectif :
+
+- ajouter un menu Panneaux dans la toolbar VTT ;
+- rouvrir un panneau ferme sans reset complet ;
+- garder le reset complet disponible ;
+- identifier les panneaux avec des ids stables ;
+- conserver la sauvegarde localStorage.
+
+Panneaux geres :
+
+- Mini-map ;
+- Detail token ;
+- Scene ;
+- Upload carte ;
+- Fond de carte ;
+- Ajout token ;
+- Liste tokens.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- un panneau ferme avec Fermer peut etre rouvert via le menu Panneaux ;
+- le reset complet continue de restaurer tous les panneaux ;
+- les panneaux gardent leur position apres refresh.

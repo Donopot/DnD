@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { resetFloatingWidgetLayouts, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {
   x: number;
@@ -418,6 +419,12 @@ export function VttBoard({
               Reset panneaux
             </button>
 
+            <VttPanelsMenu
+              enabled={freePanelsEnabled}
+              onShowPanel={showFloatingWidget}
+              onResetPanels={resetFloatingWidgetLayouts}
+            />
+
             {selectedToken ? (
               <div className="selected-token-card">
                 <span>Token actif</span>
@@ -527,7 +534,7 @@ export function VttBoard({
 
         <section className="vtt-control-panel">
           {selectedScene && (
-            <div className="map-overview">
+            <div className="map-overview" data-floating-widget="minimap" data-floating-title="Mini-map">
               <div className="map-overview-header">
                 <span>Mini-map</span>
                 <small>
@@ -576,7 +583,7 @@ export function VttBoard({
               </button>
             </div>
           )}
-          <section className="token-detail-panel" data-quick-panel="token-detail">
+          <section className="token-detail-panel" data-quick-panel="token-detail" data-floating-title="Detail token">
             <div className="token-detail-heading">
               <h4>Token selectionne</h4>
               {selectedToken && <span>{selectedToken.name}</span>}
@@ -652,7 +659,7 @@ export function VttBoard({
             )}
           </section>
 
-          <details className="tool-card" data-quick-panel="scene" open>
+          <details className="tool-card" data-quick-panel="scene" data-floating-title="Scene" open>
             <summary>Scene</summary>
 
             <form className="scene-form" onSubmit={onCreateScene}>
@@ -691,7 +698,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card">
+          <details className="tool-card" data-floating-widget="upload-map" data-floating-title="Upload carte">
             <summary>Uploader une carte</summary>
 
             <form className="asset-form" onSubmit={onUploadAsset}>
@@ -708,7 +715,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card">
+          <details className="tool-card" data-floating-widget="background" data-floating-title="Fond de carte">
             <summary>Choisir le fond</summary>
 
             <div className="asset-picker">
@@ -742,7 +749,7 @@ export function VttBoard({
             </div>
           </details>
 
-          <details className="tool-card" data-quick-panel="token" open>
+          <details className="tool-card" data-quick-panel="token" data-floating-title="Ajout token" open>
             <summary>Ajouter un token</summary>
 
             <form className="token-form" onSubmit={onCreateToken}>
@@ -793,7 +800,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card" data-quick-panel="tokens" open>
+          <details className="tool-card" data-quick-panel="tokens" data-floating-title="Liste tokens" open>
             <summary>Tokens sur la scene</summary>
 
             <div className="token-list">

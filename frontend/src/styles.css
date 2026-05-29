@@ -2754,3 +2754,88 @@ select {
 }
 
 /* End Phase 10-2A floating panel toolbar */
+
+/* Phase 10-2B floating panels menu */
+
+.vtt-panels-menu {
+  position: relative;
+  min-height: 36px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.vtt-panels-menu.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+}
+
+.vtt-panels-menu summary {
+  cursor: pointer;
+  padding: 9px 12px;
+  color: #253028;
+  font-size: 0.84rem;
+  font-weight: 950;
+  list-style: none;
+}
+
+.vtt-panels-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.vtt-panels-menu-content {
+  position: absolute;
+  right: 0;
+  z-index: 220;
+  display: grid;
+  min-width: 210px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #fffdf7;
+  box-shadow: 0 18px 42px rgba(35, 48, 40, 0.2);
+}
+
+.vtt-panels-menu-content button {
+  justify-content: flex-start;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid #e0d7c7;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.8rem;
+  font-weight: 850;
+  text-align: left;
+}
+
+.vtt-panels-menu-content button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+}
+
+.vtt-panels-menu-content button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.vtt-panels-menu-content .danger-lite {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-menu {
+    width: 100%;
+  }
+
+  .vtt-panels-menu-content {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+}
+
+/* End Phase 10-2B floating panels menu */
