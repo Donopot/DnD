@@ -1031,10 +1031,14 @@ export default function App() {
             )}
           </section>
 
-          <section className="panel detail-panel">
+          <section className={`panel detail-panel campaign-view-${activeCampaignView}`}>
             <h2>{selectedCampaign?.name ?? "Selection"}</h2>
             {selectedCampaign ? (
               <>
+                <CampaignViewTabs activeView={activeCampaignView} onChange={setActiveCampaignView} />
+
+
+                <section className="campaign-overview-tab" data-campaign-tab="overview">
                 <p className="muted">
                   {selectedCampaign.description || "Aucune description pour cette campagne."}
                 </p>
@@ -1064,7 +1068,9 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div className="character-section">
+                </section>
+
+                <div className="character-section" data-campaign-tab="characters">
                   <div className="section-heading">
                     <h3>Personnages</h3>
                     <ScrollText aria-hidden="true" />
