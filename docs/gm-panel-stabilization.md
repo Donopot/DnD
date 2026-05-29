@@ -80,3 +80,63 @@ Pour chaque panneau :
 - deverrouiller ;
 - deplacer ;
 - redimensionner.
+
+## Passe de stabilisation 2 - Reset centralise et controle strict
+
+### Objectif
+
+Nettoyer les controles redondants et verifier que tous les panneaux respectent le meme standard.
+
+### Corrections
+
+- suppression du bouton Reset panneaux dans la toolbar VTT ;
+- conservation d'un seul reset dans le menu Panneaux ;
+- menu Panneaux devient le centre de controle unique ;
+- sauvegarde du layout deplacee dans le footer du menu ;
+- verification stricte des attributs data-vtt-panel, data-floating-widget et data-floating-title ;
+- verification que VttBoard ne branche plus directement showFloatingWidget ;
+- verification que le hook detecte les panneaux via data-vtt-panel ;
+- verification que les panneaux du registre existent dans VttBoard ;
+- verification que les panneaux de VttBoard existent dans le registre.
+
+### Regle UX
+
+La toolbar VTT ne doit contenir que les actions de carte.
+
+La gestion des panneaux doit etre centralisee dans :
+
+- Panneaux ;
+- dock des panneaux masques ;
+- toolbar runtime de chaque panneau.
+
+### Validation
+
+Executer :
+
+```bash
+sh scripts/check-vtt-panels.sh
+sh scripts/check-panel-system.sh
+sh scripts/check-frontend-types.sh
+
+## Passe 2 - Nettoyage ergonomique
+
+### Objectif
+
+Nettoyer les actions redondantes et renforcer la standardisation des panneaux.
+
+### Changements
+
+- suppression du bouton Reset panneaux dans la toolbar VTT ;
+- conservation d'un seul reset panneaux dans le menu Panneaux ;
+- renommage visuel du reset carte pour eviter la confusion ;
+- menu Panneaux base uniquement sur le registre ;
+- boutons Afficher un panneau toujours accessibles ;
+- nettoyage des anciens headers flottants legacy ;
+- verification stricte via scripts/check-panel-system.sh.
+
+### Regle retenue
+
+- Reset carte reste dans la toolbar carte ;
+- Reset panneaux reste uniquement dans Panneaux ;
+- Reset layout personnalise passe par Panneaux ;
+- aucun bouton destructif de layout ne doit etre duplique dans la toolbar principale.

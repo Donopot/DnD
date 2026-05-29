@@ -2550,33 +2550,10 @@ select {
   }
 }
 
-/* End Phase 9-6 VTT usable layout */
-
-/* Phase 10-1 free UX panels */
-
-.floating-toggle,
-.reset-panels-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 8px 10px;
-  border: 1px solid #d8d1c2;
-  border-radius: 10px;
-  background: #f9f6ec;
-  color: #253028;
-  font-weight: 900;
-}
-
 .floating-toggle.active {
   border-color: #1f5f43;
   background: #eef8ef;
   color: #1f5f43;
-}
-
-.reset-panels-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .vtt-control-panel.floating-widgets-active {
@@ -2645,11 +2622,6 @@ select {
 }
 
 @media (max-width: 760px) {
-  .floating-toggle,
-  .reset-panels-button {
-    width: 100%;
-    justify-content: center;
-  }
 
   .floating-widget {
     left: 8px !important;
@@ -2966,18 +2938,6 @@ body {
   align-items: center;
 }
 
-.map-ux-toolbar button,
-.map-zoom-controls button,
-.snap-toggle,
-.pan-toggle,
-.reset-map-button,
-.floating-toggle,
-.reset-panels-button {
-  min-height: 32px;
-  padding: 6px 9px;
-  font-size: 0.78rem;
-}
-
 .map-zoom-controls strong {
   min-width: 42px;
   text-align: center;
@@ -3207,19 +3167,6 @@ body {
   gap: 6px;
   margin-bottom: 6px;
   padding: 6px;
-}
-
-.map-ux-toolbar button,
-.map-zoom-controls button,
-.snap-toggle,
-.pan-toggle,
-.reset-map-button,
-.floating-toggle,
-.reset-panels-button,
-.vtt-panels-menu summary {
-  min-height: 28px;
-  padding: 4px 7px;
-  font-size: 0.72rem;
 }
 
 .map-zoom-controls {
@@ -3467,11 +3414,6 @@ select {
   min-height: 680px;
 }
 
-.gm-mode-play .vtt-panels-menu-content .vtt-panels-menu-group:nth-of-type(2),
-.gm-mode-play .reset-panels-button {
-  display: none;
-}
-
 .gm-mode-play .floating-toggle {
   border-color: #d8d1c2;
 }
@@ -3673,14 +3615,6 @@ select {
   padding: 5px;
 }
 
-.gm-mode-play .floating-toggle,
-.gm-mode-play .reset-panels-button,
-.gm-mode-play .vtt-panels-menu,
-.gm-mode-play .keyboard-help,
-.gm-mode-play .compact-help {
-  display: none;
-}
-
 .gm-mode-play .vtt-layout {
   grid-template-columns: minmax(0, 1fr) 240px;
   gap: 6px;
@@ -3757,12 +3691,6 @@ select {
 .gm-mode-play .selected-token-card strong,
 .gm-mode-play .selected-token-card small {
   font-size: 0.68rem;
-}
-
-.gm-mode-prepare .floating-toggle,
-.gm-mode-prepare .reset-panels-button,
-.gm-mode-prepare .vtt-panels-menu {
-  display: none;
 }
 
 .gm-mode-advanced .gm-cockpit,
@@ -3986,11 +3914,6 @@ select {
   display: block !important;
 }
 
-.gm-mode-play .reset-panels-button,
-.gm-mode-prepare .reset-panels-button {
-  display: none !important;
-}
-
 .vtt-panels-menu[open] {
   z-index: 7000;
 }
@@ -4181,11 +4104,6 @@ select {
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
   display: block !important;
-}
-
-.gm-mode-play .reset-panels-button,
-.gm-mode-prepare .reset-panels-button {
-  display: none !important;
 }
 
 .vtt-panels-menu[open] {
@@ -4493,11 +4411,6 @@ select {
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
   display: block !important;
-}
-
-.gm-mode-play .reset-panels-button,
-.gm-mode-prepare .reset-panels-button {
-  display: none !important;
 }
 
 .vtt-panels-menu[open] {
@@ -4885,11 +4798,6 @@ select {
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
   display: block !important;
-}
-
-.gm-mode-play .reset-panels-button,
-.gm-mode-prepare .reset-panels-button {
-  display: none !important;
 }
 
 .vtt-panels-menu[open] {
@@ -5957,11 +5865,6 @@ select {
   display: block !important;
 }
 
-.gm-mode-play .reset-panels-button,
-.gm-mode-prepare .reset-panels-button {
-  display: none !important;
-}
-
 .vtt-panels-menu[open] {
   z-index: 8000;
 }
@@ -6219,3 +6122,95 @@ select {
 }
 
 /* End Stabilisation UI panneaux GM */
+
+/* Stabilisation UI panneaux GM - reset centralisé */
+
+.reset-panels-button {
+  display: none !important;
+}
+
+.vtt-panels-manager-footer {
+  display: grid;
+  gap: 8px;
+}
+
+.vtt-panels-manager-footer .save-layout-button {
+  width: 100%;
+}
+
+.vtt-panels-manager-footer .danger-lite {
+  min-height: 36px;
+  border: 1px solid #e3b4a8;
+  border-radius: 9px;
+  background: #fff4f0;
+  color: #8a2f23;
+  font-weight: 950;
+}
+
+.vtt-panels-manager-footer .danger-lite:hover:not(:disabled) {
+  border-color: #8a2f23;
+  background: #f7d7d0;
+}
+
+.vtt-panels-manager-footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* End Stabilisation UI panneaux GM - reset centralisé */
+
+/* Stabilisation UI panneaux GM - passe 2 */
+
+/* Le reset panneaux doit vivre uniquement dans le menu Panneaux. */
+.map-ux-toolbar .reset-panels-button,
+.gm-cockpit .reset-panels-button {
+  display: none !important;
+}
+
+/* Reset carte explicite pour éviter la confusion avec les panneaux. */
+.reset-map-button {
+  white-space: nowrap;
+}
+
+/* Nettoyage des anciens headers runtime ou headers internes en mode flottant. */
+.floating-widget-drag-handle {
+  display: none !important;
+}
+
+.floating-widget[data-vtt-panel] > summary,
+.floating-widget[data-vtt-panel] .map-overview-header,
+.floating-widget[data-vtt-panel] .token-detail-heading,
+.floating-widget[data-vtt-panel] .token-list > h4:first-child,
+.floating-widget[data-vtt-panel] .scene-form > h4:first-child,
+.floating-widget[data-vtt-panel] .asset-form > h4:first-child,
+.floating-widget[data-vtt-panel] .asset-picker > h4:first-child,
+.floating-widget[data-vtt-panel] .token-form > h4:first-child {
+  display: none !important;
+}
+
+/* Menu panneaux plus lisible. */
+.vtt-panels-category {
+  display: grid;
+  gap: 6px;
+}
+
+.vtt-panels-category > span {
+  color: #657068;
+  font-size: 0.64rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vtt-panels-manager-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+  border-top: 1px solid #e7dfd0;
+}
+
+.vtt-panels-manager-footer .danger-lite {
+  min-height: 32px;
+}
+
+/* End Stabilisation UI panneaux GM - passe 2 */
