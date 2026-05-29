@@ -1989,3 +1989,137 @@ select {
 }
 
 /* End R4-7 session quick actions */
+
+/* Phase 9-1 map drag, snap and zoom */
+
+.map-ux-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid #e0d7c7;
+  border-radius: 12px;
+  background: #fffdf7;
+}
+
+.map-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-zoom-controls button,
+.snap-toggle {
+  min-height: 36px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+  color: #253028;
+  font-weight: 900;
+}
+
+.map-zoom-controls button {
+  width: 36px;
+  padding: 0;
+}
+
+.map-zoom-controls svg,
+.snap-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.snap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.snap-toggle.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.selected-token-card {
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.selected-token-card span {
+  color: #1f5f43;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.selected-token-card strong {
+  color: #253028;
+}
+
+.selected-token-card small,
+.compact-help {
+  color: #657068;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.map-zoom-surface {
+  position: relative;
+}
+
+.map-board {
+  transform-origin: top left;
+}
+
+.map-board.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.map-token {
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-token.dragging {
+  cursor: grabbing;
+  opacity: 0.82;
+}
+
+.map-token.selected {
+  z-index: 4;
+  outline: 3px solid #f5c542;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 4px rgba(31, 95, 67, 0.28),
+    0 12px 28px rgba(35, 48, 40, 0.34);
+}
+
+.token-row.selected {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  box-shadow: inset 4px 0 0 #1f5f43;
+}
+
+@media (max-width: 760px) {
+  .map-ux-toolbar {
+    display: grid;
+  }
+
+  .selected-token-card {
+    min-width: 0;
+  }
+}
+
+/* End Phase 9-1 map drag, snap and zoom */

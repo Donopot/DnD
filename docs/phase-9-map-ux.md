@@ -57,3 +57,23 @@ Cette phase ne traite pas encore :
 - un token peut être déplacé directement sur la carte ;
 - le déplacement est persisté côté backend ;
 - le token reste aligné sur la grille si le snap est activé.
+
+## Etape 9-1 - Selection, drag, snap et zoom
+
+Objectif :
+
+- selectionner un token directement sur la carte ;
+- afficher le token actif ;
+- deplacer un token a la souris ;
+- persister le deplacement via l'endpoint token existant ;
+- activer/desactiver le snap-to-grid ;
+- zoomer/dezoomer la carte.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- un token peut etre glisse sur la carte ;
+- avec snap actif, le token s'aligne sur la grille ;
+- avec snap inactif, le token peut etre place librement ;
+- le zoom ne casse pas le placement des tokens.
