@@ -2,12 +2,15 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { resetFloatingWidgetLayouts, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
+import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {
   x: number;
   y: number;
 };
+
+type GmInterfaceMode = "play" | "prepare" | "advanced";
 
 type VttBoardProps = {
   scenes: Scene[];
@@ -65,6 +68,7 @@ export function VttBoard({
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
+  const [gmInterfaceMode, setGmInterfaceMode] = useState<GmInterfaceMode>("play");
   const [viewportRatio, setViewportRatio] = useState({
     left: 0,
     top: 0,
@@ -89,7 +93,9 @@ export function VttBoard({
     ? draftPositions[selectedToken.id] ?? { x: selectedToken.x, y: selectedToken.y }
     : undefined;
 
-  useFloatingWidgets(freePanelsEnabled, ".vtt-control-panel");
+  const effectiveFreePanelsEnabled = freePanelsEnabled || gmInterfaceMode === "advanced";
+
+  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel");
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -185,15 +191,68 @@ export function VttBoard({
     setZoom((current) => clamp(Number((current + delta).toFixed(2)), 0.5, 2));
   }
 
+  function setGmMode(mode: GmInterfaceMode) {
+    setGmInterfaceMode(mode);
+
+    if (mode === "advanced") {
+      setFreePanelsEnabled(true);
+    }
+
+    if (mode !== "advanced") {
+      setFreePanelsEnabled(false);
+    }
+  }
+
+  function handleApplyFloatingPreset(preset: FloatingWidgetPreset) {
+    if (!freePanelsEnabled) {
+      setFreePanelsEnabled(true);
+
+      window.setTimeout(() => {
+        applyFloatingWidgetPreset(preset);
+      }, 80);
+
+      return;
+    }
+
+    applyFloatingWidgetPreset(preset);
+  }
+
+  function openGmPanel(panelId: string, targetMode: GmInterfaceMode = "prepare") {
+    if (gmInterfaceMode !== "advanced") {
+      setGmMode(targetMode);
+      return;
+    }
+
+    showFloatingWidget(panelId);
+  }
+
+  function centerMapView(nextZoom = zoom) {
+    if (!scrollRef.current || !selectedScene) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (!scrollRef.current) {
+        return;
+      }
+
+      const targetX = (selectedScene.width * nextZoom - scrollRef.current.clientWidth) / 2;
+      const targetY = (selectedScene.height * nextZoom - scrollRef.current.clientHeight) / 2;
+
+      scrollRef.current.scrollLeft = Math.max(0, targetX);
+      scrollRef.current.scrollTop = Math.max(0, targetY);
+    });
+  }
+
   function resetMapView() {
     setZoom(1);
     setPanMode(false);
-
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-      scrollRef.current.scrollTop = 0;
-    }
+    centerMapView(1);
   }
+
+  useEffect(() => {
+    centerMapView();
+  }, [selectedScene?.id]);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;
@@ -330,11 +389,73 @@ export function VttBoard({
   }
 
   return (
-    <div className="vtt-section">
+    <div className={`vtt-section gm-mode-${gmInterfaceMode}`}>
       <div className="section-heading">
         <h3>Table virtuelle</h3>
         <Swords aria-hidden="true" />
       </div>
+
+      <section className="gm-cockpit" aria-label="Cockpit MJ">
+        <div className="gm-cockpit-main">
+          <span className="gm-cockpit-label">Cockpit MJ</span>
+          <strong>{selectedScene?.name ?? "Aucune scene active"}</strong>
+          <small>
+            {selectedScene
+              ? `${selectedScene.width} x ${selectedScene.height} · grille ${selectedScene.grid_size}px`
+              : "Cree ou selectionne une scene"}
+          </small>
+        </div>
+
+        <div className="gm-cockpit-stats">
+          <span>
+            <small>Mode</small>
+            <strong>
+              {gmInterfaceMode === "play"
+                ? "Partie"
+                : gmInterfaceMode === "prepare"
+                  ? "Preparation"
+                  : "Avance"}
+            </strong>
+          </span>
+
+          <span>
+            <small>Tokens</small>
+            <strong>{sceneTokens.length}</strong>
+          </span>
+
+          <span>
+            <small>Selection</small>
+            <strong>{selectedToken?.name ?? "Aucune"}</strong>
+          </span>
+
+          <span>
+            <small>Zoom</small>
+            <strong>{zoomPercent}%</strong>
+          </span>
+        </div>
+
+        <div className="gm-cockpit-actions">
+          <button type="button" onClick={() => centerMapView()}>
+            Centrer carte
+          </button>
+
+          <button type="button" onClick={() => openGmPanel("token", "prepare")}>
+            Ajouter token
+          </button>
+
+          <button type="button" onClick={() => openGmPanel("scene", "prepare")}>
+            Scene
+          </button>
+
+          <button type="button" onClick={() => setGmMode("play")}>
+            Mode partie
+          </button>
+
+          <button type="button" onClick={() => setGmMode("advanced")}>
+            Avance
+          </button>
+        </div>
+      </section>
 
       <div className="vtt-layout">
         <section className="vtt-board-panel">
@@ -366,6 +487,30 @@ export function VttBoard({
           </div>
 
           <div className="map-ux-toolbar">
+            <div className="gm-mode-switch" aria-label="Mode MJ">
+              <button
+                className={gmInterfaceMode === "play" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("play")}
+              >
+                Partie
+              </button>
+              <button
+                className={gmInterfaceMode === "prepare" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("prepare")}
+              >
+                Preparation
+              </button>
+              <button
+                className={gmInterfaceMode === "advanced" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("advanced")}
+              >
+                Avance
+              </button>
+            </div>
+
             <div className="map-zoom-controls">
               <button type="button" onClick={() => updateZoom(-0.1)} aria-label="Reduire le zoom">
                 <Minus aria-hidden="true" />
@@ -401,10 +546,10 @@ export function VttBoard({
             </button>
 
             <button
-              className={`floating-toggle ${freePanelsEnabled ? "active" : ""}`}
+              className={`floating-toggle ${effectiveFreePanelsEnabled ? "active" : ""}`}
               type="button"
-              aria-pressed={freePanelsEnabled}
-              onClick={() => setFreePanelsEnabled((current) => !current)}
+              aria-pressed={effectiveFreePanelsEnabled}
+              onClick={() => setGmMode(effectiveFreePanelsEnabled ? "play" : "advanced")}
             >
               Panneaux libres
             </button>
@@ -413,10 +558,17 @@ export function VttBoard({
               className="reset-panels-button"
               type="button"
               onClick={resetFloatingWidgetLayouts}
-              disabled={!freePanelsEnabled}
+              disabled={!effectiveFreePanelsEnabled}
             >
               Reset panneaux
             </button>
+
+            <VttPanelsMenu
+              enabled={effectiveFreePanelsEnabled}
+              onShowPanel={showFloatingWidget}
+              onApplyPreset={handleApplyFloatingPreset}
+              onResetPanels={resetFloatingWidgetLayouts}
+            />
 
             {selectedToken ? (
               <div className="selected-token-card">
@@ -527,7 +679,7 @@ export function VttBoard({
 
         <section className="vtt-control-panel">
           {selectedScene && (
-            <div className="map-overview">
+            <div className="map-overview" data-floating-widget="minimap" data-floating-title="Mini-map">
               <div className="map-overview-header">
                 <span>Mini-map</span>
                 <small>
@@ -576,7 +728,7 @@ export function VttBoard({
               </button>
             </div>
           )}
-          <section className="token-detail-panel" data-quick-panel="token-detail">
+          <section className="token-detail-panel" data-quick-panel="token-detail" data-floating-title="Detail token">
             <div className="token-detail-heading">
               <h4>Token selectionne</h4>
               {selectedToken && <span>{selectedToken.name}</span>}
@@ -652,7 +804,7 @@ export function VttBoard({
             )}
           </section>
 
-          <details className="tool-card" data-quick-panel="scene" open>
+          <details className="tool-card" data-quick-panel="scene" data-floating-title="Scene" open>
             <summary>Scene</summary>
 
             <form className="scene-form" onSubmit={onCreateScene}>
@@ -691,7 +843,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card">
+          <details className="tool-card" data-floating-widget="upload-map" data-floating-title="Upload carte">
             <summary>Uploader une carte</summary>
 
             <form className="asset-form" onSubmit={onUploadAsset}>
@@ -708,7 +860,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card">
+          <details className="tool-card" data-floating-widget="background" data-floating-title="Fond de carte">
             <summary>Choisir le fond</summary>
 
             <div className="asset-picker">
@@ -742,7 +894,7 @@ export function VttBoard({
             </div>
           </details>
 
-          <details className="tool-card" data-quick-panel="token" open>
+          <details className="tool-card" data-quick-panel="token" data-floating-title="Ajout token" open>
             <summary>Ajouter un token</summary>
 
             <form className="token-form" onSubmit={onCreateToken}>
@@ -793,7 +945,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card" data-quick-panel="tokens" open>
+          <details className="tool-card" data-quick-panel="tokens" data-floating-title="Liste tokens" open>
             <summary>Tokens sur la scene</summary>
 
             <div className="token-list">

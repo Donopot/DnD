@@ -2658,3 +2658,1145 @@ select {
 }
 
 /* End Phase 10-1 free UX panels */
+
+/* Phase 10-2A floating panel toolbar */
+
+.floating-widget-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  margin: -1px -1px 10px;
+  padding: 7px 8px 7px 12px;
+  border-bottom: 1px solid #d8d1c2;
+  border-radius: 12px 12px 0 0;
+  background: #1f5f43;
+  color: #fffdf7;
+  cursor: move;
+  user-select: none;
+}
+
+.floating-widget-toolbar-title {
+  min-width: 0;
+  overflow: hidden;
+  color: #fffdf7;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floating-widget-toolbar-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 26px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 253, 247, 0.35);
+  border-radius: 7px;
+  background: rgba(255, 253, 247, 0.12);
+  color: #fffdf7;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.floating-widget-toolbar-actions button:hover {
+  background: rgba(255, 253, 247, 0.22);
+}
+
+.floating-widget-locked {
+  border-color: rgba(138, 90, 18, 0.55) !important;
+}
+
+.floating-widget-locked .floating-widget-toolbar {
+  background: #8a5a12;
+  cursor: default;
+}
+
+.floating-widget-locked .floating-widget-resize-handle {
+  display: none;
+}
+
+.floating-widget-collapsed {
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+.floating-widget-collapsed > :not(.floating-widget-toolbar) {
+  display: none !important;
+}
+
+.floating-widget-collapsed .floating-widget-toolbar {
+  margin-bottom: -1px;
+  border-radius: 12px;
+}
+
+.floating-widget.floating-widget-collapsed {
+  min-height: 38px;
+}
+
+@media (max-width: 760px) {
+  .floating-widget-toolbar {
+    display: grid;
+  }
+
+  .floating-widget-toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Phase 10-2A floating panel toolbar */
+
+/* Phase 10-2B floating panels menu */
+
+.vtt-panels-menu {
+  position: relative;
+  min-height: 36px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.vtt-panels-menu.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+}
+
+.vtt-panels-menu summary {
+  cursor: pointer;
+  padding: 9px 12px;
+  color: #253028;
+  font-size: 0.84rem;
+  font-weight: 950;
+  list-style: none;
+}
+
+.vtt-panels-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.vtt-panels-menu-content {
+  position: absolute;
+  right: 0;
+  z-index: 220;
+  display: grid;
+  min-width: 210px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #fffdf7;
+  box-shadow: 0 18px 42px rgba(35, 48, 40, 0.2);
+}
+
+.vtt-panels-menu-content button {
+  justify-content: flex-start;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid #e0d7c7;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.8rem;
+  font-weight: 850;
+  text-align: left;
+}
+
+.vtt-panels-menu-content button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+}
+
+.vtt-panels-menu-content button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.vtt-panels-menu-content .danger-lite {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-menu {
+    width: 100%;
+  }
+
+  .vtt-panels-menu-content {
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+}
+
+/* End Phase 10-2B floating panels menu */
+
+/* Phase 10-2C floating panel presets */
+
+.vtt-panels-menu-group {
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffaf0;
+}
+
+.vtt-panels-menu-group + .vtt-panels-menu-group {
+  margin-top: 4px;
+}
+
+.vtt-panels-menu-group strong {
+  color: #657068;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vtt-panels-menu-group:first-child button {
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+/* End Phase 10-2C floating panel presets */
+
+/* Phase 10-2D compact VTT UI and usable presets */
+
+html {
+  font-size: 14px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.app-shell {
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+
+.sidebar {
+  padding: 10px 8px;
+}
+
+.workspace {
+  max-width: none;
+  padding: 10px 12px;
+}
+
+.topbar {
+  margin: -10px -12px 12px;
+  padding: 10px 16px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+  line-height: 1;
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.78rem;
+}
+
+.workspace-grid {
+  gap: 12px;
+}
+
+.panel,
+.detail-panel,
+.vtt-board-panel,
+.token-detail-panel,
+.map-overview,
+.tool-card {
+  border-radius: 12px;
+}
+
+.detail-panel {
+  padding: 12px;
+}
+
+.campaign-view-tabs {
+  top: 60px;
+  margin: 10px 0;
+  padding: 6px;
+}
+
+.campaign-view-tabs button {
+  min-height: 54px;
+  padding: 8px;
+}
+
+.section-heading {
+  margin-bottom: 8px;
+}
+
+.section-heading h3 {
+  font-size: 1rem;
+}
+
+.vtt-layout,
+.session-workspace .vtt-layout {
+  gap: 10px;
+}
+
+.vtt-board-panel {
+  padding: 10px;
+  overflow: hidden;
+}
+
+.vtt-toolbar,
+.map-ux-toolbar {
+  gap: 8px;
+  padding: 8px;
+}
+
+.map-ux-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+.map-ux-toolbar button,
+.map-zoom-controls button,
+.snap-toggle,
+.pan-toggle,
+.reset-map-button,
+.floating-toggle,
+.reset-panels-button {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 0.78rem;
+}
+
+.map-zoom-controls strong {
+  min-width: 42px;
+  text-align: center;
+}
+
+.keyboard-help {
+  min-width: 160px;
+}
+
+.keyboard-help summary {
+  padding: 7px 9px;
+}
+
+.map-scroll,
+.session-workspace .map-scroll {
+  height: calc(100vh - 260px);
+  min-height: 560px;
+}
+
+.vtt-control-panel,
+.session-workspace .vtt-control-panel {
+  max-height: calc(100vh - 170px);
+}
+
+.vtt-panels-menu {
+  min-height: 32px;
+}
+
+.vtt-panels-menu summary {
+  padding: 7px 10px;
+  font-size: 0.78rem;
+}
+
+.vtt-panels-menu-content {
+  z-index: 999;
+  min-width: 260px;
+  max-height: min(620px, calc(100vh - 140px));
+  overflow: auto;
+}
+
+.vtt-panels-menu-notice {
+  padding: 7px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #657068;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.vtt-panels-menu-group {
+  gap: 5px;
+  padding: 6px;
+}
+
+.vtt-panels-menu-group button {
+  cursor: pointer;
+}
+
+.vtt-panels-menu-group button:disabled {
+  cursor: not-allowed;
+}
+
+.vtt-panels-menu-group .preset-button {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.vtt-panels-menu-group .preset-button span {
+  font-weight: 950;
+}
+
+.vtt-panels-menu-group .preset-button small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.vtt-panels-menu-group .preset-button:hover {
+  border-color: #1f5f43;
+  background: #ddf3df;
+}
+
+.map-overview-map {
+  max-height: 220px;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 24px;
+  padding: 2px 6px;
+  font-size: 0.64rem;
+}
+
+@media (min-width: 1300px) {
+  .workspace-grid {
+    grid-template-columns: minmax(220px, 280px) minmax(220px, 280px) minmax(0, 1fr);
+  }
+
+  .detail-panel {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 240px);
+    min-height: 620px;
+  }
+}
+
+@media (max-width: 900px) {
+  html {
+    font-size: 13px;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 66vh;
+    min-height: 420px;
+  }
+}
+
+/* End Phase 10-2D compact VTT UI and usable presets */
+
+/* Phase 10-2E compact density and centered main map */
+
+html {
+  font-size: 12px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.app-shell {
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+.sidebar {
+  width: 48px;
+  padding: 6px 4px;
+}
+
+.sidebar .brand-mark.compact {
+  transform: scale(0.82);
+}
+
+.sidebar .ghost-button {
+  min-height: 34px;
+  padding: 6px;
+}
+
+.workspace {
+  padding: 6px 8px;
+}
+
+.topbar {
+  min-height: 52px;
+  margin: -6px -8px 8px;
+  padding: 7px 12px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.72rem;
+}
+
+.topbar-status {
+  padding: 5px 8px;
+}
+
+.workspace-grid {
+  grid-template-columns: minmax(180px, 230px) minmax(180px, 230px) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.detail-panel {
+  padding: 8px;
+}
+
+.campaign-view-tabs {
+  top: 50px;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 4px;
+}
+
+.campaign-view-tabs button {
+  min-height: 42px;
+  padding: 5px 7px;
+}
+
+.campaign-view-tabs strong {
+  font-size: 0.78rem;
+}
+
+.campaign-view-tabs small {
+  font-size: 0.64rem;
+}
+
+.section-heading {
+  margin-bottom: 5px;
+}
+
+.vtt-board-panel {
+  padding: 7px;
+}
+
+.vtt-toolbar {
+  padding: 6px 8px;
+}
+
+.map-ux-toolbar {
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 6px;
+}
+
+.map-ux-toolbar button,
+.map-zoom-controls button,
+.snap-toggle,
+.pan-toggle,
+.reset-map-button,
+.floating-toggle,
+.reset-panels-button,
+.vtt-panels-menu summary {
+  min-height: 28px;
+  padding: 4px 7px;
+  font-size: 0.72rem;
+}
+
+.map-zoom-controls {
+  gap: 4px;
+}
+
+.map-zoom-controls strong {
+  min-width: 36px;
+  font-size: 0.78rem;
+}
+
+.keyboard-help {
+  min-width: 130px;
+}
+
+.keyboard-help summary {
+  padding: 5px 7px;
+  font-size: 0.7rem;
+}
+
+.keyboard-help kbd {
+  min-width: 18px;
+  min-height: 18px;
+  padding: 1px 4px;
+  font-size: 0.62rem;
+}
+
+.keyboard-help span {
+  font-size: 0.66rem;
+}
+
+.map-scroll,
+.session-workspace .map-scroll {
+  display: grid;
+  height: calc(100vh - 205px);
+  min-height: 600px;
+  place-items: center;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.map-zoom-surface {
+  display: grid;
+  min-width: 100%;
+  min-height: 100%;
+  place-items: center;
+}
+
+.map-board {
+  margin: auto;
+}
+
+.vtt-layout,
+.session-workspace .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 8px;
+}
+
+.vtt-control-panel,
+.session-workspace .vtt-control-panel {
+  max-height: calc(100vh - 120px);
+  gap: 7px;
+}
+
+.map-overview {
+  padding: 7px;
+}
+
+.map-overview-map {
+  max-height: 160px;
+}
+
+.token-detail-panel {
+  padding: 8px;
+}
+
+.tool-card summary {
+  min-height: 32px;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.tool-card > form,
+.tool-card > div {
+  padding: 8px;
+}
+
+.floating-widget {
+  max-width: min(360px, calc(100vw - 20px));
+  max-height: calc(100vh - 20px);
+}
+
+.floating-widget-toolbar {
+  min-height: 30px;
+  padding: 5px 6px 5px 9px;
+}
+
+.floating-widget-toolbar-title {
+  font-size: 0.68rem;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 21px;
+  padding: 1px 5px;
+  font-size: 0.58rem;
+}
+
+.vtt-panels-menu-content {
+  min-width: 230px;
+  max-height: min(520px, calc(100vh - 110px));
+}
+
+.vtt-panels-menu-group .preset-button {
+  min-height: 36px;
+}
+
+.vtt-panels-menu-group .preset-button small {
+  display: none;
+}
+
+.form-stack,
+.scene-form,
+.asset-form,
+.token-form {
+  gap: 7px;
+}
+
+input,
+textarea,
+select {
+  min-height: 28px;
+  padding: 5px 7px;
+  font-size: 0.78rem;
+}
+
+.primary-button,
+.ghost-button {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 185px);
+    min-height: 660px;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 68vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-2E compact density and centered main map */
+
+/* Phase 10-3B clean GM play/prepare/advanced modes */
+
+.gm-mode-switch {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.gm-mode-switch button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #657068;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.gm-mode-switch button.active {
+  background: #1f5f43;
+  color: #fffdf7;
+}
+
+.gm-mode-play .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.gm-mode-play .vtt-control-panel {
+  gap: 8px;
+}
+
+.gm-mode-play .vtt-control-panel > .tool-card {
+  display: none;
+}
+
+.gm-mode-play .vtt-control-panel > .map-overview,
+.gm-mode-play .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+.gm-mode-play .map-scroll {
+  height: calc(100vh - 190px);
+  min-height: 680px;
+}
+
+.gm-mode-prepare .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.gm-mode-prepare .vtt-control-panel > .tool-card,
+.gm-mode-prepare .vtt-control-panel > .map-overview,
+.gm-mode-prepare .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+.gm-mode-prepare .map-scroll {
+  height: calc(100vh - 220px);
+  min-height: 620px;
+}
+
+.gm-mode-advanced .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+.gm-mode-advanced .map-scroll {
+  height: calc(100vh - 190px);
+  min-height: 680px;
+}
+
+.gm-mode-play .vtt-panels-menu-content .vtt-panels-menu-group:nth-of-type(2),
+.gm-mode-play .reset-panels-button {
+  display: none;
+}
+
+.gm-mode-play .floating-toggle {
+  border-color: #d8d1c2;
+}
+
+.gm-mode-advanced .floating-toggle {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-mode-play .map-ux-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.gm-mode-play .keyboard-help,
+.gm-mode-play .compact-help {
+  display: none;
+}
+
+@media (max-width: 1250px) {
+  .gm-mode-play .vtt-layout,
+  .gm-mode-prepare .vtt-layout,
+  .gm-mode-advanced .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-mode-play .map-scroll,
+  .gm-mode-prepare .map-scroll,
+  .gm-mode-advanced .map-scroll {
+    height: 70vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-3B clean GM play/prepare/advanced modes */
+
+/* Phase 10-3C compact GM cockpit */
+
+.gm-cockpit {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  padding: 8px;
+  border: 1px solid rgba(37, 48, 40, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 8px 22px rgba(35, 48, 40, 0.06);
+}
+
+.gm-cockpit-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gm-cockpit-label {
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gm-cockpit-main strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-cockpit-main small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.gm-cockpit-stats {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.gm-cockpit-stats span {
+  display: grid;
+  min-width: 72px;
+  gap: 1px;
+  padding: 6px 8px;
+  border: 1px solid #e0d7c7;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.gm-cockpit-stats small {
+  color: #657068;
+  font-size: 0.58rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gm-cockpit-stats strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-cockpit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.gm-cockpit-actions button {
+  min-height: 28px;
+  padding: 4px 7px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.gm-cockpit-actions button:hover {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-mode-play .gm-cockpit {
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+}
+
+.gm-mode-play .map-scroll,
+.session-workspace .gm-mode-play .map-scroll {
+  height: calc(100vh - 245px);
+}
+
+@media (max-width: 1200px) {
+  .gm-cockpit {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-cockpit-stats,
+  .gm-cockpit-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .gm-cockpit-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gm-cockpit-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Phase 10-3C compact GM cockpit */
+
+/* Phase 10-3E final GM play cleanup */
+
+.gm-mode-play .section-heading {
+  display: none;
+}
+
+.gm-mode-play .vtt-board-panel {
+  padding: 6px;
+}
+
+.gm-mode-play .gm-cockpit {
+  margin-bottom: 6px;
+  padding: 6px 8px;
+}
+
+.gm-mode-play .gm-cockpit-actions button:nth-child(3),
+.gm-mode-play .gm-cockpit-actions button:nth-child(5) {
+  display: none;
+}
+
+.gm-mode-play .map-ux-toolbar {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+}
+
+.gm-mode-play .floating-toggle,
+.gm-mode-play .reset-panels-button,
+.gm-mode-play .vtt-panels-menu,
+.gm-mode-play .keyboard-help,
+.gm-mode-play .compact-help {
+  display: none;
+}
+
+.gm-mode-play .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 6px;
+}
+
+.gm-mode-play .vtt-control-panel {
+  gap: 6px;
+  max-height: calc(100vh - 96px);
+  padding-right: 3px;
+}
+
+.gm-mode-play .vtt-control-panel > .tool-card,
+.gm-mode-play .vtt-control-panel > .token-detail-panel {
+  display: none;
+}
+
+.gm-mode-play .vtt-control-panel > .gm-inspector-panel,
+.gm-mode-play .vtt-control-panel > .map-overview {
+  display: grid;
+}
+
+.gm-mode-play .gm-inspector-panel,
+.gm-mode-play .map-overview {
+  padding: 7px;
+  border-radius: 10px;
+}
+
+.gm-mode-play .gm-inspector-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.gm-mode-play .gm-inspector-grid span {
+  padding: 5px;
+}
+
+.gm-mode-play .gm-inspector-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.gm-mode-play .gm-inspector-actions button {
+  min-height: 25px;
+  padding: 3px 6px;
+}
+
+.gm-mode-play .map-overview-header {
+  margin-bottom: 4px;
+}
+
+.gm-mode-play .map-overview-map {
+  max-height: 130px;
+}
+
+.gm-mode-play .map-scroll,
+.session-workspace .gm-mode-play .map-scroll {
+  height: calc(100vh - 178px);
+  min-height: 700px;
+}
+
+.gm-mode-play .map-token {
+  font-size: 0.68rem;
+}
+
+.gm-mode-play .selected-token-card {
+  min-width: 130px;
+  padding: 5px 7px;
+}
+
+.gm-mode-play .selected-token-card span {
+  font-size: 0.56rem;
+}
+
+.gm-mode-play .selected-token-card strong,
+.gm-mode-play .selected-token-card small {
+  font-size: 0.68rem;
+}
+
+.gm-mode-prepare .floating-toggle,
+.gm-mode-prepare .reset-panels-button,
+.gm-mode-prepare .vtt-panels-menu {
+  display: none;
+}
+
+.gm-mode-advanced .gm-cockpit,
+.gm-mode-advanced .map-ux-toolbar {
+  position: relative;
+  z-index: 10;
+}
+
+@media (min-width: 1500px) {
+  .gm-mode-play .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+
+  .gm-mode-play .map-scroll,
+  .session-workspace .gm-mode-play .map-scroll {
+    height: calc(100vh - 168px);
+    min-height: 740px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .gm-mode-play .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-mode-play .map-scroll,
+  .session-workspace .gm-mode-play .map-scroll {
+    height: 72vh;
+    min-height: 460px;
+  }
+
+  .gm-mode-play .vtt-control-panel > .map-overview {
+    max-width: 320px;
+  }
+}
+
+/* End Phase 10-3E final GM play cleanup */
