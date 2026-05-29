@@ -221,6 +221,16 @@ export function resetFloatingWidgetLayouts() {
 }
 
 export function showFloatingWidget(widgetId: string) {
+  const metaKey = `${META_PREFIX}${widgetId}`;
+  const storedMeta = readStoredValue<WidgetMeta>(metaKey);
+
+  writeStoredValue<WidgetMeta>(metaKey, {
+    hidden: false,
+    locked: storedMeta?.locked ?? false,
+    collapsed: false,
+    zIndex: Math.max(storedMeta?.zIndex ?? 180, 220),
+  });
+
   window.dispatchEvent(
     new CustomEvent("dnd:show-floating-widget", {
       detail: { widgetId },
@@ -319,10 +329,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       const actions = document.createElement("div");
       actions.className = "floating-widget-toolbar-actions";
 
-      const frontButton = createToolbarButton("Avant", "Mettre au premier plan");
-      const lockButton = createToolbarButton("Verrou", "Verrouiller le panneau");
-      const collapseButton = createToolbarButton("Reduire", "Reduire le panneau");
-      const hideButton = createToolbarButton("Fermer", "Fermer le panneau");
+      const frontButton = createToolbarButton("↑", "Mettre au premier plan");
+      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau");
+      const collapseButton = createToolbarButton("−", "Reduire le panneau");
+      const hideButton = createToolbarButton("×", "Fermer le panneau");
 
       actions.append(frontButton, lockButton, collapseButton, hideButton);
       toolbar.append(titleElement, actions);
@@ -340,11 +350,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         widget.classList.toggle("floating-widget-locked", currentMeta.locked);
         widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
 
-        lockButton.textContent = currentMeta.locked ? "Deverr." : "Verrou";
+        lockButton.textContent = currentMeta.locked ? "🔓" : "🔒";
         lockButton.title = currentMeta.locked ? "Deverrouiller le panneau" : "Verrouiller le panneau";
         lockButton.setAttribute("aria-label", lockButton.title);
 
-        collapseButton.textContent = currentMeta.collapsed ? "Ouvrir" : "Reduire";
+        collapseButton.textContent = currentMeta.collapsed ? "+" : "−";
         collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
         collapseButton.setAttribute("aria-label", collapseButton.title);
       }
@@ -365,6 +375,13 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       widget.classList.add("floating-widget");
+
+      const wasDetailsOpen = widget instanceof HTMLDetailsElement ? widget.open : undefined;
+
+      if (widget instanceof HTMLDetailsElement) {
+        widget.open = true;
+      }
+
       applyLayout(currentLayout);
       applyMeta();
 
@@ -471,13 +488,15 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
           return;
         }
 
+        topZIndex += 1;
+
         saveMeta({
           hidden: false,
           collapsed: false,
-          zIndex: topZIndex + 1,
+          zIndex: topZIndex,
         });
 
-        topZIndex += 1;
+        widget.focus({ preventScroll: true });
       }
 
       function handleApplyPreset(event: Event) {
@@ -543,6 +562,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
         window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
         window.removeEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
+
+        if (widget instanceof HTMLDetailsElement && typeof wasDetailsOpen === "boolean") {
+          widget.open = wasDetailsOpen;
+        }
 
         clearRuntimeWidgetState(widget);
       });

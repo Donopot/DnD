@@ -139,3 +139,67 @@ Critere d'acceptation :
 - le mode Partie ne montre plus les formulaires longs ;
 - le mode Preparation conserve les outils MJ ;
 - le mode Avance conserve les panneaux libres.
+
+## Etape 10-3G - Polish panneaux flottants GM
+
+Objectif :
+
+- supprimer le double header des panneaux flottants ;
+- conserver uniquement la toolbar flottante avec les options ;
+- ouvrir automatiquement les panneaux details en mode flottant ;
+- raccourcir les boutons de toolbar ;
+- rendre les panneaux plus compacts en mode avance.
+
+Correction principale :
+
+Les panneaux tool-card utilisaient a la fois :
+
+- le summary natif du details ;
+- la toolbar flottante avec Avant / Verrou / Reduire / Fermer.
+
+En mode flottant, le summary natif est masque.  
+La toolbar flottante devient l'unique header du panneau.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- les panneaux flottants n'ont plus deux headers ;
+- le bouton reduire visible est celui de la toolbar flottante ;
+- les panneaux restent deplacables ;
+- les panneaux restent redimensionnables ;
+- le mode Partie reste propre.
+
+## Etape 10-3H - Gestionnaire de panneaux MJ
+
+Constat :
+
+Le menu Panneaux et les panneaux flottants etaient utilisables, mais pas encore assez intuitifs.
+Le bouton Rouvrir pouvait etre ambigu et le menu pouvait se retrouver visuellement concurrence par les panneaux lateraux.
+
+Objectif :
+
+- transformer le menu Panneaux en gestionnaire de panneaux MJ ;
+- remplacer Rouvrir par Afficher un panneau ;
+- rendre les presets plus visibles ;
+- rendre le gestionnaire prioritaire visuellement ;
+- eviter qu'il passe derriere les panneaux flottants ;
+- rendre la reouverture d'un panneau plus robuste.
+
+Comportement cible :
+
+- cliquer un preset active le mode avance si necessaire ;
+- le gestionnaire reste au-dessus des panneaux flottants ;
+- cliquer un panneau ferme le rend de nouveau visible ;
+- Reset complet restaure tous les panneaux ;
+- les panneaux flottants gardent un seul header.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- le menu Gestion panneaux reste au-dessus des panneaux ;
+- Mini-map fermee puis affichee reapparait ;
+- Ajout token ferme puis affiche reapparait ;
+- les presets restent cliquables ;
+- l'utilisation est plus intuitive en mode Avance.
