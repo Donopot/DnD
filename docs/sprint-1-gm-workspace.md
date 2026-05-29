@@ -157,3 +157,26 @@ Permettre d'ajuster la taille visuelle de l'interface.
 7. Cliquer Combat.
 8. Cliquer Personnalise.
 9. Verifier que le layout sauvegarde revient.
+
+## Avancement - Lot 2
+
+### Implementation
+
+- ajout d'un dock des panneaux reduits ;
+- un panneau reduit apparait dans le dock ;
+- un clic dans le dock restaure le panneau ;
+- le dock se masque automatiquement s'il est vide ;
+- le dock fonctionne avec les layouts/presets existants ;
+- le dock est supprime proprement quand le mode panneaux libres est desactive.
+
+### Validation manuelle attendue
+
+1. Passer en Mode Avance.
+2. Cliquer sur le bouton reduire d'un panneau flottant.
+3. Verifier que le panneau apparait dans le dock en bas de l'ecran.
+4. Cliquer sur le nom du panneau dans le dock.
+5. Verifier que le panneau est restaure.
+6. Reduire plusieurs panneaux.
+7. Verifier que le dock liste tous les panneaux reduits.
+8. Recharger la page.
+9. Verifier que l'etat reduit et le dock restent coherents.
