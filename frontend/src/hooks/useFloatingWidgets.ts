@@ -156,6 +156,7 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
   if (preset === "roleplay") {
     const layouts: Record<string, WidgetLayout> = {
       "token-detail": { left, top: 92, width: rightPanelWidth, height: 340 },
+      "gm-notes": { left, top: 450, width: rightPanelWidth, height: 330 },
       minimap: { left, top: 450, width: rightPanelWidth, height: 220 },
       scene: { left: margin, top: 92, width: compactWidth, height: 260 },
       token: { left: margin, top: 370, width: compactWidth, height: 260 },
@@ -170,9 +171,11 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
   if (preset === "quick-prep" || preset === "preparation") {
     const layouts: Record<string, WidgetLayout> = {
       scene: { left: margin, top: 92, width: rightPanelWidth, height: 380 },
+      "gm-notes": { left, top: 92, width: rightPanelWidth, height: 320 },
       "upload-map": { left: margin, top: 490, width: rightPanelWidth, height: 260 },
       background: { left: margin, top: 770, width: rightPanelWidth, height: 280 },
       minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
+    "gm-notes": { left, top: 650, width: rightPanelWidth, height: 300 },
       token: { left, top: 370, width: rightPanelWidth, height: 360 },
       tokens: { left, top: 750, width: rightPanelWidth, height: 300 },
       "token-detail": { left, top: 1070, width: rightPanelWidth, height: 240 },
@@ -184,6 +187,7 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
   if (preset === "minimal") {
     const layouts: Record<string, WidgetLayout> = {
       "token-detail": { left, top: 92, width: compactWidth, height: 280 },
+      "gm-notes": { left, top: 390, width: compactWidth, height: 240 },
       minimap: { left: margin, top: 92, width: compactWidth, height: 210 },
       scene: { left: margin, top: 320, width: compactWidth, height: 220 },
       token: { left: margin, top: 560, width: compactWidth, height: 240 },
@@ -215,7 +219,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
     return {
       ...common,
       hidden: widgetId === "upload-map" || widgetId === "background",
-      collapsed: widgetId === "scene",
+      collapsed: widgetId === "scene" || widgetId === "gm-notes",
     };
   }
 
@@ -238,7 +242,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
   if (preset === "minimal") {
     return {
       ...common,
-      hidden: widgetId === "scene" || widgetId === "upload-map" || widgetId === "background" || widgetId === "token" || widgetId === "tokens",
+      hidden: widgetId === "scene" || widgetId === "upload-map" || widgetId === "background" || widgetId === "token" || widgetId === "tokens" || widgetId === "gm-notes",
       collapsed: widgetId === "minimap",
     };
   }
