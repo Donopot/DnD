@@ -3509,3 +3509,140 @@ select {
 }
 
 /* End Phase 10-3B clean GM play/prepare/advanced modes */
+
+/* Phase 10-3C compact GM cockpit */
+
+.gm-cockpit {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  padding: 8px;
+  border: 1px solid rgba(37, 48, 40, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 253, 247, 0.94);
+  box-shadow: 0 8px 22px rgba(35, 48, 40, 0.06);
+}
+
+.gm-cockpit-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gm-cockpit-label {
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gm-cockpit-main strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-cockpit-main small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.gm-cockpit-stats {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.gm-cockpit-stats span {
+  display: grid;
+  min-width: 72px;
+  gap: 1px;
+  padding: 6px 8px;
+  border: 1px solid #e0d7c7;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.gm-cockpit-stats small {
+  color: #657068;
+  font-size: 0.58rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gm-cockpit-stats strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-cockpit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.gm-cockpit-actions button {
+  min-height: 28px;
+  padding: 4px 7px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.gm-cockpit-actions button:hover {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-mode-play .gm-cockpit {
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+}
+
+.gm-mode-play .map-scroll,
+.session-workspace .gm-mode-play .map-scroll {
+  height: calc(100vh - 245px);
+}
+
+@media (max-width: 1200px) {
+  .gm-cockpit {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-cockpit-stats,
+  .gm-cockpit-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .gm-cockpit-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gm-cockpit-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Phase 10-3C compact GM cockpit */

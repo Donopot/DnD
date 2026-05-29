@@ -217,6 +217,15 @@ export function VttBoard({
     applyFloatingWidgetPreset(preset);
   }
 
+  function openGmPanel(panelId: string, targetMode: GmInterfaceMode = "prepare") {
+    if (gmInterfaceMode !== "advanced") {
+      setGmMode(targetMode);
+      return;
+    }
+
+    showFloatingWidget(panelId);
+  }
+
   function centerMapView(nextZoom = zoom) {
     if (!scrollRef.current || !selectedScene) {
       return;
@@ -385,6 +394,68 @@ export function VttBoard({
         <h3>Table virtuelle</h3>
         <Swords aria-hidden="true" />
       </div>
+
+      <section className="gm-cockpit" aria-label="Cockpit MJ">
+        <div className="gm-cockpit-main">
+          <span className="gm-cockpit-label">Cockpit MJ</span>
+          <strong>{selectedScene?.name ?? "Aucune scene active"}</strong>
+          <small>
+            {selectedScene
+              ? `${selectedScene.width} x ${selectedScene.height} · grille ${selectedScene.grid_size}px`
+              : "Cree ou selectionne une scene"}
+          </small>
+        </div>
+
+        <div className="gm-cockpit-stats">
+          <span>
+            <small>Mode</small>
+            <strong>
+              {gmInterfaceMode === "play"
+                ? "Partie"
+                : gmInterfaceMode === "prepare"
+                  ? "Preparation"
+                  : "Avance"}
+            </strong>
+          </span>
+
+          <span>
+            <small>Tokens</small>
+            <strong>{sceneTokens.length}</strong>
+          </span>
+
+          <span>
+            <small>Selection</small>
+            <strong>{selectedToken?.name ?? "Aucune"}</strong>
+          </span>
+
+          <span>
+            <small>Zoom</small>
+            <strong>{zoomPercent}%</strong>
+          </span>
+        </div>
+
+        <div className="gm-cockpit-actions">
+          <button type="button" onClick={() => centerMapView()}>
+            Centrer carte
+          </button>
+
+          <button type="button" onClick={() => openGmPanel("token", "prepare")}>
+            Ajouter token
+          </button>
+
+          <button type="button" onClick={() => openGmPanel("scene", "prepare")}>
+            Scene
+          </button>
+
+          <button type="button" onClick={() => setGmMode("play")}>
+            Mode partie
+          </button>
+
+          <button type="button" onClick={() => setGmMode("advanced")}>
+            Avance
+          </button>
+        </div>
+      </section>
 
       <div className="vtt-layout">
         <section className="vtt-board-panel">
