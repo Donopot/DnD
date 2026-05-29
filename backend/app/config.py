@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     backend_env: str = "development"
     backend_cors_origins: str = "http://127.0.0.1:8090"
     backend_secret_key: str
+    access_token_ttl_minutes: int = 60 * 24 * 7
 
     database_url: str
     redis_url: str
@@ -26,4 +27,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

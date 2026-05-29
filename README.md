@@ -70,6 +70,25 @@ Scripts are provided in `scripts/`:
 
 - `backup-postgres.sh`
 - `backup-minio.sh`
+- `smoke-phase2.sh`
 
 They write to `./backups` by default when run from the repository root on the
 server.
+
+## Current Product Phase
+
+Phase 2 is implemented in the app skeleton:
+
+- email/password auth;
+- JWT session token;
+- campaign creation and listing;
+- campaign members;
+- player invitation links;
+- minimal React dashboard.
+
+Run the smoke test on the HP Mini:
+
+```bash
+cd /home/donopot/dnd-saas
+sh scripts/smoke-phase2.sh
+```
