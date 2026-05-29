@@ -1231,6 +1231,7 @@ export default function App() {
                   onSetSceneBackground={() => void handleSetSceneBackground()}
                   onCreateToken={handleCreateToken}
                   onMoveToken={(tokenToMove, dx, dy) => void handleMoveToken(tokenToMove, dx, dy)}
+                  sessionLiveMode={activeCampaignView === "live" ? activeSessionLiveMode : undefined}
                 />
 
                 <CombatPanel

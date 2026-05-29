@@ -412,3 +412,32 @@ Brancher chaque mode a un layout de panneaux :
 - Roleplay -> PNJ, relations, notes MJ, documents ;
 - Preparation rapide -> scenes, tokens, notes, documents ;
 - Minimal -> carte dominante, detail token compact, journal reduit.
+
+## Sprint GM-2B - Modes Session Live connectes aux layouts
+
+### Objectif
+
+Chaque mode Session Live applique automatiquement un layout de panneaux.
+
+### Mapping
+
+- Exploration -> preset Exploration ;
+- Combat -> preset Combat ;
+- Roleplay -> preset Roleplay ;
+- Preparation rapide -> preset Quick Prep ;
+- Minimal -> preset Minimal.
+
+### Comportement attendu
+
+Dans l'onglet Session Live :
+
+- cliquer Exploration organise les panneaux pour l'exploration ;
+- cliquer Combat organise les panneaux pour le combat ;
+- cliquer Roleplay replie les panneaux tactiques inutiles ;
+- cliquer Preparation rapide affiche les outils de creation ;
+- cliquer Minimal cache les panneaux lourds et garde la carte dominante.
+
+### Note
+
+Les panneaux Roleplay avances, Notes MJ, Initiative et Actions rapides seront ajoutes dans les prochains lots.
+Pour l'instant, les modes utilisent les panneaux existants.
