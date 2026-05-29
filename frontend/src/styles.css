@@ -5161,3 +5161,79 @@ select {
 }
 
 /* End Sprint 1 - GM panel system stabilization */
+
+/* GM workspace target tabs */
+
+.gm-workspace-tabs {
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+}
+
+.detail-panel[class*="campaign-view-"] .campaign-overview-tab,
+.detail-panel[class*="campaign-view-"] .character-section,
+.detail-panel[class*="campaign-view-"] .vtt-section,
+.detail-panel[class*="campaign-view-"] .combat-section,
+.detail-panel[class*="campaign-view-"] .session-section,
+.detail-panel[class*="campaign-view-"] .gm-placeholder-tab {
+  display: none;
+}
+
+.detail-panel.campaign-view-campaign .campaign-overview-tab {
+  display: grid;
+}
+
+.detail-panel.campaign-view-characters .character-section {
+  display: grid;
+}
+
+.detail-panel.campaign-view-live .vtt-section,
+.detail-panel.campaign-view-live .combat-section,
+.detail-panel.campaign-view-live .session-section {
+  display: block;
+}
+
+.detail-panel.campaign-view-preparation .vtt-section {
+  display: block;
+}
+
+.detail-panel.campaign-view-journal .session-section {
+  display: block;
+}
+
+.detail-panel.campaign-view-library .gm-library-placeholder {
+  display: grid;
+}
+
+.detail-panel.campaign-view-settings .gm-settings-placeholder {
+  display: grid;
+}
+
+.gm-placeholder-tab {
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed #d8d1c2;
+  border-radius: 12px;
+  background: #fffdf7;
+}
+
+.gm-placeholder-tab h3 {
+  margin: 0;
+}
+
+.gm-placeholder-tab ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 1300px) {
+  .gm-workspace-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .gm-workspace-tabs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End GM workspace target tabs */
