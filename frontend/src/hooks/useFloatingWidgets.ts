@@ -141,23 +141,19 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
 
   if (preset === "combat") {
     const layouts: Record<string, WidgetLayout> = {
-      "party-summary": { left: margin, top: 92, width: compactWidth, height: 280 },
-      minimap: { left: margin, top: 390, width: compactWidth, height: 230 },
+      initiative: { left: margin, top: 92, width: compactWidth, height: 360 },
+      "party-summary": { left: margin, top: 470, width: compactWidth, height: 280 },
+      minimap: { left: margin, top: 770, width: compactWidth, height: 220 },
       "token-detail": { left: compactLeft, top: 92, width: compactWidth, height: 300 },
       token: { left: compactLeft, top: 410, width: compactWidth, height: 330 },
       tokens: { left: compactLeft, top: 760, width: compactWidth, height: 280 },
-      "gm-notes": { left: margin, top: 640, width: compactWidth, height: 260 },
-      scene: { left: margin, top: 920, width: compactWidth, height: 240 },
-      "upload-map": { left: margin, top: 1180, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1420, width: compactWidth, height: 220 },
+      "gm-notes": { left: margin, top: 1010, width: compactWidth, height: 260 },
+      scene: { left: margin, top: 1290, width: compactWidth, height: 240 },
+      "upload-map": { left: margin, top: 1550, width: compactWidth, height: 220 },
+      background: { left: margin, top: 1790, width: compactWidth, height: 220 },
     };
 
-    return layouts[widgetId] ?? {
-      left: compactLeft,
-      top: 110 + index * 42,
-      width: compactWidth,
-      height: 260,
-    };
+    return layouts[widgetId] ?? { left: compactLeft, top: 110 + index * 42, width: compactWidth, height: 260 };
   }
 
   if (preset === "roleplay") {
@@ -167,18 +163,14 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
       "token-detail": { left, top: 92, width: rightPanelWidth, height: 320 },
       "gm-notes": { left, top: 430, width: rightPanelWidth, height: 340 },
       minimap: { left, top: 790, width: rightPanelWidth, height: 220 },
-      token: { left: margin, top: 670, width: compactWidth, height: 260 },
-      tokens: { left: margin, top: 950, width: compactWidth, height: 260 },
-      "upload-map": { left: margin, top: 1230, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1470, width: compactWidth, height: 220 },
+      initiative: { left: margin, top: 670, width: compactWidth, height: 280 },
+      token: { left: margin, top: 970, width: compactWidth, height: 260 },
+      tokens: { left: margin, top: 1250, width: compactWidth, height: 260 },
+      "upload-map": { left: margin, top: 1530, width: compactWidth, height: 220 },
+      background: { left: margin, top: 1770, width: compactWidth, height: 220 },
     };
 
-    return layouts[widgetId] ?? {
-      left,
-      top: 110 + index * 42,
-      width: rightPanelWidth,
-      height: 280,
-    };
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
   }
 
   if (preset === "quick-prep" || preset === "preparation") {
@@ -189,17 +181,13 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
       background: { left: margin, top: 1060, width: rightPanelWidth, height: 260 },
       minimap: { left, top: 92, width: rightPanelWidth, height: 250 },
       "party-summary": { left, top: 360, width: rightPanelWidth, height: 270 },
-      token: { left, top: 650, width: rightPanelWidth, height: 340 },
-      tokens: { left, top: 1010, width: rightPanelWidth, height: 300 },
-      "token-detail": { left, top: 1330, width: rightPanelWidth, height: 240 },
+      initiative: { left, top: 650, width: rightPanelWidth, height: 320 },
+      token: { left, top: 990, width: rightPanelWidth, height: 340 },
+      tokens: { left, top: 1350, width: rightPanelWidth, height: 300 },
+      "token-detail": { left, top: 1670, width: rightPanelWidth, height: 240 },
     };
 
-    return layouts[widgetId] ?? {
-      left,
-      top: 110 + index * 42,
-      width: rightPanelWidth,
-      height: 280,
-    };
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
   }
 
   if (preset === "minimal") {
@@ -207,40 +195,32 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
       "token-detail": { left, top: 92, width: compactWidth, height: 270 },
       "party-summary": { left, top: 380, width: compactWidth, height: 260 },
       minimap: { left: margin, top: 92, width: compactWidth, height: 210 },
-      "gm-notes": { left: margin, top: 320, width: compactWidth, height: 240 },
-      scene: { left: margin, top: 580, width: compactWidth, height: 220 },
-      token: { left: margin, top: 820, width: compactWidth, height: 240 },
-      tokens: { left: margin, top: 1080, width: compactWidth, height: 240 },
-      "upload-map": { left: margin, top: 1340, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1580, width: compactWidth, height: 220 },
+      initiative: { left: margin, top: 320, width: compactWidth, height: 260 },
+      "gm-notes": { left: margin, top: 600, width: compactWidth, height: 240 },
+      scene: { left: margin, top: 860, width: compactWidth, height: 220 },
+      token: { left: margin, top: 1100, width: compactWidth, height: 240 },
+      tokens: { left: margin, top: 1360, width: compactWidth, height: 240 },
+      "upload-map": { left: margin, top: 1620, width: compactWidth, height: 220 },
+      background: { left: margin, top: 1860, width: compactWidth, height: 220 },
     };
 
-    return layouts[widgetId] ?? {
-      left,
-      top: 110 + index * 42,
-      width: compactWidth,
-      height: 240,
-    };
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: compactWidth, height: 240 };
   }
 
   const layouts: Record<string, WidgetLayout> = {
     minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
     "token-detail": { left, top: 370, width: rightPanelWidth, height: 310 },
     "party-summary": { left, top: 700, width: rightPanelWidth, height: 280 },
-    "gm-notes": { left, top: 1000, width: rightPanelWidth, height: 300 },
-    token: { left, top: 1320, width: rightPanelWidth, height: 320 },
-    tokens: { left, top: 1660, width: rightPanelWidth, height: 280 },
+    initiative: { left, top: 1000, width: rightPanelWidth, height: 320 },
+    "gm-notes": { left, top: 1340, width: rightPanelWidth, height: 300 },
+    token: { left, top: 1660, width: rightPanelWidth, height: 320 },
+    tokens: { left, top: 2000, width: rightPanelWidth, height: 280 },
     scene: { left: margin, top: 92, width: compactWidth, height: 230 },
     "upload-map": { left: margin, top: 340, width: compactWidth, height: 210 },
     background: { left: margin, top: 570, width: compactWidth, height: 230 },
   };
 
-  return layouts[widgetId] ?? {
-    left,
-    top: 110 + index * 42,
-    width: rightPanelWidth,
-    height: 280,
-  };
+  return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
 }
 
 function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetMeta {
@@ -248,34 +228,30 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
 
   if (widgetId === "gm-notes") {
     if (preset === "combat") {
-      return {
-        ...common,
-        hidden: false,
-        collapsed: true,
-      };
+      return { ...common, hidden: false, collapsed: true };
     }
 
     if (preset === "minimal") {
-      return {
-        ...common,
-        hidden: true,
-        collapsed: false,
-      };
+      return { ...common, hidden: true, collapsed: false };
     }
 
-    return {
-      ...common,
-      hidden: false,
-      collapsed: false,
-    };
+    return { ...common, hidden: false, collapsed: false };
   }
 
   if (widgetId === "party-summary") {
-    return {
-      ...common,
-      hidden: false,
-      collapsed: false,
-    };
+    return { ...common, hidden: false, collapsed: false };
+  }
+
+  if (widgetId === "initiative") {
+    if (preset === "combat") {
+      return { ...common, hidden: false, collapsed: false };
+    }
+
+    if (preset === "minimal") {
+      return { ...common, hidden: false, collapsed: true };
+    }
+
+    return { ...common, hidden: false, collapsed: preset === "roleplay" };
   }
 
   if (preset === "combat") {
@@ -312,7 +288,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
         widgetId === "token" ||
         widgetId === "tokens" ||
         widgetId === "gm-notes",
-      collapsed: widgetId === "minimap",
+      collapsed: widgetId === "minimap" || widgetId === "initiative",
     };
   }
 
