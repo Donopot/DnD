@@ -5237,3 +5237,79 @@ select {
 }
 
 /* End GM workspace target tabs */
+
+/* Sprint GM-2A - Session Live modes */
+
+.session-live-mode-bar {
+  display: none;
+}
+
+.detail-panel.campaign-view-live .session-live-mode-bar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid #d8d1c2;
+  border-radius: 12px;
+  background: #f9f6ec;
+}
+
+.session-live-mode-bar h3 {
+  margin: 2px 0;
+}
+
+.session-live-mode-bar p {
+  margin: 0;
+  color: #657068;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.session-live-mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.session-live-mode-buttons button {
+  display: grid;
+  gap: 4px;
+  min-height: 58px;
+  padding: 9px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #fffdf7;
+  color: #253028;
+  text-align: left;
+}
+
+.session-live-mode-buttons button.active {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+  box-shadow: inset 0 0 0 1px #1f5f43;
+}
+
+.session-live-mode-buttons strong {
+  font-size: 0.82rem;
+}
+
+.session-live-mode-buttons small {
+  color: #657068;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+@media (max-width: 1200px) {
+  .session-live-mode-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .session-live-mode-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Sprint GM-2A - Session Live modes */
