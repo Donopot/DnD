@@ -3,7 +3,7 @@ import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react"
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
 import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/sessionLiveModes";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
 import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
@@ -608,7 +608,7 @@ export function VttBoard({
 
             <button className="reset-map-button" type="button" onClick={resetMapView}>
               <RotateCcw aria-hidden="true" />
-              Reset carte
+              Reset carte carte
             </button>
 
             <button

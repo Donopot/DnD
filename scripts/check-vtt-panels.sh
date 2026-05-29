@@ -8,19 +8,8 @@ from pathlib import Path
 import re
 import sys
 
-config_path = Path("frontend/src/config/vttPanels.ts")
-board_path = Path("frontend/src/components/VttBoard.tsx")
-
-if not config_path.exists():
-    print("Manque frontend/src/config/vttPanels.ts")
-    sys.exit(1)
-
-if not board_path.exists():
-    print("Manque frontend/src/components/VttBoard.tsx")
-    sys.exit(1)
-
-config = config_path.read_text()
-board = board_path.read_text()
+config = Path("frontend/src/config/vttPanels.ts").read_text()
+board = Path("frontend/src/components/VttBoard.tsx").read_text()
 
 registry_match = re.search(r"export const VTT_PANELS:.*?\[(.*?)\];", config, re.S)
 

@@ -21,11 +21,13 @@ export type VttPanelId =
   | "token"
   | "tokens";
 
+export type VttPanelCategory = "session" | "map" | "combat" | "preparation" | "system";
+
 export type VttPanelDefinition = {
   id: VttPanelId;
   label: string;
   description: string;
-  category: "session" | "map" | "combat" | "preparation" | "system";
+  category: VttPanelCategory;
 };
 
 export const VTT_PANELS: VttPanelDefinition[] = [
