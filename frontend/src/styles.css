@@ -4461,3 +4461,29 @@ select {
 }
 
 /* End Sprint 1 - dock includes closed panels */
+
+/* Sprint 1 - robust reopen state for GM panels */
+
+.floating-widget[data-floating-runtime-state="closed"] {
+  display: none !important;
+}
+
+.floating-widget[data-floating-runtime-state="collapsed"] {
+  outline: 2px solid rgba(245, 197, 66, 0.28);
+}
+
+.floating-widget-dock-list button[data-floating-dock-state="fermé"],
+.floating-widget-dock-list button[data-floating-dock-state="closed"] {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+.floating-widget-dock-list button[data-floating-dock-state="réduit"],
+.floating-widget-dock-list button[data-floating-dock-state="collapsed"] {
+  border-color: #d8d1c2;
+  background: #f9f6ec;
+  color: #253028;
+}
+
+/* End Sprint 1 - robust reopen state for GM panels */

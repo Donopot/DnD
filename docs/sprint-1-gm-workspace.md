@@ -246,3 +246,36 @@ Il doit aussi contenir les panneaux fermes afin que le MJ puisse les retrouver s
 7. Verifier que Ajout token apparait dans le dock avec le statut ferme.
 8. Cliquer Ajout token dans le dock.
 9. Verifier que Ajout token revient ouvert.
+
+## Correction Lot 2 - Reouverture robuste des panneaux
+
+### Probleme constate
+
+Le panneau Detail token pouvait rester impossible a rouvrir depuis Gestion panneaux.
+
+Cause probable :
+
+- etat runtime incoherent entre hidden, collapsed et pinned ;
+- panneau ferme non restaure visuellement malgre la mise a jour localStorage ;
+- dock qui excluait certains panneaux fermes s'ils etaient epingles ;
+- reouverture trop dependante de l'event runtime.
+
+### Correction
+
+- showFloatingWidget force maintenant localStorage et DOM ;
+- les panneaux fermes sont ajoutes au dock meme s'ils etaient epingles ;
+- la reouverture retire collapsed et pinned ;
+- les details HTML sont forces open ;
+- un etat data-floating-runtime-state facilite le debug.
+
+### Validation
+
+1. Mode Avance.
+2. Fermer Detail token.
+3. Verifier que Detail token apparait dans le dock.
+4. Cliquer Detail token dans le dock.
+5. Verifier que Detail token revient.
+6. Fermer Detail token.
+7. Ouvrir Gestion panneaux.
+8. Cliquer Detail token.
+9. Verifier que Detail token revient.
