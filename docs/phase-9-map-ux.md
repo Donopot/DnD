@@ -159,3 +159,36 @@ Critere d'acceptation :
 - les tokens sont visibles dans la mini-map ;
 - le token selectionne est mis en avant ;
 - un clic dans la mini-map recentre la carte.
+
+## Etape 9-6 - UX VTT utilisable et vraie mini-map
+
+Constat apres test visuel :
+
+- interface encore trop centree ;
+- beaucoup d'espace perdu ;
+- carte trop petite ;
+- outils trop serres ;
+- mini-map actuelle trop proche d'un aperçu rogne ;
+- experience MJ encore peu fluide.
+
+Objectif :
+
+- agrandir fortement la zone de carte ;
+- passer la session en layout VTT plus large ;
+- placer la mini-map dans le panneau lateral ;
+- conserver le ratio reel de la scene ;
+- afficher la scene complete dans la mini-map ;
+- afficher les tokens dans la mini-map ;
+- afficher le viewport courant ;
+- permettre le recentrage par clic dans la mini-map ;
+- reduire la place prise par les formulaires.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la carte est l'element dominant de la vue Session ;
+- la mini-map affiche toute la carte sans rognage ;
+- les tokens apparaissent dans la mini-map ;
+- le viewport est visible ;
+- clic sur la mini-map recentre la carte.
