@@ -94,6 +94,9 @@ function clearRuntimeWidgetState(widget: HTMLElement) {
   widget.style.zIndex = "";
   widget.style.display = "";
 
+  widget.removeAttribute("data-floating-runtime-id");
+  widget.removeAttribute("data-floating-runtime-title");
+
   widget.querySelector(".floating-widget-toolbar")?.remove();
   widget.querySelector(".floating-widget-resize-handle")?.remove();
 }
@@ -260,19 +263,101 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       return;
     }
 
-    const widgets = getControlledWidgets(root);
+    const rootElement = root;
+
+    const widgets = getControlledWidgets(rootElement);
     const cleanups: Array<() => void> = [];
     let topZIndex = 180;
 
-    root.classList.toggle("floating-widgets-active", enabled);
+    rootElement.classList.toggle("floating-widgets-active", enabled);
 
     widgets.forEach((widget) => clearRuntimeWidgetState(widget));
 
     if (!enabled) {
       return () => {
-        root.classList.remove("floating-widgets-active");
+        rootElement.classList.remove("floating-widgets-active");
       };
     }
+
+    const dock = document.createElement("div");
+    dock.className = "floating-widget-dock";
+    dock.hidden = true;
+    dock.setAttribute("aria-label", "Dock des panneaux réduits");
+
+    function updateDock() {
+      const collapsedWidgets = getControlledWidgets(rootElement).filter((widget) => {
+        return (
+          widget.classList.contains("floating-widget-collapsed") &&
+          widget.style.display !== "none"
+        );
+      });
+
+      dock.replaceChildren();
+
+      if (collapsedWidgets.length === 0) {
+        dock.hidden = true;
+        return;
+      }
+
+      dock.hidden = false;
+
+      const label = document.createElement("strong");
+      label.textContent = "Panneaux réduits";
+      dock.append(label);
+
+      const list = document.createElement("div");
+      list.className = "floating-widget-dock-list";
+
+      collapsedWidgets.forEach((widget) => {
+        const id = widget.getAttribute("data-floating-runtime-id");
+        const title = widget.getAttribute("data-floating-runtime-title");
+
+        if (!id || !title) {
+          return;
+        }
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = title;
+        button.dataset.floatingDockWidget = id;
+        button.title = `Rouvrir ${title}`;
+        button.setAttribute("aria-label", `Rouvrir ${title}`);
+
+        list.append(button);
+      });
+
+      dock.append(list);
+    }
+
+    function handleDockClick(event: MouseEvent) {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const button = target.closest("button[data-floating-dock-widget]");
+
+      if (!(button instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const widgetId = button.dataset.floatingDockWidget;
+
+      if (!widgetId) {
+        return;
+      }
+
+      showFloatingWidget(widgetId);
+    }
+
+    dock.addEventListener("click", handleDockClick);
+    document.body.append(dock);
+
+    cleanups.push(() => {
+      dock.removeEventListener("click", handleDockClick);
+      dock.remove();
+    });
 
     widgets.forEach((widget, index) => {
       const title = getWidgetTitle(widget, index);
@@ -331,12 +416,14 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       widget.append(resizeHandle);
 
       function saveLayout() {
-        currentLayout = {
-          left: parseFloat(widget.style.left || "0"),
-          top: parseFloat(widget.style.top || "0"),
-          width: widget.offsetWidth,
-          height: widget.offsetHeight,
-        };
+        if (!currentMeta.hidden) {
+          currentLayout = {
+            left: parseFloat(widget.style.left || "0"),
+            top: parseFloat(widget.style.top || "0"),
+            width: widget.offsetWidth || currentLayout.width,
+            height: widget.offsetHeight || currentLayout.height,
+          };
+        }
 
         writeStoredValue(layoutKey, currentLayout);
       }
@@ -363,6 +450,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         collapseButton.textContent = currentMeta.collapsed ? "+" : "−";
         collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
         collapseButton.setAttribute("aria-label", collapseButton.title);
+
+        updateDock();
       }
 
       function saveMeta(nextMeta: Partial<WidgetMeta>) {
@@ -381,6 +470,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       widget.classList.add("floating-widget");
+      widget.setAttribute("data-floating-runtime-id", id);
+      widget.setAttribute("data-floating-runtime-title", title);
 
       const wasDetailsOpen = widget instanceof HTMLDetailsElement ? widget.open : undefined;
 
@@ -602,9 +693,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       });
     });
 
+    updateDock();
+
     return () => {
       cleanups.forEach((cleanup) => cleanup());
-      root.classList.remove("floating-widgets-active");
+      rootElement.classList.remove("floating-widgets-active");
     };
   }, [enabled, rootSelector]);
 }
