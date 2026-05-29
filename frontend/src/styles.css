@@ -2242,3 +2242,106 @@ select {
 }
 
 /* End Phase 9-4 map keyboard shortcuts */
+
+/* Phase 9-5 map overview mini-map */
+
+.map-overview {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid #e0d7c7;
+  border-radius: 12px;
+  background: #fffdf7;
+}
+
+.map-overview-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.map-overview-header span {
+  color: #253028;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.map-overview-header small {
+  color: #657068;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.map-overview-map {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 118px;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background:
+    linear-gradient(to right, rgba(31, 95, 67, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 95, 67, 0.12) 1px, transparent 1px),
+    #f9f6ec;
+  background-size: 16px 16px;
+  cursor: crosshair;
+}
+
+.map-overview-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.map-overview-viewport {
+  position: absolute;
+  z-index: 2;
+  min-width: 18px;
+  min-height: 18px;
+  border: 2px solid #f5c542;
+  border-radius: 6px;
+  background: rgba(245, 197, 66, 0.16);
+  box-shadow: 0 0 0 999px rgba(37, 48, 40, 0.12);
+  pointer-events: none;
+}
+
+.map-overview-token {
+  position: absolute;
+  z-index: 3;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #fffdf7;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(35, 48, 40, 0.28);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.map-overview-token.selected {
+  width: 13px;
+  height: 13px;
+  border-color: #f5c542;
+  box-shadow:
+    0 0 0 3px rgba(245, 197, 66, 0.28),
+    0 4px 10px rgba(35, 48, 40, 0.34);
+}
+
+.session-workspace .map-overview-map {
+  height: 96px;
+}
+
+@media (max-width: 760px) {
+  .map-overview-map {
+    height: 96px;
+  }
+}
+
+/* End Phase 9-5 map overview mini-map */

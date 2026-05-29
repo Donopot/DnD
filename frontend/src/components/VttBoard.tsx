@@ -352,6 +352,56 @@ export function VttBoard({
             </details>
           </div>
 
+          {selectedScene && (
+            <div className="map-overview">
+              <div className="map-overview-header">
+                <span>Mini-map</span>
+                <small>
+                  {sceneTokens.length} token(s) · zoom {zoomPercent}%
+                </small>
+              </div>
+
+              <button
+                className="map-overview-map"
+                type="button"
+                onClick={centerMapFromOverview}
+                aria-label="Recentrer la carte depuis la mini-map"
+              >
+                {sceneBackgroundObjectUrl && (
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="map-overview-background"
+                    src={sceneBackgroundObjectUrl}
+                  />
+                )}
+
+                <span
+                  className="map-overview-viewport"
+                  style={{
+                    left: `${viewportRatio.left * (100 - viewportRatio.width * 100)}%`,
+                    top: `${viewportRatio.top * (100 - viewportRatio.height * 100)}%`,
+                    width: `${viewportRatio.width * 100}%`,
+                    height: `${viewportRatio.height * 100}%`,
+                  }}
+                />
+
+                {sceneTokens.map((token) => (
+                  <span
+                    className={`map-overview-token ${selectedTokenId === token.id ? "selected" : ""}`}
+                    key={token.id}
+                    style={{
+                      left: `${clamp(token.x / selectedScene.width, 0, 1) * 100}%`,
+                      top: `${clamp(token.y / selectedScene.height, 0, 1) * 100}%`,
+                      background: token.color,
+                    }}
+                    title={token.name}
+                  />
+                ))}
+              </button>
+            </div>
+          )}
+
           {selectedScene ? (
             <div
               ref={scrollRef}

@@ -139,3 +139,23 @@ Critere d'acceptation :
 - Espace bascule le mode pan ;
 - G bascule le snap-to-grid ;
 - 0 remet la vue a 100%.
+
+## Etape 9-5 - Mini-map et indicateurs de navigation
+
+Objectif :
+
+- afficher une mini-map de la scene ;
+- afficher la zone actuellement visible ;
+- afficher les tokens sur la mini-map ;
+- mettre en avant le token selectionne ;
+- cliquer dans la mini-map pour recentrer la vue ;
+- conserver zoom, pan, drag token et raccourcis clavier.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la mini-map apparait sous la toolbar de carte ;
+- les tokens sont visibles dans la mini-map ;
+- le token selectionne est mis en avant ;
+- un clic dans la mini-map recentre la carte.
