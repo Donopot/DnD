@@ -40,6 +40,22 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function getAbilityModifier(value: number) {
+  return Math.floor((value - 10) / 2);
+}
+
+function getPassivePerception(character: Character) {
+  return 10 + getAbilityModifier(character.attributes.wis ?? 10);
+}
+
+function getHpPercent(character: Character) {
+  if (character.hp_max <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((character.hp_current / character.hp_max) * 100)));
+}
+
 export function VttBoard({
   scenes,
   selectedScene,
@@ -851,6 +867,68 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
+          <details
+            data-vtt-panel="party-summary"
+            data-floating-widget="party-summary"
+            data-floating-title="Résumé du groupe"
+            className="tool-card party-summary-card"
+            open
+          >
+            <summary>Résumé du groupe</summary>
+
+            <div className="party-summary-panel">
+              {characters.length === 0 ? (
+                <p className="muted">Aucun personnage dans cette campagne.</p>
+              ) : (
+                <div className="party-summary-list">
+                  {characters.map((character) => {
+                    const hpPercent = getHpPercent(character);
+
+                    return (
+                      <article
+                        className={`party-summary-row ${selectedCharacter?.id === character.id ? "selected" : ""}`}
+                        key={character.id}
+                      >
+                        <header>
+                          <span>
+                            <strong>{character.name}</strong>
+                            <small>
+                              Niv. {character.level} {character.class_name || "Aventurier"}
+                            </small>
+                          </span>
+
+                          <b>{hpPercent}%</b>
+                        </header>
+
+                        <div className="party-summary-stats">
+                          <em title="Points de vie">
+                            PV {character.hp_current}/{character.hp_max}
+                          </em>
+                          <em title="Classe d’armure">CA {character.armor_class}</em>
+                          <em title="Vitesse">VIT {character.speed}</em>
+                          <em title="Perception passive estimée">
+                            PP {getPassivePerception(character)}
+                          </em>
+                        </div>
+
+                        <div className="party-summary-health" aria-label={`PV ${hpPercent}%`}>
+                          <i style={{ width: `${hpPercent}%` }} />
+                        </div>
+
+                        {character.notes && (
+                          <small className="party-summary-note">
+                            {character.notes}
+                          </small>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </details>
+
+
           <details data-vtt-panel="gm-notes" data-floating-widget="gm-notes" className="tool-card" open>
             <summary>Notes MJ</summary>
 
