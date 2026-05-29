@@ -3978,3 +3978,75 @@ select {
 }
 
 /* End Phase 10-3H intuitive GM panel manager */
+
+/* Phase 10-3I persistent presets and custom layout */
+
+.gm-mode-play .vtt-panels-menu,
+.gm-mode-prepare .vtt-panels-menu {
+  display: block !important;
+}
+
+.gm-mode-play .reset-panels-button,
+.gm-mode-prepare .reset-panels-button {
+  display: none !important;
+}
+
+.vtt-panels-menu summary {
+  white-space: nowrap;
+}
+
+.vtt-panels-preset-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vtt-panels-preset-grid .preset-button {
+  min-height: 46px;
+}
+
+.vtt-panels-preset-grid .preset-button:last-child {
+  grid-column: 1 / -1;
+  border-color: #d8c28c;
+  background: #fff7df;
+  color: #6f4c11;
+}
+
+.save-layout-button {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 7px 8px;
+  border: 1px solid #d8c28c;
+  border-radius: 8px;
+  background: #fff7df;
+  color: #6f4c11;
+  text-align: left;
+}
+
+.save-layout-button span {
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.save-layout-button small {
+  color: #7c6a45;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.save-layout-button:hover:not(:disabled) {
+  border-color: #9f741c;
+  background: #ffedb8;
+}
+
+.save-layout-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Phase 10-3I persistent presets and custom layout */

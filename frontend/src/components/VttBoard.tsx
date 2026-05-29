@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
 import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {
@@ -204,17 +204,11 @@ export function VttBoard({
   }
 
   function handleApplyFloatingPreset(preset: FloatingWidgetPreset) {
-    if (!freePanelsEnabled) {
-      setFreePanelsEnabled(true);
+    setGmMode("advanced");
 
-      window.setTimeout(() => {
-        applyFloatingWidgetPreset(preset);
-      }, 80);
-
-      return;
-    }
-
-    applyFloatingWidgetPreset(preset);
+    window.setTimeout(() => {
+      applyFloatingWidgetPreset(preset);
+    }, 80);
   }
 
   function openGmPanel(panelId: string, targetMode: GmInterfaceMode = "prepare") {
@@ -567,6 +561,7 @@ export function VttBoard({
               enabled={effectiveFreePanelsEnabled}
               onShowPanel={showFloatingWidget}
               onApplyPreset={handleApplyFloatingPreset}
+              onSaveCustomPreset={saveFloatingWidgetCustomPreset}
               onResetPanels={resetFloatingWidgetLayouts}
             />
 

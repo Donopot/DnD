@@ -14,11 +14,13 @@ type WidgetMeta = {
   zIndex: number;
 };
 
-export type FloatingWidgetPreset = "exploration" | "combat" | "preparation";
+export type FloatingWidgetPreset = "exploration" | "combat" | "preparation" | "custom";
 
 const STORAGE_ROOT = "dnd-floating-widget:";
 const LAYOUT_PREFIX = `${STORAGE_ROOT}layout:`;
 const META_PREFIX = `${STORAGE_ROOT}meta:`;
+const CUSTOM_LAYOUT_PREFIX = `${STORAGE_ROOT}custom-layout:`;
+const CUSTOM_META_PREFIX = `${STORAGE_ROOT}custom-meta:`;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -244,6 +246,10 @@ export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
       detail: { preset },
     }),
   );
+}
+
+export function saveFloatingWidgetCustomPreset() {
+  window.dispatchEvent(new Event("dnd:save-floating-widget-custom-preset"));
 }
 
 export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
@@ -506,14 +512,37 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
           return;
         }
 
-        currentLayout = getPresetLayout(detail.preset, id, index);
-        currentMeta = getPresetMeta(detail.preset, id, index);
+        if (detail.preset === "custom") {
+          const savedLayout = readStoredValue<WidgetLayout>(`${CUSTOM_LAYOUT_PREFIX}${id}`);
+          const savedMeta = readStoredValue<WidgetMeta>(`${CUSTOM_META_PREFIX}${id}`);
+
+          if (!savedLayout && !savedMeta) {
+            return;
+          }
+
+          currentLayout = savedLayout ?? currentLayout;
+          currentMeta = savedMeta ?? {
+            ...currentMeta,
+            hidden: false,
+            collapsed: false,
+          };
+        } else {
+          currentLayout = getPresetLayout(detail.preset, id, index);
+          currentMeta = getPresetMeta(detail.preset, id, index);
+        }
 
         writeStoredValue(layoutKey, currentLayout);
         writeStoredValue(metaKey, currentMeta);
 
         applyLayout(currentLayout);
         applyMeta();
+      }
+
+      function handleSaveCustomPreset() {
+        saveLayout();
+
+        writeStoredValue(`${CUSTOM_LAYOUT_PREFIX}${id}`, currentLayout);
+        writeStoredValue(`${CUSTOM_META_PREFIX}${id}`, currentMeta);
       }
 
       function handleFrontClick(event: MouseEvent) {
@@ -548,6 +577,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       window.addEventListener("dnd:reset-floating-widgets", handleReset);
       window.addEventListener("dnd:show-floating-widget", handleShowWidget);
       window.addEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
+      window.addEventListener("dnd:save-floating-widget-custom-preset", handleSaveCustomPreset);
 
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
@@ -562,6 +592,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
         window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
         window.removeEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
+        window.removeEventListener("dnd:save-floating-widget-custom-preset", handleSaveCustomPreset);
 
         if (widget instanceof HTMLDetailsElement && typeof wasDetailsOpen === "boolean") {
           widget.open = wasDetailsOpen;
