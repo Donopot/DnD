@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import type { FloatingWidgetPreset } from "../config/vttPanels";
+
 type WidgetLayout = {
   left: number;
   top: number;
@@ -14,8 +16,6 @@ type WidgetMeta = {
   pinned: boolean;
   zIndex: number;
 };
-
-export type FloatingWidgetPreset = "exploration" | "combat" | "preparation" | "custom";
 
 const STORAGE_ROOT = "dnd-floating-widget:";
 const LAYOUT_PREFIX = `${STORAGE_ROOT}layout:`;
@@ -37,40 +37,28 @@ function slugify(value: string) {
 }
 
 function getWidgetTitle(widget: HTMLElement, index: number) {
-  const explicitTitle = widget.getAttribute("data-floating-title");
-
-  if (explicitTitle) {
-    return explicitTitle;
-  }
-
-  const titleElement = widget.querySelector<HTMLElement>(
-    "summary, h4, .map-overview-header span, .token-detail-heading h4",
+  return (
+    widget.getAttribute("data-floating-title") ||
+    widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
+      ?.textContent
+      ?.trim() ||
+    `Panneau ${index + 1}`
   );
-
-  return titleElement?.textContent?.trim() || `Panneau ${index + 1}`;
 }
 
 function getWidgetId(widget: HTMLElement, index: number) {
-  const explicitId =
+  return (
     widget.getAttribute("data-floating-widget") ||
-    widget.getAttribute("data-quick-panel");
-
-  if (explicitId) {
-    return explicitId;
-  }
-
-  return slugify(getWidgetTitle(widget, index)) || `widget-${index + 1}`;
+    widget.getAttribute("data-quick-panel") ||
+    slugify(getWidgetTitle(widget, index)) ||
+    `widget-${index + 1}`
+  );
 }
 
 function readStoredValue<T>(key: string) {
   try {
     const rawValue = window.localStorage.getItem(key);
-
-    if (!rawValue) {
-      return undefined;
-    }
-
-    return JSON.parse(rawValue) as T;
+    return rawValue ? (JSON.parse(rawValue) as T) : undefined;
   } catch {
     return undefined;
   }
@@ -80,9 +68,19 @@ function writeStoredValue<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function readStoredMeta(key: string, defaultMeta: WidgetMeta) {
+function getDefaultMeta(index: number): WidgetMeta {
   return {
-    ...defaultMeta,
+    hidden: false,
+    locked: false,
+    collapsed: false,
+    pinned: false,
+    zIndex: 90 + index,
+  };
+}
+
+function readStoredMeta(key: string, index: number): WidgetMeta {
+  return {
+    ...getDefaultMeta(index),
     ...(readStoredValue<Partial<WidgetMeta>>(key) ?? {}),
   };
 }
@@ -105,6 +103,7 @@ function clearRuntimeWidgetState(widget: HTMLElement) {
 
   widget.removeAttribute("data-floating-runtime-id");
   widget.removeAttribute("data-floating-runtime-title");
+  widget.removeAttribute("data-floating-runtime-state");
 
   widget.querySelector(".floating-widget-toolbar")?.remove();
   widget.querySelector(".floating-widget-resize-handle")?.remove();
@@ -151,12 +150,7 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
       background: { left: margin, top: 890, width: compactWidth, height: 220 },
     };
 
-    return layouts[widgetId] ?? {
-      left: compactLeft,
-      top: 110 + index * 42,
-      width: compactWidth,
-      height: 260,
-    };
+    return layouts[widgetId] ?? { left: compactLeft, top: 110 + index * 42, width: compactWidth, height: 260 };
   }
 
   if (preset === "preparation") {
@@ -170,12 +164,7 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
       "token-detail": { left, top: 1070, width: rightPanelWidth, height: 240 },
     };
 
-    return layouts[widgetId] ?? {
-      left,
-      top: 110 + index * 42,
-      width: rightPanelWidth,
-      height: 280,
-    };
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
   }
 
   const layouts: Record<string, WidgetLayout> = {
@@ -188,22 +177,11 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
     background: { left: margin, top: 570, width: compactWidth, height: 230 },
   };
 
-  return layouts[widgetId] ?? {
-    left,
-    top: 110 + index * 42,
-    width: rightPanelWidth,
-    height: 280,
-  };
+  return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
 }
 
 function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetMeta {
-  const common: WidgetMeta = {
-    hidden: false,
-    locked: false,
-    collapsed: false,
-    pinned: false,
-    zIndex: 100 + index,
-  };
+  const common = getDefaultMeta(index);
 
   if (preset === "combat") {
     return {
@@ -228,6 +206,36 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
   };
 }
 
+function reopenFloatingWidgetDom(widgetId: string) {
+  const widgets = Array.from(
+    document.querySelectorAll<HTMLElement>(
+      "[data-floating-runtime-id], [data-floating-widget], [data-quick-panel]",
+    ),
+  );
+
+  const widget = widgets.find((candidate) => {
+    return (
+      candidate.getAttribute("data-floating-runtime-id") === widgetId ||
+      candidate.getAttribute("data-floating-widget") === widgetId ||
+      candidate.getAttribute("data-quick-panel") === widgetId
+    );
+  });
+
+  if (!widget) {
+    return;
+  }
+
+  widget.style.display = "";
+  widget.style.zIndex = "260";
+  widget.classList.remove("floating-widget-collapsed", "floating-widget-pinned");
+
+  if (widget instanceof HTMLDetailsElement) {
+    widget.open = true;
+  }
+
+  widget.focus({ preventScroll: true });
+}
+
 export function resetFloatingWidgetLayouts() {
   Object.keys(window.localStorage)
     .filter((key) => key.startsWith(LAYOUT_PREFIX) || key.startsWith(META_PREFIX))
@@ -245,14 +253,20 @@ export function showFloatingWidget(widgetId: string) {
     hidden: false,
     collapsed: false,
     pinned: false,
-    zIndex: Math.max(storedMeta?.zIndex ?? 180, 240),
+    zIndex: Math.max(storedMeta?.zIndex ?? 180, 260),
   });
+
+  reopenFloatingWidgetDom(widgetId);
 
   window.dispatchEvent(
     new CustomEvent("dnd:show-floating-widget", {
       detail: { widgetId },
     }),
   );
+
+  window.requestAnimationFrame(() => {
+    reopenFloatingWidgetDom(widgetId);
+  });
 }
 
 export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
@@ -281,7 +295,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
     let topZIndex = 180;
 
     rootElement.classList.toggle("floating-widgets-active", enabled);
-
     widgets.forEach((widget) => clearRuntimeWidgetState(widget));
 
     if (!enabled) {
@@ -293,7 +306,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
     const dock = document.createElement("div");
     dock.className = "floating-widget-dock";
     dock.hidden = true;
-    dock.setAttribute("aria-label", "Dock des panneaux réduits");
+    dock.setAttribute("aria-label", "Dock des panneaux masqués");
 
     function updateDock() {
       const dockedWidgets = widgets.filter((widget) => {
@@ -301,7 +314,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         const isHidden = widget.style.display === "none";
         const isPinned = widget.classList.contains("floating-widget-pinned");
 
-        return !isPinned && (isCollapsed || isHidden);
+        return isHidden || (!isPinned && isCollapsed);
       });
 
       dock.replaceChildren();
@@ -360,11 +373,9 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
 
       const widgetId = button.dataset.floatingDockWidget;
 
-      if (!widgetId) {
-        return;
+      if (widgetId) {
+        showFloatingWidget(widgetId);
       }
-
-      showFloatingWidget(widgetId);
     }
 
     dock.addEventListener("click", handleDockClick);
@@ -397,16 +408,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         height: defaultHeight,
       };
 
-      const defaultMeta: WidgetMeta = {
-        hidden: false,
-        locked: false,
-        collapsed: false,
-        pinned: false,
-        zIndex: 90 + index,
-      };
-
       let currentLayout = readStoredValue<WidgetLayout>(layoutKey) ?? defaultLayout;
-      let currentMeta = readStoredMeta(metaKey, defaultMeta);
+      let currentMeta = readStoredMeta(metaKey, index);
 
       const toolbar = document.createElement("div");
       toolbar.className = "floating-widget-toolbar";
@@ -473,6 +476,14 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
         widget.classList.toggle("floating-widget-pinned", currentMeta.pinned);
 
+        widget.dataset.floatingRuntimeState = currentMeta.hidden
+          ? "closed"
+          : currentMeta.collapsed
+            ? "collapsed"
+            : currentMeta.pinned
+              ? "pinned"
+              : "open";
+
         pinButton.textContent = currentMeta.pinned ? "↗" : "📌";
         pinButton.title = currentMeta.pinned ? "Détacher en panneau flottant" : "Épingler dans le panneau latéral";
         pinButton.setAttribute("aria-label", pinButton.title);
@@ -517,7 +528,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         widget.open = true;
       }
 
-      applyLayout(currentLayout);
       applyMeta();
 
       function handleToolbarPointerDown(event: PointerEvent) {
@@ -538,20 +548,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         const startTop = parseFloat(widget.style.top || "0");
 
         function handleDragMove(moveEvent: PointerEvent) {
-          const nextLeft = clamp(
-            startLeft + moveEvent.clientX - startX,
-            8,
-            Math.max(8, window.innerWidth - 80),
-          );
-
-          const nextTop = clamp(
-            startTop + moveEvent.clientY - startY,
-            8,
-            Math.max(8, window.innerHeight - 60),
-          );
-
-          widget.style.left = `${nextLeft}px`;
-          widget.style.top = `${nextTop}px`;
+          widget.style.left = `${clamp(startLeft + moveEvent.clientX - startX, 8, Math.max(8, window.innerWidth - 80))}px`;
+          widget.style.top = `${clamp(startTop + moveEvent.clientY - startY, 8, Math.max(8, window.innerHeight - 60))}px`;
         }
 
         function handleDragEnd() {
@@ -579,20 +577,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         const startHeight = widget.offsetHeight;
 
         function handleResizeMove(moveEvent: PointerEvent) {
-          const nextWidth = clamp(
-            startWidth + moveEvent.clientX - startX,
-            240,
-            Math.max(260, window.innerWidth - 24),
-          );
-
-          const nextHeight = clamp(
-            startHeight + moveEvent.clientY - startY,
-            150,
-            Math.max(180, window.innerHeight - 24),
-          );
-
-          widget.style.width = `${nextWidth}px`;
-          widget.style.height = `${nextHeight}px`;
+          widget.style.width = `${clamp(startWidth + moveEvent.clientX - startX, 240, Math.max(260, window.innerWidth - 24))}px`;
+          widget.style.height = `${clamp(startHeight + moveEvent.clientY - startY, 150, Math.max(180, window.innerHeight - 24))}px`;
         }
 
         function handleResizeEnd() {
@@ -605,18 +591,13 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         window.addEventListener("pointerup", handleResizeEnd);
       }
 
-      function handleWidgetPointerDown() {
-        bringToFront();
-      }
-
       function handleReset() {
         window.localStorage.removeItem(layoutKey);
         window.localStorage.removeItem(metaKey);
 
         currentLayout = defaultLayout;
-        currentMeta = defaultMeta;
+        currentMeta = getDefaultMeta(index);
 
-        applyLayout(currentLayout);
         applyMeta();
       }
 
@@ -636,7 +617,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
           zIndex: topZIndex,
         });
 
-        widget.focus({ preventScroll: true });
+        reopenFloatingWidgetDom(id);
       }
 
       function handleApplyPreset(event: Event) {
@@ -667,7 +648,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         writeStoredValue(layoutKey, currentLayout);
         writeStoredValue(metaKey, currentMeta);
 
-        applyLayout(currentLayout);
         applyMeta();
       }
 
@@ -685,6 +665,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
 
       function handlePinClick(event: MouseEvent) {
         event.stopPropagation();
+
         saveMeta({
           pinned: !currentMeta.pinned,
           hidden: false,
@@ -709,7 +690,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
 
       toolbar.addEventListener("pointerdown", handleToolbarPointerDown);
       resizeHandle.addEventListener("pointerdown", handleResizeStart);
-      widget.addEventListener("pointerdown", handleWidgetPointerDown);
+      widget.addEventListener("pointerdown", bringToFront);
 
       frontButton.addEventListener("click", handleFrontClick);
       pinButton.addEventListener("click", handlePinClick);
@@ -725,7 +706,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
         resizeHandle.removeEventListener("pointerdown", handleResizeStart);
-        widget.removeEventListener("pointerdown", handleWidgetPointerDown);
+        widget.removeEventListener("pointerdown", bringToFront);
 
         frontButton.removeEventListener("click", handleFrontClick);
         pinButton.removeEventListener("click", handlePinClick);

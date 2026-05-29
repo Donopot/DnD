@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {

@@ -1,31 +1,8 @@
-import type { FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
-
-type FloatingPanelItem = {
-  id: string;
-  label: string;
-  description: string;
-};
-
-const panels: FloatingPanelItem[] = [
-  { id: "minimap", label: "Mini-map", description: "Vue globale de la scène" },
-  { id: "token-detail", label: "Détail token", description: "Token sélectionné" },
-  { id: "scene", label: "Scène", description: "Créer / configurer une scène" },
-  { id: "upload-map", label: "Upload carte", description: "Ajouter une image de carte" },
-  { id: "background", label: "Fond de carte", description: "Choisir le fond actif" },
-  { id: "token", label: "Ajout token", description: "Placer un nouveau token" },
-  { id: "tokens", label: "Liste tokens", description: "Voir les tokens de scène" },
-];
-
-const presets: Array<{ id: FloatingWidgetPreset; label: string; hint: string }> = [
-  { id: "exploration", label: "Exploration", hint: "Carte + mini-map + contexte" },
-  { id: "combat", label: "Combat", hint: "Tokens + actions rapides" },
-  { id: "preparation", label: "Préparation", hint: "Scènes, cartes et tokens" },
-  { id: "custom", label: "Personnalisé", hint: "Ton layout sauvegardé" },
-];
+import { VTT_PANEL_PRESETS, VTT_PANELS, type FloatingWidgetPreset, type VttPanelId } from "../config/vttPanels";
 
 type VttPanelsMenuProps = {
   enabled: boolean;
-  onShowPanel: (panelId: string) => void;
+  onShowPanel: (panelId: VttPanelId) => void;
   onApplyPreset: (preset: FloatingWidgetPreset) => void;
   onSaveCustomPreset: () => void;
   onResetPanels: () => void;
@@ -45,14 +22,14 @@ export function VttPanelsMenu({
       <div className="vtt-panels-menu-content" role="menu">
         <header className="vtt-panels-manager-header">
           <span>Gestionnaire MJ</span>
-          <strong>{enabled ? "Mode avancé actif" : "Les presets activent le mode avancé"}</strong>
+          <strong>{enabled ? "Mode avancé actif" : "Les presets et panneaux activent le mode avancé"}</strong>
         </header>
 
         <section className="vtt-panels-menu-group">
           <strong>Presets</strong>
 
           <div className="vtt-panels-preset-grid">
-            {presets.map((preset) => (
+            {VTT_PANEL_PRESETS.map((preset) => (
               <button
                 className="preset-button"
                 key={preset.id}
@@ -84,7 +61,7 @@ export function VttPanelsMenu({
           <strong>Afficher un panneau</strong>
 
           <div className="vtt-panels-list">
-            {panels.map((panel) => (
+            {VTT_PANELS.map((panel) => (
               <button key={panel.id} onClick={() => onShowPanel(panel.id)} type="button">
                 <span>{panel.label}</span>
                 <small>{panel.description}</small>
