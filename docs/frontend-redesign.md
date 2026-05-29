@@ -175,3 +175,35 @@ Critere d'acceptation :
 - smoke tests Phase 2 a 8 OK ;
 - la vue Session affiche une barre d'actions rapides ;
 - les boutons ouvrent les panneaux correspondants.
+
+## Etape R4-8 - Review finale frontend redesign
+
+Objectif :
+
+- valider la refonte frontend R1 a R4 ;
+- confirmer que le frontend build avec Docker ;
+- confirmer que les smoke tests backend Phase 2 a 8 restent OK ;
+- confirmer que le frontend reste accessible sur le port 8090 ;
+- merger la branche feature/frontend-redesign dans main.
+
+Resume des ameliorations :
+
+- extraction de App.tsx depuis main.tsx ;
+- extraction des types API ;
+- extraction des composants principaux ;
+- navigation par vues campagne ;
+- vue Session dediee ;
+- panneaux VTT repliables ;
+- combat manager plus compact ;
+- journal plus lisible ;
+- polish global workspace ;
+- barre d'actions rapides MJ.
+
+Critere d'acceptation :
+
+- docker compose up -d --build OK ;
+- /api/health OK ;
+- smoke-phase2 a smoke-phase8 OK ;
+- HTTP 200 sur le frontend ;
+- working tree clean avant merge ;
+- merge dans main effectue.
