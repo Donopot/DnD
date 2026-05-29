@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.db import close_db, connect_db
-from app.routers import auth, campaigns, characters, session
+from app.routers import auth, campaigns, characters, session, vtt
 
 settings = get_settings()
 
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(campaigns.router)
 app.include_router(characters.router)
 app.include_router(session.router)
+app.include_router(vtt.router)
 app.include_router(session.ws_router)
 
 

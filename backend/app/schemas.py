@@ -169,3 +169,64 @@ class GameLogEntryPublic(BaseModel):
     message: str
     payload: dict[str, Any]
     created_at: datetime
+
+
+class SceneCreateRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    description: str = Field(default="", max_length=2000)
+    grid_size: int = Field(default=50, ge=16, le=200)
+    width: int = Field(default=1600, ge=200, le=10000)
+    height: int = Field(default=1000, ge=200, le=10000)
+    background_url: str | None = Field(default=None, max_length=2000)
+    is_active: bool = False
+
+
+class ScenePublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    name: str
+    description: str
+    grid_size: int
+    width: int
+    height: int
+    background_url: str | None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class TokenCreateRequest(BaseModel):
+    character_id: UUID | None = None
+    name: str = Field(min_length=1, max_length=120)
+    x: int = Field(default=0, ge=0, le=10000)
+    y: int = Field(default=0, ge=0, le=10000)
+    size: int = Field(default=1, ge=1, le=8)
+    color: str = Field(default="#7c3aed", max_length=32)
+    is_hidden: bool = False
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class TokenUpdateRequest(BaseModel):
+    character_id: UUID | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    x: int | None = Field(default=None, ge=0, le=10000)
+    y: int | None = Field(default=None, ge=0, le=10000)
+    size: int | None = Field(default=None, ge=1, le=8)
+    color: str | None = Field(default=None, max_length=32)
+    is_hidden: bool | None = None
+    metadata: dict[str, Any] | None = None
+
+
+class TokenPublic(BaseModel):
+    id: UUID
+    scene_id: UUID
+    character_id: UUID | None
+    name: str
+    x: int
+    y: int
+    size: int
+    color: str
+    is_hidden: bool
+    metadata: dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
