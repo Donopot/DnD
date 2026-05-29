@@ -200,15 +200,33 @@ export function VttBoard({
     applyFloatingWidgetPreset(preset);
   }
 
+  function centerMapView(nextZoom = zoom) {
+    if (!scrollRef.current || !selectedScene) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (!scrollRef.current) {
+        return;
+      }
+
+      const targetX = (selectedScene.width * nextZoom - scrollRef.current.clientWidth) / 2;
+      const targetY = (selectedScene.height * nextZoom - scrollRef.current.clientHeight) / 2;
+
+      scrollRef.current.scrollLeft = Math.max(0, targetX);
+      scrollRef.current.scrollTop = Math.max(0, targetY);
+    });
+  }
+
   function resetMapView() {
     setZoom(1);
     setPanMode(false);
-
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-      scrollRef.current.scrollTop = 0;
-    }
+    centerMapView(1);
   }
+
+  useEffect(() => {
+    centerMapView();
+  }, [selectedScene?.id]);
 
   useEffect(() => {
     const scrollElement = scrollRef.current;

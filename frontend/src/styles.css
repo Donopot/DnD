@@ -3110,3 +3110,286 @@ body {
 }
 
 /* End Phase 10-2D compact VTT UI and usable presets */
+
+/* Phase 10-2E compact density and centered main map */
+
+html {
+  font-size: 12px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.app-shell {
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+.sidebar {
+  width: 48px;
+  padding: 6px 4px;
+}
+
+.sidebar .brand-mark.compact {
+  transform: scale(0.82);
+}
+
+.sidebar .ghost-button {
+  min-height: 34px;
+  padding: 6px;
+}
+
+.workspace {
+  padding: 6px 8px;
+}
+
+.topbar {
+  min-height: 52px;
+  margin: -6px -8px 8px;
+  padding: 7px 12px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.72rem;
+}
+
+.topbar-status {
+  padding: 5px 8px;
+}
+
+.workspace-grid {
+  grid-template-columns: minmax(180px, 230px) minmax(180px, 230px) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.detail-panel {
+  padding: 8px;
+}
+
+.campaign-view-tabs {
+  top: 50px;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 4px;
+}
+
+.campaign-view-tabs button {
+  min-height: 42px;
+  padding: 5px 7px;
+}
+
+.campaign-view-tabs strong {
+  font-size: 0.78rem;
+}
+
+.campaign-view-tabs small {
+  font-size: 0.64rem;
+}
+
+.section-heading {
+  margin-bottom: 5px;
+}
+
+.vtt-board-panel {
+  padding: 7px;
+}
+
+.vtt-toolbar {
+  padding: 6px 8px;
+}
+
+.map-ux-toolbar {
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 6px;
+}
+
+.map-ux-toolbar button,
+.map-zoom-controls button,
+.snap-toggle,
+.pan-toggle,
+.reset-map-button,
+.floating-toggle,
+.reset-panels-button,
+.vtt-panels-menu summary {
+  min-height: 28px;
+  padding: 4px 7px;
+  font-size: 0.72rem;
+}
+
+.map-zoom-controls {
+  gap: 4px;
+}
+
+.map-zoom-controls strong {
+  min-width: 36px;
+  font-size: 0.78rem;
+}
+
+.keyboard-help {
+  min-width: 130px;
+}
+
+.keyboard-help summary {
+  padding: 5px 7px;
+  font-size: 0.7rem;
+}
+
+.keyboard-help kbd {
+  min-width: 18px;
+  min-height: 18px;
+  padding: 1px 4px;
+  font-size: 0.62rem;
+}
+
+.keyboard-help span {
+  font-size: 0.66rem;
+}
+
+.map-scroll,
+.session-workspace .map-scroll {
+  display: grid;
+  height: calc(100vh - 205px);
+  min-height: 600px;
+  place-items: center;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.map-zoom-surface {
+  display: grid;
+  min-width: 100%;
+  min-height: 100%;
+  place-items: center;
+}
+
+.map-board {
+  margin: auto;
+}
+
+.vtt-layout,
+.session-workspace .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 8px;
+}
+
+.vtt-control-panel,
+.session-workspace .vtt-control-panel {
+  max-height: calc(100vh - 120px);
+  gap: 7px;
+}
+
+.map-overview {
+  padding: 7px;
+}
+
+.map-overview-map {
+  max-height: 160px;
+}
+
+.token-detail-panel {
+  padding: 8px;
+}
+
+.tool-card summary {
+  min-height: 32px;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.tool-card > form,
+.tool-card > div {
+  padding: 8px;
+}
+
+.floating-widget {
+  max-width: min(360px, calc(100vw - 20px));
+  max-height: calc(100vh - 20px);
+}
+
+.floating-widget-toolbar {
+  min-height: 30px;
+  padding: 5px 6px 5px 9px;
+}
+
+.floating-widget-toolbar-title {
+  font-size: 0.68rem;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 21px;
+  padding: 1px 5px;
+  font-size: 0.58rem;
+}
+
+.vtt-panels-menu-content {
+  min-width: 230px;
+  max-height: min(520px, calc(100vh - 110px));
+}
+
+.vtt-panels-menu-group .preset-button {
+  min-height: 36px;
+}
+
+.vtt-panels-menu-group .preset-button small {
+  display: none;
+}
+
+.form-stack,
+.scene-form,
+.asset-form,
+.token-form {
+  gap: 7px;
+}
+
+input,
+textarea,
+select {
+  min-height: 28px;
+  padding: 5px 7px;
+  font-size: 0.78rem;
+}
+
+.primary-button,
+.ghost-button {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 185px);
+    min-height: 660px;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 68vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-2E compact density and centered main map */

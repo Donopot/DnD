@@ -142,3 +142,23 @@ Critere d'acceptation :
 - cliquer un preset active les panneaux libres ;
 - l'interface VTT occupe mieux l'ecran ;
 - les panneaux restent deplacables et redimensionnables.
+
+## Etape 10-2E - Densite compacte et carte centree
+
+Objectif :
+
+- reduire fortement l'impression de zoom de l'interface ;
+- agrandir la surface utile de la carte ;
+- centrer automatiquement la carte principale ;
+- faire pointer Reset vers le centre de la carte au lieu du coin haut gauche ;
+- reduire la taille des panneaux flottants ;
+- reduire la taille des boutons, champs et toolbars.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la carte principale est centree au chargement ;
+- le bouton Reset recentre la carte ;
+- l'interface affiche moins de panneaux envahissants ;
+- la carte occupe davantage l'espace visible.
