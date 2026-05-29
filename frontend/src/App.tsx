@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import "./styles.css";
 import { AuthView } from "./components/AuthView";
+import { CombatPanel } from "./components/CombatPanel";
+import { SessionLogPanel } from "./components/SessionLogPanel";
+import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
 import type {
   Asset,
