@@ -137,6 +137,42 @@ type SceneToken = {
   updated_at: string;
 };
 
+type Encounter = {
+  id: string;
+  campaign_id: string;
+  scene_id: string | null;
+  name: string;
+  status: "draft" | "active" | "ended";
+  round_number: number;
+  turn_index: number;
+  active_combatant_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type Combatant = {
+  id: string;
+  encounter_id: string;
+  token_id: string | null;
+  character_id: string | null;
+  name: string;
+  initiative: number;
+  armor_class: number | null;
+  hp_current: number | null;
+  hp_max: number | null;
+  conditions: string[];
+  notes: string;
+  is_player_controlled: boolean;
+  is_hidden: boolean;
+  is_defeated: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type EncounterDetail = Encounter & {
+  combatants: Combatant[];
+};
+
 const API_BASE = "";
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
@@ -153,6 +189,9 @@ function App() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
+  const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
@@ -173,6 +212,11 @@ function App() {
   const selectedScene = useMemo(
     () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
     [scenes, selectedSceneId],
+  );
+
+  const selectedEncounter = useMemo(
+    () => encounters.find((encounter) => encounter.id === selectedEncounterId) ?? encounters[0],
+    [encounters, selectedEncounterId],
   );
 
   useEffect(() => {
@@ -196,6 +240,7 @@ function App() {
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
     void loadVttState(selectedCampaign.id);
+    void loadCombatState(selectedCampaign.id);
   }, [selectedCampaign?.id]);
 
   useEffect(() => {
@@ -228,6 +273,9 @@ function App() {
         void loadSessionLog(selectedCampaign.id);
         if (payload.resource === "scene" || payload.resource === "token") {
           void loadVttState(selectedCampaign.id);
+        }
+        if (payload.resource === "encounter") {
+          void loadCombatState(selectedCampaign.id);
         }
       }
     };
@@ -446,6 +494,228 @@ function App() {
       setMessage(error instanceof Error ? error.message : "Unable to move token");
     } finally {
       setIsBusy(false);
+    }
+  }
+
+  function updateEncounterFromDetail(detail: EncounterDetail) {
+    setEncounters((current) => {
+      const summary: Encounter = {
+        id: detail.id,
+        campaign_id: detail.campaign_id,
+        scene_id: detail.scene_id,
+        name: detail.name,
+        status: detail.status,
+        round_number: detail.round_number,
+        turn_index: detail.turn_index,
+        active_combatant_id: detail.active_combatant_id,
+        created_at: detail.created_at,
+        updated_at: detail.updated_at,
+      };
+
+      if (current.some((item) => item.id === detail.id)) {
+        return current.map((item) => (item.id === detail.id ? summary : item));
+      }
+
+      return [summary, ...current];
+    });
+
+    setCombatants(detail.combatants);
+  }
+
+  async function loadEncounterDetail(encounterId: string) {
+    try {
+      const detail = await request<EncounterDetail>(`/api/encounters/${encounterId}`);
+      updateEncounterFromDetail(detail);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load encounter");
+    }
+  }
+
+  async function loadCombatState(campaignId: string) {
+    try {
+      const data = await request<Encounter[]>(`/api/campaigns/${campaignId}/encounters`);
+      setEncounters(data);
+
+      if (data.length === 0) {
+        setSelectedEncounterId("");
+        setCombatants([]);
+        return;
+      }
+
+      const effectiveEncounter = data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
+      setSelectedEncounterId(effectiveEncounter.id);
+      await loadEncounterDetail(effectiveEncounter.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load combat state");
+    }
+  }
+
+  async function handleCreateEncounter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedCampaign) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const encounter = await request<Encounter>(`/api/campaigns/${selectedCampaign.id}/encounters`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: String(form.get("name")),
+          scene_id: selectedScene?.id ?? null,
+        }),
+      });
+
+      setEncounters((current) => [encounter, ...current]);
+      setSelectedEncounterId(encounter.id);
+      setCombatants([]);
+      event.currentTarget.reset();
+      setMessage("Combat cree.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to create encounter");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleAddCombatant(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedEncounter) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+    const characterId = String(form.get("character_id") || "");
+    const tokenId = String(form.get("token_id") || "");
+    const character = characters.find((item) => item.id === characterId);
+    const tokenItem = sceneTokens.find((item) => item.id === tokenId);
+
+    try {
+      await request<Combatant>(`/api/encounters/${selectedEncounter.id}/combatants`, {
+        method: "POST",
+        body: JSON.stringify({
+          token_id: tokenId || null,
+          character_id: characterId || null,
+          name: String(form.get("name") || character?.name || tokenItem?.name || "Combattant"),
+          initiative: Number(form.get("initiative") || 0),
+          armor_class: Number(form.get("armor_class") || character?.armor_class || 10),
+          hp_current: Number(form.get("hp_current") || character?.hp_current || 1),
+          hp_max: Number(form.get("hp_max") || character?.hp_max || 1),
+          is_player_controlled: Boolean(characterId),
+          is_hidden: false,
+        }),
+      });
+
+      event.currentTarget.reset();
+      await loadEncounterDetail(selectedEncounter.id);
+      setMessage("Combattant ajoute.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to add combatant");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleStartEncounter() {
+    if (!selectedEncounter) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/start`, {
+        method: "POST",
+      });
+      updateEncounterFromDetail(detail);
+      setMessage("Combat demarre.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to start encounter");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleNextTurn() {
+    if (!selectedEncounter) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/next-turn`, {
+        method: "POST",
+      });
+      updateEncounterFromDetail(detail);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to advance turn");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleEndEncounter() {
+    if (!selectedEncounter) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/end`, {
+        method: "POST",
+      });
+      updateEncounterFromDetail(detail);
+      setMessage("Combat termine.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to end encounter");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleAdjustCombatantHp(combatant: Combatant, delta: number) {
+    const currentHp = combatant.hp_current ?? 0;
+
+    try {
+      const updated = await request<Combatant>(`/api/combatants/${combatant.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          hp_current: Math.max(0, currentHp + delta),
+        }),
+      });
+
+      setCombatants((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to update HP");
+    }
+  }
+
+  async function handleToggleDefeated(combatant: Combatant) {
+    try {
+      const updated = await request<Combatant>(`/api/combatants/${combatant.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          is_defeated: !combatant.is_defeated,
+        }),
+      });
+
+      setCombatants((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to update combatant");
     }
   }
 
@@ -1142,6 +1412,169 @@ function App() {
                           })
                         )}
                       </div>
+                    </section>
+                  </div>
+                </div>
+
+                <div className="combat-section">
+                  <div className="section-heading">
+                    <h3>Combat</h3>
+                    <Shield aria-hidden="true" />
+                  </div>
+
+                  <div className="combat-layout">
+                    <section className="combat-panel">
+                      <div className="combat-toolbar">
+                        <div>
+                          <strong>{selectedEncounter?.name ?? "Aucun combat"}</strong>
+                          {selectedEncounter && (
+                            <small>
+                              {selectedEncounter.status} - round {selectedEncounter.round_number}
+                            </small>
+                          )}
+                        </div>
+
+                        {encounters.length > 1 && (
+                          <select
+                            value={selectedEncounter?.id ?? ""}
+                            onChange={(event) => {
+                              setSelectedEncounterId(event.target.value);
+                              void loadEncounterDetail(event.target.value);
+                            }}
+                          >
+                            {encounters.map((encounter) => (
+                              <option key={encounter.id} value={encounter.id}>
+                                {encounter.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+
+                      <form className="encounter-form" onSubmit={handleCreateEncounter}>
+                        <label>
+                          Nouveau combat
+                          <input name="name" minLength={2} maxLength={120} placeholder="Embuscade gobeline" required />
+                        </label>
+
+                        <button className="ghost-button" disabled={isBusy} type="submit">
+                          Creer combat
+                        </button>
+                      </form>
+
+                      <div className="combat-action-row">
+                        <button className="primary-button" disabled={isBusy || !selectedEncounter} onClick={handleStartEncounter} type="button">
+                          Demarrer
+                        </button>
+
+                        <button className="ghost-button" disabled={isBusy || !selectedEncounter} onClick={handleNextTurn} type="button">
+                          Tour suivant
+                        </button>
+
+                        <button className="ghost-button" disabled={isBusy || !selectedEncounter} onClick={handleEndEncounter} type="button">
+                          Terminer
+                        </button>
+                      </div>
+
+                      <div className="initiative-list">
+                        {combatants.length === 0 ? (
+                          <p className="muted">Aucun combattant dans ce combat.</p>
+                        ) : (
+                          combatants.map((combatant) => (
+                            <article
+                              className={`combatant-row ${
+                                selectedEncounter?.active_combatant_id === combatant.id ? "active" : ""
+                              } ${combatant.is_defeated ? "defeated" : ""}`}
+                              key={combatant.id}
+                            >
+                              <div className="initiative-score">{combatant.initiative}</div>
+
+                              <div className="combatant-main">
+                                <strong>{combatant.name}</strong>
+                                <small>
+                                  CA {combatant.armor_class ?? "-"} - PV {combatant.hp_current ?? "-"}/{combatant.hp_max ?? "-"}
+                                </small>
+                                {combatant.conditions.length > 0 && (
+                                  <small>Conditions: {combatant.conditions.join(", ")}</small>
+                                )}
+                              </div>
+
+                              <div className="combatant-actions">
+                                <button type="button" onClick={() => void handleAdjustCombatantHp(combatant, -1)}>
+                                  -1
+                                </button>
+                                <button type="button" onClick={() => void handleAdjustCombatantHp(combatant, 1)}>
+                                  +1
+                                </button>
+                                <button type="button" onClick={() => void handleToggleDefeated(combatant)}>
+                                  {combatant.is_defeated ? "Relever" : "KO"}
+                                </button>
+                              </div>
+                            </article>
+                          ))
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="combat-panel">
+                      <h4>Ajouter un combattant</h4>
+
+                      <form className="combatant-form" onSubmit={handleAddCombatant}>
+                        <label>
+                          Personnage
+                          <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
+                            <option value="">Aucun personnage</option>
+                            {characters.map((character) => (
+                              <option key={character.id} value={character.id}>
+                                {character.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          Token
+                          <select name="token_id" defaultValue="">
+                            <option value="">Aucun token</option>
+                            {sceneTokens.map((token) => (
+                              <option key={token.id} value={token.id}>
+                                {token.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          Nom
+                          <input name="name" maxLength={120} placeholder={selectedCharacter?.name ?? "Gobelin"} />
+                        </label>
+
+                        <div className="mini-grid three">
+                          <label>
+                            Init
+                            <input name="initiative" type="number" min={-20} max={60} defaultValue={10} />
+                          </label>
+
+                          <label>
+                            CA
+                            <input name="armor_class" type="number" min={1} max={40} defaultValue={selectedCharacter?.armor_class ?? 10} />
+                          </label>
+
+                          <label>
+                            PV
+                            <input name="hp_current" type="number" min={0} defaultValue={selectedCharacter?.hp_current ?? 8} />
+                          </label>
+                        </div>
+
+                        <label>
+                          PV max
+                          <input name="hp_max" type="number" min={0} defaultValue={selectedCharacter?.hp_max ?? 8} />
+                        </label>
+
+                        <button className="primary-button" disabled={isBusy || !selectedEncounter} type="submit">
+                          Ajouter au combat
+                        </button>
+                      </form>
                     </section>
                   </div>
                 </div>
