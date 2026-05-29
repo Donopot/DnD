@@ -192,3 +192,24 @@ Critere d'acceptation :
 - les tokens apparaissent dans la mini-map ;
 - le viewport est visible ;
 - clic sur la mini-map recentre la carte.
+
+## Etape 9-6 - VTT usable layout et vraie mini-map
+
+Objectif :
+
+- rendre la carte beaucoup plus dominante ;
+- reduire l'espace perdu autour de l'application ;
+- placer la mini-map dans le panneau lateral VTT ;
+- conserver le ratio reel de la scene dans la mini-map ;
+- afficher toute la scene sans rognage ;
+- afficher les tokens et le viewport dans la mini-map ;
+- permettre le recentrage par clic sur la mini-map.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la mini-map affiche toute la carte ;
+- la carte principale est nettement plus grande ;
+- le panneau lateral reste utilisable ;
+- le zoom, le pan, le drag token et les raccourcis restent fonctionnels.
