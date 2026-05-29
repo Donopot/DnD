@@ -4445,3 +4445,19 @@ select {
 }
 
 /* End Sprint 1 - GM panel system stabilization */
+
+/* Sprint 1 - dock includes closed panels */
+
+.floating-widget-dock-list button[data-floating-dock-state="fermé"] {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+.floating-widget-dock-list button[data-floating-dock-state="réduit"] {
+  border-color: #d8d1c2;
+  background: #f9f6ec;
+  color: #253028;
+}
+
+/* End Sprint 1 - dock includes closed panels */

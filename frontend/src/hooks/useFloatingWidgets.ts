@@ -296,17 +296,17 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
     dock.setAttribute("aria-label", "Dock des panneaux réduits");
 
     function updateDock() {
-      const collapsedWidgets = widgets.filter((widget) => {
-        return (
-          widget.classList.contains("floating-widget-collapsed") &&
-          !widget.classList.contains("floating-widget-pinned") &&
-          widget.style.display !== "none"
-        );
+      const dockedWidgets = widgets.filter((widget) => {
+        const isCollapsed = widget.classList.contains("floating-widget-collapsed");
+        const isHidden = widget.style.display === "none";
+        const isPinned = widget.classList.contains("floating-widget-pinned");
+
+        return !isPinned && (isCollapsed || isHidden);
       });
 
       dock.replaceChildren();
 
-      if (collapsedWidgets.length === 0) {
+      if (dockedWidgets.length === 0) {
         dock.hidden = true;
         return;
       }
@@ -314,13 +314,13 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
       dock.hidden = false;
 
       const label = document.createElement("strong");
-      label.textContent = "Panneaux réduits";
+      label.textContent = "Panneaux masqués";
       dock.append(label);
 
       const list = document.createElement("div");
       list.className = "floating-widget-dock-list";
 
-      collapsedWidgets.forEach((widget) => {
+      dockedWidgets.forEach((widget) => {
         const id = widget.getAttribute("data-floating-runtime-id");
         const title = widget.getAttribute("data-floating-runtime-title");
 
@@ -328,12 +328,16 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
           return;
         }
 
+        const isHidden = widget.style.display === "none";
+        const stateLabel = isHidden ? "fermé" : "réduit";
+
         const button = document.createElement("button");
         button.type = "button";
-        button.textContent = title;
+        button.textContent = `${title} · ${stateLabel}`;
         button.dataset.floatingDockWidget = id;
-        button.title = `Rouvrir ${title}`;
-        button.setAttribute("aria-label", `Rouvrir ${title}`);
+        button.dataset.floatingDockState = stateLabel;
+        button.title = `Afficher ${title}`;
+        button.setAttribute("aria-label", `Afficher ${title}`);
 
         list.append(button);
       });
