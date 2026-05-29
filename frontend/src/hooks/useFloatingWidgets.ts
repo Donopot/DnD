@@ -11,6 +11,7 @@ type WidgetMeta = {
   hidden: boolean;
   locked: boolean;
   collapsed: boolean;
+  pinned: boolean;
   zIndex: number;
 };
 
@@ -79,11 +80,19 @@ function writeStoredValue<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function readStoredMeta(key: string, defaultMeta: WidgetMeta) {
+  return {
+    ...defaultMeta,
+    ...(readStoredValue<Partial<WidgetMeta>>(key) ?? {}),
+  };
+}
+
 function clearRuntimeWidgetState(widget: HTMLElement) {
   widget.classList.remove(
     "floating-widget",
     "floating-widget-locked",
     "floating-widget-collapsed",
+    "floating-widget-pinned",
   );
 
   widget.style.position = "";
@@ -114,11 +123,12 @@ function getControlledWidgets(root: HTMLElement) {
   });
 }
 
-function createToolbarButton(label: string, title: string) {
+function createToolbarButton(label: string, title: string, className: string) {
   const button = document.createElement("button");
   button.type = "button";
   button.textContent = label;
   button.title = title;
+  button.className = className;
   button.setAttribute("aria-label", title);
   return button;
 }
@@ -191,6 +201,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
     hidden: false,
     locked: false,
     collapsed: false,
+    pinned: false,
     zIndex: 100 + index,
   };
 
@@ -227,13 +238,14 @@ export function resetFloatingWidgetLayouts() {
 
 export function showFloatingWidget(widgetId: string) {
   const metaKey = `${META_PREFIX}${widgetId}`;
-  const storedMeta = readStoredValue<WidgetMeta>(metaKey);
+  const storedMeta = readStoredValue<Partial<WidgetMeta>>(metaKey);
 
-  writeStoredValue<WidgetMeta>(metaKey, {
+  writeStoredValue<Partial<WidgetMeta>>(metaKey, {
+    ...storedMeta,
     hidden: false,
-    locked: storedMeta?.locked ?? false,
     collapsed: false,
-    zIndex: Math.max(storedMeta?.zIndex ?? 180, 220),
+    pinned: false,
+    zIndex: Math.max(storedMeta?.zIndex ?? 180, 240),
   });
 
   window.dispatchEvent(
@@ -255,7 +267,7 @@ export function saveFloatingWidgetCustomPreset() {
   window.dispatchEvent(new Event("dnd:save-floating-widget-custom-preset"));
 }
 
-export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
+export function useFloatingWidgets(enabled: boolean, rootSelector: string, refreshKey = "") {
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(rootSelector);
 
@@ -264,7 +276,6 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
     }
 
     const rootElement = root;
-
     const widgets = getControlledWidgets(rootElement);
     const cleanups: Array<() => void> = [];
     let topZIndex = 180;
@@ -285,9 +296,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
     dock.setAttribute("aria-label", "Dock des panneaux réduits");
 
     function updateDock() {
-      const collapsedWidgets = getControlledWidgets(rootElement).filter((widget) => {
+      const collapsedWidgets = widgets.filter((widget) => {
         return (
           widget.classList.contains("floating-widget-collapsed") &&
+          !widget.classList.contains("floating-widget-pinned") &&
           widget.style.display !== "none"
         );
       });
@@ -385,11 +397,12 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         hidden: false,
         locked: false,
         collapsed: false,
+        pinned: false,
         zIndex: 90 + index,
       };
 
       let currentLayout = readStoredValue<WidgetLayout>(layoutKey) ?? defaultLayout;
-      let currentMeta = readStoredValue<WidgetMeta>(metaKey) ?? defaultMeta;
+      let currentMeta = readStoredMeta(metaKey, defaultMeta);
 
       const toolbar = document.createElement("div");
       toolbar.className = "floating-widget-toolbar";
@@ -401,12 +414,13 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       const actions = document.createElement("div");
       actions.className = "floating-widget-toolbar-actions";
 
-      const frontButton = createToolbarButton("↑", "Mettre au premier plan");
-      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau");
-      const collapseButton = createToolbarButton("−", "Reduire le panneau");
-      const hideButton = createToolbarButton("×", "Fermer le panneau");
+      const frontButton = createToolbarButton("↑", "Mettre au premier plan", "floating-action-front");
+      const pinButton = createToolbarButton("📌", "Épingler dans le panneau latéral", "floating-action-pin");
+      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau", "floating-action-lock");
+      const collapseButton = createToolbarButton("−", "Réduire le panneau", "floating-action-collapse");
+      const hideButton = createToolbarButton("×", "Fermer le panneau", "floating-action-close");
 
-      actions.append(frontButton, lockButton, collapseButton, hideButton);
+      actions.append(frontButton, pinButton, lockButton, collapseButton, hideButton);
       toolbar.append(titleElement, actions);
       widget.prepend(toolbar);
 
@@ -416,7 +430,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       widget.append(resizeHandle);
 
       function saveLayout() {
-        if (!currentMeta.hidden) {
+        if (!currentMeta.hidden && !currentMeta.collapsed && !currentMeta.pinned) {
           currentLayout = {
             left: parseFloat(widget.style.left || "0"),
             top: parseFloat(widget.style.top || "0"),
@@ -429,6 +443,15 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function applyLayout(layout: WidgetLayout) {
+        if (currentMeta.pinned) {
+          widget.style.position = "relative";
+          widget.style.left = "";
+          widget.style.top = "";
+          widget.style.width = "";
+          widget.style.height = "";
+          return;
+        }
+
         widget.style.position = "fixed";
         widget.style.left = `${layout.left}px`;
         widget.style.top = `${layout.top}px`;
@@ -437,18 +460,25 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function applyMeta() {
+        applyLayout(currentLayout);
+
         widget.style.display = currentMeta.hidden ? "none" : "";
         widget.style.zIndex = `${currentMeta.zIndex}`;
 
         widget.classList.toggle("floating-widget-locked", currentMeta.locked);
         widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
+        widget.classList.toggle("floating-widget-pinned", currentMeta.pinned);
+
+        pinButton.textContent = currentMeta.pinned ? "↗" : "📌";
+        pinButton.title = currentMeta.pinned ? "Détacher en panneau flottant" : "Épingler dans le panneau latéral";
+        pinButton.setAttribute("aria-label", pinButton.title);
 
         lockButton.textContent = currentMeta.locked ? "🔓" : "🔒";
-        lockButton.title = currentMeta.locked ? "Deverrouiller le panneau" : "Verrouiller le panneau";
+        lockButton.title = currentMeta.locked ? "Déverrouiller le panneau" : "Verrouiller le panneau";
         lockButton.setAttribute("aria-label", lockButton.title);
 
         collapseButton.textContent = currentMeta.collapsed ? "+" : "−";
-        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
+        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Réduire le panneau";
         collapseButton.setAttribute("aria-label", collapseButton.title);
 
         updateDock();
@@ -465,6 +495,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function bringToFront() {
+        if (currentMeta.pinned) {
+          return;
+        }
+
         topZIndex += 1;
         saveMeta({ zIndex: topZIndex });
       }
@@ -483,7 +517,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       applyMeta();
 
       function handleToolbarPointerDown(event: PointerEvent) {
-        if (currentMeta.locked || (event.target instanceof HTMLElement && event.target.closest("button"))) {
+        if (
+          currentMeta.locked ||
+          currentMeta.pinned ||
+          (event.target instanceof HTMLElement && event.target.closest("button"))
+        ) {
           return;
         }
 
@@ -523,7 +561,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function handleResizeStart(event: PointerEvent) {
-        if (currentMeta.locked || currentMeta.collapsed) {
+        if (currentMeta.locked || currentMeta.collapsed || currentMeta.pinned) {
           return;
         }
 
@@ -590,6 +628,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         saveMeta({
           hidden: false,
           collapsed: false,
+          pinned: false,
           zIndex: topZIndex,
         });
 
@@ -605,17 +644,16 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
 
         if (detail.preset === "custom") {
           const savedLayout = readStoredValue<WidgetLayout>(`${CUSTOM_LAYOUT_PREFIX}${id}`);
-          const savedMeta = readStoredValue<WidgetMeta>(`${CUSTOM_META_PREFIX}${id}`);
+          const savedMeta = readStoredValue<Partial<WidgetMeta>>(`${CUSTOM_META_PREFIX}${id}`);
 
           if (!savedLayout && !savedMeta) {
             return;
           }
 
           currentLayout = savedLayout ?? currentLayout;
-          currentMeta = savedMeta ?? {
+          currentMeta = {
             ...currentMeta,
-            hidden: false,
-            collapsed: false,
+            ...savedMeta,
           };
         } else {
           currentLayout = getPresetLayout(detail.preset, id, index);
@@ -641,6 +679,15 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         bringToFront();
       }
 
+      function handlePinClick(event: MouseEvent) {
+        event.stopPropagation();
+        saveMeta({
+          pinned: !currentMeta.pinned,
+          hidden: false,
+          collapsed: false,
+        });
+      }
+
       function handleLockClick(event: MouseEvent) {
         event.stopPropagation();
         saveMeta({ locked: !currentMeta.locked });
@@ -648,12 +695,12 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
 
       function handleCollapseClick(event: MouseEvent) {
         event.stopPropagation();
-        saveMeta({ collapsed: !currentMeta.collapsed });
+        saveMeta({ collapsed: !currentMeta.collapsed, hidden: false });
       }
 
       function handleHideClick(event: MouseEvent) {
         event.stopPropagation();
-        saveMeta({ hidden: true });
+        saveMeta({ hidden: true, collapsed: false });
       }
 
       toolbar.addEventListener("pointerdown", handleToolbarPointerDown);
@@ -661,6 +708,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       widget.addEventListener("pointerdown", handleWidgetPointerDown);
 
       frontButton.addEventListener("click", handleFrontClick);
+      pinButton.addEventListener("click", handlePinClick);
       lockButton.addEventListener("click", handleLockClick);
       collapseButton.addEventListener("click", handleCollapseClick);
       hideButton.addEventListener("click", handleHideClick);
@@ -676,6 +724,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         widget.removeEventListener("pointerdown", handleWidgetPointerDown);
 
         frontButton.removeEventListener("click", handleFrontClick);
+        pinButton.removeEventListener("click", handlePinClick);
         lockButton.removeEventListener("click", handleLockClick);
         collapseButton.removeEventListener("click", handleCollapseClick);
         hideButton.removeEventListener("click", handleHideClick);
@@ -699,5 +748,5 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       cleanups.forEach((cleanup) => cleanup());
       rootElement.classList.remove("floating-widgets-active");
     };
-  }, [enabled, rootSelector]);
+  }, [enabled, rootSelector, refreshKey]);
 }

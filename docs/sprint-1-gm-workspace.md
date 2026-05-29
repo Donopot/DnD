@@ -180,3 +180,42 @@ Permettre d'ajuster la taille visuelle de l'interface.
 7. Verifier que le dock liste tous les panneaux reduits.
 8. Recharger la page.
 9. Verifier que l'etat reduit et le dock restent coherents.
+
+## Correction globale - Systeme de panneaux GM
+
+### Constats
+
+- certaines actions de panneaux ne fonctionnaient pas sur tous les panneaux ;
+- les panneaux conditionnels pouvaient apparaitre apres l'initialisation du hook ;
+- le menu Gestion panneaux etait parfois inutilisable quand les panneaux lateraux etaient presents ;
+- les boutons de toolbar n'etaient pas assez ergonomiques ;
+- le systeme ne distinguait pas clairement panneau ferme, reduit, epingle et flottant.
+
+### Corrections
+
+- hook relance avec une cle de scene ;
+- capture non-null de rootElement apres querySelector ;
+- toolbar uniforme sur tous les panneaux ;
+- bouton premier plan ;
+- bouton epingler/detacher ;
+- bouton verrouiller/deverrouiller ;
+- bouton reduire/ouvrir ;
+- bouton fermer ;
+- dock des panneaux reduits ;
+- preset Personnalise ;
+- sauvegarde du layout courant ;
+- menu Gestion panneaux toujours utilisable ;
+- les boutons Afficher un panneau activent le mode Avance si necessaire.
+
+### Validation attendue
+
+1. Mode Partie : ouvrir Gestion panneaux.
+2. Cliquer Exploration : passage en Mode Avance.
+3. Tester Mini-map : reduire, rouvrir depuis dock, fermer, rouvrir depuis Gestion panneaux.
+4. Tester Ajout token : reduire, rouvrir depuis dock, fermer, rouvrir depuis Gestion panneaux.
+5. Tester Scene : epingler, detacher, verrouiller, reduire.
+6. Deplacer/redimensionner plusieurs panneaux.
+7. Sauvegarder layout actuel.
+8. Changer vers Combat.
+9. Cliquer Personnalise.
+10. Verifier que le layout revient.
