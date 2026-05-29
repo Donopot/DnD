@@ -230,3 +230,73 @@ class TokenPublic(BaseModel):
     metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
+
+
+class EncounterCreateRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    scene_id: UUID | None = None
+
+
+class EncounterPublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    scene_id: UUID | None
+    name: str
+    status: str
+    round_number: int
+    turn_index: int
+    active_combatant_id: UUID | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CombatantCreateRequest(BaseModel):
+    token_id: UUID | None = None
+    character_id: UUID | None = None
+    name: str = Field(min_length=1, max_length=120)
+    initiative: int = Field(default=0, ge=-20, le=60)
+    armor_class: int | None = Field(default=None, ge=1, le=40)
+    hp_current: int | None = Field(default=None, ge=0)
+    hp_max: int | None = Field(default=None, ge=0)
+    conditions: list[str] = Field(default_factory=list)
+    notes: str = Field(default="", max_length=2000)
+    is_player_controlled: bool = False
+    is_hidden: bool = False
+
+
+class CombatantUpdateRequest(BaseModel):
+    token_id: UUID | None = None
+    character_id: UUID | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    initiative: int | None = Field(default=None, ge=-20, le=60)
+    armor_class: int | None = Field(default=None, ge=1, le=40)
+    hp_current: int | None = Field(default=None, ge=0)
+    hp_max: int | None = Field(default=None, ge=0)
+    conditions: list[str] | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+    is_player_controlled: bool | None = None
+    is_hidden: bool | None = None
+    is_defeated: bool | None = None
+
+
+class CombatantPublic(BaseModel):
+    id: UUID
+    encounter_id: UUID
+    token_id: UUID | None
+    character_id: UUID | None
+    name: str
+    initiative: int
+    armor_class: int | None
+    hp_current: int | None
+    hp_max: int | None
+    conditions: list[str]
+    notes: str
+    is_player_controlled: bool
+    is_hidden: bool
+    is_defeated: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class EncounterDetailPublic(EncounterPublic):
+    combatants: list[CombatantPublic]
