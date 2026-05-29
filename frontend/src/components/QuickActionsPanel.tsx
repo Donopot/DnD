@@ -18,6 +18,7 @@ type QuickRoll = {
 
 const quickPanels: Array<{ id: VttPanelId; label: string }> = [
   { id: "token-detail", label: "Détail token" },
+  { id: "visibility-inspector", label: "Visibilité" },
   { id: "initiative", label: "Initiative" },
   { id: "party-summary", label: "Résumé groupe" },
   { id: "gm-notes", label: "Notes MJ" },

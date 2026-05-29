@@ -5788,3 +5788,164 @@ select {
 }
 
 /* End Sprint GM-2F - Quick actions panel */
+
+/* Sprint GM-2G - Visibility inspector panel */
+
+.visibility-inspector-card {
+  min-height: 280px;
+}
+
+.visibility-inspector-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.visibility-inspector-panel section {
+  display: grid;
+  gap: 7px;
+}
+
+.visibility-inspector-panel section > strong {
+  color: #253028;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.visibility-inspector-overview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.visibility-inspector-overview article,
+.visibility-token-card,
+.visibility-token-list article {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.visibility-inspector-overview span,
+.visibility-token-card small,
+.visibility-token-list small {
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+
+.visibility-inspector-overview strong,
+.visibility-token-card b,
+.visibility-token-list b {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visibility-token-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.visibility-token-card.hidden,
+.visibility-token-list article.hidden {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+}
+
+.visibility-token-card em,
+.visibility-token-list em {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.visibility-token-card.hidden em,
+.visibility-token-list article.hidden em {
+  background: #f7d7d0;
+  color: #8a2f23;
+}
+
+.visibility-alerts ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  color: #657068;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.visibility-filter-buttons,
+.visibility-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.visibility-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.visibility-inspector-panel button {
+  min-height: 30px;
+  padding: 5px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.visibility-inspector-panel button.active,
+.visibility-inspector-panel button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.visibility-token-list > div {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.visibility-token-list article {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.visibility-token-list span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.visibility-inspector-panel footer small {
+  color: #657068;
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+@media (max-width: 760px) {
+  .visibility-inspector-overview,
+  .visibility-filter-buttons,
+  .visibility-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Sprint GM-2G - Visibility inspector panel */
