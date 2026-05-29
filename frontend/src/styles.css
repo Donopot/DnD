@@ -1461,3 +1461,145 @@ button:focus-visible {
     grid-column: 1 / -1;
   }
 }
+
+.session-command-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d7d0c0;
+  border-radius: 12px;
+  background: #fffdf7;
+  box-shadow: 0 8px 24px rgba(35, 48, 40, 0.06);
+}
+
+.session-command-card h4 {
+  margin: 4px 0;
+  font-size: 1.08rem;
+}
+
+.session-command-card p {
+  margin: 0;
+  color: #657068;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.session-status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ddf3df;
+  color: #1f5f43;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.session-compact-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(280px, 1fr) minmax(280px, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.session-tools-card,
+.session-history-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid #d7d0c0;
+  border-radius: 12px;
+  background: #f9f6ec;
+}
+
+.session-subheading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.session-subheading h4 {
+  margin: 0;
+}
+
+.session-subheading small {
+  color: #657068;
+  font-weight: 850;
+}
+
+.compact-roll-list,
+.compact-log-list {
+  display: grid;
+  gap: 8px;
+}
+
+.compact-roll-row,
+.compact-log-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid #ddd5c6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.compact-roll-row span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.compact-roll-row strong,
+.compact-roll-row small,
+.compact-log-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-roll-row strong,
+.compact-log-row span {
+  color: #253028;
+}
+
+.compact-roll-row small,
+.compact-log-row small {
+  color: #657068;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.compact-roll-row em {
+  display: grid;
+  min-width: 42px;
+  height: 38px;
+  place-items: center;
+  border-radius: 9px;
+  background: #1f5f43;
+  color: #fffdf7;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.compact-log-row.note {
+  border-left: 4px solid #b7791f;
+}
+
+.compact-log-row.roll {
+  border-left: 4px solid #1f5f43;
+}
+
+.session-workspace .session-compact-layout {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 1180px) {
+  .session-compact-layout {
+    grid-template-columns: 1fr;
+  }
+}
