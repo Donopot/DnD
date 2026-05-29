@@ -1,0 +1,20 @@
+# Add this block to the host-level Caddy configuration.
+# It keeps Caddy as the shared HTTPS entrypoint while the DnD app remains
+# isolated behind loopback ports.
+
+dnd.dtmini.com {
+  encode zstd gzip
+
+  handle /api/* {
+    reverse_proxy 127.0.0.1:8091
+  }
+
+  handle /ws/* {
+    reverse_proxy 127.0.0.1:8091
+  }
+
+  handle {
+    reverse_proxy 127.0.0.1:8090
+  }
+}
+

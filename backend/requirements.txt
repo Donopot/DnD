@@ -1,0 +1,6 @@
+asyncpg==0.30.0
+boto3==1.38.23
+fastapi==0.115.12
+pydantic-settings==2.9.1
+uvicorn[standard]==0.34.2
+

@@ -1,0 +1,100 @@
+services:
+  dnd-frontend:
+    build:
+      context: ./frontend
+    container_name: dnd-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DND_FRONTEND_PORT:-8090}:80"
+    depends_on:
+      - dnd-backend
+    networks:
+      - dnd_internal
+
+  dnd-backend:
+    build:
+      context: ./backend
+    container_name: dnd-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:${DND_BACKEND_PORT:-8091}:8000"
+    depends_on:
+      dnd-postgres:
+        condition: service_healthy
+      dnd-minio:
+        condition: service_started
+      dnd-redis:
+        condition: service_started
+    volumes:
+      - ./logs/backend:/app/logs
+    networks:
+      - dnd_internal
+
+  dnd-postgres:
+    image: postgres:16-alpine
+    container_name: dnd-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - dnd_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dnd_internal
+
+  dnd-minio:
+    image: minio/minio:latest
+    container_name: dnd-minio
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: server /data --console-address ":9001"
+    volumes:
+      - dnd_minio_data:/data
+    networks:
+      - dnd_internal
+
+  dnd-minio-init:
+    image: minio/mc:latest
+    container_name: dnd-minio-init
+    env_file:
+      - .env
+    depends_on:
+      - dnd-minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set dndminio $$MINIO_ENDPOINT $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do sleep 2; done;
+      mc mb --ignore-existing dndminio/$$MINIO_BUCKET;
+      mc anonymous set none dndminio/$$MINIO_BUCKET;
+      "
+    networks:
+      - dnd_internal
+
+  dnd-redis:
+    image: redis:7-alpine
+    container_name: dnd-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - dnd_redis_data:/data
+    networks:
+      - dnd_internal
+
+volumes:
+  dnd_postgres_data:
+    name: dnd_postgres_data
+  dnd_minio_data:
+    name: dnd_minio_data
+  dnd_redis_data:
+    name: dnd_redis_data
+
+networks:
+  dnd_internal:
+    name: dnd_internal
+    driver: bridge
