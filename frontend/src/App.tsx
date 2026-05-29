@@ -12,12 +12,12 @@ import {
   UserPlus,
 } from "lucide-react";
 import "./styles.css";
+import { CampaignViewTabs } from "./components/CampaignViewTabs";
+import type { CampaignView } from "./components/CampaignViewTabs";
 import { AuthView } from "./components/AuthView";
 import { CombatPanel } from "./components/CombatPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
-import { CampaignViewTabs } from "./components/CampaignViewTabs";
-import type { CampaignView } from "./components/CampaignViewTabs";
 import { MessageDock } from "./components/common";
 import type {
   Asset,

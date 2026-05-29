@@ -1142,3 +1142,57 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.session-workspace {
+  display: grid;
+  grid-template-columns: minmax(620px, 1fr) minmax(340px, 430px);
+  gap: 16px;
+  align-items: start;
+}
+
+.session-map-zone {
+  min-width: 0;
+}
+
+.session-side-zone {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.session-workspace .vtt-section,
+.session-workspace .combat-section,
+.session-workspace .session-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.session-workspace .vtt-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.session-workspace .vtt-control-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  align-items: start;
+}
+
+.session-workspace .combat-layout,
+.session-workspace .session-grid {
+  grid-template-columns: 1fr;
+}
+
+.session-workspace .map-scroll {
+  max-height: 72vh;
+}
+
+@media (max-width: 1250px) {
+  .session-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .session-workspace .vtt-control-panel {
+    grid-template-columns: 1fr;
+  }
+}

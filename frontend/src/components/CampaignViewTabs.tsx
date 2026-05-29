@@ -1,4 +1,4 @@
-export type CampaignView = "overview" | "characters" | "table" | "combat" | "journal";
+export type CampaignView = "overview" | "characters" | "session" | "table" | "combat" | "journal";
 
 type CampaignViewTabsProps = {
   activeView: CampaignView;
@@ -8,6 +8,7 @@ type CampaignViewTabsProps = {
 const views: Array<{ id: CampaignView; label: string; description: string }> = [
   { id: "overview", label: "Vue d'ensemble", description: "Campagne, membres et invitations" },
   { id: "characters", label: "Personnages", description: "Fiches et joueurs" },
+  { id: "session", label: "Session", description: "Carte, combat et journal live" },
   { id: "table", label: "Table", description: "Carte, scenes, tokens et assets" },
   { id: "combat", label: "Combat", description: "Initiative et tours" },
   { id: "journal", label: "Journal", description: "Jets, notes et historique" },
