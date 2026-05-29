@@ -121,3 +121,8 @@ sh scripts/smoke-phase3.sh
 sh scripts/smoke-phase4.sh
 sh scripts/smoke-phase5.sh
 ```
+
+
+## Documentation
+
+- [Roadmap projet](docs/roadmap.md)
