@@ -44,3 +44,30 @@ Panneaux concernes :
 - le panneau ajout token peut etre redimensionne ;
 - les positions sont restaurees apres refresh ;
 - le reset remet les panneaux en position par defaut.
+
+## Etape 10-2A - Toolbar de panneaux flottants
+
+Objectif :
+
+- ajouter une toolbar a chaque panneau flottant ;
+- permettre de mettre un panneau au premier plan ;
+- permettre de verrouiller/deverrouiller un panneau ;
+- permettre de reduire/ouvrir un panneau ;
+- permettre de fermer un panneau ;
+- garder le reset global via Reset panneaux.
+
+Comportement :
+
+- un panneau verrouille ne peut plus etre deplace ou redimensionne ;
+- un panneau reduit garde uniquement sa toolbar visible ;
+- un panneau ferme est restaure via Reset panneaux ;
+- le z-index est mis a jour au clic ou via le bouton Avant.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la mini-map peut etre verrouillee ;
+- la mini-map peut etre reduite ;
+- le panneau ajout token peut etre ferme ;
+- Reset panneaux restaure les panneaux fermes.

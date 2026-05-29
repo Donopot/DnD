@@ -2658,3 +2658,99 @@ select {
 }
 
 /* End Phase 10-1 free UX panels */
+
+/* Phase 10-2A floating panel toolbar */
+
+.floating-widget-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  min-height: 38px;
+  margin: -1px -1px 10px;
+  padding: 7px 8px 7px 12px;
+  border-bottom: 1px solid #d8d1c2;
+  border-radius: 12px 12px 0 0;
+  background: #1f5f43;
+  color: #fffdf7;
+  cursor: move;
+  user-select: none;
+}
+
+.floating-widget-toolbar-title {
+  min-width: 0;
+  overflow: hidden;
+  color: #fffdf7;
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floating-widget-toolbar-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 26px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 253, 247, 0.35);
+  border-radius: 7px;
+  background: rgba(255, 253, 247, 0.12);
+  color: #fffdf7;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.floating-widget-toolbar-actions button:hover {
+  background: rgba(255, 253, 247, 0.22);
+}
+
+.floating-widget-locked {
+  border-color: rgba(138, 90, 18, 0.55) !important;
+}
+
+.floating-widget-locked .floating-widget-toolbar {
+  background: #8a5a12;
+  cursor: default;
+}
+
+.floating-widget-locked .floating-widget-resize-handle {
+  display: none;
+}
+
+.floating-widget-collapsed {
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+.floating-widget-collapsed > :not(.floating-widget-toolbar) {
+  display: none !important;
+}
+
+.floating-widget-collapsed .floating-widget-toolbar {
+  margin-bottom: -1px;
+  border-radius: 12px;
+}
+
+.floating-widget.floating-widget-collapsed {
+  min-height: 38px;
+}
+
+@media (max-width: 760px) {
+  .floating-widget-toolbar {
+    display: grid;
+  }
+
+  .floating-widget-toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Phase 10-2A floating panel toolbar */
