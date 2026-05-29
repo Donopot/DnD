@@ -190,6 +190,7 @@ class ScenePublic(BaseModel):
     width: int
     height: int
     background_url: str | None
+    background_asset_id: UUID | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -300,3 +301,20 @@ class CombatantPublic(BaseModel):
 
 class EncounterDetailPublic(EncounterPublic):
     combatants: list[CombatantPublic]
+
+
+class AssetPublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    uploader_user_id: UUID | None
+    name: str
+    object_key: str
+    content_type: str
+    size_bytes: int
+    asset_type: str
+    content_url: str
+    created_at: datetime
+
+
+class SceneBackgroundUpdateRequest(BaseModel):
+    asset_id: UUID | None = None
