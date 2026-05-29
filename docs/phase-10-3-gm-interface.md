@@ -139,3 +139,33 @@ Critere d'acceptation :
 - le mode Partie ne montre plus les formulaires longs ;
 - le mode Preparation conserve les outils MJ ;
 - le mode Avance conserve les panneaux libres.
+
+## Etape 10-3G - Polish panneaux flottants GM
+
+Objectif :
+
+- supprimer le double header des panneaux flottants ;
+- conserver uniquement la toolbar flottante avec les options ;
+- ouvrir automatiquement les panneaux details en mode flottant ;
+- raccourcir les boutons de toolbar ;
+- rendre les panneaux plus compacts en mode avance.
+
+Correction principale :
+
+Les panneaux tool-card utilisaient a la fois :
+
+- le summary natif du details ;
+- la toolbar flottante avec Avant / Verrou / Reduire / Fermer.
+
+En mode flottant, le summary natif est masque.  
+La toolbar flottante devient l'unique header du panneau.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- les panneaux flottants n'ont plus deux headers ;
+- le bouton reduire visible est celui de la toolbar flottante ;
+- les panneaux restent deplacables ;
+- les panneaux restent redimensionnables ;
+- le mode Partie reste propre.
