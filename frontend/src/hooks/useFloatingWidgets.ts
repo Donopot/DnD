@@ -221,6 +221,16 @@ export function resetFloatingWidgetLayouts() {
 }
 
 export function showFloatingWidget(widgetId: string) {
+  const metaKey = `${META_PREFIX}${widgetId}`;
+  const storedMeta = readStoredValue<WidgetMeta>(metaKey);
+
+  writeStoredValue<WidgetMeta>(metaKey, {
+    hidden: false,
+    locked: storedMeta?.locked ?? false,
+    collapsed: false,
+    zIndex: Math.max(storedMeta?.zIndex ?? 180, 220),
+  });
+
   window.dispatchEvent(
     new CustomEvent("dnd:show-floating-widget", {
       detail: { widgetId },
@@ -478,13 +488,15 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
           return;
         }
 
+        topZIndex += 1;
+
         saveMeta({
           hidden: false,
           collapsed: false,
-          zIndex: topZIndex + 1,
+          zIndex: topZIndex,
         });
 
-        topZIndex += 1;
+        widget.focus({ preventScroll: true });
       }
 
       function handleApplyPreset(event: Event) {

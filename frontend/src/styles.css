@@ -3860,3 +3860,121 @@ select {
 }
 
 /* End Phase 10-3G floating panels final polish */
+
+/* Phase 10-3H intuitive GM panel manager */
+
+.vtt-panels-menu[open] {
+  z-index: 7000;
+}
+
+.vtt-panels-menu[open] .vtt-panels-menu-content {
+  position: fixed;
+  top: 86px;
+  right: 18px;
+  z-index: 7000;
+  display: grid;
+  width: min(360px, calc(100vw - 36px));
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(31, 95, 67, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 253, 247, 0.98);
+  box-shadow: 0 24px 64px rgba(35, 48, 40, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.vtt-panels-manager-header {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #1f5f43;
+  color: #fffdf7;
+}
+
+.vtt-panels-manager-header span {
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.86;
+}
+
+.vtt-panels-manager-header strong {
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.vtt-panels-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.vtt-panels-list {
+  display: grid;
+  gap: 6px;
+}
+
+.vtt-panels-list button,
+.vtt-panels-preset-grid button {
+  display: grid;
+  gap: 2px;
+  min-height: 42px;
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.vtt-panels-list button span,
+.vtt-panels-preset-grid button span {
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.vtt-panels-list button small,
+.vtt-panels-preset-grid button small {
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.vtt-panels-list button:not(:disabled) {
+  border-color: #d8d1c2;
+  background: #fffdf7;
+}
+
+.vtt-panels-list button:not(:disabled):hover,
+.vtt-panels-preset-grid button:hover {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.vtt-panels-manager-footer {
+  display: grid;
+}
+
+.vtt-panels-menu-content .danger-lite {
+  justify-content: center;
+  min-height: 34px;
+}
+
+.gm-mode-advanced .vtt-panels-menu[open] .vtt-panels-menu-content {
+  top: 74px;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-menu[open] .vtt-panels-menu-content {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+
+  .vtt-panels-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Phase 10-3H intuitive GM panel manager */
