@@ -139,3 +139,21 @@ Objectif :
 - Ne pas changer le backend pendant R1 sauf bug bloquant.
 - Garder chaque refactor petit et testable.
 - Commit par etape.
+
+## Etape R4-6 - Harmonisation globale
+
+Objectif :
+
+- workspace plus large ;
+- sidebar plus compacte ;
+- topbar sticky ;
+- panneaux plus lisibles ;
+- meilleure lisibilite de la vue Session ;
+- style plus proche d'une application VTT utilisable.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- frontend accessible sur http://127.0.0.1:8090 ;
+- navigation campagne plus confortable.

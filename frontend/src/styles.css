@@ -1603,3 +1603,319 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* R4-6 global workspace polish */
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(31, 95, 67, 0.14), transparent 34rem),
+    linear-gradient(135deg, #f7f2e6 0%, #efe6d2 48%, #e6ddc9 100%);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  background: transparent;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  align-self: start;
+  padding: 18px 12px;
+  border-right: 1px solid rgba(37, 48, 40, 0.12);
+  background: rgba(255, 253, 247, 0.86);
+  backdrop-filter: blur(10px);
+  box-shadow: 8px 0 24px rgba(35, 48, 40, 0.06);
+}
+
+.sidebar .brand-mark.compact {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.sidebar .ghost-button {
+  width: 100%;
+  min-height: 46px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.sidebar .ghost-button svg {
+  margin: 0;
+}
+
+.sidebar .ghost-button {
+  font-size: 0;
+}
+
+.sidebar .ghost-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.workspace {
+  min-width: 0;
+  width: 100%;
+  max-width: 1840px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: -24px -24px 22px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(37, 48, 40, 0.12);
+  background: rgba(255, 253, 247, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.topbar h1 {
+  margin: 2px 0 0;
+  letter-spacing: -0.04em;
+}
+
+.topbar-status {
+  padding: 8px 10px;
+  border: 1px solid #e0d7c7;
+  border-radius: 999px;
+  background: #fffdf7;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(260px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.panel {
+  border: 1px solid rgba(37, 48, 40, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 253, 247, 0.92);
+  box-shadow: 0 12px 30px rgba(35, 48, 40, 0.07);
+}
+
+.detail-panel {
+  min-width: 0;
+  padding: 18px;
+}
+
+.detail-panel > h2 {
+  margin-top: 0;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.campaign-list {
+  max-height: calc(100vh - 150px);
+  overflow: auto;
+}
+
+.campaign-row {
+  border-radius: 12px;
+}
+
+.campaign-row.selected {
+  box-shadow: inset 4px 0 0 #1f5f43;
+}
+
+.campaign-view-tabs {
+  position: sticky;
+  top: 82px;
+  z-index: 15;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(35, 48, 40, 0.06);
+}
+
+.campaign-view-tabs button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.campaign-view-tabs button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(35, 48, 40, 0.08);
+}
+
+.campaign-view-shell {
+  min-width: 0;
+}
+
+.section-heading {
+  margin-bottom: 14px;
+}
+
+.section-heading h3 {
+  letter-spacing: -0.03em;
+}
+
+.vtt-board-panel,
+.combat-command-card,
+.combat-initiative-card,
+.combat-tools-card,
+.session-command-card,
+.session-tools-card,
+.session-history-card,
+.sheet-preview {
+  border-radius: 16px;
+}
+
+.map-scroll {
+  border-radius: 14px;
+  background:
+    linear-gradient(45deg, rgba(37, 48, 40, 0.04) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(37, 48, 40, 0.04) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(37, 48, 40, 0.04) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(37, 48, 40, 0.04) 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+}
+
+.map-board {
+  box-shadow: inset 0 0 0 1px rgba(37, 48, 40, 0.16);
+}
+
+.map-token {
+  box-shadow: 0 8px 18px rgba(35, 48, 40, 0.24);
+  border: 2px solid rgba(255, 253, 247, 0.9);
+}
+
+.session-workspace {
+  align-items: stretch;
+}
+
+.session-map-zone,
+.session-side-zone {
+  min-width: 0;
+}
+
+.session-side-zone {
+  max-height: calc(100vh - 190px);
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.session-side-zone::-webkit-scrollbar,
+.campaign-list::-webkit-scrollbar,
+.vtt-control-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.session-side-zone::-webkit-scrollbar-thumb,
+.campaign-list::-webkit-scrollbar-thumb,
+.vtt-control-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(31, 95, 67, 0.28);
+}
+
+.tool-card {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-card:hover {
+  border-color: rgba(31, 95, 67, 0.38);
+}
+
+.primary-button,
+.ghost-button,
+button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.primary-button:hover:not(:disabled),
+.ghost-button:hover:not(:disabled),
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+input,
+textarea,
+select {
+  border-radius: 10px;
+}
+
+.message.docked {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  max-width: min(520px, calc(100vw - 48px));
+  box-shadow: 0 18px 40px rgba(35, 48, 40, 0.18);
+}
+
+@media (max-width: 1350px) {
+  .workspace-grid {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  }
+
+  .workspace-grid > .detail-panel {
+    grid-column: 1 / -1;
+  }
+
+  .campaign-view-tabs {
+    top: 78px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(37, 48, 40, 0.12);
+  }
+
+  .sidebar .brand-mark.compact {
+    width: auto;
+    margin: 0 auto 0 0;
+  }
+
+  .sidebar .ghost-button {
+    width: auto;
+  }
+
+  .workspace {
+    padding: 16px;
+  }
+
+  .topbar {
+    position: static;
+    margin: -16px -16px 16px;
+    padding: 14px 16px;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-list {
+    max-height: none;
+  }
+
+  .campaign-view-tabs {
+    position: static;
+  }
+
+  .session-side-zone {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+/* End R4-6 global workspace polish */
