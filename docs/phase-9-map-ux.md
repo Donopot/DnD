@@ -96,3 +96,23 @@ Critere d'acceptation :
 - clic-glisser sur la carte deplace la vue ;
 - le bouton Reset remet le zoom a 100% et recentre la vue ;
 - les tokens restent deplacables.
+
+## Etape 9-3 - Panneau detail token
+
+Objectif :
+
+- afficher un panneau detail pour le token selectionne ;
+- montrer nom, personnage lie, position, taille, visibilite et couleur ;
+- centrer la carte sur le token actif ;
+- deselectionner le token ;
+- deplacer le token selectionne avec des boutons directionnels ;
+- selectionner un token depuis la liste des tokens.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- clic sur un token affiche ses details ;
+- clic sur un token dans la liste le selectionne ;
+- le bouton Centrer remet le token au centre de la vue ;
+- les boutons directionnels deplacent le token d'une case.

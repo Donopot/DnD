@@ -69,6 +69,18 @@ export function VttBoard({
     [sceneTokens, selectedTokenId],
   );
 
+  const selectedTokenCharacter = useMemo(() => {
+    if (!selectedToken?.character_id) {
+      return undefined;
+    }
+
+    return characters.find((character) => character.id === selectedToken.character_id);
+  }, [characters, selectedToken]);
+
+  const selectedTokenPosition = selectedToken
+    ? draftPositions[selectedToken.id] ?? { x: selectedToken.x, y: selectedToken.y }
+    : undefined;
+
   const zoomPercent = Math.round(zoom * 100);
 
   function getTokenPositionFromPointer(event: PointerEvent<HTMLDivElement>, token: SceneToken): Position | null {
@@ -171,6 +183,36 @@ export function VttBoard({
       scrollRef.current.scrollLeft = 0;
       scrollRef.current.scrollTop = 0;
     }
+  }
+
+  function centerSelectedToken() {
+    if (!scrollRef.current || !selectedScene || !selectedToken || !selectedTokenPosition) {
+      return;
+    }
+
+    const tokenSize = selectedToken.size * selectedScene.grid_size;
+    const tokenCenterX = (selectedTokenPosition.x + tokenSize / 2) * zoom;
+    const tokenCenterY = (selectedTokenPosition.y + tokenSize / 2) * zoom;
+
+    scrollRef.current.scrollLeft = clamp(
+      tokenCenterX - scrollRef.current.clientWidth / 2,
+      0,
+      Math.max(0, scrollRef.current.scrollWidth - scrollRef.current.clientWidth),
+    );
+
+    scrollRef.current.scrollTop = clamp(
+      tokenCenterY - scrollRef.current.clientHeight / 2,
+      0,
+      Math.max(0, scrollRef.current.scrollHeight - scrollRef.current.clientHeight),
+    );
+  }
+
+  function nudgeSelectedToken(dx: number, dy: number) {
+    if (!selectedToken) {
+      return;
+    }
+
+    onMoveToken(selectedToken, dx, dy);
   }
 
   function handlePanPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -371,6 +413,82 @@ export function VttBoard({
         </section>
 
         <section className="vtt-control-panel">
+          <section className="token-detail-panel" data-quick-panel="token-detail">
+            <div className="token-detail-heading">
+              <h4>Token selectionne</h4>
+              {selectedToken && <span>{selectedToken.name}</span>}
+            </div>
+
+            {selectedToken && selectedTokenPosition ? (
+              <>
+                <div className="token-detail-grid">
+                  <span>
+                    <small>Nom</small>
+                    <strong>{selectedToken.name}</strong>
+                  </span>
+
+                  <span>
+                    <small>Personnage</small>
+                    <strong>{selectedTokenCharacter?.name ?? "Token libre"}</strong>
+                  </span>
+
+                  <span>
+                    <small>Position</small>
+                    <strong>
+                      x {selectedTokenPosition.x} · y {selectedTokenPosition.y}
+                    </strong>
+                  </span>
+
+                  <span>
+                    <small>Taille</small>
+                    <strong>{selectedToken.size} case(s)</strong>
+                  </span>
+
+                  <span>
+                    <small>Visibilite</small>
+                    <strong>{selectedToken.is_hidden ? "Cache" : "Visible"}</strong>
+                  </span>
+
+                  <span>
+                    <small>Couleur</small>
+                    <strong>{selectedToken.color}</strong>
+                  </span>
+                </div>
+
+                <div className="token-detail-actions">
+                  <button className="ghost-button" type="button" onClick={centerSelectedToken}>
+                    Centrer
+                  </button>
+
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    onClick={() => setSelectedTokenId("")}
+                  >
+                    Deselectionner
+                  </button>
+                </div>
+
+                <div className="token-detail-nudge" aria-label={`Deplacer ${selectedToken.name}`}>
+                  <button type="button" onClick={() => nudgeSelectedToken(0, -(selectedScene?.grid_size ?? 50))}>
+                    ↑
+                  </button>
+                  <button type="button" onClick={() => nudgeSelectedToken(-(selectedScene?.grid_size ?? 50), 0)}>
+                    ←
+                  </button>
+                  <button type="button" onClick={() => nudgeSelectedToken(selectedScene?.grid_size ?? 50, 0)}>
+                    →
+                  </button>
+                  <button type="button" onClick={() => nudgeSelectedToken(0, selectedScene?.grid_size ?? 50)}>
+                    ↓
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
+            )}
+          </section>
+
           <details className="tool-card" data-quick-panel="scene" open>
             <summary>Scene</summary>
 
@@ -525,7 +643,18 @@ export function VttBoard({
                   const step = selectedScene?.grid_size ?? 50;
 
                   return (
-                    <article className={`token-row ${selectedTokenId === token.id ? "selected" : ""}`} key={token.id}>
+                    <article
+                      className={`token-row ${selectedTokenId === token.id ? "selected" : ""}`}
+                      key={token.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedTokenId(token.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          setSelectedTokenId(token.id);
+                        }
+                      }}
+                    >
                       <span>
                         <strong>{token.name}</strong>
                         <small>
