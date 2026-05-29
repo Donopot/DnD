@@ -117,6 +117,7 @@ type Scene = {
   width: number;
   height: number;
   background_url: string | null;
+  background_asset_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -135,6 +136,19 @@ type SceneToken = {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+};
+
+type Asset = {
+  id: string;
+  campaign_id: string;
+  uploader_user_id: string | null;
+  name: string;
+  object_key: string;
+  content_type: string;
+  size_bytes: number;
+  asset_type: "map" | "token" | "handout";
+  content_url: string;
+  created_at: string;
 };
 
 type Encounter = {
@@ -189,6 +203,9 @@ function App() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<string>("");
+  const [sceneBackgroundObjectUrl, setSceneBackgroundObjectUrl] = useState<string>("");
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
   const [combatants, setCombatants] = useState<Combatant[]>([]);
@@ -240,8 +257,49 @@ function App() {
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
     void loadVttState(selectedCampaign.id);
+    void loadAssets(selectedCampaign.id);
     void loadCombatState(selectedCampaign.id);
   }, [selectedCampaign?.id]);
+
+  useEffect(() => {
+    if (!selectedScene?.background_url || !token) {
+      setSceneBackgroundObjectUrl("");
+      return;
+    }
+
+    let isCancelled = false;
+    let objectUrl = "";
+
+    async function loadSceneBackground() {
+      const response = await fetch(selectedScene.background_url!, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to load scene background");
+      }
+
+      const blob = await response.blob();
+      objectUrl = URL.createObjectURL(blob);
+
+      if (!isCancelled) {
+        setSceneBackgroundObjectUrl(objectUrl);
+      }
+    }
+
+    void loadSceneBackground().catch(() => {
+      if (!isCancelled) {
+        setSceneBackgroundObjectUrl("");
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [selectedScene?.background_url, token]);
 
   useEffect(() => {
     wsRef.current?.close();
@@ -716,6 +774,90 @@ function App() {
       setCombatants((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update combatant");
+    }
+  }
+
+  async function loadAssets(campaignId: string) {
+    try {
+      const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
+      setAssets(data);
+      setSelectedAssetId((current) => current || data[0]?.id || "");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load assets");
+    }
+  }
+
+  async function handleUploadAsset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedCampaign) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+    const upload = new FormData();
+    const file = form.get("file");
+
+    if (!(file instanceof File) || file.size === 0) {
+      setMessage("Selectionne une image de carte.");
+      setIsBusy(false);
+      return;
+    }
+
+    upload.append("file", file);
+
+    try {
+      const response = await fetch(`/api/campaigns/${selectedCampaign.id}/assets`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: upload,
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({ detail: "Unable to upload asset" }));
+        throw new Error(body.detail ?? "Unable to upload asset");
+      }
+
+      const asset = (await response.json()) as Asset;
+      setAssets((current) => [asset, ...current]);
+      setSelectedAssetId(asset.id);
+      event.currentTarget.reset();
+      setMessage("Carte uploadee.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to upload asset");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleSetSceneBackground() {
+    if (!selectedScene) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const scene = await request<Scene>(`/api/scenes/${selectedScene.id}/background`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          asset_id: selectedAssetId || null,
+        }),
+      });
+
+      setScenes((current) => current.map((item) => (item.id === scene.id ? scene : item)));
+      setSelectedSceneId(scene.id);
+      setMessage("Fond de scene mis a jour.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to set scene background");
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -1258,13 +1400,22 @@ function App() {
                       {selectedScene ? (
                         <div className="map-scroll">
                           <div
-                            className="map-board"
+                            className={`map-board ${sceneBackgroundObjectUrl ? "with-background" : ""}`}
                             style={{
                               width: selectedScene.width,
                               height: selectedScene.height,
                               backgroundSize: `${selectedScene.grid_size}px ${selectedScene.grid_size}px`,
                             }}
                           >
+                            {sceneBackgroundObjectUrl && (
+                              <img
+                                alt=""
+                                aria-hidden="true"
+                                className="map-background-image"
+                                src={sceneBackgroundObjectUrl}
+                              />
+                            )}
+
                             {sceneTokens.map((token) => (
                               <button
                                 className="map-token"
@@ -1327,6 +1478,44 @@ function App() {
                           Creer scene
                         </button>
                       </form>
+
+                      <form className="asset-form" onSubmit={handleUploadAsset}>
+                        <h4>Fond de carte</h4>
+
+                        <label>
+                          Uploader une image
+                          <input accept="image/png,image/jpeg,image/webp,image/gif" name="file" type="file" />
+                        </label>
+
+                        <button className="ghost-button" disabled={isBusy} type="submit">
+                          Uploader carte
+                        </button>
+                      </form>
+
+                      <div className="asset-picker">
+                        <h4>Assets de campagne</h4>
+
+                        {assets.length === 0 ? (
+                          <p className="muted">Aucune carte uploadee.</p>
+                        ) : (
+                          <>
+                            <label>
+                              Image
+                              <select value={selectedAssetId} onChange={(event) => setSelectedAssetId(event.target.value)}>
+                                {assets.map((asset) => (
+                                  <option key={asset.id} value={asset.id}>
+                                    {asset.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+
+                            <button className="ghost-button" disabled={isBusy || !selectedScene || !selectedAssetId} onClick={handleSetSceneBackground} type="button">
+                              Utiliser comme fond
+                            </button>
+                          </>
+                        )}
+                      </div>
 
                       <form className="token-form" onSubmit={handleCreateToken}>
                         <h4>Nouveau token</h4>
