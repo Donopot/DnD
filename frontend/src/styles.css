@@ -5313,3 +5313,38 @@ select {
 }
 
 /* End Sprint GM-2A - Session Live modes */
+
+/* Sprint GM-2C - GM Notes panel */
+
+.gm-notes-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.gm-notes-panel label {
+  display: grid;
+  gap: 6px;
+  color: #253028;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.gm-notes-panel textarea {
+  min-height: 160px;
+  resize: vertical;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.gm-notes-panel small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+/* End Sprint GM-2C - GM Notes panel */

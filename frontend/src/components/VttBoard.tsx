@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent, type PointerEvent } from "react";
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
@@ -71,6 +71,7 @@ export function VttBoard({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [gmNotes, setGmNotes] = useState("");
   const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
   const [gmInterfaceMode, setGmInterfaceMode] = useState<GmInterfaceMode>("play");
   const [viewportRatio, setViewportRatio] = useState({
@@ -102,6 +103,32 @@ export function VttBoard({
   useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel", selectedScene?.id ?? "no-scene");
 
   const zoomPercent = Math.round(zoom * 100);
+
+  useEffect(() => {
+    if (!selectedScene) {
+      setGmNotes("");
+      return;
+    }
+
+    const scene = selectedScene;
+    const savedNotes = window.localStorage.getItem(`dnd-gm-scene-notes:${scene.id}`) ?? "";
+
+    setGmNotes(savedNotes);
+  }, [selectedScene?.id]);
+
+  function handleGmNotesChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    const nextValue = event.target.value;
+
+    setGmNotes(nextValue);
+
+    if (!selectedScene) {
+      return;
+    }
+
+    const scene = selectedScene;
+
+    window.localStorage.setItem(`dnd-gm-scene-notes:${scene.id}`, nextValue);
+  }
 
   useEffect(() => {
     if (!sessionLiveMode) {
@@ -824,6 +851,28 @@ export function VttBoard({
               <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
             )}
           </section>
+          <details data-vtt-panel="gm-notes" data-floating-widget="gm-notes" className="tool-card" open>
+            <summary>Notes MJ</summary>
+
+            <div className="gm-notes-panel">
+              <label>
+                Notes privées de scène
+                <textarea
+                  maxLength={8000}
+                  onChange={handleGmNotesChange}
+                  placeholder="Secrets, rappels, indices à donner, ambiance, pièges, improvisation..."
+                  rows={8}
+                  value={gmNotes}
+                />
+              </label>
+
+              <small>
+                Notes locales privées pour cette scène. Version backend et partage co-MJ prévus plus tard.
+              </small>
+            </div>
+          </details>
+
+
 
           <details data-vtt-panel="scene" data-floating-widget="scene" className="tool-card" data-floating-title="Scene" open>
             <summary>Scene</summary>

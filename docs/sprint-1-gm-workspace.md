@@ -441,3 +441,35 @@ Dans l'onglet Session Live :
 
 Les panneaux Roleplay avances, Notes MJ, Initiative et Actions rapides seront ajoutes dans les prochains lots.
 Pour l'instant, les modes utilisent les panneaux existants.
+
+## Sprint GM-2C - Panneau Notes MJ
+
+### Objectif
+
+Ajouter un premier panneau contextuel manquant dans Session Live.
+
+### Fonctionnalites
+
+- panneau Notes MJ standardise ;
+- compatible fermer, reduire, dock, rouvrir, epingler, verrouiller ;
+- notes liees a la scene active ;
+- stockage local temporaire via localStorage ;
+- integration au registre des panneaux ;
+- integration aux presets Session Live.
+
+### Comportement attendu
+
+- Exploration : Notes MJ visibles ;
+- Combat : Notes MJ reduites ;
+- Roleplay : Notes MJ visibles ;
+- Preparation rapide : Notes MJ visibles ;
+- Minimal : Notes MJ masquees.
+
+### Evolution future
+
+- sauvegarde backend ;
+- partage co-MJ ;
+- tags ;
+- notes par PNJ/token/scene ;
+- visibilite MJ uniquement ;
+- recherche.
