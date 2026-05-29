@@ -140,3 +140,25 @@ Nettoyer les actions redondantes et renforcer la standardisation des panneaux.
 - Reset panneaux reste uniquement dans Panneaux ;
 - Reset layout personnalise passe par Panneaux ;
 - aucun bouton destructif de layout ne doit etre duplique dans la toolbar principale.
+
+## Passe 3 - Verification exhaustive boutons et panneaux
+
+### Objectif
+
+Verifier que tous les boutons et tous les panneaux respectent le meme contrat.
+
+### Ajouts
+
+- script scripts/check-panel-interactions.sh ;
+- matrice docs/gm-panel-test-matrix.md ;
+- verification des listeners add/remove ;
+- verification des boutons runtime standards ;
+- verification de l'absence de reset panneaux dans VttBoard ;
+- verification que le menu Panneaux lit le registre ;
+- verification que les boutons d'affichage ne sont pas desactives ;
+- verification des attributs data-vtt-panel, data-floating-widget et data-floating-title.
+
+### Limite
+
+La verification automatique reste statique.
+Sans runner navigateur type Playwright, les interactions reelles doivent etre validees avec la matrice manuelle.
