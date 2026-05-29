@@ -2870,3 +2870,243 @@ select {
 }
 
 /* End Phase 10-2C floating panel presets */
+
+/* Phase 10-2D compact VTT UI and usable presets */
+
+html {
+  font-size: 14px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.app-shell {
+  grid-template-columns: 64px minmax(0, 1fr);
+}
+
+.sidebar {
+  padding: 10px 8px;
+}
+
+.workspace {
+  max-width: none;
+  padding: 10px 12px;
+}
+
+.topbar {
+  margin: -10px -12px 12px;
+  padding: 10px 16px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+  line-height: 1;
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.78rem;
+}
+
+.workspace-grid {
+  gap: 12px;
+}
+
+.panel,
+.detail-panel,
+.vtt-board-panel,
+.token-detail-panel,
+.map-overview,
+.tool-card {
+  border-radius: 12px;
+}
+
+.detail-panel {
+  padding: 12px;
+}
+
+.campaign-view-tabs {
+  top: 60px;
+  margin: 10px 0;
+  padding: 6px;
+}
+
+.campaign-view-tabs button {
+  min-height: 54px;
+  padding: 8px;
+}
+
+.section-heading {
+  margin-bottom: 8px;
+}
+
+.section-heading h3 {
+  font-size: 1rem;
+}
+
+.vtt-layout,
+.session-workspace .vtt-layout {
+  gap: 10px;
+}
+
+.vtt-board-panel {
+  padding: 10px;
+  overflow: hidden;
+}
+
+.vtt-toolbar,
+.map-ux-toolbar {
+  gap: 8px;
+  padding: 8px;
+}
+
+.map-ux-toolbar {
+  display: flex;
+  align-items: center;
+}
+
+.map-ux-toolbar button,
+.map-zoom-controls button,
+.snap-toggle,
+.pan-toggle,
+.reset-map-button,
+.floating-toggle,
+.reset-panels-button {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 0.78rem;
+}
+
+.map-zoom-controls strong {
+  min-width: 42px;
+  text-align: center;
+}
+
+.keyboard-help {
+  min-width: 160px;
+}
+
+.keyboard-help summary {
+  padding: 7px 9px;
+}
+
+.map-scroll,
+.session-workspace .map-scroll {
+  height: calc(100vh - 260px);
+  min-height: 560px;
+}
+
+.vtt-control-panel,
+.session-workspace .vtt-control-panel {
+  max-height: calc(100vh - 170px);
+}
+
+.vtt-panels-menu {
+  min-height: 32px;
+}
+
+.vtt-panels-menu summary {
+  padding: 7px 10px;
+  font-size: 0.78rem;
+}
+
+.vtt-panels-menu-content {
+  z-index: 999;
+  min-width: 260px;
+  max-height: min(620px, calc(100vh - 140px));
+  overflow: auto;
+}
+
+.vtt-panels-menu-notice {
+  padding: 7px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #657068;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.vtt-panels-menu-group {
+  gap: 5px;
+  padding: 6px;
+}
+
+.vtt-panels-menu-group button {
+  cursor: pointer;
+}
+
+.vtt-panels-menu-group button:disabled {
+  cursor: not-allowed;
+}
+
+.vtt-panels-menu-group .preset-button {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.vtt-panels-menu-group .preset-button span {
+  font-weight: 950;
+}
+
+.vtt-panels-menu-group .preset-button small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.vtt-panels-menu-group .preset-button:hover {
+  border-color: #1f5f43;
+  background: #ddf3df;
+}
+
+.map-overview-map {
+  max-height: 220px;
+}
+
+.floating-widget-toolbar-actions button {
+  min-height: 24px;
+  padding: 2px 6px;
+  font-size: 0.64rem;
+}
+
+@media (min-width: 1300px) {
+  .workspace-grid {
+    grid-template-columns: minmax(220px, 280px) minmax(220px, 280px) minmax(0, 1fr);
+  }
+
+  .detail-panel {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 240px);
+    min-height: 620px;
+  }
+}
+
+@media (max-width: 900px) {
+  html {
+    font-size: 13px;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 66vh;
+    min-height: 420px;
+  }
+}
+
+/* End Phase 10-2D compact VTT UI and usable presets */

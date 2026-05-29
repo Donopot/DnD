@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
 import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {
@@ -184,6 +184,20 @@ export function VttBoard({
 
   function updateZoom(delta: number) {
     setZoom((current) => clamp(Number((current + delta).toFixed(2)), 0.5, 2));
+  }
+
+  function handleApplyFloatingPreset(preset: FloatingWidgetPreset) {
+    if (!freePanelsEnabled) {
+      setFreePanelsEnabled(true);
+
+      window.setTimeout(() => {
+        applyFloatingWidgetPreset(preset);
+      }, 80);
+
+      return;
+    }
+
+    applyFloatingWidgetPreset(preset);
   }
 
   function resetMapView() {
@@ -422,7 +436,7 @@ export function VttBoard({
             <VttPanelsMenu
               enabled={freePanelsEnabled}
               onShowPanel={showFloatingWidget}
-              onApplyPreset={applyFloatingWidgetPreset}
+              onApplyPreset={handleApplyFloatingPreset}
               onResetPanels={resetFloatingWidgetLayouts}
             />
 

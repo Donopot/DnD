@@ -123,3 +123,22 @@ Critere d'acceptation :
 - cliquer Exploration repositionne les panneaux ;
 - cliquer Combat masque/reduit les panneaux non essentiels ;
 - cliquer Preparation affiche les outils de configuration.
+
+## Etape 10-2D - Interface compacte et presets utilisables
+
+Objectif :
+
+- reduire l'impression de zoom global de l'interface ;
+- reduire les marges et la taille des controles VTT ;
+- eviter le scroll horizontal global ;
+- rendre les presets selectionnables meme si Panneaux libres est desactive ;
+- activer automatiquement les panneaux libres quand un preset est choisi.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- les boutons Exploration, Combat et Preparation sont cliquables ;
+- cliquer un preset active les panneaux libres ;
+- l'interface VTT occupe mieux l'ecran ;
+- les panneaux restent deplacables et redimensionnables.

@@ -15,10 +15,10 @@ const panels: FloatingPanelItem[] = [
   { id: "tokens", label: "Liste tokens" },
 ];
 
-const presets: Array<{ id: FloatingWidgetPreset; label: string }> = [
-  { id: "exploration", label: "Exploration" },
-  { id: "combat", label: "Combat" },
-  { id: "preparation", label: "Preparation" },
+const presets: Array<{ id: FloatingWidgetPreset; label: string; hint: string }> = [
+  { id: "exploration", label: "Exploration", hint: "Mini-map + token + outils essentiels" },
+  { id: "combat", label: "Combat", hint: "Priorite tokens et table" },
+  { id: "preparation", label: "Preparation", hint: "Scenes, assets et creation" },
 ];
 
 type VttPanelsMenuProps = {
@@ -39,17 +39,22 @@ export function VttPanelsMenu({
       <summary>Panneaux</summary>
 
       <div className="vtt-panels-menu-content">
+        <div className="vtt-panels-menu-notice">
+          {enabled ? "Panneaux libres actifs" : "Choisir un preset active les panneaux libres"}
+        </div>
+
         <div className="vtt-panels-menu-group">
           <strong>Presets</strong>
 
           {presets.map((preset) => (
             <button
-              disabled={!enabled}
+              className="preset-button"
               key={preset.id}
               onClick={() => onApplyPreset(preset.id)}
               type="button"
             >
-              {preset.label}
+              <span>{preset.label}</span>
+              <small>{preset.hint}</small>
             </button>
           ))}
         </div>
