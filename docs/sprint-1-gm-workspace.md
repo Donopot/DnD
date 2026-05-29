@@ -219,3 +219,30 @@ Permettre d'ajuster la taille visuelle de l'interface.
 8. Changer vers Combat.
 9. Cliquer Personnalise.
 10. Verifier que le layout revient.
+
+## Correction Lot 2 - Dock des panneaux reduits et fermes
+
+### Objectif
+
+Le dock ne doit pas seulement contenir les panneaux reduits.
+Il doit aussi contenir les panneaux fermes afin que le MJ puisse les retrouver sans ouvrir le menu Gestion panneaux.
+
+### Comportement
+
+- un panneau reduit apparait dans le dock avec le statut reduit ;
+- un panneau ferme apparait dans le dock avec le statut ferme ;
+- cliquer un panneau du dock le rend visible et ouvert ;
+- les panneaux epingles ne sont pas ajoutes au dock ;
+- le dock disparait quand aucun panneau n'est reduit ou ferme.
+
+### Validation manuelle
+
+1. Mode Avance.
+2. Reduire Mini-map.
+3. Verifier que Mini-map apparait dans le dock avec le statut reduit.
+4. Cliquer Mini-map dans le dock.
+5. Verifier que Mini-map revient.
+6. Fermer Ajout token.
+7. Verifier que Ajout token apparait dans le dock avec le statut ferme.
+8. Cliquer Ajout token dans le dock.
+9. Verifier que Ajout token revient ouvert.
