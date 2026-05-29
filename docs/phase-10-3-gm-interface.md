@@ -91,3 +91,51 @@ Critere d'acceptation :
 - la carte reste dominante ;
 - les actions rapides fonctionnent ;
 - le mode Partie reste l'interface par defaut.
+
+## Etape 10-3E - Nettoyage final du mode Partie MJ
+
+Objectif :
+
+- retirer les doublons visuels en mode Partie ;
+- masquer les outils avances pendant la session live ;
+- masquer le panneau detail token complet, car l'inspecteur MJ resume deja le token actif ;
+- masquer les controles de panneaux libres en mode Partie ;
+- garder la carte dominante ;
+- conserver mini-map et inspecteur MJ comme panneau droit compact.
+
+Mode Partie final :
+
+Visible :
+
+- cockpit MJ compact ;
+- carte principale ;
+- controle zoom / snap / pan / reset carte ;
+- mini-map compacte ;
+- inspecteur MJ contextuel.
+
+Masque :
+
+- creation scene ;
+- upload carte ;
+- choix fond ;
+- ajout token ;
+- liste tokens longue ;
+- panneaux libres ;
+- reset panneaux ;
+- menu panneaux ;
+- detail token complet.
+
+Les outils masques restent accessibles via :
+
+- mode Preparation ;
+- mode Avance ;
+- actions rapides du cockpit.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- la carte occupe la majorite de l'ecran ;
+- le mode Partie ne montre plus les formulaires longs ;
+- le mode Preparation conserve les outils MJ ;
+- le mode Avance conserve les panneaux libres.
