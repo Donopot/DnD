@@ -108,6 +108,35 @@ type GameLogEntry = {
   created_at: string;
 };
 
+type Scene = {
+  id: string;
+  campaign_id: string;
+  name: string;
+  description: string;
+  grid_size: number;
+  width: number;
+  height: number;
+  background_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type SceneToken = {
+  id: string;
+  scene_id: string;
+  character_id: string | null;
+  name: string;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  is_hidden: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 const API_BASE = "";
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
@@ -121,6 +150,9 @@ function App() {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [selectedSceneId, setSelectedSceneId] = useState<string>("");
+  const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
@@ -136,6 +168,11 @@ function App() {
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
+  );
+
+  const selectedScene = useMemo(
+    () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
+    [scenes, selectedSceneId],
   );
 
   useEffect(() => {
@@ -158,6 +195,7 @@ function App() {
     void loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
+    void loadVttState(selectedCampaign.id);
   }, [selectedCampaign?.id]);
 
   useEffect(() => {
@@ -188,6 +226,9 @@ function App() {
       }
       if (payload.type === "session_changed") {
         void loadSessionLog(selectedCampaign.id);
+        if (payload.resource === "scene" || payload.resource === "token") {
+          void loadVttState(selectedCampaign.id);
+        }
       }
     };
 
@@ -281,6 +322,130 @@ function App() {
       setLogEntries(logData);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load session log");
+    }
+  }
+
+  async function loadSceneTokens(sceneId: string) {
+    try {
+      setSceneTokens(await request<SceneToken[]>(`/api/scenes/${sceneId}/tokens`));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load scene tokens");
+    }
+  }
+
+  async function loadVttState(campaignId: string) {
+    try {
+      const data = await request<Scene[]>(`/api/campaigns/${campaignId}/scenes`);
+      setScenes(data);
+
+      if (data.length === 0) {
+        setSelectedSceneId("");
+        setSceneTokens([]);
+        return;
+      }
+
+      const effectiveScene = data.find((scene) => scene.id === selectedSceneId) ?? data[0];
+      setSelectedSceneId(effectiveScene.id);
+      await loadSceneTokens(effectiveScene.id);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load VTT scene");
+    }
+  }
+
+  async function handleCreateScene(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedCampaign) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const scene = await request<Scene>(`/api/campaigns/${selectedCampaign.id}/scenes`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: String(form.get("name")),
+          description: String(form.get("description")),
+          grid_size: Number(form.get("grid_size") || 50),
+          width: Number(form.get("width") || 1200),
+          height: Number(form.get("height") || 800),
+          is_active: true,
+        }),
+      });
+
+      setScenes((current) => [scene, ...current]);
+      setSelectedSceneId(scene.id);
+      setSceneTokens([]);
+      event.currentTarget.reset();
+      setMessage("Scene creee.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to create scene");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedScene) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+    const characterId = String(form.get("character_id") || "");
+    const character = characters.find((item) => item.id === characterId);
+
+    try {
+      const token = await request<SceneToken>(`/api/scenes/${selectedScene.id}/tokens`, {
+        method: "POST",
+        body: JSON.stringify({
+          character_id: characterId || null,
+          name: String(form.get("name") || character?.name || "Token"),
+          x: Number(form.get("x") || 0),
+          y: Number(form.get("y") || 0),
+          size: Number(form.get("size") || 1),
+          color: String(form.get("color") || "#7c3aed"),
+        }),
+      });
+
+      setSceneTokens((current) => [...current, token]);
+      event.currentTarget.reset();
+      setMessage("Token ajoute.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to create token");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const updated = await request<SceneToken>(`/api/tokens/${tokenToMove.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          x: Math.max(0, tokenToMove.x + dx),
+          y: Math.max(0, tokenToMove.y + dy),
+        }),
+      });
+
+      setSceneTokens((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to move token");
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -782,6 +947,202 @@ function App() {
                         {selectedCharacter.notes && <p className="sheet-notes">{selectedCharacter.notes}</p>}
                       </article>
                     )}
+                  </div>
+                </div>
+
+                <div className="vtt-section">
+                  <div className="section-heading">
+                    <h3>Table virtuelle</h3>
+                    <Swords aria-hidden="true" />
+                  </div>
+
+                  <div className="vtt-layout">
+                    <section className="vtt-board-panel">
+                      <div className="vtt-toolbar">
+                        <div>
+                          <strong>{selectedScene?.name ?? "Aucune scene"}</strong>
+                          {selectedScene && (
+                            <small>
+                              {selectedScene.width} x {selectedScene.height} - grille {selectedScene.grid_size}px
+                            </small>
+                          )}
+                        </div>
+
+                        {scenes.length > 1 && (
+                          <select
+                            value={selectedScene?.id ?? ""}
+                            onChange={(event) => {
+                              setSelectedSceneId(event.target.value);
+                              void loadSceneTokens(event.target.value);
+                            }}
+                          >
+                            {scenes.map((scene) => (
+                              <option key={scene.id} value={scene.id}>
+                                {scene.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+
+                      {selectedScene ? (
+                        <div className="map-scroll">
+                          <div
+                            className="map-board"
+                            style={{
+                              width: selectedScene.width,
+                              height: selectedScene.height,
+                              backgroundSize: `${selectedScene.grid_size}px ${selectedScene.grid_size}px`,
+                            }}
+                          >
+                            {sceneTokens.map((token) => (
+                              <button
+                                className="map-token"
+                                key={token.id}
+                                style={{
+                                  left: token.x,
+                                  top: token.y,
+                                  width: token.size * selectedScene.grid_size,
+                                  height: token.size * selectedScene.grid_size,
+                                  background: token.color,
+                                }}
+                                title={`${token.name} (${token.x}, ${token.y})`}
+                                type="button"
+                              >
+                                {token.name.slice(0, 2).toUpperCase()}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="empty-state compact-empty">
+                          <Castle aria-hidden="true" />
+                          <p>Aucune scene. Cree la premiere carte de combat.</p>
+                        </div>
+                      )}
+                    </section>
+
+                    <section className="vtt-control-panel">
+                      <form className="scene-form" onSubmit={handleCreateScene}>
+                        <h4>Nouvelle scene</h4>
+
+                        <label>
+                          Nom
+                          <input name="name" minLength={2} maxLength={120} placeholder="Salle du donjon" required />
+                        </label>
+
+                        <label>
+                          Description
+                          <textarea name="description" rows={2} maxLength={2000} />
+                        </label>
+
+                        <div className="mini-grid three">
+                          <label>
+                            Grille
+                            <input name="grid_size" type="number" min={16} max={200} defaultValue={50} />
+                          </label>
+
+                          <label>
+                            Largeur
+                            <input name="width" type="number" min={200} max={10000} defaultValue={1200} />
+                          </label>
+
+                          <label>
+                            Hauteur
+                            <input name="height" type="number" min={200} max={10000} defaultValue={800} />
+                          </label>
+                        </div>
+
+                        <button className="ghost-button" disabled={isBusy} type="submit">
+                          Creer scene
+                        </button>
+                      </form>
+
+                      <form className="token-form" onSubmit={handleCreateToken}>
+                        <h4>Nouveau token</h4>
+
+                        <label>
+                          Personnage
+                          <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
+                            <option value="">Token libre</option>
+                            {characters.map((character) => (
+                              <option key={character.id} value={character.id}>
+                                {character.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          Nom du token
+                          <input name="name" maxLength={120} placeholder={selectedCharacter?.name ?? "Gobelin"} />
+                        </label>
+
+                        <div className="mini-grid three">
+                          <label>
+                            X
+                            <input name="x" type="number" min={0} defaultValue={100} />
+                          </label>
+
+                          <label>
+                            Y
+                            <input name="y" type="number" min={0} defaultValue={100} />
+                          </label>
+
+                          <label>
+                            Taille
+                            <input name="size" type="number" min={1} max={8} defaultValue={1} />
+                          </label>
+                        </div>
+
+                        <label>
+                          Couleur
+                          <input name="color" defaultValue="#7c3aed" />
+                        </label>
+
+                        <button className="primary-button" disabled={isBusy || !selectedScene} type="submit">
+                          Ajouter token
+                        </button>
+                      </form>
+
+                      <div className="token-list">
+                        <h4>Tokens</h4>
+
+                        {sceneTokens.length === 0 ? (
+                          <p className="muted">Aucun token sur cette scene.</p>
+                        ) : (
+                          sceneTokens.map((token) => {
+                            const step = selectedScene?.grid_size ?? 50;
+
+                            return (
+                              <article className="token-row" key={token.id}>
+                                <span>
+                                  <strong>{token.name}</strong>
+                                  <small>
+                                    x {token.x} - y {token.y}
+                                  </small>
+                                </span>
+
+                                <div className="token-move-grid" aria-label={`Deplacer ${token.name}`}>
+                                  <button type="button" onClick={() => void handleMoveToken(token, 0, -step)}>
+                                    ↑
+                                  </button>
+                                  <button type="button" onClick={() => void handleMoveToken(token, -step, 0)}>
+                                    ←
+                                  </button>
+                                  <button type="button" onClick={() => void handleMoveToken(token, step, 0)}>
+                                    →
+                                  </button>
+                                  <button type="button" onClick={() => void handleMoveToken(token, 0, step)}>
+                                    ↓
+                                  </button>
+                                </div>
+                              </article>
+                            );
+                          })
+                        )}
+                      </div>
+                    </section>
                   </div>
                 </div>
 
