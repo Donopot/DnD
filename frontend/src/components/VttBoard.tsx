@@ -95,7 +95,7 @@ export function VttBoard({
 
   const effectiveFreePanelsEnabled = freePanelsEnabled || gmInterfaceMode === "advanced";
 
-  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel");
+  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel", selectedScene?.id ?? "no-scene");
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -218,6 +218,14 @@ export function VttBoard({
     }
 
     showFloatingWidget(panelId);
+  }
+
+  function handleShowFloatingPanel(panelId: string) {
+    setGmMode("advanced");
+
+    window.setTimeout(() => {
+      showFloatingWidget(panelId);
+    }, 80);
   }
 
   function centerMapView(nextZoom = zoom) {
@@ -559,7 +567,7 @@ export function VttBoard({
 
             <VttPanelsMenu
               enabled={effectiveFreePanelsEnabled}
-              onShowPanel={showFloatingWidget}
+              onShowPanel={handleShowFloatingPanel}
               onApplyPreset={handleApplyFloatingPreset}
               onSaveCustomPreset={saveFloatingWidgetCustomPreset}
               onResetPanels={resetFloatingWidgetLayouts}

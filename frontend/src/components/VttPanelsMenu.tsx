@@ -49,7 +49,7 @@ export function VttPanelsMenu({
         </header>
 
         <section className="vtt-panels-menu-group">
-          <strong>Presets toujours accessibles</strong>
+          <strong>Presets</strong>
 
           <div className="vtt-panels-preset-grid">
             {presets.map((preset) => (
@@ -76,7 +76,7 @@ export function VttPanelsMenu({
             type="button"
           >
             <span>Sauvegarder layout actuel</span>
-            <small>Positions, tailles, panneaux fermés, réduits et verrouillés</small>
+            <small>Positions, tailles, panneaux fermés, réduits, verrouillés et épinglés</small>
           </button>
         </section>
 
@@ -85,12 +85,7 @@ export function VttPanelsMenu({
 
           <div className="vtt-panels-list">
             {panels.map((panel) => (
-              <button
-                disabled={!enabled}
-                key={panel.id}
-                onClick={() => onShowPanel(panel.id)}
-                type="button"
-              >
+              <button key={panel.id} onClick={() => onShowPanel(panel.id)} type="button">
                 <span>{panel.label}</span>
                 <small>{panel.description}</small>
               </button>
