@@ -2345,3 +2345,209 @@ select {
 }
 
 /* End Phase 9-5 map overview mini-map */
+
+/* Phase 9-6 VTT usable layout */
+
+.workspace {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 16px 18px;
+}
+
+.detail-panel {
+  width: 100%;
+  max-width: none;
+}
+
+.campaign-view-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.session-workspace {
+  grid-template-columns: minmax(820px, 1fr) minmax(340px, 420px);
+  gap: 14px;
+  width: 100%;
+}
+
+.session-map-zone {
+  min-width: 0;
+}
+
+.session-side-zone {
+  max-height: calc(100vh - 170px);
+}
+
+.vtt-section {
+  min-width: 0;
+}
+
+.vtt-layout {
+  display: grid;
+  grid-template-columns: minmax(760px, 1fr) minmax(320px, 380px);
+  gap: 14px;
+  align-items: start;
+}
+
+.session-workspace .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+}
+
+.vtt-board-panel {
+  min-width: 0;
+  min-height: calc(100vh - 220px);
+}
+
+.vtt-control-panel {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.session-workspace .vtt-control-panel {
+  grid-template-columns: 1fr;
+  max-height: calc(100vh - 220px);
+}
+
+.map-scroll {
+  width: 100%;
+  height: calc(100vh - 340px);
+  min-height: 620px;
+  max-height: none;
+  overflow: auto;
+  border: 1px solid rgba(37, 48, 40, 0.16);
+  border-radius: 16px;
+  background-color: #e8ddc7;
+}
+
+.session-workspace .map-scroll {
+  height: calc(100vh - 300px);
+  min-height: 660px;
+  max-height: none;
+}
+
+.map-zoom-surface {
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.map-board {
+  margin: 0;
+}
+
+.map-ux-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  margin: 0 0 10px;
+  background: rgba(255, 253, 247, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.map-overview {
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fffdf7;
+  box-shadow: 0 8px 24px rgba(35, 48, 40, 0.08);
+}
+
+.map-overview-map {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  background-color: #efe6d2;
+}
+
+.map-overview-background {
+  object-fit: contain;
+  background: #efe6d2;
+}
+
+.map-overview-viewport {
+  border-color: #f5c542;
+  background: rgba(245, 197, 66, 0.2);
+  box-shadow: 0 0 0 999px rgba(37, 48, 40, 0.1);
+}
+
+.map-overview-token {
+  width: 10px;
+  height: 10px;
+}
+
+.map-overview-token.selected {
+  width: 15px;
+  height: 15px;
+}
+
+.token-detail-panel {
+  position: relative;
+}
+
+.tool-card {
+  background: #fffdf7;
+}
+
+.tool-card summary {
+  min-height: 42px;
+}
+
+@media (min-width: 1500px) {
+  .vtt-layout {
+    grid-template-columns: minmax(900px, 1fr) 400px;
+  }
+
+  .session-workspace .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .map-scroll {
+    min-height: 700px;
+  }
+
+  .session-workspace .map-scroll {
+    min-height: 720px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .session-workspace,
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .vtt-control-panel,
+  .session-workspace .vtt-control-panel,
+  .session-side-zone {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 70vh;
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    padding: 10px;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 62vh;
+    min-height: 420px;
+  }
+
+  .map-ux-toolbar {
+    position: static;
+  }
+}
+
+/* End Phase 9-6 VTT usable layout */
