@@ -1,14 +1,38 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type MouseEvent, type PointerEvent } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type MouseEvent,
+  type PointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/sessionLiveModes";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
-import { VttPanelsMenu } from "./VttPanelsMenu";
-import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
-import { QuickActionsPanel } from "./QuickActionsPanel";
+import {
+  applyFloatingWidgetPreset,
+  resetFloatingWidgetLayouts,
+  saveFloatingWidgetCustomPreset,
+  showFloatingWidget,
+  useFloatingWidgets,
+} from "../hooks/useFloatingWidgets";
 import { InitiativePanel } from "./InitiativePanel";
+import { QuickActionsPanel } from "./QuickActionsPanel";
+import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
+import { VttPanelsMenu } from "./VttPanelsMenu";
+
+type SessionLiveMode = "exploration" | "combat" | "roleplay" | "quick-prep" | "minimal";
+
+function getPresetForSessionLiveMode(mode: SessionLiveMode): FloatingWidgetPreset {
+  if (mode === "quick-prep") {
+    return "quick-prep";
+  }
+
+  return mode;
+}
 
 type Position = {
   x: number;
