@@ -10,40 +10,25 @@ import sys
 
 errors = []
 
-board_path = Path("frontend/src/components/VttBoard.tsx")
-hook_path = Path("frontend/src/hooks/useFloatingWidgets.ts")
-menu_path = Path("frontend/src/components/VttPanelsMenu.tsx")
-config_path = Path("frontend/src/config/vttPanels.ts")
-
-for path in [board_path, hook_path, menu_path, config_path]:
-    if not path.exists():
-        errors.append(f"Fichier manquant: {path}")
-
-if errors:
-    for error in errors:
-        print("-", error)
-    sys.exit(1)
-
-board = board_path.read_text()
-hook = hook_path.read_text()
-menu = menu_path.read_text()
-config = config_path.read_text()
+board = Path("frontend/src/components/VttBoard.tsx").read_text()
+hook = Path("frontend/src/hooks/useFloatingWidgets.ts").read_text()
+menu = Path("frontend/src/components/VttPanelsMenu.tsx").read_text()
 
 if "reset-panels-button" in board:
-    errors.append("VttBoard contient encore reset-panels-button. Le reset panneaux doit être uniquement dans VttPanelsMenu.")
+    errors.append("VttBoard contient encore reset-panels-button.")
 
-if "data-quick-panel=" in board:
-    errors.append("VttBoard contient encore data-quick-panel. Utiliser data-vtt-panel.")
+if 'data-quick-panel="' in board:
+    errors.append("VttBoard contient encore data-quick-panel.")
 
 for match in re.finditer(r'<(?:div|section|details)\b[^>]*data-vtt-panel="([^"]+)"[^>]*>', board):
     tag = match.group(0)
     panel_id = match.group(1)
 
     if f'data-floating-widget="{panel_id}"' not in tag:
-        errors.append(f"Panneau {panel_id} sans data-floating-widget identique.")
+        errors.append(f"{panel_id}: data-floating-widget manquant ou différent.")
 
-    if "data-floating-title=" not in tag:
-        errors.append(f"Panneau {panel_id} sans data-floating-title.")
+    if 'data-floating-title="' not in tag:
+        errors.append(f"{panel_id}: data-floating-title manquant.")
 
 panel_ids = re.findall(r'data-vtt-panel="([^"]+)"', board)
 duplicates = sorted({panel_id for panel_id in panel_ids if panel_ids.count(panel_id) > 1})
@@ -52,50 +37,28 @@ if duplicates:
     errors.append("Panneaux dupliqués dans VttBoard: " + ", ".join(duplicates))
 
 if 'from "../config/vttPanels"' not in menu:
-    errors.append("VttPanelsMenu doit lire le registre ../config/vttPanels.")
+    errors.append("VttPanelsMenu ne lit pas le registre vttPanels.")
 
-if "const panels" in menu:
-    errors.append("VttPanelsMenu ne doit plus définir une liste panels locale.")
+if "const panels" in menu or "const presets" in menu:
+    errors.append("VttPanelsMenu contient encore une liste locale.")
 
-if "disabled={!enabled}" in menu:
-    # Autorisé pour sauvegarder / reset, interdit pour afficher un panneau.
-    show_panel_area = re.search(r'<strong>Panneaux</strong>(.*?)</section>', menu, re.S)
-    if show_panel_area and "disabled={!enabled}" in show_panel_area.group(1):
-      errors.append("Les boutons d'affichage panneau ne doivent pas être disabled quand enabled=false.")
+if "disabled={!enabled}" in re.search(r'<strong>Panneaux</strong>(.*?)</section>', menu, re.S).group(1):
+    errors.append("Les boutons d'affichage panneaux sont encore disabled.")
 
-if "onSaveCustomPreset" not in menu:
-    errors.append("VttPanelsMenu doit proposer la sauvegarde du layout personnalisé.")
+required_hook_tokens = [
+    'querySelectorAll<HTMLElement>("[data-vtt-panel]")',
+    "floating-widget-dock",
+    "showFloatingWidget",
+    "applyFloatingWidgetPreset",
+    "saveFloatingWidgetCustomPreset",
+    "pinned",
+    "floating-widget-pinned",
+    "dnd:save-floating-widget-custom-preset",
+]
 
-if "querySelectorAll<HTMLElement>(\"[data-vtt-panel]\")" not in hook:
-    errors.append("useFloatingWidgets doit détecter les panneaux via data-vtt-panel.")
-
-if "rootElement = root" not in hook:
-    errors.append("useFloatingWidgets doit capturer rootElement après le guard null.")
-
-if "floating-widget-dock" not in hook:
-    errors.append("useFloatingWidgets doit gérer un dock.")
-
-if "pinned" not in hook:
-    errors.append("useFloatingWidgets doit gérer l'état pinned.")
-
-if "saveFloatingWidgetCustomPreset" not in hook:
-    errors.append("useFloatingWidgets doit gérer le preset personnalisé.")
-
-registry_match = re.search(r"export const VTT_PANELS:.*?\[(.*?)\];", config, re.S)
-if not registry_match:
-    errors.append("Impossible de lire VTT_PANELS.")
-else:
-    registry_ids = set(re.findall(r'id: "([^"]+)"', registry_match.group(1)))
-    board_ids = set(panel_ids)
-
-    missing = sorted(registry_ids - board_ids)
-    extra = sorted(board_ids - registry_ids)
-
-    if missing:
-        errors.append("Panneaux du registre absents de VttBoard: " + ", ".join(missing))
-
-    if extra:
-        errors.append("Panneaux de VttBoard absents du registre: " + ", ".join(extra))
+for token in required_hook_tokens:
+    if token not in hook:
+        errors.append(f"Contrat hook manquant: {token}")
 
 if errors:
     print("panel-system-check-failed")

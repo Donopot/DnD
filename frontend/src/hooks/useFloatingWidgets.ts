@@ -1,6 +1,13 @@
 import { useEffect } from "react";
 
-import type { FloatingWidgetPreset } from "../config/vttPanels";
+import {
+  VTT_PANELS,
+  getVttPanelLabel,
+  isVttPanelId,
+  type FloatingWidgetPreset,
+} from "../config/vttPanels";
+
+export type { FloatingWidgetPreset } from "../config/vttPanels";
 
 type WidgetLayout = {
   left: number;
@@ -27,34 +34,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function getWidgetTitle(widget: HTMLElement, index: number) {
-  return (
-    widget.getAttribute("data-floating-title") ||
-    widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
-      ?.textContent
-      ?.trim() ||
-    `Panneau ${index + 1}`
-  );
-}
-
-function getWidgetId(widget: HTMLElement, index: number) {
-  return (
-    widget.getAttribute("data-floating-widget") ||
-    widget.getAttribute("data-quick-panel") ||
-    slugify(getWidgetTitle(widget, index)) ||
-    `widget-${index + 1}`
-  );
-}
-
 function readStoredValue<T>(key: string) {
   try {
     const rawValue = window.localStorage.getItem(key);
@@ -74,7 +53,7 @@ function getDefaultMeta(index: number): WidgetMeta {
     locked: false,
     collapsed: false,
     pinned: false,
-    zIndex: 90 + index,
+    zIndex: 100 + index,
   };
 }
 
@@ -83,6 +62,23 @@ function readStoredMeta(key: string, index: number): WidgetMeta {
     ...getDefaultMeta(index),
     ...(readStoredValue<Partial<WidgetMeta>>(key) ?? {}),
   };
+}
+
+function getWidgetId(widget: HTMLElement) {
+  return widget.getAttribute("data-vtt-panel") || "";
+}
+
+function getWidgetTitle(widget: HTMLElement, index: number) {
+  const id = getWidgetId(widget);
+
+  return (
+    widget.getAttribute("data-floating-title") ||
+    (isVttPanelId(id) ? getVttPanelLabel(id) : undefined) ||
+    widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
+      ?.textContent
+      ?.trim() ||
+    `Panneau ${index + 1}`
+  );
 }
 
 function clearRuntimeWidgetState(widget: HTMLElement) {
@@ -110,177 +106,101 @@ function clearRuntimeWidgetState(widget: HTMLElement) {
 }
 
 function getControlledWidgets(root: HTMLElement) {
-  return Array.from(root.children).filter((child): child is HTMLElement => {
-    return (
-      child instanceof HTMLElement &&
-      (
-        child.classList.contains("map-overview") ||
-        child.classList.contains("token-detail-panel") ||
-        child.classList.contains("tool-card")
-      )
-    );
+  const order = new Map<string, number>(VTT_PANELS.map((panel, index) => [panel.id, index]));
+
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-vtt-panel]")).sort((left, right) => {
+    const leftId = left.getAttribute("data-vtt-panel") ?? "";
+    const rightId = right.getAttribute("data-vtt-panel") ?? "";
+
+    return (order.get(leftId) ?? 999) - (order.get(rightId) ?? 999);
   });
 }
 
 function createToolbarButton(label: string, title: string, className: string) {
   const button = document.createElement("button");
+
   button.type = "button";
   button.textContent = label;
   button.title = title;
   button.className = className;
   button.setAttribute("aria-label", title);
+
   return button;
+}
+
+function getPresetSide(widgetId: string, preset: FloatingWidgetPreset) {
+  const leftByPreset: Record<string, string[]> = {
+    exploration: ["scene", "gm-notes", "party-summary", "initiative"],
+    combat: ["initiative", "party-summary", "minimap", "gm-notes", "scene"],
+    roleplay: ["party-summary", "scene", "initiative", "token", "tokens"],
+    "quick-prep": ["scene", "gm-notes", "upload-map", "background"],
+    preparation: ["scene", "gm-notes", "upload-map", "background"],
+    minimal: ["minimap", "initiative", "gm-notes", "scene"],
+  };
+
+  return leftByPreset[preset]?.includes(widgetId) ? "left" : "right";
+}
+
+function getPresetOrder(widgetId: string, preset: FloatingWidgetPreset) {
+  const orders: Record<string, string[]> = {
+    exploration: ["quick-actions", "minimap", "token-detail", "visibility-inspector", "party-summary", "gm-notes", "initiative", "scene", "upload-map", "background", "token", "tokens"],
+    combat: ["initiative", "quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap", "gm-notes", "scene", "token", "tokens", "upload-map", "background"],
+    roleplay: ["quick-actions", "token-detail", "visibility-inspector", "gm-notes", "party-summary", "scene", "minimap", "initiative", "token", "tokens", "upload-map", "background"],
+    "quick-prep": ["scene", "gm-notes", "upload-map", "background", "quick-actions", "visibility-inspector", "minimap", "party-summary", "initiative", "token", "tokens", "token-detail"],
+    preparation: ["scene", "gm-notes", "upload-map", "background", "quick-actions", "visibility-inspector", "minimap", "party-summary", "initiative", "token", "tokens", "token-detail"],
+    minimal: ["quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap", "initiative", "gm-notes", "scene", "token", "tokens", "upload-map", "background"],
+  };
+
+  const order = orders[preset] ?? orders.exploration;
+  const index = order.indexOf(widgetId);
+
+  return index === -1 ? 99 : index;
 }
 
 function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetLayout {
   const margin = 18;
   const rightPanelWidth = Math.min(390, Math.max(320, window.innerWidth * 0.24));
-  const compactWidth = Math.min(320, Math.max(260, window.innerWidth * 0.2));
+  const compactWidth = Math.min(330, Math.max(270, window.innerWidth * 0.2));
   const left = Math.max(margin, window.innerWidth - rightPanelWidth - margin);
   const compactLeft = Math.max(margin, window.innerWidth - compactWidth - margin);
+  const side = getPresetSide(widgetId, preset);
+  const order = getPresetOrder(widgetId, preset);
 
-  if (preset === "combat") {
-    const layouts: Record<string, WidgetLayout> = {
-      "quick-actions": { left: compactLeft, top: 92, width: compactWidth, height: 300 },
-      "token-detail": { left: compactLeft, top: 410, width: compactWidth, height: 300 },
-      "visibility-inspector": { left: compactLeft, top: 730, width: compactWidth, height: 320 },
-      initiative: { left: margin, top: 92, width: compactWidth, height: 360 },
-      "party-summary": { left: margin, top: 470, width: compactWidth, height: 280 },
-      minimap: { left: margin, top: 770, width: compactWidth, height: 220 },
-      token: { left: compactLeft, top: 1070, width: compactWidth, height: 330 },
-      tokens: { left: compactLeft, top: 1420, width: compactWidth, height: 280 },
-      "gm-notes": { left: margin, top: 1010, width: compactWidth, height: 260 },
-      scene: { left: margin, top: 1290, width: compactWidth, height: 240 },
-      "upload-map": { left: margin, top: 1550, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1790, width: compactWidth, height: 220 },
-    };
+  const width = preset === "minimal" || preset === "combat" ? compactWidth : rightPanelWidth;
+  const baseLeft = side === "left" ? margin : preset === "minimal" || preset === "combat" ? compactLeft : left;
+  const baseTop = 92 + order * 42;
 
-    return layouts[widgetId] ?? { left: compactLeft, top: 110 + index * 42, width: compactWidth, height: 260 };
-  }
-
-  if (preset === "roleplay") {
-    const layouts: Record<string, WidgetLayout> = {
-      "quick-actions": { left, top: 92, width: rightPanelWidth, height: 270 },
-      "token-detail": { left, top: 380, width: rightPanelWidth, height: 300 },
-      "visibility-inspector": { left, top: 700, width: rightPanelWidth, height: 320 },
-      "gm-notes": { left, top: 1040, width: rightPanelWidth, height: 340 },
-      "party-summary": { left: margin, top: 92, width: compactWidth, height: 280 },
-      scene: { left: margin, top: 390, width: compactWidth, height: 260 },
-      minimap: { left, top: 1400, width: rightPanelWidth, height: 220 },
-      initiative: { left: margin, top: 670, width: compactWidth, height: 280 },
-      token: { left: margin, top: 970, width: compactWidth, height: 260 },
-      tokens: { left: margin, top: 1250, width: compactWidth, height: 260 },
-      "upload-map": { left: margin, top: 1530, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1770, width: compactWidth, height: 220 },
-    };
-
-    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
-  }
-
-  if (preset === "quick-prep" || preset === "preparation") {
-    const layouts: Record<string, WidgetLayout> = {
-      scene: { left: margin, top: 92, width: rightPanelWidth, height: 360 },
-      "gm-notes": { left: margin, top: 470, width: rightPanelWidth, height: 300 },
-      "upload-map": { left: margin, top: 790, width: rightPanelWidth, height: 250 },
-      background: { left: margin, top: 1060, width: rightPanelWidth, height: 260 },
-      "quick-actions": { left, top: 92, width: rightPanelWidth, height: 270 },
-      "visibility-inspector": { left, top: 380, width: rightPanelWidth, height: 320 },
-      minimap: { left, top: 720, width: rightPanelWidth, height: 250 },
-      "party-summary": { left, top: 990, width: rightPanelWidth, height: 270 },
-      initiative: { left, top: 1280, width: rightPanelWidth, height: 320 },
-      token: { left, top: 1620, width: rightPanelWidth, height: 340 },
-      tokens: { left, top: 1980, width: rightPanelWidth, height: 300 },
-      "token-detail": { left, top: 2300, width: rightPanelWidth, height: 240 },
-    };
-
-    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
-  }
-
-  if (preset === "minimal") {
-    const layouts: Record<string, WidgetLayout> = {
-      "quick-actions": { left, top: 92, width: compactWidth, height: 230 },
-      "token-detail": { left, top: 340, width: compactWidth, height: 270 },
-      "visibility-inspector": { left, top: 630, width: compactWidth, height: 280 },
-      "party-summary": { left, top: 930, width: compactWidth, height: 260 },
-      minimap: { left: margin, top: 92, width: compactWidth, height: 210 },
-      initiative: { left: margin, top: 320, width: compactWidth, height: 260 },
-      "gm-notes": { left: margin, top: 600, width: compactWidth, height: 240 },
-      scene: { left: margin, top: 860, width: compactWidth, height: 220 },
-      token: { left: margin, top: 1100, width: compactWidth, height: 240 },
-      tokens: { left: margin, top: 1360, width: compactWidth, height: 240 },
-      "upload-map": { left: margin, top: 1620, width: compactWidth, height: 220 },
-      background: { left: margin, top: 1860, width: compactWidth, height: 220 },
-    };
-
-    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: compactWidth, height: 240 };
-  }
-
-  const layouts: Record<string, WidgetLayout> = {
-    "quick-actions": { left, top: 92, width: rightPanelWidth, height: 270 },
-    "visibility-inspector": { left, top: 380, width: rightPanelWidth, height: 320 },
-    minimap: { left, top: 720, width: rightPanelWidth, height: 260 },
-    "token-detail": { left, top: 1000, width: rightPanelWidth, height: 310 },
-    "party-summary": { left, top: 1330, width: rightPanelWidth, height: 280 },
-    initiative: { left, top: 1630, width: rightPanelWidth, height: 320 },
-    "gm-notes": { left, top: 1970, width: rightPanelWidth, height: 300 },
-    token: { left, top: 2290, width: rightPanelWidth, height: 320 },
-    tokens: { left, top: 2630, width: rightPanelWidth, height: 280 },
-    scene: { left: margin, top: 92, width: compactWidth, height: 230 },
-    "upload-map": { left: margin, top: 340, width: compactWidth, height: 210 },
-    background: { left: margin, top: 570, width: compactWidth, height: 230 },
+  const knownHeights: Record<string, number> = {
+    "quick-actions": 270,
+    "visibility-inspector": 320,
+    minimap: 240,
+    "token-detail": 310,
+    "party-summary": 280,
+    initiative: 330,
+    "gm-notes": 300,
+    scene: 300,
+    "upload-map": 230,
+    background: 250,
+    token: 330,
+    tokens: 280,
   };
 
-  return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
+  return {
+    left: baseLeft,
+    top: Math.max(92, baseTop),
+    width,
+    height: knownHeights[widgetId] ?? 280,
+  };
 }
 
 function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetMeta {
   const common = getDefaultMeta(index);
 
-  if (widgetId === "quick-actions") {
-    return { ...common, hidden: false, collapsed: false };
-  }
-
-  if (widgetId === "visibility-inspector") {
-    if (preset === "minimal") {
-      return { ...common, hidden: false, collapsed: true };
-    }
-
-    return { ...common, hidden: false, collapsed: false };
-  }
-
-  if (widgetId === "gm-notes") {
-    if (preset === "combat") {
-      return { ...common, hidden: false, collapsed: true };
-    }
-
-    if (preset === "minimal") {
-      return { ...common, hidden: true, collapsed: false };
-    }
-
-    return { ...common, hidden: false, collapsed: false };
-  }
-
-  if (widgetId === "party-summary") {
-    return { ...common, hidden: false, collapsed: false };
-  }
-
-  if (widgetId === "initiative") {
-    if (preset === "combat") {
-      return { ...common, hidden: false, collapsed: false };
-    }
-
-    if (preset === "minimal") {
-      return { ...common, hidden: false, collapsed: true };
-    }
-
-    return { ...common, hidden: false, collapsed: preset === "roleplay" };
-  }
-
   if (preset === "combat") {
     return {
       ...common,
       hidden: widgetId === "upload-map" || widgetId === "background",
-      collapsed: widgetId === "scene",
+      collapsed: widgetId === "scene" || widgetId === "gm-notes",
     };
   }
 
@@ -288,7 +208,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
     return {
       ...common,
       hidden: widgetId === "upload-map" || widgetId === "background",
-      collapsed: widgetId === "minimap" || widgetId === "token" || widgetId === "tokens",
+      collapsed: widgetId === "initiative" || widgetId === "minimap" || widgetId === "token" || widgetId === "tokens",
     };
   }
 
@@ -325,27 +245,17 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
 }
 
 function reopenFloatingWidgetDom(widgetId: string) {
-  const widgets = Array.from(
-    document.querySelectorAll<HTMLElement>(
-      "[data-floating-runtime-id], [data-floating-widget], [data-quick-panel]",
-    ),
+  const widget = document.querySelector<HTMLElement>(
+    `[data-floating-runtime-id="${widgetId}"], [data-vtt-panel="${widgetId}"]`,
   );
-
-  const widget = widgets.find((candidate) => {
-    return (
-      candidate.getAttribute("data-floating-runtime-id") === widgetId ||
-      candidate.getAttribute("data-floating-widget") === widgetId ||
-      candidate.getAttribute("data-quick-panel") === widgetId
-    );
-  });
 
   if (!widget) {
     return;
   }
 
   widget.style.display = "";
-  widget.style.zIndex = "260";
   widget.classList.remove("floating-widget-collapsed", "floating-widget-pinned");
+  widget.dataset.floatingRuntimeState = "open";
 
   if (widget instanceof HTMLDetailsElement) {
     widget.open = true;
@@ -382,9 +292,7 @@ export function showFloatingWidget(widgetId: string) {
     }),
   );
 
-  window.requestAnimationFrame(() => {
-    reopenFloatingWidgetDom(widgetId);
-  });
+  window.requestAnimationFrame(() => reopenFloatingWidgetDom(widgetId));
 }
 
 export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
@@ -505,25 +413,16 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
     });
 
     widgets.forEach((widget, index) => {
+      const id = getWidgetId(widget);
       const title = getWidgetTitle(widget, index);
-      const id = getWidgetId(widget, index);
       const layoutKey = `${LAYOUT_PREFIX}${id}`;
       const metaKey = `${META_PREFIX}${id}`;
 
-      const defaultWidth = Math.min(380, Math.max(280, window.innerWidth - 48));
-      const defaultHeight = Math.min(420, Math.max(180, window.innerHeight - 120));
-      const defaultLeft = clamp(
-        window.innerWidth - defaultWidth - 24 - index * 18,
-        12,
-        Math.max(12, window.innerWidth - 120),
-      );
-      const defaultTop = clamp(96 + index * 38, 12, Math.max(12, window.innerHeight - 80));
-
       const defaultLayout: WidgetLayout = {
-        left: defaultLeft,
-        top: defaultTop,
-        width: defaultWidth,
-        height: defaultHeight,
+        left: clamp(window.innerWidth - 380 - 24 - index * 18, 12, Math.max(12, window.innerWidth - 120)),
+        top: clamp(96 + index * 38, 12, Math.max(12, window.innerHeight - 80)),
+        width: Math.min(380, Math.max(280, window.innerWidth - 48)),
+        height: Math.min(420, Math.max(180, window.innerHeight - 120)),
       };
 
       let currentLayout = readStoredValue<WidgetLayout>(layoutKey) ?? defaultLayout;
@@ -709,6 +608,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         window.addEventListener("pointerup", handleResizeEnd);
       }
 
+      function handleWidgetPointerDown() {
+        bringToFront();
+      }
+
       function handleReset() {
         window.localStorage.removeItem(layoutKey);
         window.localStorage.removeItem(metaKey);
@@ -808,7 +711,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
 
       toolbar.addEventListener("pointerdown", handleToolbarPointerDown);
       resizeHandle.addEventListener("pointerdown", handleResizeStart);
-      widget.addEventListener("pointerdown", bringToFront);
+      widget.addEventListener("pointerdown", handleWidgetPointerDown);
 
       frontButton.addEventListener("click", handleFrontClick);
       pinButton.addEventListener("click", handlePinClick);
@@ -824,7 +727,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
         resizeHandle.removeEventListener("pointerdown", handleResizeStart);
-        widget.removeEventListener("pointerdown", bringToFront);
+        widget.removeEventListener("pointerdown", handleWidgetPointerDown);
 
         frontButton.removeEventListener("click", handleFrontClick);
         pinButton.removeEventListener("click", handlePinClick);
