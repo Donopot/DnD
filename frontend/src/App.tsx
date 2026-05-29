@@ -5,7 +5,6 @@ import {
   Dices,
   DoorOpen,
   HeartPulse,
-  LogIn,
   Plus,
   RefreshCw,
   Shield,
@@ -14,6 +13,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import "./styles.css";
+import { AuthView } from "./components/AuthView";
 import { MessageDock } from "./components/common";
 import type {
   Asset,
@@ -939,47 +939,12 @@ export default function App() {
           </div>
         </section>
 
-        <section className="auth-panel" aria-label="Connexion">
-          <div className="auth-tabs" role="tablist">
-            <button
-              className={mode === "register" ? "active" : ""}
-              onClick={() => setMode("register")}
-              type="button"
-            >
-              <UserPlus aria-hidden="true" />
-              Inscription
-            </button>
-            <button
-              className={mode === "login" ? "active" : ""}
-              onClick={() => setMode("login")}
-              type="button"
-            >
-              <LogIn aria-hidden="true" />
-              Connexion
-            </button>
-          </div>
-
-          <form onSubmit={handleAuth} className="form-stack">
-            {mode === "register" && (
-              <label>
-                Nom affiche
-                <input name="display_name" minLength={2} maxLength={80} required />
-              </label>
-            )}
-            <label>
-              Email
-              <input name="email" type="email" required />
-            </label>
-            <label>
-              Mot de passe
-              <input name="password" type="password" minLength={8} required />
-            </label>
-            <button className="primary-button" disabled={isBusy} type="submit">
-              {isBusy ? "Traitement..." : mode === "register" ? "Creer le compte" : "Se connecter"}
-            </button>
-          </form>
-          {message && <p className="message">{message}</p>}
-        </section>
+        <AuthView
+          mode={mode}
+          isBusy={isBusy}
+          onModeChange={setMode}
+          onSubmit={handleAuth}
+        />
       </main>
     );
   }
