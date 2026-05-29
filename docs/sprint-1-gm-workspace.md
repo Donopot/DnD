@@ -473,3 +473,39 @@ Ajouter un premier panneau contextuel manquant dans Session Live.
 - notes par PNJ/token/scene ;
 - visibilite MJ uniquement ;
 - recherche.
+
+## Sprint GM-2D - Panneau Resume du groupe
+
+### Objectif
+
+Ajouter un panneau MJ permettant de voir rapidement l'etat du groupe pendant la session.
+
+### Fonctionnalites
+
+- liste des personnages ;
+- PV actuel / max ;
+- pourcentage de PV ;
+- CA ;
+- vitesse ;
+- perception passive estimee ;
+- barre de PV ;
+- notes du personnage en aperçu ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Comportement attendu
+
+- Exploration : Resume du groupe visible ;
+- Combat : Resume du groupe visible ;
+- Roleplay : Resume du groupe visible ;
+- Preparation rapide : Resume du groupe visible ;
+- Minimal : Resume du groupe visible.
+
+### Evolution future
+
+- etats actifs ;
+- initiative ;
+- joueur associe ;
+- ressources ;
+- inspiration ;
+- perception passive avec competences ;
+- notes MJ dediees.

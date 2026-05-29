@@ -5348,3 +5348,182 @@ select {
 }
 
 /* End Sprint GM-2C - GM Notes panel */
+
+/* Sprint GM-2C retry - visible GM Notes panel */
+
+.gm-notes-card {
+  min-height: 260px;
+}
+
+.gm-notes-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.gm-notes-panel label {
+  display: grid;
+  gap: 6px;
+  color: #253028;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.gm-notes-panel textarea {
+  width: 100%;
+  min-height: 190px;
+  padding: 9px;
+  resize: vertical;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.gm-notes-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gm-notes-footer small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.gm-notes-footer button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.gm-notes-footer button:hover:not(:disabled) {
+  border-color: #8a2f23;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+.gm-notes-footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* End Sprint GM-2C retry - visible GM Notes panel */
+
+/* Sprint GM-2D - Party summary panel */
+
+.party-summary-card {
+  min-height: 240px;
+}
+
+.party-summary-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.party-summary-list {
+  display: grid;
+  gap: 8px;
+}
+
+.party-summary-row {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.party-summary-row.selected {
+  border-color: #1f5f43;
+  background: #eef8ef;
+}
+
+.party-summary-row header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.party-summary-row header span {
+  display: grid;
+  gap: 2px;
+}
+
+.party-summary-row strong {
+  color: #253028;
+  font-size: 0.86rem;
+}
+
+.party-summary-row small {
+  color: #657068;
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.party-summary-row b {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.party-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.party-summary-stats em {
+  padding: 5px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 950;
+  text-align: center;
+}
+
+.party-summary-health {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eadfce;
+}
+
+.party-summary-health i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f5f43;
+}
+
+.party-summary-note {
+  display: block;
+  max-height: 2.8em;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .party-summary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Sprint GM-2D - Party summary panel */
