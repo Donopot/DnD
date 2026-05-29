@@ -608,7 +608,7 @@ export function VttBoard({
 
             <button className="reset-map-button" type="button" onClick={resetMapView}>
               <RotateCcw aria-hidden="true" />
-              Reset
+              Reset carte
             </button>
 
             <button
@@ -618,15 +618,6 @@ export function VttBoard({
               onClick={() => setGmMode(effectiveFreePanelsEnabled ? "play" : "advanced")}
             >
               Panneaux libres
-            </button>
-
-            <button
-              className="reset-panels-button"
-              type="button"
-              onClick={resetFloatingWidgetLayouts}
-              disabled={!effectiveFreePanelsEnabled}
-            >
-              Reset panneaux
             </button>
 
             <VttPanelsMenu

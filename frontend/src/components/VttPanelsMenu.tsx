@@ -32,7 +32,7 @@ export function VttPanelsMenu({
       <div className="vtt-panels-menu-content" role="menu">
         <header className="vtt-panels-manager-header">
           <span>Gestion de l’espace MJ</span>
-          <strong>{enabled ? "Mode avancé actif" : "Les presets et panneaux activent le mode avancé"}</strong>
+          <strong>{enabled ? "Mode avancé actif" : "Choisis un panneau ou un layout pour activer l’espace MJ"}</strong>
         </header>
 
         <section className="vtt-panels-menu-group">
@@ -54,21 +54,7 @@ export function VttPanelsMenu({
         </section>
 
         <section className="vtt-panels-menu-group">
-          <strong>Layout personnalisé</strong>
-
-          <button
-            className="save-layout-button"
-            disabled={!enabled}
-            onClick={onSaveCustomPreset}
-            type="button"
-          >
-            <span>Sauvegarder layout actuel</span>
-            <small>Positions, tailles, panneaux fermés, réduits, verrouillés et épinglés</small>
-          </button>
-        </section>
-
-        <section className="vtt-panels-menu-group">
-          <strong>Afficher un panneau</strong>
+          <strong>Panneaux</strong>
 
           {categories.map((category) => (
             <div className="vtt-panels-category" key={category}>
@@ -86,9 +72,23 @@ export function VttPanelsMenu({
           ))}
         </section>
 
+        <section className="vtt-panels-menu-group">
+          <strong>Layout personnalisé</strong>
+
+          <button
+            className="save-layout-button"
+            disabled={!enabled}
+            onClick={onSaveCustomPreset}
+            type="button"
+          >
+            <span>Sauvegarder layout actuel</span>
+            <small>Positions, tailles, panneaux fermés, réduits, verrouillés et épinglés</small>
+          </button>
+        </section>
+
         <footer className="vtt-panels-manager-footer">
           <button className="danger-lite" disabled={!enabled} onClick={onResetPanels} type="button">
-            Réinitialiser l’espace MJ
+            Réinitialiser les panneaux
           </button>
         </footer>
       </div>
