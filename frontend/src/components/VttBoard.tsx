@@ -205,16 +205,20 @@ export function VttBoard({
     }
 
     const element = scrollElement;
+    const scene = selectedScene;
 
     function updateViewportRatio() {
-      const maxScrollLeft = Math.max(1, element.scrollWidth - element.clientWidth);
-      const maxScrollTop = Math.max(1, element.scrollHeight - element.clientHeight);
+      const visibleWorldWidth = element.clientWidth / zoom;
+      const visibleWorldHeight = element.clientHeight / zoom;
+
+      const width = clamp(visibleWorldWidth / scene.width, 0.04, 1);
+      const height = clamp(visibleWorldHeight / scene.height, 0.04, 1);
 
       setViewportRatio({
-        left: clamp(element.scrollLeft / maxScrollLeft, 0, 1),
-        top: clamp(element.scrollTop / maxScrollTop, 0, 1),
-        width: clamp(element.clientWidth / Math.max(1, element.scrollWidth), 0.05, 1),
-        height: clamp(element.clientHeight / Math.max(1, element.scrollHeight), 0.05, 1),
+        left: clamp((element.scrollLeft / zoom) / scene.width, 0, Math.max(0, 1 - width)),
+        top: clamp((element.scrollTop / zoom) / scene.height, 0, Math.max(0, 1 - height)),
+        width,
+        height,
       });
     }
 
@@ -421,55 +425,7 @@ export function VttBoard({
             </details>
           </div>
 
-          {selectedScene && (
-            <div className="map-overview">
-              <div className="map-overview-header">
-                <span>Mini-map</span>
-                <small>
-                  {sceneTokens.length} token(s) · zoom {zoomPercent}%
-                </small>
-              </div>
 
-              <button
-                className="map-overview-map"
-                type="button"
-                onClick={centerMapFromOverview}
-                aria-label="Recentrer la carte depuis la mini-map"
-              >
-                {sceneBackgroundObjectUrl && (
-                  <img
-                    alt=""
-                    aria-hidden="true"
-                    className="map-overview-background"
-                    src={sceneBackgroundObjectUrl}
-                  />
-                )}
-
-                <span
-                  className="map-overview-viewport"
-                  style={{
-                    left: `${viewportRatio.left * (100 - viewportRatio.width * 100)}%`,
-                    top: `${viewportRatio.top * (100 - viewportRatio.height * 100)}%`,
-                    width: `${viewportRatio.width * 100}%`,
-                    height: `${viewportRatio.height * 100}%`,
-                  }}
-                />
-
-                {sceneTokens.map((token) => (
-                  <span
-                    className={`map-overview-token ${selectedTokenId === token.id ? "selected" : ""}`}
-                    key={token.id}
-                    style={{
-                      left: `${clamp(token.x / selectedScene.width, 0, 1) * 100}%`,
-                      top: `${clamp(token.y / selectedScene.height, 0, 1) * 100}%`,
-                      background: token.color,
-                    }}
-                    title={token.name}
-                  />
-                ))}
-              </button>
-            </div>
-          )}
 
           {selectedScene ? (
             <div
@@ -548,6 +504,56 @@ export function VttBoard({
         </section>
 
         <section className="vtt-control-panel">
+          {selectedScene && (
+            <div className="map-overview">
+              <div className="map-overview-header">
+                <span>Mini-map</span>
+                <small>
+                  {sceneTokens.length} token(s) · zoom {zoomPercent}%
+                </small>
+              </div>
+
+              <button
+                className="map-overview-map"
+                type="button"
+                onClick={centerMapFromOverview}
+                aria-label="Recentrer la carte depuis la mini-map"
+                style={{ aspectRatio: `${selectedScene.width} / ${selectedScene.height}` }}
+              >
+                {sceneBackgroundObjectUrl && (
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="map-overview-background"
+                    src={sceneBackgroundObjectUrl}
+                  />
+                )}
+
+                <span
+                  className="map-overview-viewport"
+                  style={{
+                    left: `${viewportRatio.left * 100}%`,
+                    top: `${viewportRatio.top * 100}%`,
+                    width: `${viewportRatio.width * 100}%`,
+                    height: `${viewportRatio.height * 100}%`,
+                  }}
+                />
+
+                {sceneTokens.map((token) => (
+                  <span
+                    className={`map-overview-token ${selectedTokenId === token.id ? "selected" : ""}`}
+                    key={token.id}
+                    style={{
+                      left: `${clamp(token.x / selectedScene.width, 0, 1) * 100}%`,
+                      top: `${clamp(token.y / selectedScene.height, 0, 1) * 100}%`,
+                      background: token.color,
+                    }}
+                    title={token.name}
+                  />
+                ))}
+              </button>
+            </div>
+          )}
           <section className="token-detail-panel" data-quick-panel="token-detail">
             <div className="token-detail-heading">
               <h4>Token selectionne</h4>
