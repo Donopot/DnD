@@ -4769,3 +4769,39 @@ select {
 }
 
 /* End Sprint 1 - GM panel system stabilization */
+
+/* Sprint 1 - standardized GM panels */
+
+.vtt-control-panel [data-vtt-panel] {
+  min-width: 0;
+}
+
+.floating-widget[data-vtt-panel] {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+}
+
+.floating-widget[data-vtt-panel] > summary,
+.floating-widget[data-vtt-panel] .map-overview-header,
+.floating-widget[data-vtt-panel] .token-detail-heading {
+  display: none !important;
+}
+
+.floating-widget[data-vtt-panel] .floating-widget-toolbar {
+  margin: -1px -1px 7px;
+}
+
+.floating-widget[data-vtt-panel].floating-widget-collapsed > :not(.floating-widget-toolbar) {
+  display: none !important;
+}
+
+.vtt-panels-list button {
+  cursor: pointer;
+}
+
+.vtt-panels-list button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+/* End Sprint 1 - standardized GM panels */

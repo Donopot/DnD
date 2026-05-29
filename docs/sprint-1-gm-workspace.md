@@ -279,3 +279,31 @@ Cause probable :
 7. Ouvrir Gestion panneaux.
 8. Cliquer Detail token.
 9. Verifier que Detail token revient.
+
+## Correction structurelle - Standardisation des panneaux GM
+
+### Probleme
+
+Les panneaux GM utilisaient plusieurs structures et plusieurs attributs :
+
+- data-floating-widget ;
+- data-quick-panel ;
+- classes CSS differentes ;
+- liste du menu separee des panneaux reels.
+
+Cela provoquait des comportements incoherents selon les panneaux.
+
+### Correction
+
+- creation d'un registre unique frontend/src/config/vttPanels.ts ;
+- chaque panneau de VttBoard possede maintenant data-vtt-panel ;
+- le menu Gestion panneaux lit le registre ;
+- le hook detecte les panneaux via data-vtt-panel ;
+- un script scripts/check-vtt-panels.sh verifie que le registre et VttBoard restent synchronises.
+
+### Validation
+
+- tous les panneaux du registre existent dans VttBoard ;
+- les actions reduire, fermer, rouvrir, epingler, verrouiller sont uniformes ;
+- le menu ne diverge plus du code reel ;
+- le systeme est plus facile a maintenir.
