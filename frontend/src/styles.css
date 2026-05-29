@@ -3393,3 +3393,119 @@ select {
 }
 
 /* End Phase 10-2E compact density and centered main map */
+
+/* Phase 10-3B clean GM play/prepare/advanced modes */
+
+.gm-mode-switch {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #f9f6ec;
+}
+
+.gm-mode-switch button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #657068;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.gm-mode-switch button.active {
+  background: #1f5f43;
+  color: #fffdf7;
+}
+
+.gm-mode-play .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.gm-mode-play .vtt-control-panel {
+  gap: 8px;
+}
+
+.gm-mode-play .vtt-control-panel > .tool-card {
+  display: none;
+}
+
+.gm-mode-play .vtt-control-panel > .map-overview,
+.gm-mode-play .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+.gm-mode-play .map-scroll {
+  height: calc(100vh - 190px);
+  min-height: 680px;
+}
+
+.gm-mode-prepare .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.gm-mode-prepare .vtt-control-panel > .tool-card,
+.gm-mode-prepare .vtt-control-panel > .map-overview,
+.gm-mode-prepare .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+.gm-mode-prepare .map-scroll {
+  height: calc(100vh - 220px);
+  min-height: 620px;
+}
+
+.gm-mode-advanced .vtt-layout {
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+.gm-mode-advanced .map-scroll {
+  height: calc(100vh - 190px);
+  min-height: 680px;
+}
+
+.gm-mode-play .vtt-panels-menu-content .vtt-panels-menu-group:nth-of-type(2),
+.gm-mode-play .reset-panels-button {
+  display: none;
+}
+
+.gm-mode-play .floating-toggle {
+  border-color: #d8d1c2;
+}
+
+.gm-mode-advanced .floating-toggle {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-mode-play .map-ux-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.gm-mode-play .keyboard-help,
+.gm-mode-play .compact-help {
+  display: none;
+}
+
+@media (max-width: 1250px) {
+  .gm-mode-play .vtt-layout,
+  .gm-mode-prepare .vtt-layout,
+  .gm-mode-advanced .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-mode-play .map-scroll,
+  .gm-mode-prepare .map-scroll,
+  .gm-mode-advanced .map-scroll {
+    height: 70vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-3B clean GM play/prepare/advanced modes */

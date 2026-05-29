@@ -10,6 +10,8 @@ type Position = {
   y: number;
 };
 
+type GmInterfaceMode = "play" | "prepare" | "advanced";
+
 type VttBoardProps = {
   scenes: Scene[];
   selectedScene: Scene | undefined;
@@ -66,6 +68,7 @@ export function VttBoard({
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
+  const [gmInterfaceMode, setGmInterfaceMode] = useState<GmInterfaceMode>("play");
   const [viewportRatio, setViewportRatio] = useState({
     left: 0,
     top: 0,
@@ -90,7 +93,9 @@ export function VttBoard({
     ? draftPositions[selectedToken.id] ?? { x: selectedToken.x, y: selectedToken.y }
     : undefined;
 
-  useFloatingWidgets(freePanelsEnabled, ".vtt-control-panel");
+  const effectiveFreePanelsEnabled = freePanelsEnabled || gmInterfaceMode === "advanced";
+
+  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel");
 
   const zoomPercent = Math.round(zoom * 100);
 
@@ -184,6 +189,18 @@ export function VttBoard({
 
   function updateZoom(delta: number) {
     setZoom((current) => clamp(Number((current + delta).toFixed(2)), 0.5, 2));
+  }
+
+  function setGmMode(mode: GmInterfaceMode) {
+    setGmInterfaceMode(mode);
+
+    if (mode === "advanced") {
+      setFreePanelsEnabled(true);
+    }
+
+    if (mode !== "advanced") {
+      setFreePanelsEnabled(false);
+    }
   }
 
   function handleApplyFloatingPreset(preset: FloatingWidgetPreset) {
@@ -363,7 +380,7 @@ export function VttBoard({
   }
 
   return (
-    <div className="vtt-section">
+    <div className={`vtt-section gm-mode-${gmInterfaceMode}`}>
       <div className="section-heading">
         <h3>Table virtuelle</h3>
         <Swords aria-hidden="true" />
@@ -399,6 +416,30 @@ export function VttBoard({
           </div>
 
           <div className="map-ux-toolbar">
+            <div className="gm-mode-switch" aria-label="Mode MJ">
+              <button
+                className={gmInterfaceMode === "play" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("play")}
+              >
+                Partie
+              </button>
+              <button
+                className={gmInterfaceMode === "prepare" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("prepare")}
+              >
+                Preparation
+              </button>
+              <button
+                className={gmInterfaceMode === "advanced" ? "active" : ""}
+                type="button"
+                onClick={() => setGmMode("advanced")}
+              >
+                Avance
+              </button>
+            </div>
+
             <div className="map-zoom-controls">
               <button type="button" onClick={() => updateZoom(-0.1)} aria-label="Reduire le zoom">
                 <Minus aria-hidden="true" />
@@ -434,10 +475,10 @@ export function VttBoard({
             </button>
 
             <button
-              className={`floating-toggle ${freePanelsEnabled ? "active" : ""}`}
+              className={`floating-toggle ${effectiveFreePanelsEnabled ? "active" : ""}`}
               type="button"
-              aria-pressed={freePanelsEnabled}
-              onClick={() => setFreePanelsEnabled((current) => !current)}
+              aria-pressed={effectiveFreePanelsEnabled}
+              onClick={() => setGmMode(effectiveFreePanelsEnabled ? "play" : "advanced")}
             >
               Panneaux libres
             </button>
@@ -446,13 +487,13 @@ export function VttBoard({
               className="reset-panels-button"
               type="button"
               onClick={resetFloatingWidgetLayouts}
-              disabled={!freePanelsEnabled}
+              disabled={!effectiveFreePanelsEnabled}
             >
               Reset panneaux
             </button>
 
             <VttPanelsMenu
-              enabled={freePanelsEnabled}
+              enabled={effectiveFreePanelsEnabled}
               onShowPanel={showFloatingWidget}
               onApplyPreset={handleApplyFloatingPreset}
               onResetPanels={resetFloatingWidgetLayouts}
