@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
+import { getPresetForSessionLiveMode, type SessionLiveMode } from "../config/sessionLiveModes";
 import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, saveFloatingWidgetCustomPreset, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
 import { VttPanelsMenu } from "./VttPanelsMenu";
@@ -32,6 +33,7 @@ type VttBoardProps = {
   onSetSceneBackground: () => void;
   onCreateToken: (event: FormEvent<HTMLFormElement>) => void;
   onMoveToken: (token: SceneToken, dx: number, dy: number) => void;
+  sessionLiveMode?: SessionLiveMode;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -56,6 +58,7 @@ export function VttBoard({
   onSetSceneBackground,
   onCreateToken,
   onMoveToken,
+  sessionLiveMode,
 }: VttBoardProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -99,6 +102,20 @@ export function VttBoard({
   useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel", selectedScene?.id ?? "no-scene");
 
   const zoomPercent = Math.round(zoom * 100);
+
+  useEffect(() => {
+    if (!sessionLiveMode) {
+      return;
+    }
+
+    const sessionLiveModePreset = getPresetForSessionLiveMode(sessionLiveMode);
+
+    setGmMode("advanced");
+
+    window.setTimeout(() => {
+      applyFloatingWidgetPreset(sessionLiveModePreset);
+    }, 100);
+  }, [sessionLiveMode, selectedScene?.id]);
 
   function getTokenPositionFromPointer(event: PointerEvent<HTMLDivElement>, token: SceneToken): Position | null {
     if (!selectedScene || !boardRef.current) {

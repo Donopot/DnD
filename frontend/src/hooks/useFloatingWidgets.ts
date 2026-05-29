@@ -153,7 +153,21 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
     return layouts[widgetId] ?? { left: compactLeft, top: 110 + index * 42, width: compactWidth, height: 260 };
   }
 
-  if (preset === "preparation") {
+  if (preset === "roleplay") {
+    const layouts: Record<string, WidgetLayout> = {
+      "token-detail": { left, top: 92, width: rightPanelWidth, height: 340 },
+      minimap: { left, top: 450, width: rightPanelWidth, height: 220 },
+      scene: { left: margin, top: 92, width: compactWidth, height: 260 },
+      token: { left: margin, top: 370, width: compactWidth, height: 260 },
+      tokens: { left: margin, top: 650, width: compactWidth, height: 260 },
+      "upload-map": { left: margin, top: 930, width: compactWidth, height: 220 },
+      background: { left: margin, top: 1170, width: compactWidth, height: 220 },
+    };
+
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
+  }
+
+  if (preset === "quick-prep" || preset === "preparation") {
     const layouts: Record<string, WidgetLayout> = {
       scene: { left: margin, top: 92, width: rightPanelWidth, height: 380 },
       "upload-map": { left: margin, top: 490, width: rightPanelWidth, height: 260 },
@@ -165,6 +179,20 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
     };
 
     return layouts[widgetId] ?? { left, top: 110 + index * 42, width: rightPanelWidth, height: 280 };
+  }
+
+  if (preset === "minimal") {
+    const layouts: Record<string, WidgetLayout> = {
+      "token-detail": { left, top: 92, width: compactWidth, height: 280 },
+      minimap: { left: margin, top: 92, width: compactWidth, height: 210 },
+      scene: { left: margin, top: 320, width: compactWidth, height: 220 },
+      token: { left: margin, top: 560, width: compactWidth, height: 240 },
+      tokens: { left: margin, top: 820, width: compactWidth, height: 240 },
+      "upload-map": { left: margin, top: 1080, width: compactWidth, height: 220 },
+      background: { left: margin, top: 1320, width: compactWidth, height: 220 },
+    };
+
+    return layouts[widgetId] ?? { left, top: 110 + index * 42, width: compactWidth, height: 240 };
   }
 
   const layouts: Record<string, WidgetLayout> = {
@@ -191,11 +219,27 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
     };
   }
 
-  if (preset === "preparation") {
+  if (preset === "roleplay") {
+    return {
+      ...common,
+      hidden: widgetId === "upload-map" || widgetId === "background",
+      collapsed: widgetId === "minimap" || widgetId === "token" || widgetId === "tokens",
+    };
+  }
+
+  if (preset === "quick-prep" || preset === "preparation") {
     return {
       ...common,
       hidden: false,
       collapsed: widgetId === "token-detail",
+    };
+  }
+
+  if (preset === "minimal") {
+    return {
+      ...common,
+      hidden: widgetId === "scene" || widgetId === "upload-map" || widgetId === "background" || widgetId === "token" || widgetId === "tokens",
+      collapsed: widgetId === "minimap",
     };
   }
 

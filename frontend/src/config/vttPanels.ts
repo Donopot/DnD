@@ -1,4 +1,11 @@
-export type FloatingWidgetPreset = "exploration" | "combat" | "preparation" | "custom";
+export type FloatingWidgetPreset =
+  | "exploration"
+  | "combat"
+  | "roleplay"
+  | "quick-prep"
+  | "minimal"
+  | "preparation"
+  | "custom";
 
 export type VttPanelId =
   | "minimap"
@@ -28,7 +35,10 @@ export const VTT_PANELS: VttPanelDefinition[] = [
 export const VTT_PANEL_PRESETS: Array<{ id: FloatingWidgetPreset; label: string; hint: string }> = [
   { id: "exploration", label: "Exploration", hint: "Carte + mini-map + contexte" },
   { id: "combat", label: "Combat", hint: "Tokens + actions rapides" },
-  { id: "preparation", label: "Préparation", hint: "Scènes, cartes et tokens" },
+  { id: "roleplay", label: "Roleplay", hint: "Contexte, PNJ et notes" },
+  { id: "quick-prep", label: "Préparation rapide", hint: "Scènes, cartes et tokens" },
+  { id: "minimal", label: "Minimal", hint: "Carte dominante" },
+  { id: "preparation", label: "Préparation", hint: "Setup complet MJ" },
   { id: "custom", label: "Personnalisé", hint: "Ton layout sauvegardé" },
 ];
 
