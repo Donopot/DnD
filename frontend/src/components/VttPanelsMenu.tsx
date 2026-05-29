@@ -1,3 +1,5 @@
+import type { FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
+
 type FloatingPanelItem = {
   id: string;
   label: string;
@@ -13,28 +15,59 @@ const panels: FloatingPanelItem[] = [
   { id: "tokens", label: "Liste tokens" },
 ];
 
+const presets: Array<{ id: FloatingWidgetPreset; label: string }> = [
+  { id: "exploration", label: "Exploration" },
+  { id: "combat", label: "Combat" },
+  { id: "preparation", label: "Preparation" },
+];
+
 type VttPanelsMenuProps = {
   enabled: boolean;
   onShowPanel: (panelId: string) => void;
+  onApplyPreset: (preset: FloatingWidgetPreset) => void;
   onResetPanels: () => void;
 };
 
-export function VttPanelsMenu({ enabled, onShowPanel, onResetPanels }: VttPanelsMenuProps) {
+export function VttPanelsMenu({
+  enabled,
+  onShowPanel,
+  onApplyPreset,
+  onResetPanels,
+}: VttPanelsMenuProps) {
   return (
     <details className={`vtt-panels-menu ${enabled ? "active" : ""}`}>
       <summary>Panneaux</summary>
 
       <div className="vtt-panels-menu-content">
-        {panels.map((panel) => (
-          <button
-            disabled={!enabled}
-            key={panel.id}
-            onClick={() => onShowPanel(panel.id)}
-            type="button"
-          >
-            {panel.label}
-          </button>
-        ))}
+        <div className="vtt-panels-menu-group">
+          <strong>Presets</strong>
+
+          {presets.map((preset) => (
+            <button
+              disabled={!enabled}
+              key={preset.id}
+              onClick={() => onApplyPreset(preset.id)}
+              type="button"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="vtt-panels-menu-group">
+          <strong>Rouvrir</strong>
+
+          {panels.map((panel) => (
+            <button
+              disabled={!enabled}
+              key={panel.id}
+              onClick={() => onShowPanel(panel.id)}
+              type="button"
+            >
+              {panel.label}
+            </button>
+          ))}
+        </div>
 
         <button className="danger-lite" disabled={!enabled} onClick={onResetPanels} type="button">
           Reset complet

@@ -2839,3 +2839,34 @@ select {
 }
 
 /* End Phase 10-2B floating panels menu */
+
+/* Phase 10-2C floating panel presets */
+
+.vtt-panels-menu-group {
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffaf0;
+}
+
+.vtt-panels-menu-group + .vtt-panels-menu-group {
+  margin-top: 4px;
+}
+
+.vtt-panels-menu-group strong {
+  color: #657068;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vtt-panels-menu-group:first-child button {
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+/* End Phase 10-2C floating panel presets */

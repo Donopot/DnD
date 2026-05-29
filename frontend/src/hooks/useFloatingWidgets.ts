@@ -14,6 +14,8 @@ type WidgetMeta = {
   zIndex: number;
 };
 
+export type FloatingWidgetPreset = "exploration" | "combat" | "preparation";
+
 const STORAGE_ROOT = "dnd-floating-widget:";
 const LAYOUT_PREFIX = `${STORAGE_ROOT}layout:`;
 const META_PREFIX = `${STORAGE_ROOT}meta:`;
@@ -116,6 +118,100 @@ function createToolbarButton(label: string, title: string) {
   return button;
 }
 
+function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetLayout {
+  const margin = 18;
+  const rightPanelWidth = Math.min(390, Math.max(320, window.innerWidth * 0.24));
+  const compactWidth = Math.min(320, Math.max(260, window.innerWidth * 0.2));
+  const left = Math.max(margin, window.innerWidth - rightPanelWidth - margin);
+  const compactLeft = Math.max(margin, window.innerWidth - compactWidth - margin);
+
+  if (preset === "combat") {
+    const layouts: Record<string, WidgetLayout> = {
+      minimap: { left: margin, top: 92, width: compactWidth, height: 260 },
+      "token-detail": { left: compactLeft, top: 92, width: compactWidth, height: 300 },
+      token: { left: compactLeft, top: 410, width: compactWidth, height: 330 },
+      tokens: { left: compactLeft, top: 760, width: compactWidth, height: 280 },
+      scene: { left: margin, top: 370, width: compactWidth, height: 260 },
+      "upload-map": { left: margin, top: 650, width: compactWidth, height: 220 },
+      background: { left: margin, top: 890, width: compactWidth, height: 220 },
+    };
+
+    return layouts[widgetId] ?? {
+      left: compactLeft,
+      top: 110 + index * 42,
+      width: compactWidth,
+      height: 260,
+    };
+  }
+
+  if (preset === "preparation") {
+    const layouts: Record<string, WidgetLayout> = {
+      scene: { left: margin, top: 92, width: rightPanelWidth, height: 380 },
+      "upload-map": { left: margin, top: 490, width: rightPanelWidth, height: 260 },
+      background: { left: margin, top: 770, width: rightPanelWidth, height: 280 },
+      minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
+      token: { left, top: 370, width: rightPanelWidth, height: 360 },
+      tokens: { left, top: 750, width: rightPanelWidth, height: 300 },
+      "token-detail": { left, top: 1070, width: rightPanelWidth, height: 240 },
+    };
+
+    return layouts[widgetId] ?? {
+      left,
+      top: 110 + index * 42,
+      width: rightPanelWidth,
+      height: 280,
+    };
+  }
+
+  const layouts: Record<string, WidgetLayout> = {
+    minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
+    "token-detail": { left, top: 370, width: rightPanelWidth, height: 320 },
+    token: { left, top: 710, width: rightPanelWidth, height: 340 },
+    tokens: { left, top: 1070, width: rightPanelWidth, height: 280 },
+    scene: { left: margin, top: 92, width: compactWidth, height: 230 },
+    "upload-map": { left: margin, top: 340, width: compactWidth, height: 210 },
+    background: { left: margin, top: 570, width: compactWidth, height: 230 },
+  };
+
+  return layouts[widgetId] ?? {
+    left,
+    top: 110 + index * 42,
+    width: rightPanelWidth,
+    height: 280,
+  };
+}
+
+function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetMeta {
+  const common: WidgetMeta = {
+    hidden: false,
+    locked: false,
+    collapsed: false,
+    zIndex: 100 + index,
+  };
+
+  if (preset === "combat") {
+    return {
+      ...common,
+      hidden: widgetId === "upload-map" || widgetId === "background",
+      collapsed: widgetId === "scene",
+    };
+  }
+
+  if (preset === "preparation") {
+    return {
+      ...common,
+      hidden: false,
+      collapsed: widgetId === "token-detail",
+    };
+  }
+
+  return {
+    ...common,
+    hidden: false,
+    collapsed: widgetId === "upload-map" || widgetId === "background",
+  };
+}
+
 export function resetFloatingWidgetLayouts() {
   Object.keys(window.localStorage)
     .filter((key) => key.startsWith(STORAGE_ROOT))
@@ -128,6 +224,14 @@ export function showFloatingWidget(widgetId: string) {
   window.dispatchEvent(
     new CustomEvent("dnd:show-floating-widget", {
       detail: { widgetId },
+    }),
+  );
+}
+
+export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
+  window.dispatchEvent(
+    new CustomEvent("dnd:apply-floating-widget-preset", {
+      detail: { preset },
     }),
   );
 }
@@ -376,6 +480,23 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         topZIndex += 1;
       }
 
+      function handleApplyPreset(event: Event) {
+        const detail = (event as CustomEvent<{ preset?: FloatingWidgetPreset }>).detail;
+
+        if (!detail?.preset) {
+          return;
+        }
+
+        currentLayout = getPresetLayout(detail.preset, id, index);
+        currentMeta = getPresetMeta(detail.preset, id, index);
+
+        writeStoredValue(layoutKey, currentLayout);
+        writeStoredValue(metaKey, currentMeta);
+
+        applyLayout(currentLayout);
+        applyMeta();
+      }
+
       function handleFrontClick(event: MouseEvent) {
         event.stopPropagation();
         bringToFront();
@@ -407,6 +528,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
 
       window.addEventListener("dnd:reset-floating-widgets", handleReset);
       window.addEventListener("dnd:show-floating-widget", handleShowWidget);
+      window.addEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
 
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
@@ -420,6 +542,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
 
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
         window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
+        window.removeEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
 
         clearRuntimeWidgetState(widget);
       });

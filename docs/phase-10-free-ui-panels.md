@@ -99,3 +99,27 @@ Critere d'acceptation :
 - un panneau ferme avec Fermer peut etre rouvert via le menu Panneaux ;
 - le reset complet continue de restaurer tous les panneaux ;
 - les panneaux gardent leur position apres refresh.
+
+## Etape 10-2C - Presets de panneaux
+
+Objectif :
+
+- ajouter des layouts predefinis pour les panneaux flottants ;
+- permettre au MJ de basculer rapidement entre exploration, combat et preparation ;
+- garder la possibilite de rouvrir un panneau individuellement ;
+- conserver le reset complet.
+
+Presets :
+
+- Exploration : mini-map, detail token et ajout token visibles, outils secondaires reduits ;
+- Combat : mini-map et outils token visibles, assets secondaires caches ;
+- Preparation : scene, upload carte, fond de carte et token visibles.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- le menu Panneaux contient les presets ;
+- cliquer Exploration repositionne les panneaux ;
+- cliquer Combat masque/reduit les panneaux non essentiels ;
+- cliquer Preparation affiche les outils de configuration.

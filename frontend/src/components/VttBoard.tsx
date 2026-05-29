@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, 
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
+import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets } from "../hooks/useFloatingWidgets";
 import { VttPanelsMenu } from "./VttPanelsMenu";
 
 type Position = {
@@ -422,6 +422,7 @@ export function VttBoard({
             <VttPanelsMenu
               enabled={freePanelsEnabled}
               onShowPanel={showFloatingWidget}
+              onApplyPreset={applyFloatingWidgetPreset}
               onResetPanels={resetFloatingWidgetLayouts}
             />
 
