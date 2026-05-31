@@ -16,6 +16,7 @@ import { SessionQuickActions } from "./SessionQuickActions";
 import { VttBoard } from "./VttBoard";
 
 type SessionWorkspaceProps = {
+  authToken: string;
   campaignId: string;
   scenes: Scene[];
   selectedScene: Scene | undefined;
@@ -54,6 +55,7 @@ type SessionWorkspaceProps = {
 };
 
 export function SessionWorkspace({
+  authToken,
   campaignId,
   scenes,
   selectedScene,
@@ -101,6 +103,7 @@ export function SessionWorkspace({
       />
       <section className="session-map-zone">
         <VttBoard
+          authToken={authToken}
           campaignId={campaignId}
           scenes={scenes}
           selectedScene={selectedScene}

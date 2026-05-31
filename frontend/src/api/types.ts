@@ -120,6 +120,21 @@ export type SceneToken = {
   updated_at: string;
 };
 
+
+export type GMNote = {
+  id: string;
+  campaign_id: string;
+  scene_id: string | null;
+  token_id: string | null;
+  author_user_id: string | null;
+  title: string;
+  content: string;
+  visibility: "gm_team" | "author_only";
+  version: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Asset = {
   id: string;
   campaign_id: string;

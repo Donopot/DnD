@@ -45,6 +45,7 @@ type Position = {
 type GmInterfaceMode = "play" | "prepare" | "advanced";
 
 type VttBoardProps = {
+  authToken: string;
   campaignId: string;
   scenes: Scene[];
   selectedScene: Scene | undefined;
@@ -88,6 +89,7 @@ function getHpPercent(character: Character) {
 }
 
 export function VttBoard({
+  authToken,
   campaignId,
   scenes,
   selectedScene,
@@ -908,6 +910,7 @@ export function VttBoard({
             <summary>Notes MJ</summary>
 
             <GmNotesPanel
+              authToken={authToken}
               campaignId={campaignId}
               selectedScene={selectedScene}
               selectedToken={selectedToken}
