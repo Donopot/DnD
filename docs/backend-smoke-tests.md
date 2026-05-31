@@ -32,7 +32,7 @@ sh scripts/smoke-backend.sh
 Variables utiles
 API_URL=http://127.0.0.1:8091
 DND_SMOKE_PASSWORD=SmokePass123!
-DND_SMOKE_EMAIL=smoke+manual@example.test
+DND_SMOKE_EMAIL=smoke+manual@dnd-smoke.fr
 
 Exemple :
 

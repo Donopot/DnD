@@ -3,7 +3,7 @@ set -eu
 
 API_URL="${API_URL:-http://127.0.0.1:8091}"
 RUN_ID="${RUN_ID:-$(date +%Y%m%d%H%M%S)}"
-EMAIL="${DND_SMOKE_EMAIL:-smoke+${RUN_ID}@example.test}"
+EMAIL="${DND_SMOKE_EMAIL:-smoke+${RUN_ID}@dnd-smoke.fr}"
 PASSWORD="${DND_SMOKE_PASSWORD:-SmokePass123!}"
 DISPLAY_NAME="${DND_SMOKE_DISPLAY_NAME:-Smoke GM}"
 
