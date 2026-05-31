@@ -758,3 +758,43 @@ Ajouter un panneau Resume du groupe stable et standardise dans Session Live.
 - verrouiller puis deverrouiller ;
 - affichage correct avec zero personnage ;
 - affichage correct avec plusieurs personnages.
+
+## Roadmap mise à jour autour du CSS commun
+
+### Nouvelle priorité
+
+Avant de continuer à ajouter ou améliorer des panneaux, le socle CSS commun doit devenir la règle.
+
+Tous les panneaux doivent utiliser :
+
+- gm-panel-content ;
+- gm-panel-section ;
+- gm-panel-context ;
+- gm-panel-stat ;
+- gm-panel-card ;
+- gm-panel-row ;
+- gm-panel-list ;
+- gm-panel-actions ;
+- gm-panel-button ;
+- gm-panel-muted ;
+- gm-panel-badge ;
+- gm-panel-progress.
+
+### Nouvel ordre de reprise
+
+1. GM-2D-CSS - CSS commun panneaux GM ;
+2. GM-2C - Finalisation Notes MJ avec CSS commun ;
+3. GM-2D - Finalisation Résumé du groupe avec CSS commun ;
+4. GM-2E - Initiative stable ;
+5. GM-2F - Actions rapides compactes ;
+6. GM-2G - Inspecteur de visibilité ;
+7. GM-3A - Bibliothèque tokens ;
+8. GM-3B - Documents révélables ;
+9. GM-3C - États / conditions ;
+10. GM-3D - Rencontre active.
+
+### Règle
+
+Aucun nouveau panneau ne doit ajouter un gros bloc CSS spécifique.
+
+Le CSS spécifique est autorisé uniquement pour du contenu métier impossible à couvrir par le socle commun.
