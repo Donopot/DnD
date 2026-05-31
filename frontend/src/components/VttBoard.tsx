@@ -632,7 +632,7 @@ export function VttBoard({
 
             <button className="reset-map-button" type="button" onClick={resetMapView}>
               <RotateCcw aria-hidden="true" />
-              Reset carte carte
+              Reset carte carte carte
             </button>
 
             <button
