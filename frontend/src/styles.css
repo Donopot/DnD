@@ -7062,3 +7062,314 @@ select {
 }
 
 /* End GM-2D - Résumé du groupe */
+
+/* GM-2D-CSS - Common GM panel system */
+
+.gm-panel-content {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  color: #253028;
+}
+
+.gm-panel-section {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.gm-panel-section > header,
+.gm-panel-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gm-panel-section > header strong,
+.gm-panel-section-header strong,
+.gm-panel-title {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gm-panel-section > header small,
+.gm-panel-section-header small,
+.gm-panel-subtitle,
+.gm-panel-muted {
+  overflow: hidden;
+  color: #657068;
+  font-size: 0.62rem;
+  font-weight: 750;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.gm-panel-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.gm-panel-context.three,
+.gm-panel-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gm-panel-context.four,
+.gm-panel-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gm-panel-stat,
+.gm-panel-card,
+.gm-panel-row {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.gm-panel-stat {
+  display: grid;
+  gap: 2px;
+}
+
+.gm-panel-stat small,
+.gm-panel-card small,
+.gm-panel-row small {
+  overflow: hidden;
+  color: #657068;
+  font-size: 0.6rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.gm-panel-stat strong,
+.gm-panel-card strong,
+.gm-panel-row strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.8rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-panel-list {
+  display: grid;
+  gap: 8px;
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.gm-panel-row {
+  display: grid;
+  gap: 7px;
+}
+
+.gm-panel-row.selected,
+.gm-panel-card.selected {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  box-shadow: inset 0 0 0 1px rgba(31, 95, 67, 0.22);
+}
+
+.gm-panel-row.danger,
+.gm-panel-card.danger,
+.gm-panel-danger {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+.gm-panel-row.success,
+.gm-panel-card.success,
+.gm-panel-success {
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-panel-row > header,
+.gm-panel-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gm-panel-row > header span,
+.gm-panel-card > header span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gm-panel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.gm-panel-badge.danger {
+  background: #f7d7d0;
+  color: #8a2f23;
+}
+
+.gm-panel-badge.warning {
+  background: #fff7df;
+  color: #6f4c11;
+}
+
+.gm-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.gm-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gm-panel-actions.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gm-panel-actions.three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gm-panel-button,
+.gm-panel-actions button,
+.gm-panel-content button {
+  min-height: 30px;
+  min-width: 0;
+  padding: 5px 8px;
+  overflow: hidden;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-panel-button:hover:not(:disabled),
+.gm-panel-actions button:hover:not(:disabled),
+.gm-panel-content button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-panel-button:disabled,
+.gm-panel-actions button:disabled,
+.gm-panel-content button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.gm-panel-textarea,
+.gm-panel-content textarea {
+  min-height: 150px;
+  width: 100%;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #fffdf7;
+  color: #253028;
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.gm-panel-textarea:focus,
+.gm-panel-content textarea:focus {
+  border-color: #1f5f43;
+  outline: 2px solid rgba(31, 95, 67, 0.16);
+}
+
+.gm-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gm-panel-progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eadfce;
+}
+
+.gm-panel-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f5f43;
+}
+
+.gm-panel-progress.danger i {
+  background: #8a2f23;
+}
+
+@media (max-width: 760px) {
+  .gm-panel-context,
+  .gm-panel-context.three,
+  .gm-panel-context.four,
+  .gm-panel-grid,
+  .gm-panel-grid.three,
+  .gm-panel-grid.four,
+  .gm-panel-actions.grid,
+  .gm-panel-actions.three {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-panel-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* End GM-2D-CSS - Common GM panel system */
+
+/* GM-2D-CSS - Compatibility cleanup */
+
+.gm-notes-panel textarea {
+  min-height: 150px;
+}
+
+.party-summary-panel .gm-panel-list {
+  max-height: 360px;
+}
+
+/* End GM-2D-CSS - Compatibility cleanup */

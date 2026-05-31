@@ -162,3 +162,43 @@ Verifier que tous les boutons et tous les panneaux respectent le meme contrat.
 
 La verification automatique reste statique.
 Sans runner navigateur type Playwright, les interactions reelles doivent etre validees avec la matrice manuelle.
+
+## GM-2D-CSS - CSS commun des panneaux GM
+
+### Objectif
+
+Centraliser les styles communs des panneaux GM pour eviter de recreer un gros bloc CSS a chaque nouveau panneau.
+
+### Classes communes
+
+- gm-panel-content ;
+- gm-panel-section ;
+- gm-panel-context ;
+- gm-panel-stat ;
+- gm-panel-card ;
+- gm-panel-row ;
+- gm-panel-list ;
+- gm-panel-actions ;
+- gm-panel-button ;
+- gm-panel-muted ;
+- gm-panel-badge ;
+- gm-panel-progress.
+
+### Regle
+
+Un nouveau panneau doit utiliser le socle commun.
+
+Le CSS specifique d'un panneau est autorise uniquement pour du contenu metier reellement particulier.
+
+### Panneaux refactorises
+
+- Notes MJ ;
+- Resume du groupe.
+
+### Validation
+
+- scripts/check-gm-panel-css.sh ;
+- scripts/check-gm-notes-panel.sh ;
+- scripts/check-party-summary-panel.sh ;
+- build TypeScript ;
+- build Docker.
