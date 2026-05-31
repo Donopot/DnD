@@ -6618,3 +6618,447 @@ select {
 }
 
 /* End GM global interface cleanup */
+
+/* GM roadmap 0B - Standardized panel system */
+
+.map-ux-toolbar .reset-panels-button,
+.gm-cockpit .reset-panels-button {
+  display: none !important;
+}
+
+.vtt-panels-category {
+  display: grid;
+  gap: 6px;
+}
+
+.vtt-panels-category > span {
+  color: #657068;
+  font-size: 0.64rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vtt-panels-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.vtt-panels-list {
+  display: grid;
+  gap: 6px;
+}
+
+.vtt-panels-preset-grid .preset-button,
+.vtt-panels-list button,
+.save-layout-button {
+  display: grid;
+  gap: 2px;
+  min-height: 42px;
+  padding: 7px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #fffdf7;
+  color: #253028;
+  text-align: left;
+}
+
+.vtt-panels-preset-grid .preset-button {
+  border-color: #cfe5d2;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.save-layout-button {
+  border-color: #d8c28c;
+  background: #fff7df;
+  color: #6f4c11;
+}
+
+.floating-widget[data-vtt-panel] > summary,
+.floating-widget[data-vtt-panel] .map-overview-header,
+.floating-widget[data-vtt-panel] .token-detail-heading,
+.floating-widget[data-vtt-panel] .token-list > h4:first-child,
+.floating-widget[data-vtt-panel] .scene-form > h4:first-child,
+.floating-widget[data-vtt-panel] .asset-form > h4:first-child,
+.floating-widget[data-vtt-panel] .asset-picker > h4:first-child,
+.floating-widget[data-vtt-panel] .token-form > h4:first-child,
+.floating-widget-drag-handle {
+  display: none !important;
+}
+
+.floating-widget-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  z-index: 8200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(820px, calc(100vw - 24px));
+  padding: 7px 9px;
+  border: 1px solid rgba(31, 95, 67, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.98);
+  box-shadow: 0 18px 44px rgba(35, 48, 40, 0.24);
+  backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+}
+
+.floating-widget-dock[hidden] {
+  display: none;
+}
+
+.floating-widget-dock > strong {
+  color: #1f5f43;
+  font-size: 0.66rem;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.floating-widget-dock-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.floating-widget-dock-list button {
+  min-height: 28px;
+  max-width: 180px;
+  padding: 4px 9px;
+  overflow: hidden;
+  border: 1px solid #d8d1c2;
+  border-radius: 999px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floating-widget-dock-list button[data-floating-dock-state="fermé"] {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+  color: #8a2f23;
+}
+
+.floating-widget-pinned .floating-widget-resize-handle {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .vtt-panels-preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .floating-widget-dock {
+    right: 8px;
+    left: 8px;
+    bottom: 8px;
+    max-width: none;
+    border-radius: 14px;
+    transform: none;
+  }
+
+  .floating-widget-dock-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End GM roadmap 0B - Standardized panel system */
+
+/* GM-2C - Notes MJ */
+
+.gm-notes-card {
+  min-height: 260px;
+}
+
+.gm-notes-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gm-notes-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.gm-notes-context span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #e7dfd0;
+  border-radius: 9px;
+  background: #fffdf7;
+}
+
+.gm-notes-context small {
+  overflow: hidden;
+  color: #657068;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-notes-context strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.74rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gm-notes-panel textarea {
+  min-height: 150px;
+  width: 100%;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid #d8d1c2;
+  border-radius: 10px;
+  background: #fffdf7;
+  color: #253028;
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.gm-notes-panel textarea:focus {
+  border-color: #1f5f43;
+  outline: 2px solid rgba(31, 95, 67, 0.16);
+}
+
+.gm-notes-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gm-notes-footer span,
+.gm-notes-help {
+  color: #657068;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.gm-notes-footer div {
+  display: flex;
+  gap: 6px;
+}
+
+.gm-notes-footer button {
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.gm-notes-footer button:hover:not(:disabled) {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  color: #1f5f43;
+}
+
+.gm-notes-footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.gm-notes-help {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .gm-notes-context {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-notes-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* End GM-2C - Notes MJ */
+
+/* GM-2D - Résumé du groupe */
+
+.party-summary-card {
+  min-height: 260px;
+}
+
+.party-summary-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.party-summary-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.party-summary-overview span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #e7dfd0;
+  border-radius: 9px;
+  background: #fffdf7;
+}
+
+.party-summary-overview small {
+  color: #657068;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.party-summary-overview strong {
+  color: #253028;
+  font-size: 0.9rem;
+  font-weight: 1000;
+}
+
+.party-summary-list {
+  display: grid;
+  gap: 8px;
+  max-height: 360px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.party-summary-row {
+  display: grid;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid #e7dfd0;
+  border-radius: 10px;
+  background: #fffdf7;
+}
+
+.party-summary-row.selected {
+  border-color: #1f5f43;
+  background: #eef8ef;
+  box-shadow: inset 0 0 0 1px rgba(31, 95, 67, 0.22);
+}
+
+.party-summary-row.danger {
+  border-color: #e3b4a8;
+  background: #fff4f0;
+}
+
+.party-summary-row header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.party-summary-row header span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.party-summary-row strong {
+  overflow: hidden;
+  color: #253028;
+  font-size: 0.82rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.party-summary-row small {
+  color: #657068;
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.party-summary-row b {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #eef8ef;
+  color: #1f5f43;
+  font-size: 0.62rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.party-summary-row.danger b {
+  background: #f7d7d0;
+  color: #8a2f23;
+}
+
+.party-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.party-summary-stats em {
+  padding: 5px;
+  border: 1px solid #d8d1c2;
+  border-radius: 8px;
+  background: #f9f6ec;
+  color: #253028;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 950;
+  text-align: center;
+}
+
+.party-summary-health {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eadfce;
+}
+
+.party-summary-health i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f5f43;
+}
+
+.party-summary-row.danger .party-summary-health i {
+  background: #8a2f23;
+}
+
+.party-summary-note {
+  display: block;
+  max-height: 2.8em;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .party-summary-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .party-summary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End GM-2D - Résumé du groupe */
