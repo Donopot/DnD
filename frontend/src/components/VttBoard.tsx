@@ -23,6 +23,7 @@ import { InitiativePanel } from "./InitiativePanel";
 import { QuickActionsPanel } from "./QuickActionsPanel";
 import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { TokenDetailPanel } from "./TokenDetailPanel";
 import { PartySummaryPanel } from "./PartySummaryPanel";
 import { GmNotesPanel } from "./GmNotesPanel";
 
@@ -765,7 +766,7 @@ export function VttBoard({
 
         <section className="vtt-control-panel">
           {selectedScene && (
-            <div data-vtt-panel="minimap" data-floating-widget="minimap" data-floating-title="Mini-map" className="map-overview">
+            <div data-vtt-panel="minimap" data-floating-widget="minimap" data-floating-title="Mini-map" className="tool-card map-overview">
               <div className="map-overview-header">
                 <span>Mini-map</span>
                 <small>
@@ -814,81 +815,26 @@ export function VttBoard({
               </button>
             </div>
           )}
-          <section data-vtt-panel="token-detail" data-floating-widget="token-detail" data-floating-title="Détail token" className="token-detail-panel">
-            <div className="token-detail-heading">
-              <h4>Token selectionne</h4>
-              {selectedToken && <span>{selectedToken.name}</span>}
-            </div>
+          <details
+            data-vtt-panel="token-detail"
+            data-floating-widget="token-detail"
+            data-floating-title="Détail token"
+            className="tool-card token-detail-card"
+            open
+          >
+            <summary>Détail token</summary>
 
-            {selectedToken && selectedTokenPosition ? (
-              <>
-                <div className="token-detail-grid">
-                  <span>
-                    <small>Nom</small>
-                    <strong>{selectedToken.name}</strong>
-                  </span>
+            <TokenDetailPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              selectedTokenCharacter={selectedTokenCharacter}
+              selectedTokenPosition={selectedTokenPosition}
+              onCenterSelectedToken={centerSelectedToken}
+              onDeselectToken={() => setSelectedTokenId("")}
+              onNudgeSelectedToken={nudgeSelectedToken}
+            />
+          </details>
 
-                  <span>
-                    <small>Personnage</small>
-                    <strong>{selectedTokenCharacter?.name ?? "Token libre"}</strong>
-                  </span>
-
-                  <span>
-                    <small>Position</small>
-                    <strong>
-                      x {selectedTokenPosition.x} · y {selectedTokenPosition.y}
-                    </strong>
-                  </span>
-
-                  <span>
-                    <small>Taille</small>
-                    <strong>{selectedToken.size} case(s)</strong>
-                  </span>
-
-                  <span>
-                    <small>Visibilite</small>
-                    <strong>{selectedToken.is_hidden ? "Cache" : "Visible"}</strong>
-                  </span>
-
-                  <span>
-                    <small>Couleur</small>
-                    <strong>{selectedToken.color}</strong>
-                  </span>
-                </div>
-
-                <div className="token-detail-actions">
-                  <button className="ghost-button" type="button" onClick={centerSelectedToken}>
-                    Centrer
-                  </button>
-
-                  <button
-                    className="ghost-button"
-                    type="button"
-                    onClick={() => setSelectedTokenId("")}
-                  >
-                    Deselectionner
-                  </button>
-                </div>
-
-                <div className="token-detail-nudge" aria-label={`Deplacer ${selectedToken.name}`}>
-                  <button type="button" onClick={() => nudgeSelectedToken(0, -(selectedScene?.grid_size ?? 50))}>
-                    ↑
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(-(selectedScene?.grid_size ?? 50), 0)}>
-                    ←
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(selectedScene?.grid_size ?? 50, 0)}>
-                    →
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(0, selectedScene?.grid_size ?? 50)}>
-                    ↓
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
-            )}
-          </section>
           <details data-vtt-panel="visibility-inspector" data-floating-widget="visibility-inspector" data-floating-title="Visibilité"
            
            

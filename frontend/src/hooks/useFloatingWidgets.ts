@@ -37,6 +37,7 @@ function clamp(value: number, min: number, max: number) {
 function readStoredValue<T>(key: string) {
   try {
     const rawValue = window.localStorage.getItem(key);
+
     return rawValue ? (JSON.parse(rawValue) as T) : undefined;
   } catch {
     return undefined;
@@ -128,52 +129,19 @@ function createToolbarButton(label: string, title: string, className: string) {
   return button;
 }
 
-function getPresetSide(widgetId: string, preset: FloatingWidgetPreset) {
-  const leftByPreset: Record<string, string[]> = {
-    exploration: ["scene", "gm-notes", "party-summary", "initiative"],
-    combat: ["initiative", "party-summary", "minimap", "gm-notes", "scene"],
-    roleplay: ["party-summary", "scene", "initiative", "token", "tokens"],
-    "quick-prep": ["scene", "gm-notes", "upload-map", "background"],
-    preparation: ["scene", "gm-notes", "upload-map", "background"],
-    minimal: ["minimap", "initiative", "gm-notes", "scene"],
-  };
-
-  return leftByPreset[preset]?.includes(widgetId) ? "left" : "right";
-}
-
-function getPresetOrder(widgetId: string, preset: FloatingWidgetPreset) {
-  const orders: Record<string, string[]> = {
-    exploration: ["quick-actions", "minimap", "token-detail", "visibility-inspector", "party-summary", "gm-notes", "initiative", "scene", "upload-map", "background", "token", "tokens"],
-    combat: ["initiative", "quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap", "gm-notes", "scene", "token", "tokens", "upload-map", "background"],
-    roleplay: ["quick-actions", "token-detail", "visibility-inspector", "gm-notes", "party-summary", "scene", "minimap", "initiative", "token", "tokens", "upload-map", "background"],
-    "quick-prep": ["scene", "gm-notes", "upload-map", "background", "quick-actions", "visibility-inspector", "minimap", "party-summary", "initiative", "token", "tokens", "token-detail"],
-    preparation: ["scene", "gm-notes", "upload-map", "background", "quick-actions", "visibility-inspector", "minimap", "party-summary", "initiative", "token", "tokens", "token-detail"],
-    minimal: ["quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap", "initiative", "gm-notes", "scene", "token", "tokens", "upload-map", "background"],
-  };
-
-  const order = orders[preset] ?? orders.exploration;
-  const index = order.indexOf(widgetId);
-
-  return index === -1 ? 99 : index;
-}
-
 function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetLayout {
   const margin = 18;
-  const rightPanelWidth = Math.min(390, Math.max(320, window.innerWidth * 0.24));
-  const compactWidth = Math.min(330, Math.max(270, window.innerWidth * 0.2));
-  const left = Math.max(margin, window.innerWidth - rightPanelWidth - margin);
-  const compactLeft = Math.max(margin, window.innerWidth - compactWidth - margin);
-  const side = getPresetSide(widgetId, preset);
-  const order = getPresetOrder(widgetId, preset);
+  const width = Math.min(390, Math.max(300, window.innerWidth * 0.24));
+  const left = Math.max(margin, window.innerWidth - width - margin);
+  const rightColumn = ["minimap", "token-detail", "visibility-inspector", "quick-actions", "party-summary", "initiative"];
+  const useRight = rightColumn.includes(widgetId);
+  const x = useRight ? left : margin;
+  const y = 92 + index * 44;
 
-  const width = preset === "minimal" || preset === "combat" ? compactWidth : rightPanelWidth;
-  const baseLeft = side === "left" ? margin : preset === "minimal" || preset === "combat" ? compactLeft : left;
-  const baseTop = 92 + order * 42;
-
-  const knownHeights: Record<string, number> = {
-    "quick-actions": 270,
+  const heights: Record<string, number> = {
+    "quick-actions": 280,
     "visibility-inspector": 320,
-    minimap: 240,
+    minimap: 250,
     "token-detail": 310,
     "party-summary": 280,
     initiative: 330,
@@ -185,11 +153,32 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
     tokens: 280,
   };
 
+  if (preset === "minimal") {
+    return {
+      left: useRight ? left : margin,
+      top: 92 + index * 34,
+      width: Math.min(330, width),
+      height: heights[widgetId] ?? 240,
+    };
+  }
+
+  if (preset === "combat") {
+    const combatOrder = ["initiative", "quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap"];
+    const combatIndex = combatOrder.includes(widgetId) ? combatOrder.indexOf(widgetId) : index;
+
+    return {
+      left: useRight ? left : margin,
+      top: 92 + combatIndex * 48,
+      width,
+      height: heights[widgetId] ?? 280,
+    };
+  }
+
   return {
-    left: baseLeft,
-    top: Math.max(92, baseTop),
+    left: x,
+    top: y,
     width,
-    height: knownHeights[widgetId] ?? 280,
+    height: heights[widgetId] ?? 280,
   };
 }
 

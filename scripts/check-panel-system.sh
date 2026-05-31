@@ -42,7 +42,8 @@ if 'from "../config/vttPanels"' not in menu:
 if "const panels" in menu or "const presets" in menu:
     errors.append("VttPanelsMenu contient encore une liste locale.")
 
-if "disabled={!enabled}" in re.search(r'<strong>Panneaux</strong>(.*?)</section>', menu, re.S).group(1):
+panel_section = re.search(r'<strong>Panneaux</strong>(.*?)</section>', menu, re.S)
+if panel_section and "disabled={!enabled}" in panel_section.group(1):
     errors.append("Les boutons d'affichage panneaux sont encore disabled.")
 
 required_hook_tokens = [
