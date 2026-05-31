@@ -1,9 +1,41 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent, type PointerEvent } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type MouseEvent,
+  type PointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import { applyFloatingWidgetPreset, resetFloatingWidgetLayouts, showFloatingWidget, useFloatingWidgets, type FloatingWidgetPreset } from "../hooks/useFloatingWidgets";
+import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
+import {
+  applyFloatingWidgetPreset,
+  resetFloatingWidgetLayouts,
+  saveFloatingWidgetCustomPreset,
+  showFloatingWidget,
+  useFloatingWidgets,
+} from "../hooks/useFloatingWidgets";
+import { InitiativePanel } from "./InitiativePanel";
+import { QuickActionsPanel } from "./QuickActionsPanel";
+import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { TokenDetailPanel } from "./TokenDetailPanel";
+import { PartySummaryPanel } from "./PartySummaryPanel";
+import { GmNotesPanel } from "./GmNotesPanel";
+
+type SessionLiveMode = "exploration" | "combat" | "roleplay" | "quick-prep" | "minimal";
+
+function getPresetForSessionLiveMode(mode: SessionLiveMode): FloatingWidgetPreset {
+  if (mode === "quick-prep") {
+    return "quick-prep";
+  }
+
+  return mode;
+}
 
 type Position = {
   x: number;
@@ -13,6 +45,7 @@ type Position = {
 type GmInterfaceMode = "play" | "prepare" | "advanced";
 
 type VttBoardProps = {
+  campaignId: string;
   scenes: Scene[];
   selectedScene: Scene | undefined;
   selectedSceneId: string;
@@ -31,13 +64,31 @@ type VttBoardProps = {
   onSetSceneBackground: () => void;
   onCreateToken: (event: FormEvent<HTMLFormElement>) => void;
   onMoveToken: (token: SceneToken, dx: number, dy: number) => void;
+  sessionLiveMode?: SessionLiveMode;
 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function getAbilityModifier(value: number) {
+  return Math.floor((value - 10) / 2);
+}
+
+function getPassivePerception(character: Character) {
+  return 10 + getAbilityModifier(character.attributes.wis ?? 10);
+}
+
+function getHpPercent(character: Character) {
+  if (character.hp_max <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((character.hp_current / character.hp_max) * 100)));
+}
+
 export function VttBoard({
+  campaignId,
   scenes,
   selectedScene,
   sceneTokens,
@@ -55,6 +106,7 @@ export function VttBoard({
   onSetSceneBackground,
   onCreateToken,
   onMoveToken,
+  sessionLiveMode,
 }: VttBoardProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -67,6 +119,7 @@ export function VttBoard({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [gmNotes, setGmNotes] = useState("");
   const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
   const [gmInterfaceMode, setGmInterfaceMode] = useState<GmInterfaceMode>("play");
   const [viewportRatio, setViewportRatio] = useState({
@@ -95,9 +148,49 @@ export function VttBoard({
 
   const effectiveFreePanelsEnabled = freePanelsEnabled || gmInterfaceMode === "advanced";
 
-  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel");
+  useFloatingWidgets(effectiveFreePanelsEnabled, ".vtt-control-panel", selectedScene?.id ?? "no-scene");
 
   const zoomPercent = Math.round(zoom * 100);
+
+  useEffect(() => {
+    if (!selectedScene) {
+      setGmNotes("");
+      return;
+    }
+
+    const scene = selectedScene;
+    const savedNotes = window.localStorage.getItem(`dnd-gm-scene-notes:${scene.id}`) ?? "";
+
+    setGmNotes(savedNotes);
+  }, [selectedScene?.id]);
+
+  function handleGmNotesChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    const nextValue = event.target.value;
+
+    setGmNotes(nextValue);
+
+    if (!selectedScene) {
+      return;
+    }
+
+    const scene = selectedScene;
+
+    window.localStorage.setItem(`dnd-gm-scene-notes:${scene.id}`, nextValue);
+  }
+
+  useEffect(() => {
+    if (!sessionLiveMode) {
+      return;
+    }
+
+    const sessionLiveModePreset = getPresetForSessionLiveMode(sessionLiveMode);
+
+    setGmMode("advanced");
+
+    window.setTimeout(() => {
+      applyFloatingWidgetPreset(sessionLiveModePreset);
+    }, 100);
+  }, [sessionLiveMode, selectedScene?.id]);
 
   function getTokenPositionFromPointer(event: PointerEvent<HTMLDivElement>, token: SceneToken): Position | null {
     if (!selectedScene || !boardRef.current) {
@@ -204,17 +297,11 @@ export function VttBoard({
   }
 
   function handleApplyFloatingPreset(preset: FloatingWidgetPreset) {
-    if (!freePanelsEnabled) {
-      setFreePanelsEnabled(true);
+    setGmMode("advanced");
 
-      window.setTimeout(() => {
-        applyFloatingWidgetPreset(preset);
-      }, 80);
-
-      return;
-    }
-
-    applyFloatingWidgetPreset(preset);
+    window.setTimeout(() => {
+      applyFloatingWidgetPreset(preset);
+    }, 80);
   }
 
   function openGmPanel(panelId: string, targetMode: GmInterfaceMode = "prepare") {
@@ -224,6 +311,14 @@ export function VttBoard({
     }
 
     showFloatingWidget(panelId);
+  }
+
+  function handleShowFloatingPanel(panelId: string) {
+    setGmMode("advanced");
+
+    window.setTimeout(() => {
+      showFloatingWidget(panelId);
+    }, 80);
   }
 
   function centerMapView(nextZoom = zoom) {
@@ -391,7 +486,7 @@ export function VttBoard({
   return (
     <div className={`vtt-section gm-mode-${gmInterfaceMode}`}>
       <div className="section-heading">
-        <h3>Table virtuelle</h3>
+        <h3>Carte de session</h3>
         <Swords aria-hidden="true" />
       </div>
 
@@ -542,7 +637,7 @@ export function VttBoard({
 
             <button className="reset-map-button" type="button" onClick={resetMapView}>
               <RotateCcw aria-hidden="true" />
-              Reset
+              Reset carte carte carte
             </button>
 
             <button
@@ -554,19 +649,11 @@ export function VttBoard({
               Panneaux libres
             </button>
 
-            <button
-              className="reset-panels-button"
-              type="button"
-              onClick={resetFloatingWidgetLayouts}
-              disabled={!effectiveFreePanelsEnabled}
-            >
-              Reset panneaux
-            </button>
-
             <VttPanelsMenu
               enabled={effectiveFreePanelsEnabled}
-              onShowPanel={showFloatingWidget}
+              onShowPanel={handleShowFloatingPanel}
               onApplyPreset={handleApplyFloatingPreset}
+              onSaveCustomPreset={saveFloatingWidgetCustomPreset}
               onResetPanels={resetFloatingWidgetLayouts}
             />
 
@@ -672,14 +759,14 @@ export function VttBoard({
           ) : (
             <div className="empty-state compact-empty">
               <Castle aria-hidden="true" />
-              <p>Aucune scene. Cree la premiere carte de combat.</p>
+              <p>Aucune scène. Crée ou sélectionne une scène.</p>
             </div>
           )}
         </section>
 
         <section className="vtt-control-panel">
           {selectedScene && (
-            <div className="map-overview" data-floating-widget="minimap" data-floating-title="Mini-map">
+            <div data-vtt-panel="minimap" data-floating-widget="minimap" data-floating-title="Mini-map" className="tool-card map-overview">
               <div className="map-overview-header">
                 <span>Mini-map</span>
                 <small>
@@ -728,83 +815,109 @@ export function VttBoard({
               </button>
             </div>
           )}
-          <section className="token-detail-panel" data-quick-panel="token-detail" data-floating-title="Detail token">
-            <div className="token-detail-heading">
-              <h4>Token selectionne</h4>
-              {selectedToken && <span>{selectedToken.name}</span>}
-            </div>
+          <details
+            data-vtt-panel="token-detail"
+            data-floating-widget="token-detail"
+            data-floating-title="Détail token"
+            className="tool-card token-detail-card"
+            open
+          >
+            <summary>Détail token</summary>
 
-            {selectedToken && selectedTokenPosition ? (
-              <>
-                <div className="token-detail-grid">
-                  <span>
-                    <small>Nom</small>
-                    <strong>{selectedToken.name}</strong>
-                  </span>
+            <TokenDetailPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              selectedTokenCharacter={selectedTokenCharacter}
+              selectedTokenPosition={selectedTokenPosition}
+              onCenterSelectedToken={centerSelectedToken}
+              onDeselectToken={() => setSelectedTokenId("")}
+              onNudgeSelectedToken={nudgeSelectedToken}
+            />
+          </details>
 
-                  <span>
-                    <small>Personnage</small>
-                    <strong>{selectedTokenCharacter?.name ?? "Token libre"}</strong>
-                  </span>
+          <details data-vtt-panel="visibility-inspector" data-floating-widget="visibility-inspector" data-floating-title="Visibilité"
+           
+           
+           
+            className="tool-card visibility-inspector-card"
+            open
+          >
+            <summary>Visibilité</summary>
 
-                  <span>
-                    <small>Position</small>
-                    <strong>
-                      x {selectedTokenPosition.x} · y {selectedTokenPosition.y}
-                    </strong>
-                  </span>
+            <VisibilityInspectorPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              sceneTokens={sceneTokens}
+            />
+          </details>
 
-                  <span>
-                    <small>Taille</small>
-                    <strong>{selectedToken.size} case(s)</strong>
-                  </span>
 
-                  <span>
-                    <small>Visibilite</small>
-                    <strong>{selectedToken.is_hidden ? "Cache" : "Visible"}</strong>
-                  </span>
+          <details data-vtt-panel="quick-actions" data-floating-widget="quick-actions" data-floating-title="Actions rapides"
+           
+           
+           
+            className="tool-card quick-actions-card"
+            open
+          >
+            <summary>Actions rapides</summary>
 
-                  <span>
-                    <small>Couleur</small>
-                    <strong>{selectedToken.color}</strong>
-                  </span>
-                </div>
+            <QuickActionsPanel
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+              sceneTokens={sceneTokens}
+            />
+          </details>
 
-                <div className="token-detail-actions">
-                  <button className="ghost-button" type="button" onClick={centerSelectedToken}>
-                    Centrer
-                  </button>
 
-                  <button
-                    className="ghost-button"
-                    type="button"
-                    onClick={() => setSelectedTokenId("")}
-                  >
-                    Deselectionner
-                  </button>
-                </div>
+          <details data-vtt-panel="initiative" data-floating-widget="initiative" data-floating-title="Initiative"
+           
+           
+           
+            className="tool-card initiative-card"
+            open
+          >
+            <summary>Initiative</summary>
 
-                <div className="token-detail-nudge" aria-label={`Deplacer ${selectedToken.name}`}>
-                  <button type="button" onClick={() => nudgeSelectedToken(0, -(selectedScene?.grid_size ?? 50))}>
-                    ↑
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(-(selectedScene?.grid_size ?? 50), 0)}>
-                    ←
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(selectedScene?.grid_size ?? 50, 0)}>
-                    →
-                  </button>
-                  <button type="button" onClick={() => nudgeSelectedToken(0, selectedScene?.grid_size ?? 50)}>
-                    ↓
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className="muted">Selectionne un token sur la carte ou dans la liste.</p>
-            )}
-          </section>
+            <InitiativePanel
+              sceneId={selectedScene?.id ?? ""}
+              sceneTokens={sceneTokens}
+            />
+          </details>
+          <details
+            data-vtt-panel="party-summary"
+            data-floating-widget="party-summary"
+            data-floating-title="Résumé du groupe"
+            className="tool-card party-summary-card"
+            open
+          >
+            <summary>Résumé du groupe</summary>
 
-          <details className="tool-card" data-quick-panel="scene" data-floating-title="Scene" open>
+            <PartySummaryPanel
+              characters={characters}
+              selectedCharacter={selectedCharacter}
+            />
+          </details>
+
+          <details
+            data-vtt-panel="gm-notes"
+            data-floating-widget="gm-notes"
+            data-floating-title="Notes MJ"
+            className="tool-card gm-notes-card"
+            open
+          >
+            <summary>Notes MJ</summary>
+
+            <GmNotesPanel
+              campaignId={campaignId}
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+            />
+          </details>
+
+
+
+
+          <details data-vtt-panel="scene" data-floating-widget="scene" data-floating-title="Scènes" className="tool-card" open>
             <summary>Scene</summary>
 
             <form className="scene-form" onSubmit={onCreateScene}>
@@ -843,7 +956,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card" data-floating-widget="upload-map" data-floating-title="Upload carte">
+          <details data-vtt-panel="upload-map" data-floating-widget="upload-map" data-floating-title="Upload carte" className="tool-card">
             <summary>Uploader une carte</summary>
 
             <form className="asset-form" onSubmit={onUploadAsset}>
@@ -860,7 +973,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card" data-floating-widget="background" data-floating-title="Fond de carte">
+          <details data-vtt-panel="background" data-floating-widget="background" data-floating-title="Fond de carte" className="tool-card">
             <summary>Choisir le fond</summary>
 
             <div className="asset-picker">
@@ -894,7 +1007,7 @@ export function VttBoard({
             </div>
           </details>
 
-          <details className="tool-card" data-quick-panel="token" data-floating-title="Ajout token" open>
+          <details data-vtt-panel="token" data-floating-widget="token" data-floating-title="Ajout token" className="tool-card" open>
             <summary>Ajouter un token</summary>
 
             <form className="token-form" onSubmit={onCreateToken}>
@@ -945,7 +1058,7 @@ export function VttBoard({
             </form>
           </details>
 
-          <details className="tool-card" data-quick-panel="tokens" data-floating-title="Liste tokens" open>
+          <details data-vtt-panel="tokens" data-floating-widget="tokens" data-floating-title="Liste tokens" className="tool-card" open>
             <summary>Tokens sur la scene</summary>
 
             <div className="token-list">

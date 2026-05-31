@@ -14,8 +14,8 @@ import {
 import "./styles.css";
 import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
+import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
-import { CombatPanel } from "./components/CombatPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
@@ -63,7 +63,8 @@ export default function App() {
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [mode, setMode] = useState<"login" | "register">("register");
   const [message, setMessage] = useState("");
-  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("overview");
+  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("campaign");
+  const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -84,6 +85,11 @@ export default function App() {
   const selectedEncounter = useMemo(
     () => encounters.find((encounter) => encounter.id === selectedEncounterId) ?? encounters[0],
     [encounters, selectedEncounterId],
+  );
+
+  const activeSessionLiveModeDetail = useMemo(
+    () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
+    [activeSessionLiveMode],
   );
 
   useEffect(() => {
@@ -1031,10 +1037,14 @@ export default function App() {
             )}
           </section>
 
-          <section className="panel detail-panel">
+          <section className={`panel detail-panel campaign-view-${activeCampaignView}`}>
             <h2>{selectedCampaign?.name ?? "Selection"}</h2>
             {selectedCampaign ? (
               <>
+                <CampaignViewTabs activeView={activeCampaignView} onChange={setActiveCampaignView} />
+
+
+                <section className="campaign-overview-tab" data-campaign-tab="overview">
                 <p className="muted">
                   {selectedCampaign.description || "Aucune description pour cette campagne."}
                 </p>
@@ -1064,7 +1074,9 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div className="character-section">
+                </section>
+
+                <div className="character-section" data-campaign-tab="characters">
                   <div className="section-heading">
                     <h3>Personnages</h3>
                     <ScrollText aria-hidden="true" />
@@ -1177,7 +1189,31 @@ export default function App() {
                   </div>
                 </div>
 
+                <section className="session-live-mode-bar">
+                  <div>
+                    <span className="session-status">Session Live</span>
+                    <h3>Mode {activeSessionLiveModeDetail.label}</h3>
+                    <p>{activeSessionLiveModeDetail.description}</p>
+                  </div>
+
+                  <div className="session-live-mode-buttons" aria-label="Modes Session Live">
+                    {SESSION_LIVE_MODES.map((mode) => (
+                      <button
+                        className={activeSessionLiveMode === mode.id ? "active" : ""}
+                        key={mode.id}
+                        onClick={() => setActiveSessionLiveMode(mode.id)}
+                        type="button"
+                      >
+                        <strong>{mode.label}</strong>
+                        <small>{mode.description}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                {activeCampaignView === "live" || activeCampaignView === "preparation" ? (
                 <VttBoard
+                  campaignId={selectedCampaign?.id ?? ""}
                   scenes={scenes}
                   selectedScene={selectedScene}
                   selectedSceneId={selectedSceneId}
@@ -1196,26 +1232,9 @@ export default function App() {
                   onSetSceneBackground={() => void handleSetSceneBackground()}
                   onCreateToken={handleCreateToken}
                   onMoveToken={(tokenToMove, dx, dy) => void handleMoveToken(tokenToMove, dx, dy)}
+                  sessionLiveMode={activeCampaignView === "live" ? activeSessionLiveMode : undefined}
                 />
-
-                <CombatPanel
-                  encounters={encounters}
-                  selectedEncounter={selectedEncounter}
-                  combatants={combatants}
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                  sceneTokens={sceneTokens}
-                  isBusy={isBusy}
-                  onCreateEncounter={handleCreateEncounter}
-                  onSelectEncounter={setSelectedEncounterId}
-                  onLoadEncounterDetail={(encounterId) => void loadEncounterDetail(encounterId)}
-                  onStartEncounter={() => void handleStartEncounter()}
-                  onNextTurn={() => void handleNextTurn()}
-                  onEndEncounter={() => void handleEndEncounter()}
-                  onAddCombatant={handleAddCombatant}
-                  onAdjustCombatantHp={(combatant, delta) => void handleAdjustCombatantHp(combatant, delta)}
-                  onToggleDefeated={(combatant) => void handleToggleDefeated(combatant)}
-                />
+                ) : null}
 
                 <SessionLogPanel
                   characters={characters}
@@ -1226,6 +1245,28 @@ export default function App() {
                   onRoll={handleRoll}
                   onAddNote={handleLogNote}
                 />
+
+                <section className="gm-placeholder-tab gm-library-placeholder">
+                  <h3>Bibliotheque</h3>
+                  <p className="muted">Espace prevu pour les ressources reutilisables de campagne.</p>
+                  <ul>
+                    <li>PNJ, monstres et creatures</li>
+                    <li>Objets, sorts et regles</li>
+                    <li>Cartes, tokens et documents</li>
+                    <li>Tables aleatoires et modeles de rencontre</li>
+                  </ul>
+                </section>
+
+                <section className="gm-placeholder-tab gm-settings-placeholder">
+                  <h3>Parametres</h3>
+                  <p className="muted">Espace prevu pour la configuration de campagne et de session.</p>
+                  <ul>
+                    <li>Permissions joueurs</li>
+                    <li>Systeme de jeu</li>
+                    <li>Options de visibilite</li>
+                    <li>Layouts, raccourcis et import/export</li>
+                  </ul>
+                </section>
               </>
             ) : (
               <p className="muted">Cree ou selectionne une campagne.</p>

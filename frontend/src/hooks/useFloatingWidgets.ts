@@ -1,5 +1,14 @@
 import { useEffect } from "react";
 
+import {
+  VTT_PANELS,
+  getVttPanelLabel,
+  isVttPanelId,
+  type FloatingWidgetPreset,
+} from "../config/vttPanels";
+
+export type { FloatingWidgetPreset } from "../config/vttPanels";
+
 type WidgetLayout = {
   left: number;
   top: number;
@@ -11,63 +20,25 @@ type WidgetMeta = {
   hidden: boolean;
   locked: boolean;
   collapsed: boolean;
+  pinned: boolean;
   zIndex: number;
 };
-
-export type FloatingWidgetPreset = "exploration" | "combat" | "preparation";
 
 const STORAGE_ROOT = "dnd-floating-widget:";
 const LAYOUT_PREFIX = `${STORAGE_ROOT}layout:`;
 const META_PREFIX = `${STORAGE_ROOT}meta:`;
+const CUSTOM_LAYOUT_PREFIX = `${STORAGE_ROOT}custom-layout:`;
+const CUSTOM_META_PREFIX = `${STORAGE_ROOT}custom-meta:`;
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function getWidgetTitle(widget: HTMLElement, index: number) {
-  const explicitTitle = widget.getAttribute("data-floating-title");
-
-  if (explicitTitle) {
-    return explicitTitle;
-  }
-
-  const titleElement = widget.querySelector<HTMLElement>(
-    "summary, h4, .map-overview-header span, .token-detail-heading h4",
-  );
-
-  return titleElement?.textContent?.trim() || `Panneau ${index + 1}`;
-}
-
-function getWidgetId(widget: HTMLElement, index: number) {
-  const explicitId =
-    widget.getAttribute("data-floating-widget") ||
-    widget.getAttribute("data-quick-panel");
-
-  if (explicitId) {
-    return explicitId;
-  }
-
-  return slugify(getWidgetTitle(widget, index)) || `widget-${index + 1}`;
 }
 
 function readStoredValue<T>(key: string) {
   try {
     const rawValue = window.localStorage.getItem(key);
 
-    if (!rawValue) {
-      return undefined;
-    }
-
-    return JSON.parse(rawValue) as T;
+    return rawValue ? (JSON.parse(rawValue) as T) : undefined;
   } catch {
     return undefined;
   }
@@ -77,11 +48,46 @@ function writeStoredValue<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function getDefaultMeta(index: number): WidgetMeta {
+  return {
+    hidden: false,
+    locked: false,
+    collapsed: false,
+    pinned: false,
+    zIndex: 100 + index,
+  };
+}
+
+function readStoredMeta(key: string, index: number): WidgetMeta {
+  return {
+    ...getDefaultMeta(index),
+    ...(readStoredValue<Partial<WidgetMeta>>(key) ?? {}),
+  };
+}
+
+function getWidgetId(widget: HTMLElement) {
+  return widget.getAttribute("data-vtt-panel") || "";
+}
+
+function getWidgetTitle(widget: HTMLElement, index: number) {
+  const id = getWidgetId(widget);
+
+  return (
+    widget.getAttribute("data-floating-title") ||
+    (isVttPanelId(id) ? getVttPanelLabel(id) : undefined) ||
+    widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
+      ?.textContent
+      ?.trim() ||
+    `Panneau ${index + 1}`
+  );
+}
+
 function clearRuntimeWidgetState(widget: HTMLElement) {
   widget.classList.remove(
     "floating-widget",
     "floating-widget-locked",
     "floating-widget-collapsed",
+    "floating-widget-pinned",
   );
 
   widget.style.position = "";
@@ -92,116 +98,131 @@ function clearRuntimeWidgetState(widget: HTMLElement) {
   widget.style.zIndex = "";
   widget.style.display = "";
 
+  widget.removeAttribute("data-floating-runtime-id");
+  widget.removeAttribute("data-floating-runtime-title");
+  widget.removeAttribute("data-floating-runtime-state");
+
   widget.querySelector(".floating-widget-toolbar")?.remove();
   widget.querySelector(".floating-widget-resize-handle")?.remove();
 }
 
 function getControlledWidgets(root: HTMLElement) {
-  return Array.from(root.children).filter((child): child is HTMLElement => {
-    return (
-      child instanceof HTMLElement &&
-      (
-        child.classList.contains("map-overview") ||
-        child.classList.contains("token-detail-panel") ||
-        child.classList.contains("tool-card")
-      )
-    );
+  const order = new Map<string, number>(VTT_PANELS.map((panel, index) => [panel.id, index]));
+
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-vtt-panel]")).sort((left, right) => {
+    const leftId = left.getAttribute("data-vtt-panel") ?? "";
+    const rightId = right.getAttribute("data-vtt-panel") ?? "";
+
+    return (order.get(leftId) ?? 999) - (order.get(rightId) ?? 999);
   });
 }
 
-function createToolbarButton(label: string, title: string) {
+function createToolbarButton(label: string, title: string, className: string) {
   const button = document.createElement("button");
+
   button.type = "button";
   button.textContent = label;
   button.title = title;
+  button.className = className;
   button.setAttribute("aria-label", title);
+
   return button;
 }
 
 function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetLayout {
   const margin = 18;
-  const rightPanelWidth = Math.min(390, Math.max(320, window.innerWidth * 0.24));
-  const compactWidth = Math.min(320, Math.max(260, window.innerWidth * 0.2));
-  const left = Math.max(margin, window.innerWidth - rightPanelWidth - margin);
-  const compactLeft = Math.max(margin, window.innerWidth - compactWidth - margin);
+  const width = Math.min(390, Math.max(300, window.innerWidth * 0.24));
+  const left = Math.max(margin, window.innerWidth - width - margin);
+  const rightColumn = ["minimap", "token-detail", "visibility-inspector", "quick-actions", "party-summary", "initiative"];
+  const useRight = rightColumn.includes(widgetId);
+  const x = useRight ? left : margin;
+  const y = 92 + index * 44;
 
-  if (preset === "combat") {
-    const layouts: Record<string, WidgetLayout> = {
-      minimap: { left: margin, top: 92, width: compactWidth, height: 260 },
-      "token-detail": { left: compactLeft, top: 92, width: compactWidth, height: 300 },
-      token: { left: compactLeft, top: 410, width: compactWidth, height: 330 },
-      tokens: { left: compactLeft, top: 760, width: compactWidth, height: 280 },
-      scene: { left: margin, top: 370, width: compactWidth, height: 260 },
-      "upload-map": { left: margin, top: 650, width: compactWidth, height: 220 },
-      background: { left: margin, top: 890, width: compactWidth, height: 220 },
-    };
-
-    return layouts[widgetId] ?? {
-      left: compactLeft,
-      top: 110 + index * 42,
-      width: compactWidth,
-      height: 260,
-    };
-  }
-
-  if (preset === "preparation") {
-    const layouts: Record<string, WidgetLayout> = {
-      scene: { left: margin, top: 92, width: rightPanelWidth, height: 380 },
-      "upload-map": { left: margin, top: 490, width: rightPanelWidth, height: 260 },
-      background: { left: margin, top: 770, width: rightPanelWidth, height: 280 },
-      minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
-      token: { left, top: 370, width: rightPanelWidth, height: 360 },
-      tokens: { left, top: 750, width: rightPanelWidth, height: 300 },
-      "token-detail": { left, top: 1070, width: rightPanelWidth, height: 240 },
-    };
-
-    return layouts[widgetId] ?? {
-      left,
-      top: 110 + index * 42,
-      width: rightPanelWidth,
-      height: 280,
-    };
-  }
-
-  const layouts: Record<string, WidgetLayout> = {
-    minimap: { left, top: 92, width: rightPanelWidth, height: 260 },
-    "token-detail": { left, top: 370, width: rightPanelWidth, height: 320 },
-    token: { left, top: 710, width: rightPanelWidth, height: 340 },
-    tokens: { left, top: 1070, width: rightPanelWidth, height: 280 },
-    scene: { left: margin, top: 92, width: compactWidth, height: 230 },
-    "upload-map": { left: margin, top: 340, width: compactWidth, height: 210 },
-    background: { left: margin, top: 570, width: compactWidth, height: 230 },
+  const heights: Record<string, number> = {
+    "quick-actions": 280,
+    "visibility-inspector": 320,
+    minimap: 250,
+    "token-detail": 310,
+    "party-summary": 280,
+    initiative: 330,
+    "gm-notes": 300,
+    scene: 300,
+    "upload-map": 230,
+    background: 250,
+    token: 330,
+    tokens: 280,
   };
 
-  return layouts[widgetId] ?? {
-    left,
-    top: 110 + index * 42,
-    width: rightPanelWidth,
-    height: 280,
+  if (preset === "minimal") {
+    return {
+      left: useRight ? left : margin,
+      top: 92 + index * 34,
+      width: Math.min(330, width),
+      height: heights[widgetId] ?? 240,
+    };
+  }
+
+  if (preset === "combat") {
+    const combatOrder = ["initiative", "quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap"];
+    const combatIndex = combatOrder.includes(widgetId) ? combatOrder.indexOf(widgetId) : index;
+
+    return {
+      left: useRight ? left : margin,
+      top: 92 + combatIndex * 48,
+      width,
+      height: heights[widgetId] ?? 280,
+    };
+  }
+
+  return {
+    left: x,
+    top: y,
+    width,
+    height: heights[widgetId] ?? 280,
   };
 }
 
 function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetMeta {
-  const common: WidgetMeta = {
-    hidden: false,
-    locked: false,
-    collapsed: false,
-    zIndex: 100 + index,
-  };
+  const common = getDefaultMeta(index);
 
   if (preset === "combat") {
     return {
       ...common,
       hidden: widgetId === "upload-map" || widgetId === "background",
-      collapsed: widgetId === "scene",
+      collapsed: widgetId === "scene" || widgetId === "gm-notes",
     };
   }
 
-  if (preset === "preparation") {
+  if (preset === "roleplay") {
+    return {
+      ...common,
+      hidden: widgetId === "upload-map" || widgetId === "background",
+      collapsed: widgetId === "initiative" || widgetId === "minimap" || widgetId === "token" || widgetId === "tokens",
+    };
+  }
+
+  if (preset === "quick-prep" || preset === "preparation") {
     return {
       ...common,
       hidden: false,
       collapsed: widgetId === "token-detail",
+    };
+  }
+
+  if (preset === "minimal") {
+    return {
+      ...common,
+      hidden:
+        widgetId === "scene" ||
+        widgetId === "upload-map" ||
+        widgetId === "background" ||
+        widgetId === "token" ||
+        widgetId === "tokens" ||
+        widgetId === "gm-notes",
+      collapsed:
+        widgetId === "minimap" ||
+        widgetId === "initiative" ||
+        widgetId === "visibility-inspector",
     };
   }
 
@@ -212,9 +233,29 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
   };
 }
 
+function reopenFloatingWidgetDom(widgetId: string) {
+  const widget = document.querySelector<HTMLElement>(
+    `[data-floating-runtime-id="${widgetId}"], [data-vtt-panel="${widgetId}"]`,
+  );
+
+  if (!widget) {
+    return;
+  }
+
+  widget.style.display = "";
+  widget.classList.remove("floating-widget-collapsed", "floating-widget-pinned");
+  widget.dataset.floatingRuntimeState = "open";
+
+  if (widget instanceof HTMLDetailsElement) {
+    widget.open = true;
+  }
+
+  widget.focus({ preventScroll: true });
+}
+
 export function resetFloatingWidgetLayouts() {
   Object.keys(window.localStorage)
-    .filter((key) => key.startsWith(STORAGE_ROOT))
+    .filter((key) => key.startsWith(LAYOUT_PREFIX) || key.startsWith(META_PREFIX))
     .forEach((key) => window.localStorage.removeItem(key));
 
   window.dispatchEvent(new Event("dnd:reset-floating-widgets"));
@@ -222,20 +263,25 @@ export function resetFloatingWidgetLayouts() {
 
 export function showFloatingWidget(widgetId: string) {
   const metaKey = `${META_PREFIX}${widgetId}`;
-  const storedMeta = readStoredValue<WidgetMeta>(metaKey);
+  const storedMeta = readStoredValue<Partial<WidgetMeta>>(metaKey);
 
-  writeStoredValue<WidgetMeta>(metaKey, {
+  writeStoredValue<Partial<WidgetMeta>>(metaKey, {
+    ...storedMeta,
     hidden: false,
-    locked: storedMeta?.locked ?? false,
     collapsed: false,
-    zIndex: Math.max(storedMeta?.zIndex ?? 180, 220),
+    pinned: false,
+    zIndex: Math.max(storedMeta?.zIndex ?? 180, 260),
   });
+
+  reopenFloatingWidgetDom(widgetId);
 
   window.dispatchEvent(
     new CustomEvent("dnd:show-floating-widget", {
       detail: { widgetId },
     }),
   );
+
+  window.requestAnimationFrame(() => reopenFloatingWidgetDom(widgetId));
 }
 
 export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
@@ -246,7 +292,11 @@ export function applyFloatingWidgetPreset(preset: FloatingWidgetPreset) {
   );
 }
 
-export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
+export function saveFloatingWidgetCustomPreset() {
+  window.dispatchEvent(new Event("dnd:save-floating-widget-custom-preset"));
+}
+
+export function useFloatingWidgets(enabled: boolean, rootSelector: string, refreshKey = "") {
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(rootSelector);
 
@@ -254,70 +304,118 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       return;
     }
 
-    const widgets = getControlledWidgets(root);
+    const rootElement = root;
+    const widgets = getControlledWidgets(rootElement);
     const cleanups: Array<() => void> = [];
     let topZIndex = 180;
 
-    root.classList.toggle("floating-widgets-active", enabled);
-
+    rootElement.classList.toggle("floating-widgets-active", enabled);
     widgets.forEach((widget) => clearRuntimeWidgetState(widget));
 
     if (!enabled) {
       return () => {
-        root.classList.remove("floating-widgets-active");
+        rootElement.classList.remove("floating-widgets-active");
       };
     }
 
+    const dock = document.createElement("div");
+    dock.className = "floating-widget-dock";
+    dock.hidden = true;
+    dock.setAttribute("aria-label", "Dock des panneaux masqués");
+
+    function updateDock() {
+      const dockedWidgets = widgets.filter((widget) => {
+        const isCollapsed = widget.classList.contains("floating-widget-collapsed");
+        const isHidden = widget.style.display === "none";
+        const isPinned = widget.classList.contains("floating-widget-pinned");
+
+        return isHidden || (!isPinned && isCollapsed);
+      });
+
+      dock.replaceChildren();
+
+      if (dockedWidgets.length === 0) {
+        dock.hidden = true;
+        return;
+      }
+
+      dock.hidden = false;
+
+      const label = document.createElement("strong");
+      label.textContent = "Panneaux masqués";
+      dock.append(label);
+
+      const list = document.createElement("div");
+      list.className = "floating-widget-dock-list";
+
+      dockedWidgets.forEach((widget) => {
+        const id = widget.getAttribute("data-floating-runtime-id");
+        const title = widget.getAttribute("data-floating-runtime-title");
+
+        if (!id || !title) {
+          return;
+        }
+
+        const isHidden = widget.style.display === "none";
+        const stateLabel = isHidden ? "fermé" : "réduit";
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `${title} · ${stateLabel}`;
+        button.dataset.floatingDockWidget = id;
+        button.dataset.floatingDockState = stateLabel;
+        button.title = `Afficher ${title}`;
+        button.setAttribute("aria-label", `Afficher ${title}`);
+
+        list.append(button);
+      });
+
+      dock.append(list);
+    }
+
+    function handleDockClick(event: MouseEvent) {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const button = target.closest("button[data-floating-dock-widget]");
+
+      if (!(button instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const widgetId = button.dataset.floatingDockWidget;
+
+      if (widgetId) {
+        showFloatingWidget(widgetId);
+      }
+    }
+
+    dock.addEventListener("click", handleDockClick);
+    document.body.append(dock);
+
+    cleanups.push(() => {
+      dock.removeEventListener("click", handleDockClick);
+      dock.remove();
+    });
+
     widgets.forEach((widget, index) => {
+      const id = getWidgetId(widget);
       const title = getWidgetTitle(widget, index);
-      const id = getWidgetId(widget, index);
       const layoutKey = `${LAYOUT_PREFIX}${id}`;
       const metaKey = `${META_PREFIX}${id}`;
 
-      const defaultWidth = Math.min(380, Math.max(280, window.innerWidth - 48));
-      const defaultHeight = Math.min(420, Math.max(180, window.innerHeight - 120));
-      const defaultLeft = clamp(
-        window.innerWidth - defaultWidth - 24 - index * 18,
-        12,
-        Math.max(12, window.innerWidth - 120),
-      );
-      const defaultTop = clamp(96 + index * 38, 12, Math.max(12, window.innerHeight - 80));
-
       const defaultLayout: WidgetLayout = {
-        left: defaultLeft,
-        top: defaultTop,
-        width: defaultWidth,
-        height: defaultHeight,
-      };
-
-      const defaultMeta: WidgetMeta = {
-        hidden: false,
-        locked: false,
-        collapsed: false,
-        zIndex: 90 + index,
+        left: clamp(window.innerWidth - 380 - 24 - index * 18, 12, Math.max(12, window.innerWidth - 120)),
+        top: clamp(96 + index * 38, 12, Math.max(12, window.innerHeight - 80)),
+        width: Math.min(380, Math.max(280, window.innerWidth - 48)),
+        height: Math.min(420, Math.max(180, window.innerHeight - 120)),
       };
 
       let currentLayout = readStoredValue<WidgetLayout>(layoutKey) ?? defaultLayout;
-      let currentMeta = readStoredValue<WidgetMeta>(metaKey) ?? defaultMeta;
-
-      function saveLayout() {
-        currentLayout = {
-          left: parseFloat(widget.style.left || "0"),
-          top: parseFloat(widget.style.top || "0"),
-          width: widget.offsetWidth,
-          height: widget.offsetHeight,
-        };
-
-        writeStoredValue(layoutKey, currentLayout);
-      }
-
-      function applyLayout(layout: WidgetLayout) {
-        widget.style.position = "fixed";
-        widget.style.left = `${layout.left}px`;
-        widget.style.top = `${layout.top}px`;
-        widget.style.width = `${layout.width}px`;
-        widget.style.height = `${layout.height}px`;
-      }
+      let currentMeta = readStoredMeta(metaKey, index);
 
       const toolbar = document.createElement("div");
       toolbar.className = "floating-widget-toolbar";
@@ -329,12 +427,13 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       const actions = document.createElement("div");
       actions.className = "floating-widget-toolbar-actions";
 
-      const frontButton = createToolbarButton("↑", "Mettre au premier plan");
-      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau");
-      const collapseButton = createToolbarButton("−", "Reduire le panneau");
-      const hideButton = createToolbarButton("×", "Fermer le panneau");
+      const frontButton = createToolbarButton("↑", "Mettre au premier plan", "floating-action-front");
+      const pinButton = createToolbarButton("📌", "Épingler dans le panneau latéral", "floating-action-pin");
+      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau", "floating-action-lock");
+      const collapseButton = createToolbarButton("−", "Réduire le panneau", "floating-action-collapse");
+      const hideButton = createToolbarButton("×", "Fermer le panneau", "floating-action-close");
 
-      actions.append(frontButton, lockButton, collapseButton, hideButton);
+      actions.append(frontButton, pinButton, lockButton, collapseButton, hideButton);
       toolbar.append(titleElement, actions);
       widget.prepend(toolbar);
 
@@ -343,20 +442,67 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       resizeHandle.setAttribute("aria-hidden", "true");
       widget.append(resizeHandle);
 
+      function saveLayout() {
+        if (!currentMeta.hidden && !currentMeta.collapsed && !currentMeta.pinned) {
+          currentLayout = {
+            left: parseFloat(widget.style.left || "0"),
+            top: parseFloat(widget.style.top || "0"),
+            width: widget.offsetWidth || currentLayout.width,
+            height: widget.offsetHeight || currentLayout.height,
+          };
+        }
+
+        writeStoredValue(layoutKey, currentLayout);
+      }
+
+      function applyLayout(layout: WidgetLayout) {
+        if (currentMeta.pinned) {
+          widget.style.position = "relative";
+          widget.style.left = "";
+          widget.style.top = "";
+          widget.style.width = "";
+          widget.style.height = "";
+          return;
+        }
+
+        widget.style.position = "fixed";
+        widget.style.left = `${layout.left}px`;
+        widget.style.top = `${layout.top}px`;
+        widget.style.width = `${layout.width}px`;
+        widget.style.height = `${layout.height}px`;
+      }
+
       function applyMeta() {
+        applyLayout(currentLayout);
+
         widget.style.display = currentMeta.hidden ? "none" : "";
         widget.style.zIndex = `${currentMeta.zIndex}`;
 
         widget.classList.toggle("floating-widget-locked", currentMeta.locked);
         widget.classList.toggle("floating-widget-collapsed", currentMeta.collapsed);
+        widget.classList.toggle("floating-widget-pinned", currentMeta.pinned);
+
+        widget.dataset.floatingRuntimeState = currentMeta.hidden
+          ? "closed"
+          : currentMeta.collapsed
+            ? "collapsed"
+            : currentMeta.pinned
+              ? "pinned"
+              : "open";
+
+        pinButton.textContent = currentMeta.pinned ? "↗" : "📌";
+        pinButton.title = currentMeta.pinned ? "Détacher en panneau flottant" : "Épingler dans le panneau latéral";
+        pinButton.setAttribute("aria-label", pinButton.title);
 
         lockButton.textContent = currentMeta.locked ? "🔓" : "🔒";
-        lockButton.title = currentMeta.locked ? "Deverrouiller le panneau" : "Verrouiller le panneau";
+        lockButton.title = currentMeta.locked ? "Déverrouiller le panneau" : "Verrouiller le panneau";
         lockButton.setAttribute("aria-label", lockButton.title);
 
         collapseButton.textContent = currentMeta.collapsed ? "+" : "−";
-        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Reduire le panneau";
+        collapseButton.title = currentMeta.collapsed ? "Ouvrir le panneau" : "Réduire le panneau";
         collapseButton.setAttribute("aria-label", collapseButton.title);
+
+        updateDock();
       }
 
       function saveMeta(nextMeta: Partial<WidgetMeta>) {
@@ -370,11 +516,17 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function bringToFront() {
+        if (currentMeta.pinned) {
+          return;
+        }
+
         topZIndex += 1;
         saveMeta({ zIndex: topZIndex });
       }
 
       widget.classList.add("floating-widget");
+      widget.setAttribute("data-floating-runtime-id", id);
+      widget.setAttribute("data-floating-runtime-title", title);
 
       const wasDetailsOpen = widget instanceof HTMLDetailsElement ? widget.open : undefined;
 
@@ -382,11 +534,14 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         widget.open = true;
       }
 
-      applyLayout(currentLayout);
       applyMeta();
 
       function handleToolbarPointerDown(event: PointerEvent) {
-        if (currentMeta.locked || (event.target instanceof HTMLElement && event.target.closest("button"))) {
+        if (
+          currentMeta.locked ||
+          currentMeta.pinned ||
+          (event.target instanceof HTMLElement && event.target.closest("button"))
+        ) {
           return;
         }
 
@@ -399,20 +554,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         const startTop = parseFloat(widget.style.top || "0");
 
         function handleDragMove(moveEvent: PointerEvent) {
-          const nextLeft = clamp(
-            startLeft + moveEvent.clientX - startX,
-            8,
-            Math.max(8, window.innerWidth - 80),
-          );
-
-          const nextTop = clamp(
-            startTop + moveEvent.clientY - startY,
-            8,
-            Math.max(8, window.innerHeight - 60),
-          );
-
-          widget.style.left = `${nextLeft}px`;
-          widget.style.top = `${nextTop}px`;
+          widget.style.left = `${clamp(startLeft + moveEvent.clientX - startX, 8, Math.max(8, window.innerWidth - 80))}px`;
+          widget.style.top = `${clamp(startTop + moveEvent.clientY - startY, 8, Math.max(8, window.innerHeight - 60))}px`;
         }
 
         function handleDragEnd() {
@@ -426,7 +569,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       }
 
       function handleResizeStart(event: PointerEvent) {
-        if (currentMeta.locked || currentMeta.collapsed) {
+        if (currentMeta.locked || currentMeta.collapsed || currentMeta.pinned) {
           return;
         }
 
@@ -440,20 +583,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         const startHeight = widget.offsetHeight;
 
         function handleResizeMove(moveEvent: PointerEvent) {
-          const nextWidth = clamp(
-            startWidth + moveEvent.clientX - startX,
-            240,
-            Math.max(260, window.innerWidth - 24),
-          );
-
-          const nextHeight = clamp(
-            startHeight + moveEvent.clientY - startY,
-            150,
-            Math.max(180, window.innerHeight - 24),
-          );
-
-          widget.style.width = `${nextWidth}px`;
-          widget.style.height = `${nextHeight}px`;
+          widget.style.width = `${clamp(startWidth + moveEvent.clientX - startX, 240, Math.max(260, window.innerWidth - 24))}px`;
+          widget.style.height = `${clamp(startHeight + moveEvent.clientY - startY, 150, Math.max(180, window.innerHeight - 24))}px`;
         }
 
         function handleResizeEnd() {
@@ -475,9 +606,8 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         window.localStorage.removeItem(metaKey);
 
         currentLayout = defaultLayout;
-        currentMeta = defaultMeta;
+        currentMeta = getDefaultMeta(index);
 
-        applyLayout(currentLayout);
         applyMeta();
       }
 
@@ -493,10 +623,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         saveMeta({
           hidden: false,
           collapsed: false,
+          pinned: false,
           zIndex: topZIndex,
         });
 
-        widget.focus({ preventScroll: true });
+        reopenFloatingWidgetDom(id);
       }
 
       function handleApplyPreset(event: Event) {
@@ -506,19 +637,50 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
           return;
         }
 
-        currentLayout = getPresetLayout(detail.preset, id, index);
-        currentMeta = getPresetMeta(detail.preset, id, index);
+        if (detail.preset === "custom") {
+          const savedLayout = readStoredValue<WidgetLayout>(`${CUSTOM_LAYOUT_PREFIX}${id}`);
+          const savedMeta = readStoredValue<Partial<WidgetMeta>>(`${CUSTOM_META_PREFIX}${id}`);
+
+          if (!savedLayout && !savedMeta) {
+            return;
+          }
+
+          currentLayout = savedLayout ?? currentLayout;
+          currentMeta = {
+            ...currentMeta,
+            ...savedMeta,
+          };
+        } else {
+          currentLayout = getPresetLayout(detail.preset, id, index);
+          currentMeta = getPresetMeta(detail.preset, id, index);
+        }
 
         writeStoredValue(layoutKey, currentLayout);
         writeStoredValue(metaKey, currentMeta);
 
-        applyLayout(currentLayout);
         applyMeta();
+      }
+
+      function handleSaveCustomPreset() {
+        saveLayout();
+
+        writeStoredValue(`${CUSTOM_LAYOUT_PREFIX}${id}`, currentLayout);
+        writeStoredValue(`${CUSTOM_META_PREFIX}${id}`, currentMeta);
       }
 
       function handleFrontClick(event: MouseEvent) {
         event.stopPropagation();
         bringToFront();
+      }
+
+      function handlePinClick(event: MouseEvent) {
+        event.stopPropagation();
+
+        saveMeta({
+          pinned: !currentMeta.pinned,
+          hidden: false,
+          collapsed: false,
+        });
       }
 
       function handleLockClick(event: MouseEvent) {
@@ -528,12 +690,12 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
 
       function handleCollapseClick(event: MouseEvent) {
         event.stopPropagation();
-        saveMeta({ collapsed: !currentMeta.collapsed });
+        saveMeta({ collapsed: !currentMeta.collapsed, hidden: false });
       }
 
       function handleHideClick(event: MouseEvent) {
         event.stopPropagation();
-        saveMeta({ hidden: true });
+        saveMeta({ hidden: true, collapsed: false });
       }
 
       toolbar.addEventListener("pointerdown", handleToolbarPointerDown);
@@ -541,6 +703,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       widget.addEventListener("pointerdown", handleWidgetPointerDown);
 
       frontButton.addEventListener("click", handleFrontClick);
+      pinButton.addEventListener("click", handlePinClick);
       lockButton.addEventListener("click", handleLockClick);
       collapseButton.addEventListener("click", handleCollapseClick);
       hideButton.addEventListener("click", handleHideClick);
@@ -548,6 +711,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       window.addEventListener("dnd:reset-floating-widgets", handleReset);
       window.addEventListener("dnd:show-floating-widget", handleShowWidget);
       window.addEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
+      window.addEventListener("dnd:save-floating-widget-custom-preset", handleSaveCustomPreset);
 
       cleanups.push(() => {
         toolbar.removeEventListener("pointerdown", handleToolbarPointerDown);
@@ -555,6 +719,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         widget.removeEventListener("pointerdown", handleWidgetPointerDown);
 
         frontButton.removeEventListener("click", handleFrontClick);
+        pinButton.removeEventListener("click", handlePinClick);
         lockButton.removeEventListener("click", handleLockClick);
         collapseButton.removeEventListener("click", handleCollapseClick);
         hideButton.removeEventListener("click", handleHideClick);
@@ -562,6 +727,7 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
         window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
         window.removeEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
+        window.removeEventListener("dnd:save-floating-widget-custom-preset", handleSaveCustomPreset);
 
         if (widget instanceof HTMLDetailsElement && typeof wasDetailsOpen === "boolean") {
           widget.open = wasDetailsOpen;
@@ -571,9 +737,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string) {
       });
     });
 
+    updateDock();
+
     return () => {
       cleanups.forEach((cleanup) => cleanup());
-      root.classList.remove("floating-widgets-active");
+      rootElement.classList.remove("floating-widgets-active");
     };
-  }, [enabled, rootSelector]);
+  }, [enabled, rootSelector, refreshKey]);
 }

@@ -1,0 +1,800 @@
+# Sprint 1 - Workspace MJ final
+
+## Objectif
+
+Finaliser l'organisation de l'espace MJ avant de passer aux tokens.
+
+Le MJ doit pouvoir adapter rapidement son cockpit sans perdre de temps :
+
+- choisir un preset ;
+- sauvegarder son layout ;
+- reduire des panneaux sans les perdre ;
+- epingler ou detacher un panneau ;
+- passer en focus carte ;
+- ajuster la densite de l'interface.
+
+## Perimetre
+
+Ce sprint concerne uniquement l'interface MJ et les panneaux.
+
+Pas de backend requis sauf besoin imprevu.
+
+## Lot 1 - Presets toujours accessibles
+
+### Objectif
+
+Le menu Gestion panneaux doit rester disponible dans tous les modes MJ.
+
+### Travail
+
+- rendre Gestion panneaux visible en Mode Partie ;
+- rendre Gestion panneaux visible en Mode Preparation ;
+- conserver Gestion panneaux en Mode Avance ;
+- cliquer un preset active automatiquement le Mode Avance ;
+- ajouter preset Personnalise ;
+- ajouter Sauvegarder layout actuel.
+
+### Criteres
+
+- Exploration fonctionne depuis Mode Partie ;
+- Combat fonctionne depuis Mode Partie ;
+- Preparation fonctionne depuis Mode Partie ;
+- Personnalise restaure le layout sauvegarde ;
+- sauvegarde layout persistante apres refresh.
+
+## Lot 2 - Dock des panneaux reduits
+
+### Objectif
+
+Un panneau reduit doit rester retrouvable.
+
+### Travail
+
+- creer un dock discret ;
+- ajouter les panneaux reduits au dock ;
+- restaurer un panneau depuis le dock ;
+- masquer le dock si vide ;
+- garder le dock compact.
+
+### Criteres
+
+- reduire Mini-map ajoute Mini-map au dock ;
+- clic Mini-map dans dock restaure le panneau ;
+- reduire Ajout token ajoute Ajout token au dock ;
+- refresh conserve l'etat.
+
+## Lot 3 - Epingler / detacher
+
+### Objectif
+
+Un panneau doit pouvoir etre soit dans la colonne laterale, soit flottant.
+
+### Travail
+
+- bouton epingler/detacher dans toolbar panneau ;
+- etat sauvegarde ;
+- panneau epingle retourne dans la colonne droite ;
+- panneau detache devient flottant.
+
+### Criteres
+
+- Mini-map epinglable ;
+- Ajout token detachable ;
+- etat conserve apres refresh.
+
+## Lot 4 - Focus carte
+
+### Objectif
+
+Permettre au MJ de maximiser la carte.
+
+### Travail
+
+- bouton Focus carte ;
+- masquer cockpit ;
+- masquer inspecteur ;
+- masquer panneaux ;
+- garder mini toolbar carte ;
+- bouton retour Cockpit.
+
+### Criteres
+
+- carte occupe presque tout l'ecran ;
+- retour au mode precedent ;
+- zoom/pan conserves.
+
+## Lot 5 - Densite interface
+
+### Objectif
+
+Permettre d'ajuster la taille visuelle de l'interface.
+
+### Travail
+
+- densite Confortable ;
+- densite Compacte ;
+- densite Tres compacte ;
+- sauvegarde localStorage ;
+- classes CSS globales.
+
+### Criteres
+
+- changement immediat ;
+- persistance apres refresh ;
+- pas de casse responsive.
+
+## Validation finale Sprint 1
+
+- build Docker OK ;
+- health backend OK ;
+- smoke tests Phase 2 a 8 OK ;
+- frontend accessible ;
+- test navigateur complet ;
+- documentation a jour ;
+- merge main ;
+- tag v0.10.1.
+
+## Avancement - Lot 1
+
+### Implementation
+
+- menu Gestion panneaux conserve en Mode Partie ;
+- menu Gestion panneaux conserve en Mode Preparation ;
+- presets Exploration, Combat, Preparation et Personnalise ;
+- choix d'un preset force le Mode Avance ;
+- sauvegarde du layout courant ;
+- restauration du layout Personnalise ;
+- reset complet conserve le preset Personnalise mais remet le layout courant a zero.
+
+### Validation manuelle attendue
+
+1. Ouvrir Mode Partie.
+2. Ouvrir Gestion panneaux.
+3. Cliquer Exploration.
+4. Verifier que le Mode Avance est active.
+5. Deplacer/redimensionner/fermer/reduire des panneaux.
+6. Cliquer Sauvegarder layout actuel.
+7. Cliquer Combat.
+8. Cliquer Personnalise.
+9. Verifier que le layout sauvegarde revient.
+
+## Avancement - Lot 2
+
+### Implementation
+
+- ajout d'un dock des panneaux reduits ;
+- un panneau reduit apparait dans le dock ;
+- un clic dans le dock restaure le panneau ;
+- le dock se masque automatiquement s'il est vide ;
+- le dock fonctionne avec les layouts/presets existants ;
+- le dock est supprime proprement quand le mode panneaux libres est desactive.
+
+### Validation manuelle attendue
+
+1. Passer en Mode Avance.
+2. Cliquer sur le bouton reduire d'un panneau flottant.
+3. Verifier que le panneau apparait dans le dock en bas de l'ecran.
+4. Cliquer sur le nom du panneau dans le dock.
+5. Verifier que le panneau est restaure.
+6. Reduire plusieurs panneaux.
+7. Verifier que le dock liste tous les panneaux reduits.
+8. Recharger la page.
+9. Verifier que l'etat reduit et le dock restent coherents.
+
+## Correction globale - Systeme de panneaux GM
+
+### Constats
+
+- certaines actions de panneaux ne fonctionnaient pas sur tous les panneaux ;
+- les panneaux conditionnels pouvaient apparaitre apres l'initialisation du hook ;
+- le menu Gestion panneaux etait parfois inutilisable quand les panneaux lateraux etaient presents ;
+- les boutons de toolbar n'etaient pas assez ergonomiques ;
+- le systeme ne distinguait pas clairement panneau ferme, reduit, epingle et flottant.
+
+### Corrections
+
+- hook relance avec une cle de scene ;
+- capture non-null de rootElement apres querySelector ;
+- toolbar uniforme sur tous les panneaux ;
+- bouton premier plan ;
+- bouton epingler/detacher ;
+- bouton verrouiller/deverrouiller ;
+- bouton reduire/ouvrir ;
+- bouton fermer ;
+- dock des panneaux reduits ;
+- preset Personnalise ;
+- sauvegarde du layout courant ;
+- menu Gestion panneaux toujours utilisable ;
+- les boutons Afficher un panneau activent le mode Avance si necessaire.
+
+### Validation attendue
+
+1. Mode Partie : ouvrir Gestion panneaux.
+2. Cliquer Exploration : passage en Mode Avance.
+3. Tester Mini-map : reduire, rouvrir depuis dock, fermer, rouvrir depuis Gestion panneaux.
+4. Tester Ajout token : reduire, rouvrir depuis dock, fermer, rouvrir depuis Gestion panneaux.
+5. Tester Scene : epingler, detacher, verrouiller, reduire.
+6. Deplacer/redimensionner plusieurs panneaux.
+7. Sauvegarder layout actuel.
+8. Changer vers Combat.
+9. Cliquer Personnalise.
+10. Verifier que le layout revient.
+
+## Correction Lot 2 - Dock des panneaux reduits et fermes
+
+### Objectif
+
+Le dock ne doit pas seulement contenir les panneaux reduits.
+Il doit aussi contenir les panneaux fermes afin que le MJ puisse les retrouver sans ouvrir le menu Gestion panneaux.
+
+### Comportement
+
+- un panneau reduit apparait dans le dock avec le statut reduit ;
+- un panneau ferme apparait dans le dock avec le statut ferme ;
+- cliquer un panneau du dock le rend visible et ouvert ;
+- les panneaux epingles ne sont pas ajoutes au dock ;
+- le dock disparait quand aucun panneau n'est reduit ou ferme.
+
+### Validation manuelle
+
+1. Mode Avance.
+2. Reduire Mini-map.
+3. Verifier que Mini-map apparait dans le dock avec le statut reduit.
+4. Cliquer Mini-map dans le dock.
+5. Verifier que Mini-map revient.
+6. Fermer Ajout token.
+7. Verifier que Ajout token apparait dans le dock avec le statut ferme.
+8. Cliquer Ajout token dans le dock.
+9. Verifier que Ajout token revient ouvert.
+
+## Correction Lot 2 - Reouverture robuste des panneaux
+
+### Probleme constate
+
+Le panneau Detail token pouvait rester impossible a rouvrir depuis Gestion panneaux.
+
+Cause probable :
+
+- etat runtime incoherent entre hidden, collapsed et pinned ;
+- panneau ferme non restaure visuellement malgre la mise a jour localStorage ;
+- dock qui excluait certains panneaux fermes s'ils etaient epingles ;
+- reouverture trop dependante de l'event runtime.
+
+### Correction
+
+- showFloatingWidget force maintenant localStorage et DOM ;
+- les panneaux fermes sont ajoutes au dock meme s'ils etaient epingles ;
+- la reouverture retire collapsed et pinned ;
+- les details HTML sont forces open ;
+- un etat data-floating-runtime-state facilite le debug.
+
+### Validation
+
+1. Mode Avance.
+2. Fermer Detail token.
+3. Verifier que Detail token apparait dans le dock.
+4. Cliquer Detail token dans le dock.
+5. Verifier que Detail token revient.
+6. Fermer Detail token.
+7. Ouvrir Gestion panneaux.
+8. Cliquer Detail token.
+9. Verifier que Detail token revient.
+
+## Correction structurelle - Standardisation des panneaux GM
+
+### Probleme
+
+Les panneaux GM utilisaient plusieurs structures et plusieurs attributs :
+
+- data-floating-widget ;
+- data-quick-panel ;
+- classes CSS differentes ;
+- liste du menu separee des panneaux reels.
+
+Cela provoquait des comportements incoherents selon les panneaux.
+
+### Correction
+
+- creation d'un registre unique frontend/src/config/vttPanels.ts ;
+- chaque panneau de VttBoard possede maintenant data-vtt-panel ;
+- le menu Gestion panneaux lit le registre ;
+- le hook detecte les panneaux via data-vtt-panel ;
+- un script scripts/check-vtt-panels.sh verifie que le registre et VttBoard restent synchronises.
+
+### Validation
+
+- tous les panneaux du registre existent dans VttBoard ;
+- les actions reduire, fermer, rouvrir, epingler, verrouiller sont uniformes ;
+- le menu ne diverge plus du code reel ;
+- le systeme est plus facile a maintenir.
+
+## Correction interface GM - Onglets principaux
+
+### Objectif
+
+Separer les grosses sections de l'interface GM afin d'eviter une page trop longue.
+
+### Comportement
+
+Les vues principales sont maintenant separees :
+
+- Vue d'ensemble : description campagne, invitation, membres ;
+- Personnages : creation et consultation des fiches personnages ;
+- Table : VTT, carte, scenes, tokens et panneaux ;
+- Combat : gestion du combat ;
+- Journal : jets, notes et historique ;
+- Session : vue live complete avec table, combat et journal.
+
+### Motivation
+
+Avant cette correction, les sections Personnages, Table, Combat et Journal etaient empilees dans le meme ecran.
+Cela surchargeait l'interface GM et rendait la navigation moins claire.
+
+### Validation
+
+1. Selectionner une campagne.
+2. Verifier que les onglets sont visibles.
+3. Cliquer Personnages.
+4. Verifier que seule la section Personnages est visible.
+5. Cliquer Journal.
+6. Verifier que seul le Journal est visible.
+7. Cliquer Table.
+8. Verifier que seule la table virtuelle est visible.
+9. Cliquer Combat.
+10. Verifier que seul le combat est visible.
+11. Cliquer Session.
+12. Verifier que Table, Combat et Journal sont visibles ensemble.
+
+## Refonte plan d'action interface GM
+
+### Nouvelle logique
+
+Les onglets deviennent des espaces de travail.
+Les panneaux deviennent des outils contextuels dans Session Live.
+
+### Onglets cibles
+
+- Campagne ;
+- Preparation ;
+- Session Live ;
+- Personnages ;
+- Journal ;
+- Bibliotheque ;
+- Parametres.
+
+### Transformation
+
+- Vue d'ensemble devient Campagne ;
+- Table est integree a Session Live ;
+- Combat devient un mode de Session Live ;
+- Journal reste une archive complete ;
+- Session devient Session Live ;
+- Preparation est ajoutee ;
+- Bibliotheque est ajoutee ;
+- Parametres est ajoute.
+
+### Priorite suivante
+
+- transformer Session Live en cockpit principal ;
+- ajouter les modes Exploration, Combat, Roleplay, Preparation rapide et Minimal ;
+- associer les layouts de panneaux aux modes.
+
+## Sprint GM-2A - Modes Session Live
+
+### Objectif
+
+Transformer Session Live en cockpit principal avec des modes internes.
+
+### Modes ajoutes
+
+- Exploration ;
+- Combat ;
+- Roleplay ;
+- Preparation rapide ;
+- Minimal.
+
+### Comportement actuel
+
+Le selecteur de mode est affiche dans l'onglet Session Live.
+
+Chaque mode affiche :
+
+- un nom ;
+- une description ;
+- un bouton actif.
+
+### Prochaine etape
+
+Brancher chaque mode a un layout de panneaux :
+
+- Exploration -> scenes, mini-map, detail token, journal compact ;
+- Combat -> initiative, detail token, actions combat, journal combat ;
+- Roleplay -> PNJ, relations, notes MJ, documents ;
+- Preparation rapide -> scenes, tokens, notes, documents ;
+- Minimal -> carte dominante, detail token compact, journal reduit.
+
+## Sprint GM-2B - Modes Session Live connectes aux layouts
+
+### Objectif
+
+Chaque mode Session Live applique automatiquement un layout de panneaux.
+
+### Mapping
+
+- Exploration -> preset Exploration ;
+- Combat -> preset Combat ;
+- Roleplay -> preset Roleplay ;
+- Preparation rapide -> preset Quick Prep ;
+- Minimal -> preset Minimal.
+
+### Comportement attendu
+
+Dans l'onglet Session Live :
+
+- cliquer Exploration organise les panneaux pour l'exploration ;
+- cliquer Combat organise les panneaux pour le combat ;
+- cliquer Roleplay replie les panneaux tactiques inutiles ;
+- cliquer Preparation rapide affiche les outils de creation ;
+- cliquer Minimal cache les panneaux lourds et garde la carte dominante.
+
+### Note
+
+Les panneaux Roleplay avances, Notes MJ, Initiative et Actions rapides seront ajoutes dans les prochains lots.
+Pour l'instant, les modes utilisent les panneaux existants.
+
+## Sprint GM-2C - Panneau Notes MJ
+
+### Objectif
+
+Ajouter un premier panneau contextuel manquant dans Session Live.
+
+### Fonctionnalites
+
+- panneau Notes MJ standardise ;
+- compatible fermer, reduire, dock, rouvrir, epingler, verrouiller ;
+- notes liees a la scene active ;
+- stockage local temporaire via localStorage ;
+- integration au registre des panneaux ;
+- integration aux presets Session Live.
+
+### Comportement attendu
+
+- Exploration : Notes MJ visibles ;
+- Combat : Notes MJ reduites ;
+- Roleplay : Notes MJ visibles ;
+- Preparation rapide : Notes MJ visibles ;
+- Minimal : Notes MJ masquees.
+
+### Evolution future
+
+- sauvegarde backend ;
+- partage co-MJ ;
+- tags ;
+- notes par PNJ/token/scene ;
+- visibilite MJ uniquement ;
+- recherche.
+
+## Sprint GM-2D - Panneau Resume du groupe
+
+### Objectif
+
+Ajouter un panneau MJ permettant de voir rapidement l'etat du groupe pendant la session.
+
+### Fonctionnalites
+
+- liste des personnages ;
+- PV actuel / max ;
+- pourcentage de PV ;
+- CA ;
+- vitesse ;
+- perception passive estimee ;
+- barre de PV ;
+- notes du personnage en aperçu ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Comportement attendu
+
+- Exploration : Resume du groupe visible ;
+- Combat : Resume du groupe visible ;
+- Roleplay : Resume du groupe visible ;
+- Preparation rapide : Resume du groupe visible ;
+- Minimal : Resume du groupe visible.
+
+### Evolution future
+
+- etats actifs ;
+- initiative ;
+- joueur associe ;
+- ressources ;
+- inspiration ;
+- perception passive avec competences ;
+- notes MJ dediees.
+
+## Sprint GM-2E - Panneau Initiative
+
+### Objectif
+
+Ajouter un panneau Initiative pour préparer le futur mode Combat.
+
+### Fonctionnalites
+
+- liste des tokens de la scene ;
+- initiative par token ;
+- tirage d20 par token ;
+- tirage d20 pour tous ;
+- round actuel ;
+- tour actif ;
+- bouton tour suivant ;
+- reset initiative ;
+- stockage local par scene ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Comportement attendu
+
+- Combat : Initiative visible ;
+- Exploration : Initiative disponible ;
+- Roleplay : Initiative reduite ;
+- Preparation rapide : Initiative disponible ;
+- Minimal : Initiative reduite.
+
+### Evolution future
+
+- integration backend ;
+- initiative liee aux personnages ;
+- bonus dexterite ;
+- groupes de monstres ;
+- cacher ennemis non reveles ;
+- historique des rounds ;
+- expiration automatique des conditions.
+
+## Sprint GM-2F - Panneau Actions rapides
+
+### Objectif
+
+Ajouter un panneau Actions rapides pour accelerer les actions courantes du MJ pendant Session Live.
+
+### Fonctionnalites
+
+- ouvrir rapidement les panneaux importants ;
+- appliquer rapidement un layout Exploration, Combat, Roleplay, Preparation rapide ou Minimal ;
+- lancer des des simples ;
+- voir le contexte scene/token ;
+- copier un resume rapide de la scene ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Panneaux accessibles
+
+- Detail token ;
+- Initiative ;
+- Resume du groupe ;
+- Notes MJ ;
+- Scenes ;
+- Ajout token ;
+- Mini-map.
+
+### Comportement attendu
+
+- Actions rapides visible dans tous les modes ;
+- boutons fonctionnels ;
+- compatible reduire, fermer, dock, rouvrir, epingler, verrouiller.
+
+### Evolution future
+
+- demander un jet a tous les joueurs ;
+- appliquer degats ;
+- appliquer soin ;
+- appliquer etat ;
+- reveler document ;
+- reveler zone ;
+- ping carte ;
+- envoyer message prive ;
+- lancer musique ;
+- creer note de session.
+
+## Sprint GM-2G - Inspecteur de visibilite
+
+### Objectif
+
+Ajouter un panneau permettant au MJ de verifier ce qui est visible ou cache pour les joueurs.
+
+### Fonctionnalites
+
+- scene active ;
+- token selectionne ;
+- nombre de tokens visibles ;
+- nombre de tokens caches ;
+- pourcentage visible joueurs ;
+- liste des tokens avec statut visible/cache ;
+- filtres Tous, Visibles, Caches ;
+- alertes MJ ;
+- raccourcis vers Detail token, Notes MJ et Mini-map ;
+- copie d'un resume de visibilite.
+
+### Limite actuelle
+
+Le panneau est en lecture seule.
+La modification directe de visibilite sera ajoutee dans une phase backend/token.
+
+### Comportement attendu
+
+- Combat : Inspecteur visible ;
+- Exploration : Inspecteur visible ;
+- Roleplay : Inspecteur visible ;
+- Preparation rapide : Inspecteur visible ;
+- Minimal : Inspecteur reduit.
+
+### Evolution future
+
+- cacher/reveler token ;
+- cacher/reveler nom ;
+- cacher/reveler barre de vie ;
+- voir comme joueur ;
+- historique des revelations ;
+- confirmation avant revelation publique.
+
+## Phase de stabilisation UI panneaux
+
+### Objectif
+
+Stabiliser tous les panneaux GM avant d'ajouter de nouveaux panneaux.
+
+### Corrections
+
+- registre unique frontend/src/config/vttPanels.ts ;
+- detection des panneaux via data-vtt-panel ;
+- menu Panneaux base sur le registre ;
+- bouton Afficher un panneau toujours utilisable ;
+- passage automatique en mode Avance pour ouvrir un panneau ;
+- hook useFloatingWidgets stabilise ;
+- dock des panneaux reduits et fermes ;
+- reouverture robuste ;
+- etat pinned ajoute ;
+- preset personnalise sauvegardable ;
+- scripts de verification ;
+- CSS de stabilisation ;
+- suppression progressive des doubles headers.
+
+### Scripts
+
+- scripts/check-vtt-panels.sh ;
+- scripts/check-panel-system.sh ;
+- scripts/check-frontend-types.sh.
+
+### Validation navigateur
+
+Pour chaque panneau :
+
+- ouvrir depuis Panneaux ;
+- reduire ;
+- rouvrir depuis dock ;
+- fermer ;
+- rouvrir depuis dock ;
+- fermer ;
+- rouvrir depuis Panneaux ;
+- epingler ;
+- detacher ;
+- verrouiller ;
+- deverrouiller ;
+- deplacer ;
+- redimensionner.
+
+### Panneaux concernes
+
+- Mini-map ;
+- Detail token ;
+- Visibilite ;
+- Actions rapides ;
+- Initiative ;
+- Resume du groupe ;
+- Notes MJ ;
+- Scenes ;
+- Upload carte ;
+- Fond de carte ;
+- Ajout token ;
+- Liste tokens.
+
+## GM-2C - Notes MJ
+
+### Objectif
+
+Ajouter un panneau Notes MJ stable et standardise dans Session Live.
+
+### Fonctionnalites
+
+- notes privees du MJ par scene ;
+- contexte scene active ;
+- contexte token selectionne ;
+- sauvegarde locale automatique ;
+- copie des notes ;
+- vidage rapide ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Stockage actuel
+
+Les notes sont sauvegardees dans le localStorage du navigateur avec une cle par campagne et par scene.
+
+### Limite actuelle
+
+La sauvegarde backend n'est pas encore implementee.
+Cette premiere version vise la stabilite UX.
+
+### Validation
+
+- Notes MJ visible dans Panneaux ;
+- Notes MJ ouvrable depuis Actions rapides ;
+- reduire puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis Panneaux ;
+- epingler puis detacher ;
+- verrouiller puis deverrouiller ;
+- refresh conserve le texte.
+
+## GM-2D - Resume du groupe
+
+### Objectif
+
+Ajouter un panneau Resume du groupe stable et standardise dans Session Live.
+
+### Fonctionnalites
+
+- liste des personnages ;
+- PV actuel / maximum ;
+- pourcentage de PV ;
+- statut OK / Blesse / Critique / KO ;
+- CA ;
+- vitesse ;
+- perception passive ;
+- notes du personnage en apercu ;
+- personnage selectionne mis en avant.
+
+### Validation
+
+- Resume du groupe visible dans Panneaux ;
+- Resume du groupe ouvrable depuis Actions rapides ;
+- reduire puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis Panneaux ;
+- epingler puis detacher ;
+- verrouiller puis deverrouiller ;
+- affichage correct avec zero personnage ;
+- affichage correct avec plusieurs personnages.
+
+## Roadmap mise à jour autour du CSS commun
+
+### Nouvelle priorité
+
+Avant de continuer à ajouter ou améliorer des panneaux, le socle CSS commun doit devenir la règle.
+
+Tous les panneaux doivent utiliser :
+
+- gm-panel-content ;
+- gm-panel-section ;
+- gm-panel-context ;
+- gm-panel-stat ;
+- gm-panel-card ;
+- gm-panel-row ;
+- gm-panel-list ;
+- gm-panel-actions ;
+- gm-panel-button ;
+- gm-panel-muted ;
+- gm-panel-badge ;
+- gm-panel-progress.
+
+### Nouvel ordre de reprise
+
+1. GM-2D-CSS - CSS commun panneaux GM ;
+2. GM-2C - Finalisation Notes MJ avec CSS commun ;
+3. GM-2D - Finalisation Résumé du groupe avec CSS commun ;
+4. GM-2E - Initiative stable ;
+5. GM-2F - Actions rapides compactes ;
+6. GM-2G - Inspecteur de visibilité ;
+7. GM-3A - Bibliothèque tokens ;
+8. GM-3B - Documents révélables ;
+9. GM-3C - États / conditions ;
+10. GM-3D - Rencontre active.
+
+### Règle
+
+Aucun nouveau panneau ne doit ajouter un gros bloc CSS spécifique.
+
+Le CSS spécifique est autorisé uniquement pour du contenu métier impossible à couvrir par le socle commun.
