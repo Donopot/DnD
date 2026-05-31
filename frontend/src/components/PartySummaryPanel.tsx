@@ -10,7 +10,7 @@ function getAbilityModifier(score: number) {
 }
 
 function getPassivePerception(character: Character) {
-  return 10 + getAbilityModifier(character.attributes.wis ?? 10);
+  return 10 + getAbilityModifier(character.attributes?.wis ?? 10);
 }
 
 function getHpPercent(character: Character) {
@@ -40,8 +40,15 @@ function getHealthLabel(percent: number) {
 export function PartySummaryPanel({ characters, selectedCharacter }: PartySummaryPanelProps) {
   if (characters.length === 0) {
     return (
-      <div className="party-summary-panel">
-        <p className="muted">Aucun personnage dans cette campagne.</p>
+      <div className="gm-panel-content party-summary-panel">
+        <section className="gm-panel-section">
+          <header>
+            <strong>Résumé du groupe</strong>
+            <small>Aucun personnage</small>
+          </header>
+
+          <p className="gm-panel-muted">Aucun personnage dans cette campagne.</p>
+        </section>
       </div>
     );
   }
@@ -50,66 +57,87 @@ export function PartySummaryPanel({ characters, selectedCharacter }: PartySummar
   const downCharacters = characters.filter((character) => character.hp_current <= 0);
 
   return (
-    <div className="party-summary-panel">
-      <header className="party-summary-overview">
-        <span>
+    <div className="gm-panel-content party-summary-panel">
+      <section className="gm-panel-context three">
+        <span className="gm-panel-stat">
           <small>Groupe</small>
           <strong>{characters.length}</strong>
         </span>
 
-        <span>
+        <span className="gm-panel-stat">
           <small>Blessés</small>
           <strong>{woundedCharacters.length}</strong>
         </span>
 
-        <span>
+        <span className="gm-panel-stat">
           <small>KO</small>
           <strong>{downCharacters.length}</strong>
         </span>
-      </header>
+      </section>
 
-      <div className="party-summary-list">
-        {characters.map((character) => {
-          const hpPercent = getHpPercent(character);
-          const healthLabel = getHealthLabel(hpPercent);
-          const isSelected = selectedCharacter?.id === character.id;
+      <section className="gm-panel-section">
+        <header>
+          <strong>Personnages</strong>
+          <small>PV, CA, vitesse, perception passive</small>
+        </header>
 
-          return (
-            <article
-              className={`party-summary-row ${isSelected ? "selected" : ""} ${hpPercent <= 25 ? "danger" : ""}`}
-              key={character.id}
-            >
-              <header>
-                <span>
-                  <strong>{character.name}</strong>
-                  <small>
-                    Niv. {character.level} · {character.class_name || "Aventurier"}
-                  </small>
-                </span>
+        <div className="gm-panel-list">
+          {characters.map((character) => {
+            const hpPercent = getHpPercent(character);
+            const healthLabel = getHealthLabel(hpPercent);
+            const isSelected = selectedCharacter?.id === character.id;
+            const isDanger = hpPercent <= 25;
 
-                <b>{healthLabel}</b>
-              </header>
+            return (
+              <article
+                className={`gm-panel-row ${isSelected ? "selected" : ""} ${isDanger ? "danger" : ""}`}
+                key={character.id}
+              >
+                <header>
+                  <span>
+                    <strong>{character.name}</strong>
+                    <small>
+                      Niv. {character.level} · {character.class_name || "Aventurier"}
+                    </small>
+                  </span>
 
-              <div className="party-summary-stats">
-                <em title="Points de vie">
-                  PV {character.hp_current}/{character.hp_max}
-                </em>
-                <em title="Classe d’armure">CA {character.armor_class}</em>
-                <em title="Vitesse">VIT {character.speed}</em>
-                <em title="Perception passive">PP {getPassivePerception(character)}</em>
-              </div>
+                  <b className={`gm-panel-badge ${isDanger ? "danger" : ""}`}>{healthLabel}</b>
+                </header>
 
-              <div className="party-summary-health" aria-label={`PV ${hpPercent}%`}>
-                <i style={{ width: `${hpPercent}%` }} />
-              </div>
+                <div className="gm-panel-grid four">
+                  <span className="gm-panel-stat">
+                    <small>PV</small>
+                    <strong>
+                      {character.hp_current}/{character.hp_max}
+                    </strong>
+                  </span>
 
-              {character.notes ? (
-                <small className="party-summary-note">{character.notes}</small>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
+                  <span className="gm-panel-stat">
+                    <small>CA</small>
+                    <strong>{character.armor_class}</strong>
+                  </span>
+
+                  <span className="gm-panel-stat">
+                    <small>Vitesse</small>
+                    <strong>{character.speed}</strong>
+                  </span>
+
+                  <span className="gm-panel-stat">
+                    <small>Perception</small>
+                    <strong>{getPassivePerception(character)}</strong>
+                  </span>
+                </div>
+
+                <div className={`gm-panel-progress ${isDanger ? "danger" : ""}`} aria-label={`PV ${hpPercent}%`}>
+                  <i style={{ width: `${hpPercent}%` }} />
+                </div>
+
+                {character.notes ? <small className="gm-panel-muted">{character.notes}</small> : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
