@@ -303,6 +303,35 @@ class EncounterDetailPublic(EncounterPublic):
     combatants: list[CombatantPublic]
 
 
+class GMNoteCreateRequest(BaseModel):
+    scene_id: UUID | None = None
+    token_id: UUID | None = None
+    title: str = Field(default="", max_length=120)
+    content: str = Field(default="", max_length=10000)
+    visibility: str = Field(default="gm_team", pattern="^(gm_team|author_only)$")
+
+
+class GMNoteUpdateRequest(BaseModel):
+    scene_id: UUID | None = None
+    token_id: UUID | None = None
+    title: str | None = Field(default=None, max_length=120)
+    content: str | None = Field(default=None, max_length=10000)
+    visibility: str | None = Field(default=None, pattern="^(gm_team|author_only)$")
+
+
+class GMNotePublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    scene_id: UUID | None
+    token_id: UUID | None
+    author_user_id: UUID | None
+    title: str
+    content: str
+    visibility: str
+    version: int
+    created_at: datetime
+    updated_at: datetime
+
 class AssetPublic(BaseModel):
     id: UUID
     campaign_id: UUID
