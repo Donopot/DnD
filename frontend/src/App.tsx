@@ -1213,6 +1213,7 @@ export default function App() {
 
                 {activeCampaignView === "live" || activeCampaignView === "preparation" ? (
                 <VttBoard
+                  campaignId={selectedCampaign?.id ?? ""}
                   scenes={scenes}
                   selectedScene={selectedScene}
                   selectedSceneId={selectedSceneId}
