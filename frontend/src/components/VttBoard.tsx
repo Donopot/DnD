@@ -23,6 +23,8 @@ import { InitiativePanel } from "./InitiativePanel";
 import { QuickActionsPanel } from "./QuickActionsPanel";
 import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
 import { VttPanelsMenu } from "./VttPanelsMenu";
+import { PartySummaryPanel } from "./PartySummaryPanel";
+import { GmNotesPanel } from "./GmNotesPanel";
 
 type SessionLiveMode = "exploration" | "combat" | "roleplay" | "quick-prep" | "minimal";
 
@@ -42,6 +44,7 @@ type Position = {
 type GmInterfaceMode = "play" | "prepare" | "advanced";
 
 type VttBoardProps = {
+  campaignId: string;
   scenes: Scene[];
   selectedScene: Scene | undefined;
   selectedSceneId: string;
@@ -84,6 +87,7 @@ function getHpPercent(character: Character) {
 }
 
 export function VttBoard({
+  campaignId,
   scenes,
   selectedScene,
   sceneTokens,
@@ -933,90 +937,37 @@ export function VttBoard({
               sceneTokens={sceneTokens}
             />
           </details>
-
-
-          <details data-vtt-panel="party-summary" data-floating-widget="party-summary" data-floating-title="Résumé du groupe"
-           
-           
-           
+          <details
+            data-vtt-panel="party-summary"
+            data-floating-widget="party-summary"
+            data-floating-title="Résumé du groupe"
             className="tool-card party-summary-card"
             open
           >
             <summary>Résumé du groupe</summary>
 
-            <div className="party-summary-panel">
-              {characters.length === 0 ? (
-                <p className="muted">Aucun personnage dans cette campagne.</p>
-              ) : (
-                <div className="party-summary-list">
-                  {characters.map((character) => {
-                    const hpPercent = getHpPercent(character);
-
-                    return (
-                      <article
-                        className={`party-summary-row ${selectedCharacter?.id === character.id ? "selected" : ""}`}
-                        key={character.id}
-                      >
-                        <header>
-                          <span>
-                            <strong>{character.name}</strong>
-                            <small>
-                              Niv. {character.level} {character.class_name || "Aventurier"}
-                            </small>
-                          </span>
-
-                          <b>{hpPercent}%</b>
-                        </header>
-
-                        <div className="party-summary-stats">
-                          <em title="Points de vie">
-                            PV {character.hp_current}/{character.hp_max}
-                          </em>
-                          <em title="Classe d’armure">CA {character.armor_class}</em>
-                          <em title="Vitesse">VIT {character.speed}</em>
-                          <em title="Perception passive estimée">
-                            PP {getPassivePerception(character)}
-                          </em>
-                        </div>
-
-                        <div className="party-summary-health" aria-label={`PV ${hpPercent}%`}>
-                          <i style={{ width: `${hpPercent}%` }} />
-                        </div>
-
-                        {character.notes && (
-                          <small className="party-summary-note">
-                            {character.notes}
-                          </small>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <PartySummaryPanel
+              characters={characters}
+              selectedCharacter={selectedCharacter}
+            />
           </details>
 
-
-          <details data-vtt-panel="gm-notes" data-floating-widget="gm-notes" data-floating-title="Notes MJ" className="tool-card" open>
+          <details
+            data-vtt-panel="gm-notes"
+            data-floating-widget="gm-notes"
+            data-floating-title="Notes MJ"
+            className="tool-card gm-notes-card"
+            open
+          >
             <summary>Notes MJ</summary>
 
-            <div className="gm-notes-panel">
-              <label>
-                Notes privées de scène
-                <textarea
-                  maxLength={8000}
-                  onChange={handleGmNotesChange}
-                  placeholder="Secrets, rappels, indices à donner, ambiance, pièges, improvisation..."
-                  rows={8}
-                  value={gmNotes}
-                />
-              </label>
-
-              <small>
-                Notes locales privées pour cette scène. Version backend et partage co-MJ prévus plus tard.
-              </small>
-            </div>
+            <GmNotesPanel
+              campaignId={campaignId}
+              selectedScene={selectedScene}
+              selectedToken={selectedToken}
+            />
           </details>
+
 
 
 

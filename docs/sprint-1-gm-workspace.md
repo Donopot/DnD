@@ -692,3 +692,69 @@ Pour chaque panneau :
 - Fond de carte ;
 - Ajout token ;
 - Liste tokens.
+
+## GM-2C - Notes MJ
+
+### Objectif
+
+Ajouter un panneau Notes MJ stable et standardise dans Session Live.
+
+### Fonctionnalites
+
+- notes privees du MJ par scene ;
+- contexte scene active ;
+- contexte token selectionne ;
+- sauvegarde locale automatique ;
+- copie des notes ;
+- vidage rapide ;
+- compatibilite avec le systeme de panneaux standardise.
+
+### Stockage actuel
+
+Les notes sont sauvegardees dans le localStorage du navigateur avec une cle par campagne et par scene.
+
+### Limite actuelle
+
+La sauvegarde backend n'est pas encore implementee.
+Cette premiere version vise la stabilite UX.
+
+### Validation
+
+- Notes MJ visible dans Panneaux ;
+- Notes MJ ouvrable depuis Actions rapides ;
+- reduire puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis Panneaux ;
+- epingler puis detacher ;
+- verrouiller puis deverrouiller ;
+- refresh conserve le texte.
+
+## GM-2D - Resume du groupe
+
+### Objectif
+
+Ajouter un panneau Resume du groupe stable et standardise dans Session Live.
+
+### Fonctionnalites
+
+- liste des personnages ;
+- PV actuel / maximum ;
+- pourcentage de PV ;
+- statut OK / Blesse / Critique / KO ;
+- CA ;
+- vitesse ;
+- perception passive ;
+- notes du personnage en apercu ;
+- personnage selectionne mis en avant.
+
+### Validation
+
+- Resume du groupe visible dans Panneaux ;
+- Resume du groupe ouvrable depuis Actions rapides ;
+- reduire puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis dock ;
+- fermer puis rouvrir depuis Panneaux ;
+- epingler puis detacher ;
+- verrouiller puis deverrouiller ;
+- affichage correct avec zero personnage ;
+- affichage correct avec plusieurs personnages.

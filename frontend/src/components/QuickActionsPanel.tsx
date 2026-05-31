@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import type { Scene, SceneToken } from "../api/types";
-import { applyFloatingWidgetPreset, showFloatingWidget } from "../hooks/useFloatingWidgets";
 import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
+import { applyFloatingWidgetPreset, showFloatingWidget } from "../hooks/useFloatingWidgets";
 
 type QuickActionsPanelProps = {
   selectedScene: Scene | undefined;
@@ -16,22 +16,44 @@ type QuickRoll = {
   createdAt: string;
 };
 
-const quickPanels: Array<{ id: VttPanelId; label: string }> = [
-  { id: "token-detail", label: "Détail token" },
-  { id: "visibility-inspector", label: "Visibilité" },
-  { id: "initiative", label: "Initiative" },
-  { id: "party-summary", label: "Résumé groupe" },
-  { id: "gm-notes", label: "Notes MJ" },
-  { id: "scene", label: "Scènes" },
-  { id: "token", label: "+ Token" },
+type QuickPanelAction = {
+  id: VttPanelId;
+  label: string;
+  hint: string;
+};
+
+type QuickPresetAction = {
+  id: FloatingWidgetPreset;
+  label: string;
+};
+
+const quickPanels: QuickPanelAction[] = [
+  { id: "token-detail", label: "Détail", hint: "Token" },
+  { id: "visibility-inspector", label: "Visibilité", hint: "Joueurs" },
+  { id: "initiative", label: "Initiative", hint: "Combat" },
+  { id: "party-summary", label: "Groupe", hint: "PV / CA" },
+  { id: "gm-notes", label: "Notes MJ", hint: "Privées" },
+  { id: "scene", label: "Scènes", hint: "Carte" },
+  { id: "token", label: "+ Token", hint: "Ajouter" },
+  { id: "tokens", label: "Liste", hint: "Tokens" },
+  { id: "minimap", label: "Mini-map", hint: "Vue globale" },
 ];
 
-const quickPresets: Array<{ id: FloatingWidgetPreset; label: string }> = [
+const quickPresets: QuickPresetAction[] = [
   { id: "exploration", label: "Exploration" },
   { id: "combat", label: "Combat" },
   { id: "roleplay", label: "Roleplay" },
-  { id: "quick-prep", label: "Prépa rapide" },
+  { id: "quick-prep", label: "Prépa" },
   { id: "minimal", label: "Minimal" },
+];
+
+const quickDice: Array<{ label: string; sides: number }> = [
+  { label: "d20", sides: 20 },
+  { label: "d12", sides: 12 },
+  { label: "d10", sides: 10 },
+  { label: "d8", sides: 8 },
+  { label: "d6", sides: 6 },
+  { label: "d4", sides: 4 },
 ];
 
 function rollDie(sides: number) {
@@ -44,14 +66,7 @@ export function QuickActionsPanel({
   sceneTokens,
 }: QuickActionsPanelProps) {
   const [lastRoll, setLastRoll] = useState<QuickRoll | null>(null);
-
-  function handleRoll(label: string, sides: number) {
-    setLastRoll({
-      label,
-      total: rollDie(sides),
-      createdAt: new Date().toLocaleTimeString(),
-    });
-  }
+  const [copyStatus, setCopyStatus] = useState("");
 
   function handleShowPanel(panelId: VttPanelId) {
     showFloatingWidget(panelId);
@@ -61,55 +76,71 @@ export function QuickActionsPanel({
     applyFloatingWidgetPreset(preset);
   }
 
-  function copySceneSummary() {
+  function handleRoll(label: string, sides: number) {
+    setLastRoll({
+      label,
+      total: rollDie(sides),
+      createdAt: new Date().toLocaleTimeString(),
+    });
+  }
+
+  async function copySceneSummary() {
     const summary = [
       selectedScene ? `Scène active : ${selectedScene.name}` : "Aucune scène active",
       `Tokens sur scène : ${sceneTokens.length}`,
       selectedToken ? `Token sélectionné : ${selectedToken.name}` : "Aucun token sélectionné",
     ].join("\n");
 
-    void navigator.clipboard?.writeText(summary);
+    try {
+      await navigator.clipboard?.writeText(summary);
+      setCopyStatus("Copié");
+    } catch {
+      setCopyStatus("Copie impossible");
+    }
   }
 
   return (
-    <div className="quick-actions-panel">
-      <section>
-        <strong>Contexte</strong>
+    <div className="quick-actions-panel quick-actions-panel-compact">
+      <section className="quick-actions-context-card">
+        <span>
+          <small>Scène</small>
+          <strong>{selectedScene?.name ?? "Aucune"}</strong>
+        </span>
 
-        <div className="quick-actions-context">
-          <span>
-            Scène
-            <b>{selectedScene?.name ?? "Aucune"}</b>
-          </span>
+        <span>
+          <small>Token</small>
+          <strong>{selectedToken?.name ?? "Aucun"}</strong>
+        </span>
 
-          <span>
-            Token
-            <b>{selectedToken?.name ?? "Aucun"}</b>
-          </span>
-
-          <span>
-            Tokens
-            <b>{sceneTokens.length}</b>
-          </span>
-        </div>
+        <span>
+          <small>Tokens</small>
+          <strong>{sceneTokens.length}</strong>
+        </span>
       </section>
 
-      <section>
-        <strong>Ouvrir un panneau</strong>
+      <section className="quick-actions-section">
+        <header>
+          <strong>Ouvrir</strong>
+          <small>Panneaux essentiels</small>
+        </header>
 
-        <div className="quick-actions-grid">
+        <div className="quick-actions-button-grid">
           {quickPanels.map((panel) => (
             <button key={panel.id} onClick={() => handleShowPanel(panel.id)} type="button">
-              {panel.label}
+              <strong>{panel.label}</strong>
+              <small>{panel.hint}</small>
             </button>
           ))}
         </div>
       </section>
 
-      <section>
-        <strong>Modes Session Live</strong>
+      <section className="quick-actions-section">
+        <header>
+          <strong>Layouts</strong>
+          <small>Modes Session Live</small>
+        </header>
 
-        <div className="quick-actions-grid">
+        <div className="quick-actions-preset-row">
           {quickPresets.map((preset) => (
             <button key={preset.id} onClick={() => handleApplyPreset(preset.id)} type="button">
               {preset.label}
@@ -118,38 +149,46 @@ export function QuickActionsPanel({
         </div>
       </section>
 
-      <section>
-        <strong>Dés rapides</strong>
+      <section className="quick-actions-section">
+        <header>
+          <strong>Dés</strong>
+          <small>Jet rapide local</small>
+        </header>
 
-        <div className="quick-actions-dice">
-          <button onClick={() => handleRoll("d20", 20)} type="button">d20</button>
-          <button onClick={() => handleRoll("d12", 12)} type="button">d12</button>
-          <button onClick={() => handleRoll("d10", 10)} type="button">d10</button>
-          <button onClick={() => handleRoll("d8", 8)} type="button">d8</button>
-          <button onClick={() => handleRoll("d6", 6)} type="button">d6</button>
-          <button onClick={() => handleRoll("d4", 4)} type="button">d4</button>
+        <div className="quick-actions-dice-row">
+          {quickDice.map((die) => (
+            <button key={die.label} onClick={() => handleRoll(die.label, die.sides)} type="button">
+              {die.label}
+            </button>
+          ))}
         </div>
 
         {lastRoll && (
           <p className="quick-actions-roll">
-            {lastRoll.label} : <strong>{lastRoll.total}</strong>
+            <span>{lastRoll.label}</span>
+            <strong>{lastRoll.total}</strong>
             <small>{lastRoll.createdAt}</small>
           </p>
         )}
       </section>
 
-      <section>
-        <strong>Utilitaires</strong>
+      <section className="quick-actions-section">
+        <header>
+          <strong>Utilitaires</strong>
+          <small>Session</small>
+        </header>
 
-        <div className="quick-actions-grid">
+        <div className="quick-actions-utility-row">
           <button onClick={copySceneSummary} type="button">
-            Copier résumé scène
+            Copier résumé
           </button>
 
           <button onClick={() => handleShowPanel("minimap")} type="button">
-            Afficher mini-map
+            Mini-map
           </button>
         </div>
+
+        {copyStatus && <small className="quick-actions-copy-status">{copyStatus}</small>}
       </section>
     </div>
   );
