@@ -11002,3 +11002,129 @@ select {
   text-align: center;
   padding: 0.25rem 0;
 }
+
+/* ── Token upgrades: nameplates, HP bars, grid toggle ─────────────────── */
+
+.campaign-map-grid-toggle {
+  padding: 0.15rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.campaign-map-grid-toggle:hover { color: #c0c0a0; border-color: #5a6a5e; }
+.campaign-map-grid-toggle.active { color: #c5b358; border-color: #c5b358; }
+
+.campaign-map-board.show-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+}
+
+.campaign-map-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 2px solid rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  overflow: visible;
+  user-select: none;
+}
+
+.campaign-map-token:hover {
+  border-color: rgba(255,255,255,0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.campaign-map-token.selected {
+  border-color: #c5b358;
+  box-shadow: 0 0 12px rgba(197,179,88,0.4);
+}
+
+.campaign-map-token.player-owned {
+  border-color: rgba(34,197,94,0.5);
+}
+
+.token-icon {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.token-nameplate {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #e0dcc8;
+  background: rgba(10,14,11,0.85);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.token-hp-bar {
+  position: absolute;
+  bottom: -3px;
+  left: 4px;
+  right: 4px;
+  height: 4px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.token-hp-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.token-ring {
+  position: absolute;
+  inset: -3px;
+  border: 2px solid #c5b358;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+  animation: ring-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ── AoE labels ────────────────────────────────────────────────────────── */
+
+.aoe-label {
+  position: absolute;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #c5b358;
+  background: rgba(10,14,11,0.8);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 49;
+}

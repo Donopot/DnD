@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Undo2 } from "lucide-react";
 
 const TOKEN_KEY = "dnd_access_token";
 
@@ -37,9 +37,7 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
         const data = await res.json();
         setZones(data.fog_zones || []);
       }
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }
 
   useEffect(() => { void loadZones(); }, [sceneId]);
@@ -55,9 +53,7 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
         },
         body: JSON.stringify({ fog_zones: newZones }),
       });
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }
 
   // Draw fog on canvas
@@ -144,7 +140,14 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
     setCurrentRect(null);
   }
 
-  function clearAll() {
+  function handleUndo() {
+    if (zones.length === 0) return;
+    const newZones = zones.slice(0, -1);
+    setZones(newZones);
+    void saveZones(newZones);
+  }
+
+  function handleClearAll() {
     setZones([]);
     void saveZones([]);
   }
@@ -185,9 +188,14 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
             {showFog ? "Fog ON" : "Fog OFF"}
           </button>
           {zones.length > 0 && (
-            <button className="ghost-button compact" onClick={clearAll} type="button">
-              Reset
-            </button>
+            <>
+              <button className="ghost-button compact" onClick={handleUndo} type="button" title="Annuler dernière zone">
+                <Undo2 size={14} />
+              </button>
+              <button className="ghost-button compact" onClick={handleClearAll} type="button" title="Reset tout le brouillard">
+                Reset
+              </button>
+            </>
           )}
         </div>
       )}
