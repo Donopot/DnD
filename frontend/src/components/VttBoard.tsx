@@ -20,6 +20,7 @@ import {
   useFloatingWidgets,
 } from "../hooks/useFloatingWidgets";
 import { InitiativePanel } from "./InitiativePanel";
+import { FogLayer } from "./FogLayer";
 import { QuickActionsPanel } from "./QuickActionsPanel";
 import { VisibilityInspectorPanel } from "./VisibilityInspectorPanel";
 import { VttPanelsMenu } from "./VttPanelsMenu";
@@ -727,6 +728,13 @@ export function VttBoard({
                       src={sceneBackgroundObjectUrl}
                     />
                   )}
+
+                  <FogLayer
+                    sceneId={selectedScene.id}
+                    sceneWidth={selectedScene.width}
+                    sceneHeight={selectedScene.height}
+                    isGM={true}
+                  />
 
                   {sceneTokens.map((token) => {
                     const position = draftPositions[token.id] ?? { x: token.x, y: token.y };

@@ -8448,3 +8448,45 @@ select {
 .homebrew-toast button { background: none; border: none; font-size: 0.9rem; cursor: pointer; color: #2d6a4f; }
 
 @media (max-width: 900px) { .homebrew-creature-layout { grid-template-columns: 1fr; } }
+
+/* ── Fog of War (Phase 16) ─────────────────────────────────────────── */
+
+.fog-layer-container {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.fog-canvas {
+  pointer-events: none;
+}
+
+.fog-toolbar {
+  position: absolute;
+  top: 8px; right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.fog-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #d4cdb8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #5a4e3e;
+}
+
+.fog-toggle-btn.active {
+  background: #1b4332;
+  color: #f8f4e8;
+  border-color: #1b4332;
+}

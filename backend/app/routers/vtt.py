@@ -2,6 +2,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
@@ -371,3 +372,54 @@ async def update_scene_settings(
         current["view_pan_y"],
     )
     return scene_public(row)
+
+
+# ── Phase 16: Fog of War ─────────────────────────────────────────────
+
+class FogUpdateRequest(BaseModel):
+    fog_zones: list[dict[str, Any]]  # [{x, y, width, height}, ...]
+
+
+@router.get("/scenes/{scene_id}/fog")
+async def get_fog(
+    scene_id: UUID,
+    current_user=Depends(get_current_user),
+):
+    scene = await get_scene_or_404(scene_id)
+    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    return {
+        "scene_id": str(scene_id),
+        "fog_zones": scene.get("fog_zones") or [],
+        "scene_width": scene["width"],
+        "scene_height": scene["height"],
+    }
+
+
+@router.patch("/scenes/{scene_id}/fog")
+async def update_fog(
+    scene_id: UUID,
+    payload: FogUpdateRequest,
+    current_user=Depends(get_current_user),
+):
+    scene = await get_scene_or_404(scene_id)
+    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    row = await get_pool().fetchrow(
+        """
+        update campaign_scenes
+        set fog_zones = $2::jsonb, updated_at = now()
+        where id = $1
+        returning *
+        """,
+        scene_id,
+        jsonb(payload.fog_zones),
+    )
+
+    # Broadcast fog change
+    await broadcast_vtt_change(scene["campaign_id"], "fog", scene_id)
+
+    return {
+        "scene_id": str(scene_id),
+        "fog_zones": payload.fog_zones,
+    }
