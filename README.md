@@ -131,7 +131,7 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 13 | Fiche éditable | ✅ | ✅ |
 | 14 | Interface Joueur | ✅ | ✅ |
 | 15 | Journal structuré | ✅ | ✅ |
-| 16 | Fog of war | - | - |
+| 16 | Fog of war | ✅ | ✅ |
 | 17 | Mesures et gabarits | - | - |
 
 ## Tests

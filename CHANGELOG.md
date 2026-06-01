@@ -4,6 +4,25 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 16] — Fog of War (2026-06-01)
+
+### Added
+- Migration `015_phase16_fog_of_war.sql` : colonne `fog_zones` JSONB sur `campaign_scenes`
+- `GET /api/scenes/{id}/fog` : récupère les zones révélées
+- `PATCH /api/scenes/{id}/fog` : met à jour les zones (GM uniquement)
+- `FogLayer.tsx` : canvas overlay sur la carte, outil drag-to-reveal, toggle ON/OFF
+- Broadcast WebSocket temps réel des changements de fog
+
+### Files
+- `backend/app/migrations/015_phase16_fog_of_war.sql` — nouveau
+- `backend/app/routers/vtt.py` — +52 lignes (endpoints fog)
+- `frontend/src/components/FogLayer.tsx` — nouveau (192 lignes)
+- `frontend/src/components/VttBoard.tsx` — +8 lignes (intégration)
+- `frontend/src/styles.css` — +42 lignes
+- `scripts/smoke-phase16.sh` — nouveau
+
+---
+
 ## [Phase 9 Homebrew] — Bibliothèque Homebrew frontend (2026-06-01)
 
 ### Added

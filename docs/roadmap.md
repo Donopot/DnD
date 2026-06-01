@@ -84,7 +84,8 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 ### Phase 13 - Bibliotheque homebrew minimale ✅
 ### Phase 14 - Acces joueur et experience session ✅
 ### Phase 15 - Journal de campagne structure ✅
-### Phase 16 - Fog of war simple 🔜
+### Phase 16 - Fog of war simple ✅
+### Phase 17 - Mesures et gabarits 🔜
 
 ## Roadmap detaillee
 
