@@ -1047,8 +1047,14 @@ export default function App() {
           setToken(newToken);
         }}
         onJoined={() => {
-          void loadCampaigns(token).then(() => {
-            // After joining, go to main view
+          // token is stale for the registration+auto-join case,
+          // but InvitePage calls onTokenChange before onJoined,
+          // and the token state update is batched — so we read
+          // the latest token from localStorage directly.
+          const activeToken = localStorage.getItem(TOKEN_STORAGE_KEY) || token;
+          void loadCampaigns(activeToken).then(() => {
+            // Clear the invite flow → go back to the main app
+            setInviteToken(null);
             if (window.history.pushState) {
               window.history.pushState({}, "", "/");
             }

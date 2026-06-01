@@ -79,8 +79,13 @@ export function InvitePage({
 
   // Not logged in → show login/register (player account type)
   if (!currentToken) {
-    async function handleAuth(auth: AuthResponse) {
+    async function handleAuth(auth: AuthResponse, wasRegistration: boolean) {
       onTokenChange(auth.access_token);
+      // Registration auto-joins the campaign in the backend:
+      // skip the manual "Rejoindre" button and go straight to the campaign view.
+      if (wasRegistration) {
+        onJoined();
+      }
     }
 
     return (
@@ -134,7 +139,7 @@ export function InvitePage({
                   const body = await response.json().catch(() => ({ detail: "Échec" }));
                   throw new Error(body.detail ?? "Échec");
                 }
-                handleAuth(await response.json());
+                handleAuth(await response.json(), mode === "register");
               } catch (err) {
                 setError(err instanceof Error ? err.message : "Échec authentification");
               } finally {
