@@ -85,7 +85,8 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 ### Phase 14 - Acces joueur et experience session ✅
 ### Phase 15 - Journal de campagne structure ✅
 ### Phase 16 - Fog of war simple ✅
-### Phase 17 - Mesures et gabarits 🔜
+### Phase 17 - Auth GM/Joueur distinct ✅
+### Phase 18 - Mesures et gabarits 🔜
 
 ## Roadmap detaillee
 
@@ -399,7 +400,38 @@ Livrables :
 - Le joueur ne la voit pas.
 - Le MJ peut reveler une zone.
 
-## Phase 17 - Mesures, gabarits et aides tactiques
+## Phase 17 - Auth GM/Joueur distinct
+
+### Objectif
+
+Distinguer clairement les comptes MJ des comptes Joueur dès l'inscription.
+
+### Backend
+
+Livrables :
+- colonne `account_type` (`gm`|`player`) sur `users` ;
+- `POST /api/auth/register` enrichi avec `account_type` et `invite_token` ;
+- validation joueur : invite token obligatoire, auto-join campagne ;
+- `require_gm_account` : bloque les comptes player de créer des campagnes ;
+- `UserPublic` enrichi avec `account_type` ;
+- migration `016_account_type.sql`.
+
+### Frontend
+
+Livrables :
+- `LandingPage.tsx` : deux chemins (MJ / Joueur) avec icônes et descriptions ;
+- `AuthView.tsx` refondu : badge de rôle, champ code d'invitation pour joueurs ;
+- `App.tsx` : landing step → auth step, routage par account_type ;
+- `InvitePage.tsx` : force account_type=player, passe invite_token.
+
+### Critère d'acceptation
+
+- Un nouveau joueur arrive sur la landing page, choisit « Je suis Joueur ».
+- Il entre un code d'invitation, crée son compte, est automatiquement ajouté à la campagne.
+- Un nouveau MJ choisit « Je suis MJ », crée son compte, crée une campagne.
+- Un compte player ne peut pas créer de campagne (erreur 403).
+
+## Phase 18 - Mesures, gabarits et aides tactiques
 
 ### Objectif
 

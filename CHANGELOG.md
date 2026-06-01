@@ -4,6 +4,42 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 17] — Auth GM/Joueur distinct (2026-06-01)
+
+### Added
+- Migration `016_account_type.sql` : colonne `account_type` (`gm`|`player`) sur `users`
+- `LandingPage.tsx` : page d'accueil avec deux chemins clairs (MJ / Joueur)
+- `AuthView.tsx` refondu : badge de rôle, champ code d'invitation pour joueurs
+- `require_gm_account` : bloque les comptes player de créer des campagnes
+- Validation invitation à l'inscription player (auto-join campagne)
+
+### Changed
+- `POST /api/auth/register` : `account_type` et `invite_token` requis pour joueurs
+- `UserPublic` : inclut `account_type`
+- `InvitePage.tsx` : force `account_type=player`, passe `invite_token` à l'inscription
+- `App.tsx` : nouvelle landing step avant auth, routage par account_type
+
+### Fixed
+- `FogLayer.tsx` : `pointer-events: auto` sur canvas, coordonnées corrigées pour zoom, panMode
+- `VttBoard.tsx` : propagation `zoom` et `panMode` au FogLayer
+
+### Files
+- `backend/app/migrations/016_account_type.sql` — nouveau
+- `backend/app/routers/auth.py` — +60 lignes (validation invite, account_type)
+- `backend/app/deps.py` — +10 lignes (`require_gm_account`)
+- `backend/app/schemas.py` — +3 champs
+- `backend/app/routers/campaigns.py` — +2 lignes (require_gm_account)
+- `frontend/src/components/LandingPage.tsx` — nouveau (59 lignes)
+- `frontend/src/components/AuthView.tsx` — refonte complète
+- `frontend/src/components/InvitePage.tsx` — +25/-15 lignes
+- `frontend/src/App.tsx` — +35/-10 lignes
+- `frontend/src/api/types.ts` — +1 champ
+- `frontend/src/components/FogLayer.tsx` — fixes bugs
+- `frontend/src/components/VttBoard.tsx` — +2 props
+- `frontend/src/styles.css` — +135 lignes (landing, auth-role-badge)
+
+---
+
 ## [Phase 16] — Fog of War (2026-06-01)
 
 ### Added

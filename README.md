@@ -51,12 +51,12 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | Métrique | Valeur |
 |----------|--------|
 | Routeurs | 11 |
-| Endpoints | 84 |
-| Migrations | 14 |
-| Schémas Pydantic | 53 |
+| Endpoints | 83 |
+| Migrations | 16 |
+| Schémas Pydantic | 56 |
 | Tests unitaires (pytest) | 33 |
 | Smoke tests shell | 16 |
-| Dép. Python | ~4069 lignes |
+| Dép. Python | ~4100 lignes |
 
 ### Endpoints par domaine
 
@@ -83,9 +83,9 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 | Métrique | Valeur |
 |----------|--------|
-| Composants React | 26 |
-| Modules Vite | 1760 |
-| CSS | ~8450 lignes |
+| Composants React | 28 |
+| Modules Vite | 1762 |
+| CSS | ~8625 lignes |
 
 ### Composants
 
@@ -104,9 +104,11 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | `VisibilityInspectorPanel.tsx` | Contrôle visibilité tokens (toggle, bulk) |
 | `GmNotesPanel.tsx` | Notes MJ privées |
 | `HomebrewPanel.tsx` | Bibliothèque homebrew : créatures, objets, import/export |
-| `AuthView.tsx` | Login/register |
+| `AuthView.tsx` | Login/register (MJ ou Joueur, selon accountType) |
+| `LandingPage.tsx` | Page d'accueil : choix MJ vs Joueur |
 | `CampaignViewTabs.tsx` | Onglets campagne GM |
 | `SessionWorkspace.tsx` | Layout session live (carte + combat + journal) |
+| `FogLayer.tsx` | Brouillard de guerre : canvas overlay, drag-to-reveal |
 
 ### Dépendances
 
@@ -132,7 +134,8 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 14 | Interface Joueur | ✅ | ✅ |
 | 15 | Journal structuré | ✅ | ✅ |
 | 16 | Fog of war | ✅ | ✅ |
-| 17 | Mesures et gabarits | - | - |
+| 17 | Auth GM/Joueur distinct | ✅ | ✅ |
+| 18 | Mesures et gabarits | - | - |
 
 ## Tests
 
