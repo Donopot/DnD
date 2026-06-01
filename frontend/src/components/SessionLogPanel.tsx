@@ -40,7 +40,7 @@ export function SessionLogPanel({
 
   async function togglePin(entry: GameLogEntry) {
     try {
-      await fetch(`/api/campaigns/${entry.campaign_id}/log/${entry.id}/pin`, {
+      await fetch(`/api/log-entries/${entry.id}/pin`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -56,13 +56,11 @@ export function SessionLogPanel({
 
   async function setCategory(entry: GameLogEntry, category: string) {
     try {
-      await fetch(`/api/campaigns/${entry.campaign_id}/log/${entry.id}/category`, {
+      await fetch(`/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ category }),
       });
       onRefresh();
     } catch {

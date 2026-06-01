@@ -1,26 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { FogLayer } from "./FogLayer";
+import type { Scene, SceneToken } from "../api/types";
 
-const TOKEN_KEY = "dnd_access_token";
+const TOKEN_STORAGE_KEY = "dnd_access_token";
 
-type PlayerScene = {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  grid_size: number;
-  background_url: string | null;
-  is_active: boolean;
-};
-
-type PlayerToken = {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-};
+type PlayerScene = Scene;
 
 type PlayerMapProps = {
   campaignId: string;
@@ -31,7 +15,7 @@ type PlayerMapProps = {
 export function PlayerMap({ campaignId, token: authToken, wsRef }: PlayerMapProps) {
   const [scenes, setScenes] = useState<PlayerScene[]>([]);
   const [selectedScene, setSelectedScene] = useState<PlayerScene | null>(null);
-  const [sceneTokens, setSceneTokens] = useState<PlayerToken[]>([]);
+  const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
   const [sceneBgUrl, setSceneBgUrl] = useState<string>("");
   const [zoom, setZoom] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,7 +47,7 @@ export function PlayerMap({ campaignId, token: authToken, wsRef }: PlayerMapProp
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (!res.ok) return;
-      setSceneTokens((await res.json()) as PlayerToken[]);
+      setSceneTokens((await res.json()) as SceneToken[]);
     } catch { /* ignore */ }
   }
 

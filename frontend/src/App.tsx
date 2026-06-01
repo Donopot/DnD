@@ -1359,6 +1359,7 @@ export default function App() {
                 {activeCampaignView === "live" || activeCampaignView === "preparation" ? (
                 <VttBoard
                   campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
                   scenes={scenes}
                   selectedScene={selectedScene}
                   selectedSceneId={selectedSceneId}

@@ -19,6 +19,7 @@ import { VttBoard } from "./VttBoard";
 
 type SessionWorkspaceProps = {
   campaignId: string;
+  token: string;
   scenes: Scene[];
   selectedScene: Scene | undefined;
   selectedSceneId: string;
@@ -61,6 +62,7 @@ type SessionWorkspaceProps = {
 
 export function SessionWorkspace({
   campaignId,
+  token,
   scenes,
   selectedScene,
   selectedSceneId,
@@ -112,6 +114,7 @@ export function SessionWorkspace({
       <section className="session-map-zone">
         <VttBoard
           campaignId={campaignId}
+          token={token}
           scenes={scenes}
           selectedScene={selectedScene}
           selectedSceneId={selectedSceneId}
