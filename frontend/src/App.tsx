@@ -18,6 +18,7 @@ import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveMo
 import { AuthView } from "./components/AuthView";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
+import { HomebrewPanel } from "./components/HomebrewPanel";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerView } from "./components/PlayerView";
 import { SessionLogPanel } from "./components/SessionLogPanel";
@@ -1391,6 +1392,14 @@ export default function App() {
                   onCreateHandout={handleCreateHandout}
                   onRevealHandout={(handout) => void handleRevealHandout(handout)}
                   onDeleteHandout={(handout) => void handleDeleteHandout(handout)}
+                />
+
+                <HomebrewPanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  scenes={scenes}
+                  encounters={encounters}
+                  isBusy={isBusy}
                 />
 
                 <section className="gm-placeholder-tab gm-settings-placeholder">

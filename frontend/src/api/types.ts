@@ -189,3 +189,33 @@ export type Handout = {
 export type EncounterDetail = Encounter & {
   combatants: Combatant[];
 };
+
+export type HomebrewCreature = {
+  id: string;
+  campaign_id: string;
+  name: string;
+  description: string;
+  armor_class: number;
+  hp_max: number;
+  speed: number;
+  attributes: Record<string, number>;
+  attacks: Record<string, unknown>[];
+  spells: Record<string, unknown>[];
+  size: string;
+  challenge_rating: number;
+  type: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type HomebrewItem = {
+  id: string;
+  campaign_id: string;
+  name: string;
+  description: string;
+  item_type: string;
+  rarity: string;
+  properties: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};

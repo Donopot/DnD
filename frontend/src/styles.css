@@ -8350,3 +8350,101 @@ select {
   display: block;
   margin-top: 2px;
 }
+
+/* ── Homebrew Panel (Phase 13 frontend) ─────────────────────────────── */
+
+.homebrew-panel {
+  border-top: 1px solid #e0d8c8;
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.homebrew-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.homebrew-tab-btn {
+  padding: 6px 14px;
+  border: 1px solid #d4cdb8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #5a4e3e;
+}
+
+.homebrew-tab-btn.active {
+  background: #e8f5e9;
+  border-color: #2d6a4f;
+  color: #1b4332;
+  font-weight: 600;
+}
+
+.homebrew-toolbar-spacer { flex: 1; }
+
+.import-label {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border: 1px solid #d4cdb8;
+  border-radius: 6px; font-size: 0.78rem; color: #5a4e3e; cursor: pointer;
+}
+.import-label:hover { background: #f3f1ea; }
+
+.homebrew-content {
+  border: 1px solid #d4cdb8; border-radius: 8px;
+  background: #fff; padding: 16px;
+}
+
+.homebrew-creature-layout {
+  display: grid; grid-template-columns: 200px 1fr 280px; gap: 16px;
+}
+
+.homebrew-list-sidebar { border-right: 1px solid #e0d8c8; padding-right: 8px; }
+.homebrew-list-sidebar h4 { margin: 0 0 8px; font-size: 0.85rem; }
+
+.homebrew-row {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 6px 8px; border: none; background: none;
+  text-align: left; cursor: pointer; font-size: 0.8rem;
+  border-left: 3px solid transparent; margin-bottom: 2px; border-radius: 3px;
+}
+.homebrew-row:hover { background: #f3f1ea; }
+.homebrew-row.selected { background: #e8f5e9; border-left-color: #2d6a4f; font-weight: 600; }
+.homebrew-row span { display: flex; flex-direction: column; }
+.homebrew-row small { font-size: 0.68rem; color: #6b5e4b; }
+.homebrew-row em { font-size: 0.72rem; color: #2d6a4f; }
+
+.homebrew-detail h4 { margin: 0 0 8px; font-size: 1rem; }
+
+.homebrew-detail-actions {
+  display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; align-items: center;
+}
+
+.mini-select-label {
+  display: flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #5a4e3e;
+}
+.mini-select-label select { padding: 3px 6px; border: 1px solid #d4cdb8; border-radius: 4px; font-size: 0.74rem; }
+
+.homebrew-create {
+  padding: 12px; background: #faf9f5; border: 1px solid #e0d8c8;
+  border-radius: 6px; max-height: 500px; overflow-y: auto;
+}
+.homebrew-create h4 { margin: 0 0 10px; font-size: 0.85rem; }
+.homebrew-create .form-stack { gap: 8px; }
+.homebrew-create label { font-size: 0.76rem; }
+.homebrew-create input, .homebrew-create select, .homebrew-create textarea { padding: 5px 8px; font-size: 0.8rem; }
+
+.homebrew-toast {
+  margin-top: 10px; padding: 8px 12px; background: #e8f5e9;
+  border: 1px solid #a5d6a7; border-radius: 6px; display: flex;
+  justify-content: space-between; align-items: center; font-size: 0.82rem; color: #2d6a4f;
+}
+.homebrew-toast button { background: none; border: none; font-size: 0.9rem; cursor: pointer; color: #2d6a4f; }
+
+@media (max-width: 900px) { .homebrew-creature-layout { grid-template-columns: 1fr; } }
