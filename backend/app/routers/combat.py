@@ -9,12 +9,14 @@ from app.deps import get_current_user, require_campaign_role
 from app.realtime import manager
 from app.schemas import (
     ApplyConditionRequest,
+    BulkInitiativeRequest,
     CombatantCreateRequest,
     CombatantPublic,
     CombatantUpdateRequest,
     CombatLogEntryPublic,
     EncounterCreateRequest,
     EncounterDetailPublic,
+    EncounterFromSceneRequest,
     EncounterPublic,
     RemoveConditionRequest,
 )
@@ -579,3 +581,132 @@ async def get_combat_log(
     )
 
     return [CombatLogEntryPublic(**dict(row)) for row in rows]
+
+
+@router.post("/scenes/{scene_id}/encounters/from-scene", response_model=EncounterDetailPublic, status_code=status.HTTP_201_CREATED)
+async def create_encounter_from_scene(
+    scene_id: UUID,
+    payload: EncounterFromSceneRequest,
+    current_user=Depends(get_current_user),
+) -> EncounterDetailPublic:
+    scene = await get_pool().fetchrow(
+        """
+        select * from campaign_scenes where id = $1
+        """,
+        scene_id,
+    )
+    if scene is None:
+        raise HTTPException(status_code=404, detail="Scene not found")
+
+    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    tokens = await get_pool().fetch(
+        """
+        select st.*, ch.attributes as char_attributes
+        from scene_tokens st
+        left join characters ch on ch.id = st.character_id
+        where st.scene_id = $1
+        order by st.created_at asc
+        """,
+        scene_id,
+    )
+
+    if not tokens:
+        raise HTTPException(status_code=400, detail="Scene has no tokens to create combatants from")
+
+    async with get_pool().acquire() as connection:
+        async with connection.transaction():
+            encounter = await connection.fetchrow(
+                """
+                insert into combat_encounters (campaign_id, scene_id, name)
+                values ($1, $2, $3)
+                returning *
+                """,
+                scene["campaign_id"],
+                scene_id,
+                payload.name.strip(),
+            )
+
+            for token in tokens:
+                await connection.execute(
+                    """
+                    insert into combatants (
+                        encounter_id, token_id, character_id, name,
+                        initiative, armor_class, hp_current, hp_max,
+                        is_player_controlled, is_hidden
+                    )
+                    values ($1, $2, $3, $4, 0, 10, 1, 1, false, $5)
+                    """,
+                    encounter["id"],
+                    token["id"],
+                    token["character_id"],
+                    token["name"],
+                    token["is_hidden"],
+                )
+
+    combatants = await load_combatants(encounter["id"], include_hidden=True)
+    base = encounter_public(encounter, combatants)
+    await broadcast_combat_change(scene["campaign_id"], encounter["id"])
+    return EncounterDetailPublic(**base.model_dump(), combatants=combatants)
+
+
+@router.post("/encounters/{encounter_id}/roll-initiative", response_model=EncounterDetailPublic)
+async def roll_initiative(
+    encounter_id: UUID,
+    payload: BulkInitiativeRequest,
+    current_user=Depends(get_current_user),
+) -> EncounterDetailPublic:
+    encounter = await get_encounter_or_404(encounter_id)
+    await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    combatants = await load_combatants(encounter_id, include_hidden=True)
+    active = [c for c in combatants if not c.is_defeated]
+
+    target_ids: set[UUID] | None = None
+    if payload.combatant_ids:
+        target_ids = set(payload.combatant_ids)
+
+    for cb in active:
+        if target_ids is not None and cb.id not in target_ids:
+            continue
+
+        dex_mod = 0
+        if cb.character_id:
+            char_row = await get_pool().fetchrow(
+                "select attributes from characters where id = $1",
+                cb.character_id,
+            )
+            if char_row:
+                attrs = decode_json(char_row["attributes"])
+                dex_score = attrs.get("dex", 10)
+                dex_mod = (dex_score - 10) // 2
+
+        import random
+        roll = random.randint(1, 20)
+        total = roll + dex_mod
+
+        await get_pool().execute(
+            "update combatants set initiative = $2, updated_at = now() where id = $1",
+            cb.id,
+            total,
+        )
+
+    row = await get_pool().fetchrow(
+        "select * from combat_encounters where id = $1",
+        encounter_id,
+    )
+
+    combatants = await load_combatants(encounter_id, include_hidden=True)
+    base = encounter_public(row, combatants)
+    await broadcast_combat_change(encounter["campaign_id"], encounter_id)
+    return EncounterDetailPublic(**base.model_dump(), combatants=combatants)
+
+
+@router.post("/encounters/{encounter_id}/reroll-initiative", response_model=EncounterDetailPublic)
+async def reroll_initiative(
+    encounter_id: UUID,
+    payload: BulkInitiativeRequest,
+    current_user=Depends(get_current_user),
+) -> EncounterDetailPublic:
+    """Alias for roll-initiative with same behavior."""
+    return await roll_initiative(encounter_id, payload, current_user)

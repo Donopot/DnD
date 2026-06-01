@@ -427,3 +427,11 @@ class CombatLogEntryPublic(BaseModel):
     event_type: str
     payload: dict[str, Any]
     created_at: datetime
+
+
+class BulkInitiativeRequest(BaseModel):
+    combatant_ids: list[UUID] | None = None
+
+
+class EncounterFromSceneRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
