@@ -10845,3 +10845,67 @@ select {
   color: #c5b358;
   font-size: 0.8rem;
 }
+
+/* ── AoE shape overlay ──────────────────────────────────────────────────── */
+
+.map-tools-separator {
+  width: 70%;
+  height: 1px;
+  background: #3a4a3e;
+  margin: 2px 0;
+}
+
+.aoe-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.aoe-size-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 40, 35, 0.6);
+  border: 1px solid #3a4a3e;
+  border-radius: 3px;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-size: 0.55rem;
+}
+
+.aoe-size-btn:hover {
+  color: #c5b358;
+  border-color: #5a6a5e;
+}
+
+.aoe-size-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #c5b358;
+  min-width: 30px;
+  text-align: center;
+}
+
+.aoe-shape {
+  pointer-events: none;
+}
+
+.aoe-sphere {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 179, 88, 0.15) 0%, rgba(197, 179, 88, 0.05) 70%, transparent 100%);
+  border: 1px solid rgba(197, 179, 88, 0.4);
+}
+
+.aoe-cube {
+  background: rgba(197, 179, 88, 0.08);
+  border: 1px dashed rgba(197, 179, 88, 0.4);
+}
+
+.aoe-line {
+  background: linear-gradient(90deg, transparent, rgba(197, 179, 88, 0.1) 20%, rgba(197, 179, 88, 0.15) 50%, rgba(197, 179, 88, 0.1) 80%, transparent);
+  border-top: 1px solid rgba(197, 179, 88, 0.4);
+  border-bottom: 1px solid rgba(197, 179, 88, 0.4);
+}

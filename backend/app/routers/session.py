@@ -441,6 +441,21 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     },
                 )
 
+            elif msg_type == "aoe_shape":
+                # Broadcast AoE shape (cone, sphere, cube, line) — visual only
+                await manager.broadcast(
+                    campaign_id,
+                    {
+                        "type": "aoe_shape",
+                        "shape": message.get("shape", "sphere"),
+                        "x": message.get("x", 0),
+                        "y": message.get("y", 0),
+                        "size": message.get("size", 30),  # in feet
+                        "angle": message.get("angle", 0),
+                        "user_id": str(user_id),
+                    },
+                )
+
     except WebSocketDisconnect:
         count = manager.disconnect(campaign_id, websocket)
         await manager.broadcast(

@@ -262,6 +262,7 @@ export function CampaignMap({
             <MapTools
               canvasRef={boardRef as React.RefObject<HTMLDivElement | null>}
               zoom={zoom}
+              gridSize={gridSize}
               isGM={isGM}
               wsRef={wsRef}
               myTokenIds={
