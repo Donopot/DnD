@@ -6,7 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
-from app.schemas import CharacterCreateRequest, CharacterPublic, CharacterUpdateRequest
+from app.schemas import (
+    CharacterApproveRequest,
+    CharacterCreateRequest,
+    CharacterPublic,
+    CharacterSubmitRequest,
+    CharacterUpdateRequest,
+)
 from app.utils import decode_json, jsonb
 
 router = APIRouter(prefix="/api", tags=["characters"])
@@ -228,4 +234,189 @@ async def delete_character(
         raise HTTPException(status_code=403, detail="Players can only delete their own characters")
 
     await get_pool().execute("delete from characters where id = $1", character_id)
+
+
+# ── Personal vault ──────────────────────────────────────────────────────
+
+
+@router.get("/characters/mine", response_model=list[CharacterPublic])
+async def list_my_characters(current_user=Depends(get_current_user)) -> list[CharacterPublic]:
+    """Liste les personnages du vault personnel (hors campagne)."""
+    rows = await get_pool().fetch(
+        """
+        select *
+        from characters
+        where owner_user_id = $1 and campaign_id is null
+        order by created_at desc
+        """,
+        current_user["id"],
+    )
+    return [character_public(row) for row in rows]
+
+
+@router.post("/characters", response_model=CharacterPublic, status_code=201)
+async def create_personal_character(
+    payload: CharacterCreateRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Crée un personnage dans le vault personnel (campaign_id = NULL)."""
+    owner_user_id = payload.owner_user_id or current_user["id"]
+
+    row = await get_pool().fetchrow(
+        """
+        insert into characters (
+            owner_user_id,
+            name,
+            ancestry,
+            class_name,
+            level,
+            armor_class,
+            speed,
+            proficiency_bonus,
+            hp_current,
+            hp_max,
+            attributes,
+            skills,
+            saving_throws,
+            attacks,
+            inventory,
+            spells,
+            resources,
+            notes,
+            status
+        )
+        values (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9,
+            $10, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb,
+            $15::jsonb, $16::jsonb, $17::jsonb, $18,
+            'personal'
+        )
+        returning *
+        """,
+        owner_user_id,
+        payload.name.strip(),
+        payload.ancestry.strip(),
+        payload.class_name.strip(),
+        payload.level,
+        payload.armor_class,
+        payload.speed,
+        payload.proficiency_bonus,
+        payload.hp_current,
+        payload.hp_max,
+        json.dumps(payload.attributes),
+        json.dumps(payload.skills),
+        json.dumps(payload.saving_throws),
+        json.dumps(payload.attacks),
+        json.dumps(payload.inventory),
+        json.dumps(payload.spells),
+        json.dumps(payload.resources),
+        payload.notes.strip(),
+    )
+    return character_public(row)
+
+
+# ── Submission flow ─────────────────────────────────────────────────────
+
+
+@router.post("/characters/{character_id}/submit", response_model=CharacterPublic)
+async def submit_character(
+    character_id: UUID,
+    payload: CharacterSubmitRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Soumet un personnage du vault à une campagne pour approbation du MJ."""
+    existing = await get_character_or_404(character_id)
+
+    if existing["owner_user_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Vous ne pouvez soumettre que vos propres personnages")
+    if existing["status"] != "personal":
+        raise HTTPException(status_code=400, detail="Seuls les personnages du vault peuvent être soumis")
+    if existing["campaign_id"] is not None:
+        raise HTTPException(status_code=400, detail="Ce personnage est déjà dans une campagne")
+
+    # Vérifier que l'utilisateur est membre de la campagne cible
+    await require_campaign_role(payload.campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+
+    row = await get_pool().fetchrow(
+        """
+        update characters
+        set status = 'submitted',
+            submitted_to_campaign_id = $2,
+            updated_at = now()
+        where id = $1
+        returning *
+        """,
+        character_id,
+        payload.campaign_id,
+    )
+    return character_public(row)
+
+
+@router.get("/campaigns/{campaign_id}/submissions", response_model=list[CharacterPublic])
+async def list_submissions(
+    campaign_id: UUID,
+    current_user=Depends(get_current_user),
+) -> list[CharacterPublic]:
+    """Liste les soumissions en attente pour une campagne (GM/co_GM uniquement)."""
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    rows = await get_pool().fetch(
+        """
+        select *
+        from characters
+        where submitted_to_campaign_id = $1 and status = 'submitted'
+        order by created_at asc
+        """,
+        campaign_id,
+    )
+    return [character_public(row) for row in rows]
+
+
+@router.patch("/characters/{character_id}/approve", response_model=CharacterPublic)
+async def approve_character(
+    character_id: UUID,
+    payload: CharacterApproveRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Approuve ou refuse une soumission de personnage (GM/co_GM uniquement)."""
+    existing = await get_character_or_404(character_id)
+
+    if existing["status"] != "submitted":
+        raise HTTPException(status_code=400, detail="Ce personnage n'est pas en attente d'approbation")
+    if existing["submitted_to_campaign_id"] is None:
+        raise HTTPException(status_code=400, detail="Aucune campagne cible pour cette soumission")
+
+    await require_campaign_role(
+        existing["submitted_to_campaign_id"],
+        current_user["id"],
+        {"gm", "co_gm"},
+    )
+
+    if payload.approved:
+        row = await get_pool().fetchrow(
+            """
+            update characters
+            set campaign_id = submitted_to_campaign_id,
+                status = 'active',
+                submitted_to_campaign_id = null,
+                updated_at = now()
+            where id = $1
+            returning *
+            """,
+            character_id,
+        )
+    else:
+        row = await get_pool().fetchrow(
+            """
+            update characters
+            set status = 'personal',
+                submitted_to_campaign_id = null,
+                updated_at = now()
+            where id = $1
+            returning *
+            """,
+            character_id,
+        )
+
+    return character_public(row)
 

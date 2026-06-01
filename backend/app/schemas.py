@@ -151,10 +151,20 @@ class CharacterUpdateRequest(BaseModel):
 
 class CharacterPublic(CharacterBase):
     id: UUID
-    campaign_id: UUID
-    owner_user_id: UUID | None
+    campaign_id: UUID | None  # NULL = vault personnel
+    owner_user_id: UUID
+    status: str = "active"  # personal | submitted | active | archived
+    submitted_to_campaign_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class CharacterSubmitRequest(BaseModel):
+    campaign_id: UUID
+
+
+class CharacterApproveRequest(BaseModel):
+    approved: bool = True  # True = approve, False = reject
 
 
 class RollCreateRequest(BaseModel):

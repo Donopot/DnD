@@ -163,3 +163,78 @@ class TestUtils:
         serialized = jsonb(data)
         assert isinstance(serialized, str)
         assert decode_json(serialized) == data
+
+
+# ── Character vault & submission schema tests ────────────────────────────
+
+class TestCharacterSchemas:
+    """Validate CharacterPublic, CharacterSubmitRequest, CharacterApproveRequest."""
+
+    def test_character_public_allows_null_campaign_id(self):
+        """campaign_id=None pour le vault personnel."""
+        from app.schemas import CharacterPublic
+        from uuid import uuid4
+        from datetime import datetime, timezone
+
+        char = CharacterPublic(
+            id=uuid4(),
+            campaign_id=None,
+            owner_user_id=uuid4(),
+            name="Elara",
+            level=3,
+            status="personal",
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        assert char.campaign_id is None
+        assert char.status == "personal"
+
+    def test_character_public_with_campaign(self):
+        """campaign_id set = active dans une campagne."""
+        from app.schemas import CharacterPublic
+        from uuid import uuid4
+        from datetime import datetime, timezone
+
+        cid = uuid4()
+        char = CharacterPublic(
+            id=uuid4(),
+            campaign_id=cid,
+            owner_user_id=uuid4(),
+            name="Gardes",
+            level=2,
+            status="active",
+            submitted_to_campaign_id=None,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        assert char.campaign_id == cid
+        assert char.status == "active"
+
+    def test_submit_request_valid(self):
+        """CharacterSubmitRequest avec campaign_id valide."""
+        from app.schemas import CharacterSubmitRequest
+        from uuid import uuid4
+
+        req = CharacterSubmitRequest(campaign_id=uuid4())
+        assert req.campaign_id is not None
+
+    def test_approve_request_true(self):
+        """CharacterApproveRequest approved=True."""
+        from app.schemas import CharacterApproveRequest
+
+        req = CharacterApproveRequest(approved=True)
+        assert req.approved is True
+
+    def test_approve_request_false(self):
+        """CharacterApproveRequest approved=False (reject)."""
+        from app.schemas import CharacterApproveRequest
+
+        req = CharacterApproveRequest(approved=False)
+        assert req.approved is False
+
+    def test_approve_request_default(self):
+        """CharacterApproveRequest defaults to approved=True."""
+        from app.schemas import CharacterApproveRequest
+
+        req = CharacterApproveRequest()
+        assert req.approved is True
