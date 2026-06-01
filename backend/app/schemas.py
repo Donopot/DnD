@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+import re
+
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class UserPublic(BaseModel):
@@ -17,8 +19,28 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     display_name: str = Field(min_length=2, max_length=80)
     password: str = Field(min_length=8, max_length=200)
+    confirm_password: str = Field(min_length=8, max_length=200)
     account_type: str = Field(default="gm", pattern="^(gm|player)$")
     invite_token: str | None = Field(default=None, max_length=64)
+    # Honeypot anti-bot — les bots remplissent ce champ caché
+    website: str = Field(default="")
+
+    @field_validator("password")
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Le mot de passe doit contenir au moins une minuscule")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+        if not re.search(r"\d", v):
+            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
+        return v
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "RegisterRequest":
+        if self.password != self.confirm_password:
+            raise ValueError("Les mots de passe ne correspondent pas")
+        return self
 
 
 class LoginRequest(BaseModel):

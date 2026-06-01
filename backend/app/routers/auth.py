@@ -56,6 +56,10 @@ async def _validate_player_invite(invite_token: str | None):
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
+    # Honeypot anti-bot — si le champ caché est rempli, rejeter silencieusement
+    if payload.website:
+        raise HTTPException(status_code=400, detail="Requête invalide")
+
     # Player registration requires a valid invite token
     campaign_id = None
     invite_role = None
