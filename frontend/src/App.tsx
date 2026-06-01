@@ -13,6 +13,7 @@ import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { HomebrewPanel } from "./components/HomebrewPanel";
+import { GmMessagePanel } from "./components/GmMessagePanel";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerView } from "./components/PlayerView";
 import { GmLobby } from "./components/GmLobby";
@@ -772,6 +773,7 @@ export default function App() {
       <PlayerView
         campaign={selectedCampaign}
         token={token}
+        userId={user.id}
         userDisplayName={user.display_name}
         presenceCount={presenceCount}
         onLogout={logout}
@@ -987,6 +989,16 @@ export default function App() {
             scenes={scenes}
             encounters={encounters}
             isBusy={isBusy}
+          />
+        </details>
+
+        {/* Messages MJ → Joueurs */}
+        <details className="gm-panel-section">
+          <summary>💬 Communication</summary>
+          <GmMessagePanel
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
+            members={members}
           />
         </details>
       </aside>

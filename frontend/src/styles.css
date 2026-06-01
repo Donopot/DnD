@@ -10239,3 +10239,205 @@ select {
     padding: 1rem;
   }
 }
+
+/* ── Phase 21: Communication MJ↔Joueur ─────────────────────────────────── */
+
+.gm-message-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.message-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  background: transparent;
+  border: 1px solid #3a4a3e;
+  border-radius: 6px;
+  color: #8a9a8e;
+  cursor: pointer;
+}
+
+.message-tab.active {
+  background: rgba(197, 179, 88, 0.12);
+  border-color: rgba(197, 179, 88, 0.3);
+  color: #c5b358;
+}
+
+.message-tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.message-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.message-field label {
+  font-size: 0.72rem;
+  color: #6a7a6e;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.message-field select,
+.message-field input {
+  padding: 0.3rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 6px;
+  color: #e8e4d8;
+  font-size: 0.82rem;
+}
+
+.message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.message-form textarea {
+  padding: 0.4rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 6px;
+  color: #e8e4d8;
+  font-size: 0.82rem;
+  resize: vertical;
+  min-height: 3rem;
+}
+
+.message-status {
+  font-size: 0.78rem;
+  margin: 0;
+  color: #8a9a8e;
+}
+
+/* PlayerNotifications */
+.player-notifications {
+  position: relative;
+}
+
+.notification-bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #8a9a8e;
+  cursor: pointer;
+  position: relative;
+}
+
+.notification-bell.has-unread {
+  color: #c5b358;
+  animation: pulse-bell 2s ease-in-out infinite;
+}
+
+@keyframes pulse-bell {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.notification-bell .badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #cc4444;
+  border-radius: 50%;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: white;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 300px;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 0.4rem;
+  background: #1a2820;
+  border: 1px solid #3a4a3e;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  padding: 0.75rem;
+}
+
+.notification-dropdown h4 {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.78rem;
+  color: #8a9a8e;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.notification-dropdown h4:first-child {
+  margin-top: 0;
+}
+
+.msg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.msg-item {
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  background: rgba(30, 40, 35, 0.4);
+  border: 1px solid transparent;
+}
+
+.msg-item.unread {
+  background: rgba(197, 179, 88, 0.08);
+  border-color: rgba(197, 179, 88, 0.2);
+}
+
+.msg-item:hover {
+  background: rgba(50, 60, 55, 0.6);
+}
+
+.msg-item .msg-content {
+  flex: 1;
+  color: #c0c0a0;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.msg-item .msg-time {
+  font-size: 0.68rem;
+  color: #5a6a5e;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}

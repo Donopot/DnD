@@ -25,12 +25,14 @@ import type {
 } from "../api/types";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
+import { PlayerNotifications } from "./PlayerNotifications";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
 type PlayerViewProps = {
   campaign: Campaign;
   token: string;
+  userId: string;
   userDisplayName: string;
   presenceCount: number;
   onLogout: () => void;
@@ -99,6 +101,7 @@ async function playerRequest<T>(
 export function PlayerView({
   campaign,
   token,
+  userId,
   userDisplayName,
   presenceCount,
   onLogout,
@@ -578,6 +581,11 @@ export function PlayerView({
         <span className="player-status">
           <Shield aria-hidden="true" /> {userDisplayName} (joueur)
         </span>
+        <PlayerNotifications
+          campaignId={campaign.id}
+          token={token}
+          userId={userId}
+        />
         <button className="ghost-button" onClick={onLogout} type="button">
           Quitter
         </button>

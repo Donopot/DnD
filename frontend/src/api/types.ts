@@ -219,4 +219,17 @@ export type HomebrewItem = {
   properties: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+}
+
+// Phase 21: Communication MJ↔Joueur
+export type GmMessage = {
+  id: string;
+  campaign_id: string;
+  sender_id: string;
+  recipient_id: string | null;
+  content: string;
+  kind: "message" | "announcement" | "secret_roll";
+  roll_data?: Record<string, unknown> | null;
+  read_at: string | null;
+  created_at: string;
 };

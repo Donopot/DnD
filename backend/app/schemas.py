@@ -582,3 +582,35 @@ class PlayerEncounterPublic(BaseModel):
     round_number: int
     turn_index: int
     combatants: list[dict[str, Any]]
+
+
+# ── Phase 21: Communication MJ↔Joueur ────────────────────────────────────
+
+class GmMessageCreate(BaseModel):
+    """Send a private message to a specific player."""
+    recipient_id: UUID
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class GmAnnouncementCreate(BaseModel):
+    """Broadcast an announcement to all players in the campaign."""
+    content: str = Field(min_length=1, max_length=1000)
+
+
+class GmSecretRollCreate(BaseModel):
+    """GM rolls dice secretly — only GM sees the result unless shared."""
+    recipient_id: UUID | None = None  # null = GM-only, set = share with one player
+    formula: str = Field(min_length=1, max_length=100)
+    label: str = Field(default="Jet secret", max_length=200)
+
+
+class GmMessagePublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    sender_id: UUID
+    recipient_id: UUID | None
+    content: str
+    kind: str
+    roll_data: dict[str, Any] | None = None
+    read_at: datetime | None = None
+    created_at: datetime
