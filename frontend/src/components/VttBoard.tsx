@@ -734,6 +734,8 @@ export function VttBoard({
                     sceneWidth={selectedScene.width}
                     sceneHeight={selectedScene.height}
                     isGM={true}
+                    zoom={zoom}
+                    panMode={panMode}
                   />
 
                   {sceneTokens.map((token) => {

@@ -16,13 +16,13 @@ async def get_current_user(
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
+            detail="Authentification requise",
         )
 
     user_id = decode_access_token(credentials.credentials)
     row = await get_pool().fetchrow(
         """
-        select id, email, display_name, created_at
+        select id, email, display_name, account_type, created_at
         from users
         where id = $1
         """,
@@ -31,7 +31,7 @@ async def get_current_user(
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User no longer exists",
+            detail="Utilisateur introuvable",
         )
     return row
 
@@ -47,8 +47,17 @@ async def require_campaign_role(campaign_id: UUID, user_id: UUID, roles: set[str
         user_id,
     )
     if row is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campagne introuvable")
     if row["role"] not in roles:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient role")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Rôle insuffisant")
     return row["role"]
 
+
+async def require_gm_account(current_user=Depends(get_current_user)) -> Record:
+    """Block player-only accounts from GM actions (e.g. creating campaigns)."""
+    if current_user.get("account_type") == "player":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seul un compte MJ peut effectuer cette action. Créez un compte MJ.",
+        )
+    return current_user

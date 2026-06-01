@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Castle, DoorOpen, RefreshCw, Swords, UserPlus } from "lucide-react";
+import { ArrowLeft, Castle, Swords, UserPlus } from "lucide-react";
 import { AuthView } from "./AuthView";
 import type { AuthResponse } from "../api/types";
 
@@ -37,7 +37,7 @@ export function InvitePage({
       const response = await fetch(`/api/invites/${inviteToken}`);
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.detail ?? "Invitation introuvable ou expiree");
+        throw new Error(body.detail ?? "Invitation introuvable ou expirée");
       }
       setPreview(await response.json());
     } catch (err) {
@@ -63,7 +63,7 @@ export function InvitePage({
           <Castle size={48} />
           <h2>Invitation invalide</h2>
           <p>{error}</p>
-          <a href="/" className="primary-button">Retour a l'accueil</a>
+          <a href="/" className="primary-button">Retour à l'accueil</a>
         </div>
       </main>
     );
@@ -77,7 +77,7 @@ export function InvitePage({
     );
   }
 
-  // Not logged in → show login/register
+  // Not logged in → show login/register (player account type)
   if (!currentToken) {
     async function handleAuth(auth: AuthResponse) {
       onTokenChange(auth.access_token);
@@ -87,20 +87,25 @@ export function InvitePage({
       <main className="invite-shell">
         <div className="invite-card">
           <Swords size={32} />
-          <h2>Tu es invite(e) a rejoindre</h2>
+          <h2>Tu es invité(e) à rejoindre</h2>
           <h1>{preview.campaign_name}</h1>
           <p>
-            Role: <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
+            Rôle: <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
           </p>
           {preview.remaining_uses !== null && (
             <p>Places restantes: {preview.remaining_uses}</p>
           )}
-          <p className="muted">Connecte-toi ou cree un compte pour accepter.</p>
+          <p className="muted">Connecte-toi ou crée un compte pour accepter.</p>
 
           <AuthView
             mode={mode}
+            accountType="player"
+            inviteToken={inviteToken}
             isBusy={isBusy}
             onModeChange={setMode}
+            onBack={() => {
+              window.location.href = "/";
+            }}
             onSubmit={async (event) => {
               event.preventDefault();
               setIsBusy(true);
@@ -111,6 +116,8 @@ export function InvitePage({
                       email: String(form.get("email")),
                       display_name: String(form.get("display_name")),
                       password: String(form.get("password")),
+                      account_type: "player",
+                      invite_token: inviteToken,
                     }
                   : {
                       email: String(form.get("email")),
@@ -124,12 +131,12 @@ export function InvitePage({
                   body: JSON.stringify(payload),
                 });
                 if (!response.ok) {
-                  const body = await response.json().catch(() => ({ detail: "Auth failed" }));
-                  throw new Error(body.detail ?? "Auth failed");
+                  const body = await response.json().catch(() => ({ detail: "Échec" }));
+                  throw new Error(body.detail ?? "Échec");
                 }
                 handleAuth(await response.json());
               } catch (err) {
-                // Show nothing, AuthView handles messages
+                setError(err instanceof Error ? err.message : "Échec authentification");
               } finally {
                 setIsBusy(false);
               }
@@ -170,7 +177,7 @@ export function InvitePage({
         <Swords size={48} />
         <h2>{preview.campaign_name}</h2>
         <p>
-          Connecte comme <strong>{userDisplayName}</strong> · role <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
+          Connecté comme <strong>{userDisplayName}</strong> · rôle <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
         </p>
         {preview.remaining_uses !== null && (
           <p>Places restantes: {preview.remaining_uses}</p>

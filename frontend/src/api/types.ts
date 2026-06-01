@@ -2,6 +2,7 @@ export type User = {
   id: string;
   email: string;
   display_name: string;
+  account_type: "gm" | "player";
   created_at: string;
 };
 

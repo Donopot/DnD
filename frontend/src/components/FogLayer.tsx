@@ -10,9 +10,11 @@ type FogLayerProps = {
   sceneWidth: number;
   sceneHeight: number;
   isGM: boolean;
+  zoom?: number;
+  panMode?: boolean;
 };
 
-export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM }: FogLayerProps) {
+export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, panMode = false }: FogLayerProps) {
   const token = localStorage.getItem(TOKEN_KEY) ?? "";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zones, setZones] = useState<FogZone[]>([]);
@@ -21,6 +23,9 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM }: FogLayerPro
   const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
   const [showFog, setShowFog] = useState(true);
   const canvasScale = 1;
+
+  // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
+  const fogInteractive = isGM && showFog && !panMode;
 
   // Load zones from API
   async function loadZones() {
@@ -107,20 +112,20 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM }: FogLayerPro
 
   // Mouse handlers for GM reveal tool
   function handleMouseDown(e: ReactMouseEvent<HTMLCanvasElement>) {
-    if (!isGM || !showFog) return;
+    if (!fogInteractive) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) / zoom;
+    const y = (e.clientY - rect.top) / zoom;
     setStart({ x, y });
     setDrawing(true);
     setCurrentRect({ x, y, width: 0, height: 0 });
   }
 
   function handleMouseMove(e: ReactMouseEvent<HTMLCanvasElement>) {
-    if (!drawing || !isGM) return;
+    if (!drawing || !fogInteractive) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) / zoom;
+    const y = (e.clientY - rect.top) / zoom;
     setCurrentRect({
       x: Math.min(start.x, x),
       y: Math.min(start.y, y),
@@ -153,7 +158,7 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM }: FogLayerPro
       style={{
         width: sceneWidth || 1200,
         height: sceneHeight || 800,
-        pointerEvents: isGM && showFog ? "auto" : "none",
+        pointerEvents: fogInteractive ? "auto" : "none",
       }}
     >
       <canvas
@@ -162,7 +167,7 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM }: FogLayerPro
         style={{
           width: "100%",
           height: "100%",
-          cursor: isGM && showFog ? "crosshair" : "default",
+          cursor: fogInteractive ? "crosshair" : "default",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

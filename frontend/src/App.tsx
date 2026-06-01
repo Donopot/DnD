@@ -20,6 +20,7 @@ import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { HomebrewPanel } from "./components/HomebrewPanel";
 import { InvitePage } from "./components/InvitePage";
+import { LandingPage } from "./components/LandingPage";
 import { PlayerView } from "./components/PlayerView";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
@@ -69,6 +70,8 @@ export default function App() {
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [mode, setMode] = useState<"login" | "register">("register");
+  const [accountType, setAccountType] = useState<"gm" | "player">("gm");
+  const [landingStep, setLandingStep] = useState<"landing" | "auth">("landing");
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
@@ -829,6 +832,8 @@ export default function App() {
             email: String(form.get("email")),
             display_name: String(form.get("display_name")),
             password: String(form.get("password")),
+            account_type: accountType,
+            ...(accountType === "player" ? { invite_token: String(form.get("invite_token") || inviteToken || "") || undefined } : {}),
           }
         : {
             email: String(form.get("email")),
@@ -843,10 +848,10 @@ export default function App() {
       localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
       setToken(auth.access_token);
       setUser(auth.user);
-      setMessage(mode === "register" ? "Compte cree." : "Connexion active.");
+      setMessage(mode === "register" ? "Compte créé." : "Connexion active.");
       await loadCampaigns(auth.access_token);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Auth failed");
+      setMessage(error instanceof Error ? error.message : "Échec authentification");
     } finally {
       setIsBusy(false);
     }
@@ -1054,6 +1059,19 @@ export default function App() {
   }
 
   if (!user) {
+    // Landing page: choose GM or Player path
+    if (landingStep === "landing") {
+      return (
+        <LandingPage
+          onSelect={(type) => {
+            setAccountType(type);
+            setLandingStep("auth");
+          }}
+        />
+      );
+    }
+
+    // Auth form (login or register) for the chosen account type
     return (
       <main className="auth-shell">
         <section className="auth-visual">
@@ -1061,22 +1079,30 @@ export default function App() {
             <Swords aria-hidden="true" />
             DnD Interface
           </div>
-          <h1>Prepare la table avant que les joueurs arrivent.</h1>
+          <h1>
+            {accountType === "gm"
+              ? "Prépare la table avant que les joueurs arrivent."
+              : "Rejoins l'aventure avec ton code d'invitation."}
+          </h1>
           <p>
-            Le socle MVP commence par les comptes, les campagnes et les invitations.
-            La carte, les fiches et le combat viendront ensuite sur cette base.
+            {accountType === "gm"
+              ? "Crée un compte MJ pour gérer tes campagnes, scènes et invitations."
+              : "Utilise le code reçu de ton MJ pour créer ton compte joueur et rejoindre la campagne."}
           </p>
           <div className="status-strip">
-            <span>Backend dedie</span>
-            <span>PostgreSQL isole</span>
-            <span>Invitations MJ</span>
+            <span>Backend dédié</span>
+            <span>PostgreSQL isolé</span>
+            <span>{accountType === "gm" ? "Compte MJ" : "Compte Joueur"}</span>
           </div>
         </section>
 
         <AuthView
           mode={mode}
+          accountType={accountType}
+          inviteToken={inviteToken}
           isBusy={isBusy}
           onModeChange={setMode}
+          onBack={() => setLandingStep("landing")}
           onSubmit={handleAuth}
         />
       </main>

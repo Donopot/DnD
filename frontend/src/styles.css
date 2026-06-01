@@ -8459,7 +8459,7 @@ select {
 }
 
 .fog-canvas {
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .fog-toolbar {
@@ -8489,4 +8489,137 @@ select {
   background: #1b4332;
   color: #f8f4e8;
   border-color: #1b4332;
+}
+
+/* ── Landing Page ───────────────────────────────────────────────────────── */
+
+.landing-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem clamp(1rem, 5vw, 4rem);
+  background: linear-gradient(160deg, #1a1e2b 0%, #2a3a2e 50%, #1a1e2b 100%);
+  gap: 3rem;
+}
+
+.landing-hero {
+  text-align: center;
+}
+
+.landing-hero .brand-mark.large {
+  flex-direction: column;
+  gap: 1rem;
+  color: #c5b358;
+}
+
+.landing-hero .brand-mark.large h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f8f4e8;
+}
+
+.landing-tagline {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: #a0a898;
+  max-width: 560px;
+}
+
+.landing-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  max-width: 720px;
+  width: 100%;
+}
+
+.landing-choice {
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem;
+  border: 2px solid #3a4a3e;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f0ede0;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+
+.landing-choice:hover {
+  transform: translateY(-2px);
+}
+
+.landing-choice.gm-choice:hover {
+  border-color: #c5b358;
+  background: rgba(197, 179, 88, 0.08);
+}
+
+.landing-choice.player-choice:hover {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.landing-choice h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.landing-choice p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9aa898;
+  line-height: 1.45;
+}
+
+.landing-choice svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.landing-choice.gm-choice svg {
+  color: #c5b358;
+}
+
+.landing-choice.player-choice svg {
+  color: #7c3aed;
+}
+
+.landing-footer {
+  display: flex;
+  gap: 2rem;
+  color: #6a7a6e;
+  font-size: 0.82rem;
+}
+
+/* ── AuthView updated: role badge, header ───────────────────────────────── */
+
+.auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.auth-role-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(197, 179, 88, 0.12);
+  color: #c5b358;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.auth-role-badge svg {
+  opacity: 0.85;
 }

@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user, require_campaign_role, require_gm_account
 from app.schemas import (
     CampaignCreateRequest,
     CampaignMemberPublic,
@@ -59,6 +59,7 @@ async def list_campaigns(current_user=Depends(get_current_user)) -> list[Campaig
 async def create_campaign(
     payload: CampaignCreateRequest,
     current_user=Depends(get_current_user),
+    _gm=Depends(require_gm_account),
 ) -> CampaignPublic:
     async with get_pool().acquire() as connection:
         async with connection.transaction():
