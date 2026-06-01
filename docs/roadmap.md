@@ -29,12 +29,12 @@ Dernière mise à jour : 2026-06-01
 | 21 | Communication MJ↔Joueur (messages, annonces, jets secrets) | 2026-06 |
 | 22 | Map interactive joueur (ping, règle, drag tokens via WebSocket) | 2026-06 |
 | 23 | Gestion perso par le MJ (XP, conditions, HP, inventaire) | 2026-06 |
+| 24 | Mesures et gabarits (distance, AoE) | 2026-06 |
 
 ## 🔜 Prochaines
 
 | # | Titre | Priorité | Estimation |
 |---|-------|----------|------------|
-| 24 | Mesures et gabarits (distance, AoE) | Moyenne | 2 jours |
 | 25 | SRD et règles de base | Basse | 2 jours |
 | 26 | Sauvegardes et maintenance | Moyenne | 2 jours |
 | 27 | Beta privée | Haute | 3 jours |
@@ -42,6 +42,6 @@ Dernière mise à jour : 2026-06-01
 ## Métriques actuelles
 
 - **Backend** : 100 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests
-- **Frontend** : 37 composants React, ~10850 lignes CSS, 1759 modules Vite
+- **Frontend** : 37 composants React, ~10950 lignes CSS, 1759 modules Vite
 - **Layouts** : AuthPage, PlayerLobby, GMLobby, GM Campaign (3 colonnes), Player Campaign (map+panneaux)
-- **Temps réel** : WebSocket (scène, tokens, handouts, combat, ping, règle, drag token)
+- **Temps réel** : WebSocket (scène, tokens, handouts, combat, ping, règle, drag token, AoE)
