@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-06-01
 
-## ✅ Complétées (Phases 1–27) — Beta privée 🎉
+## ✅ Complétées (Phases 1–28)
 
 | # | Titre | Date |
 |---|-------|------|
@@ -26,19 +26,30 @@ Dernière mise à jour : 2026-06-01
 | 18 | Interactions Joueur | 2026-06 |
 | 19 | Refonte Auth & 4 Layouts | 2026-06 |
 | 20 | Refonte Totale Interfaces + Vault Persos | 2026-06 |
-| 21 | Communication MJ↔Joueur (messages, annonces, jets secrets) | 2026-06 |
-| 22 | Map interactive joueur (ping, règle, drag tokens via WebSocket) | 2026-06 |
-| 23 | Gestion perso par le MJ (XP, conditions, HP, inventaire) | 2026-06 |
-| 24 | Mesures et gabarits (distance, AoE) | 2026-06 |
+| 21 | Communication MJ↔Joueur | 2026-06 |
+| 22 | Map interactive joueur | 2026-06 |
+| 23 | Gestion perso par le MJ | 2026-06 |
+| 24 | Mesures et gabarits AoE | 2026-06 |
 | 25 | SRD et règles de base | 2026-06 |
 | 26 | Sauvegardes et maintenance | 2026-06 |
-| 27 | Beta privée (polish final, README, documentation) | 2026-06 |
+| 27 | Beta privée (polish final) | 2026-06 |
+| 28 | 🔥 Upgrade total de la Map (review + snap-grid + nameplates + zoom-cursor + grid toggle + fog undo) | 2026-06 |
 
-## Métriques finales
+## 🔜 Prochaines phases
+
+| # | Titre | Priorité | Estimation |
+|---|-------|----------|------------|
+| 29 | Système de combat complet (tours, rounds, initiative visuelle, actions) | Haute | 3 jours |
+| 30 | Générateur de rencontres (CR calculator, random encounters) | Moyenne | 2 jours |
+| 31 | Lancer de dés public avec effets visuels (animations 3D dés) | Moyenne | 3 jours |
+| 32 | Système de macros et raccourcis (barre d'actions personnalisable) | Basse | 2 jours |
+| 33 | Logs et analytics (audit des actions, stats de session) | Basse | 2 jours |
+
+## Métriques actuelles
 
 - **Backend** : 100 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests unitaires
-- **Frontend** : 39 composants React, ~11 050 lignes CSS, 1760 modules Vite
-- **Layouts** : 5 layouts (AuthPage, PlayerLobby, GMLobby, GM Campaign, Player Campaign)
-- **Temps réel** : WebSocket (présence, scène, tokens, handouts, combat, ping, règle, drag token, AoE)
+- **Frontend** : 39 composants React, ~11 200 lignes CSS, 1760 modules Vite
+- **Layouts** : 5 layouts distincts
+- **Temps réel** : WebSocket 8 types de messages (présence, scène, tokens, handouts, combat, ping, règle/drag/AoE)
+- **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE shapes
 - **Maintenance** : 3 cron jobs (backup 03h, audit 06h, suggestions 07h30)
-- **Sécurité** : JWT, rate limiting, honeypot, complexité mdp, rôles
