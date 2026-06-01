@@ -1,15 +1,25 @@
 import { FormEvent } from "react";
 import { Castle, Crown, DoorOpen, Plus } from "lucide-react";
+import { PersonalCharactersSection } from "./PersonalCharactersSection";
+import { Character } from "../api/types";
 
 type GmLobbyProps = {
   userDisplayName: string;
+  token: string;
   isBusy: boolean;
   message: string;
   onCreateCampaign: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   onLogout: () => void;
 };
 
-export function GmLobby({ userDisplayName, isBusy, message, onCreateCampaign, onLogout }: GmLobbyProps) {
+export function GmLobby({
+  userDisplayName,
+  token,
+  isBusy,
+  message,
+  onCreateCampaign,
+  onLogout,
+}: GmLobbyProps) {
   return (
     <main className="lobby-shell gm-lobby">
       {/* ── Header ─────────────────────────────────────────────── */}
@@ -30,6 +40,7 @@ export function GmLobby({ userDisplayName, isBusy, message, onCreateCampaign, on
 
       {/* ── Content ────────────────────────────────────────────── */}
       <section className="lobby-content">
+        {/* ── Create campaign section ────────────────────────── */}
         <div className="lobby-hero">
           <Crown size={64} />
           <h2>Bienvenue, {userDisplayName} !</h2>
@@ -68,6 +79,9 @@ export function GmLobby({ userDisplayName, isBusy, message, onCreateCampaign, on
             </button>
           </form>
         </div>
+
+        {/* ── Personal Characters (vault) ────────────────────── */}
+        <PersonalCharactersSection token={token} />
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}

@@ -1,15 +1,25 @@
 import { FormEvent, useState } from "react";
 import { Castle, DoorOpen, UserPlus } from "lucide-react";
 import { InvitePreviewCard } from "./InvitePreviewCard";
+import { PersonalCharactersSection } from "./PersonalCharactersSection";
+import { Character } from "../api/types";
 
 type PlayerLobbyProps = {
   token: string;
   userDisplayName: string;
   onLogout: () => void;
   onJoined: () => void;
+  /** If the player is already in a campaign, allow submitting characters */
+  activeCampaignId?: string;
 };
 
-export function PlayerLobby({ token, userDisplayName, onLogout, onJoined }: PlayerLobbyProps) {
+export function PlayerLobby({
+  token,
+  userDisplayName,
+  onLogout,
+  onJoined,
+  activeCampaignId,
+}: PlayerLobbyProps) {
   const [inviteCode, setInviteCode] = useState("");
   const [submittedToken, setSubmittedToken] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
@@ -47,6 +57,7 @@ export function PlayerLobby({ token, userDisplayName, onLogout, onJoined }: Play
 
       {/* ── Content ────────────────────────────────────────────── */}
       <section className="lobby-content">
+        {/* ── Invite section ────────────────────────────────── */}
         <div className="lobby-hero">
           <Castle size={64} />
           <h2>Bienvenue, {userDisplayName} !</h2>
@@ -84,6 +95,12 @@ export function PlayerLobby({ token, userDisplayName, onLogout, onJoined }: Play
             />
           )}
         </div>
+
+        {/* ── Personal Characters ───────────────────────────── */}
+        <PersonalCharactersSection
+          token={token}
+          campaignId={activeCampaignId}
+        />
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}

@@ -4,6 +4,45 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 20] — Refonte Totale Interfaces MJ/Joueur + Vault Personnages (2026-06-01)
+
+### Added
+- Migration `017_personal_characters.sql` : `campaign_id` nullable, `status` (personal/submitted/active/archived), `submitted_to_campaign_id`
+- Backend endpoints vault personnages :
+  - `POST /api/characters` — créer un personnage personnel (hors campagne)
+  - `GET /api/characters/mine` — lister ses personnages personnels
+  - `POST /api/characters/{id}/submit` — soumettre un personnage au MJ d'une campagne
+  - `POST /api/characters/{id}/approve` / `reject` — MJ approuve/rejette une soumission
+- `CampaignMap.tsx` : composant carte partagé extrait de VttBoard (258 lignes, prop `isGM`)
+- `PersonalCharactersSection.tsx` : vault personnages réutilisable dans les deux lobbies
+  - Création rapide (nom uniquement)
+  - Liste avec attributs, classe, niveau, modificateurs
+  - Bouton soumettre au MJ (si le joueur est dans une campagne)
+- Layout GM 3 colonnes : sidebar (210px) | carte | panneaux (320px)
+- Layout Joueur : carte à gauche + panneaux à droite (plus d'onglets, tous visibles simultanément)
+- WebSocket : scène, tokens, handouts et combat synchronisés en temps réel pour les joueurs
+
+### Changed
+- `App.tsx` : layout GM remplacé par grille 3 colonnes, layout Joueur par flex carte+panneaux
+- `PlayerView.tsx` : refonte complète (map chargement scènes, layout map+panneaux, plus d'onglets)
+- `PlayerLobby.tsx` : ajout section personnages personnels + prop `activeCampaignId`
+- `GmLobby.tsx` : ajout section personnages personnels + prop `token`
+
+### Files
+- `migrations/017_personal_characters.sql` — nouveau (14 lignes)
+- `backend/app/routers/characters.py` — +193 lignes (5 endpoints vault)
+- `backend/app/schemas.py` — +14 lignes (CharacterPublic, SubmitRequest, ApproveRequest)
+- `backend/tests/test_security.py` — +75 lignes (6 tests schema)
+- `frontend/src/components/CampaignMap.tsx` — nouveau (258 lignes)
+- `frontend/src/components/PersonalCharactersSection.tsx` — nouveau (205 lignes)
+- `frontend/src/App.tsx` — +200/-370 lignes (layouts MJ et Joueur)
+- `frontend/src/components/PlayerView.tsx` — +116/-110 lignes (refonte layout)
+- `frontend/src/components/PlayerLobby.tsx` — +20 lignes (section persos)
+- `frontend/src/components/GmLobby.tsx` — +6 lignes (section persos)
+- `frontend/src/styles.css` — +888 lignes (PersonalChars + responsive tablet/mobile)
+
+---
+
 ## [Phase 19] — Refonte Auth & Routage 4 Layouts (2026-06-01)
 
 ### Added

@@ -1118,6 +1118,7 @@ export default function App() {
   if (user.account_type === "gm" && campaigns.length === 0) {
     return (
       <GmLobby
+        token={token}
         userDisplayName={user.display_name}
         isBusy={isBusy}
         message={message}

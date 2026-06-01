@@ -51,10 +51,10 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | Métrique | Valeur |
 |----------|--------|
 | Routeurs | 11 |
-| Endpoints | 83 |
-| Migrations | 16 |
-| Schémas Pydantic | 53 |
-| Tests unitaires (pytest) | 36 |
+| Endpoints | 88 |
+| Migrations | 17 |
+| Schémas Pydantic | 57 |
+| Tests unitaires (pytest) | 42 |
 | Smoke tests shell | 16 |
 | Dép. Python | ~4100 lignes |
 
@@ -64,7 +64,7 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 |---------|--------|-----------|
 | Auth | `auth.py` | 3 |
 | Campagnes + Invitations | `campaigns.py` | 7 |
-| Personnages | `characters.py` | 5 |
+| Personnages | `characters.py` | 10 |
 | Scènes + Tokens | `vtt.py` | 8 |
 | Combat | `combat.py` | 11 |
 | Dés + Journal | `session.py` | 9 |
@@ -73,7 +73,7 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | Homebrew | `homebrew.py` | 9 |
 | Notes MJ | `gm_notes.py` | 5 |
 | Interface Joueur | `player.py` | 8 |
-| **Total** | | **84** |
+| **Total** | | **88** |
 
 ### Dépendances
 
@@ -83,9 +83,9 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 | Métrique | Valeur |
 |----------|--------|
-| Composants React | 31 |
+| Composants React | 33 |
 | Modules Vite | 1765 |
-| CSS | ~9356 lignes |
+| CSS | ~10244 lignes |
 
 ### Composants
 
@@ -112,6 +112,8 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | `CampaignViewTabs.tsx` | Onglets campagne GM |
 | `SessionWorkspace.tsx` | Layout session live (carte + combat + journal) |
 | `FogLayer.tsx` | Brouillard de guerre : canvas overlay, drag-to-reveal |
+| `CampaignMap.tsx` | Carte partagée MJ/Joueur extraite de VttBoard (prop isGM) |
+| `PersonalCharactersSection.tsx` | Vault personnages réutilisable (création, liste, soumission) |
 
 ### Dépendances
 
@@ -140,13 +142,14 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 17 | Auth GM/Joueur distinct | ✅ | ✅ |
 | 18 | Interactions Joueur | ✅ | ✅ |
 | 19 | Refonte Auth & 4 Layouts | ✅ | ✅ |
-| 20 | Communication MJ↔Joueur (jet secret, annonces, msg privés) | - | - |
-| 21 | Map interactive joueur (ping, déplacement token, mesure) | - | - |
-| 22 | Gestion perso par le MJ (items, XP, conditions) | - | - |
-| 23 | Mesures et gabarits | - | - |
-| 24 | SRD et règles de base | - | - |
-| 25 | Sauvegardes et maintenance | - | - |
-| 26 | Beta privée | - | - |
+| 20 | Refonte Totale Interfaces + Vault Persos | ✅ | ✅ |
+| 21 | Communication MJ↔Joueur (jet secret, annonces, msg privés) | - | - |
+| 22 | Map interactive joueur (ping, déplacement token, mesure) | - | - |
+| 23 | Gestion perso par le MJ (items, XP, conditions) | - | - |
+| 24 | Mesures et gabarits | - | - |
+| 25 | SRD et règles de base | - | - |
+| 26 | Sauvegardes et maintenance | - | - |
+| 27 | Beta privée | - | - |
 
 ## Tests
 
