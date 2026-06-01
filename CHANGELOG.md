@@ -4,6 +4,39 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 23] — Gestion personnages par le MJ (XP, conditions, HP, inventaire) (2026-06-01)
+
+### Added
+- Migration `019_character_management.sql` : colonnes `xp` (int) et `conditions` (jsonb)
+- 5 nouveaux endpoints GM dans `characters.py` :
+  - `PATCH /api/characters/{id}/xp` — ajouter XP (+ log journal)
+  - `PATCH /api/characters/{id}/conditions` — définir conditions actives (+ log)
+  - `PATCH /api/characters/{id}/hp` — soin/dégâts PV (+ log, clampé 0–max)
+  - `PATCH /api/characters/{id}/inventory` — add/remove/update objet (+ log)
+  - `PATCH /api/characters/{id}/resources` — add/remove/update ressource (+ log)
+- `GmCharacterInspector.tsx` : modal inspection personnage (322 lignes)
+  - Stats rapides (PV, CA, XP, Bonus maîtrise) avec barre PV
+  - Ajustement HP avec boutons rapides (±5, ±10)
+  - Ajout XP avec note
+  - 17 conditions en chips checkbox
+  - Gestion inventaire (ajout objet avec nom/qte/desc, suppression)
+- `App.tsx` : bouton 🔍 sur chaque personnage GM → modal inspector
+
+### Changed
+- `CharacterPublic` : ajout `xp`, `conditions`
+- `Character` (frontend type) : ajout `xp`, `conditions`
+
+### Files
+- `backend/app/migrations/019_character_management.sql` — nouveau (5 lignes)
+- `backend/app/routers/characters.py` — +202 lignes (5 endpoints)
+- `backend/app/schemas.py` — +35 lignes (5 schemas + CharacterPublic)
+- `frontend/src/components/GmCharacterInspector.tsx` — nouveau (322 lignes)
+- `frontend/src/App.tsx` — +42 lignes (inspector modal)
+- `frontend/src/api/types.ts` — +2 lignes
+- `frontend/src/styles.css` — +296 lignes
+
+---
+
 ## [Phase 22] — Map interactive joueur (ping, règle, drag token) (2026-06-01)
 
 ### Added
