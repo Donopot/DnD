@@ -8882,3 +8882,475 @@ select {
   color: #c5b358;
   font-weight: 600;
 }
+
+/* ── AuthPage: unified login/register ───────────────────────────────────── */
+
+.auth-page-shell {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f1923 0%, #1a2a1a 100%);
+}
+
+.auth-page-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  gap: 1.5rem;
+}
+
+.auth-page-hero .brand-mark.large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-page-hero .brand-mark.large h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f0ede0;
+  margin: 0;
+}
+
+.auth-page-tagline {
+  font-size: 1.1rem;
+  color: #8a9a8e;
+  max-width: 24rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.auth-page-form {
+  flex: 0 0 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2.5rem 2rem;
+  background: rgba(20, 30, 25, 0.9);
+  border-left: 1px solid #2a3a2e;
+  overflow-y: auto;
+}
+
+.auth-page-form .auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-page-form .auth-tabs button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  background: #1a2a1e;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.auth-page-form .auth-tabs button.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+/* Account type radio cards */
+.account-type-radio-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.account-type-radio-group legend {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8a9a8e;
+  margin-bottom: 0.25rem;
+}
+
+.account-type-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid #2a3a2e;
+  border-radius: 10px;
+  background: rgba(30, 40, 35, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.account-type-radio input[type="radio"] {
+  display: none;
+}
+
+.account-type-radio.selected {
+  border-color: #c5b358;
+  background: rgba(197, 179, 88, 0.08);
+}
+
+.account-type-radio svg {
+  flex-shrink: 0;
+  color: #c5b358;
+  opacity: 0.7;
+}
+
+.account-type-radio.selected svg {
+  opacity: 1;
+}
+
+.account-type-radio div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.account-type-radio strong {
+  font-size: 0.9rem;
+  color: #e0dcc8;
+}
+
+.account-type-radio small {
+  font-size: 0.75rem;
+  color: #6a7a6e;
+}
+
+/* Password input with toggle */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.password-input-wrapper .icon-button {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #8a9a8e;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .icon-button:hover {
+  color: #c5b358;
+}
+
+/* Password strength bar */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #2a3a2e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s, background 0.2s;
+}
+
+.password-strength-fill.strength-0 { background: #cc4444; }
+.password-strength-fill.strength-1 { background: #cc6644; }
+.password-strength-fill.strength-2 { background: #cc9944; }
+.password-strength-fill.strength-3 { background: #88aa44; }
+.password-strength-fill.strength-4 { background: #44aa44; }
+.password-strength-fill.strength-5 { background: #44aa66; }
+
+.strength-label {
+  font-size: 0.75rem;
+  min-width: 5rem;
+  text-align: right;
+}
+
+.strength-label.strength-0,
+.strength-label.strength-1 { color: #cc6644; }
+.strength-label.strength-2 { color: #cc9944; }
+.strength-label.strength-3,
+.strength-label.strength-4,
+.strength-label.strength-5 { color: #88aa44; }
+
+/* Field error inline */
+.field-error {
+  display: block;
+  font-size: 0.78rem;
+  color: #cc6644;
+  margin-top: 0.25rem;
+}
+
+/* Honeypot — invisible to humans */
+.honeypot {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+/* Auth switch hint */
+.auth-switch-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6a7a6e;
+}
+
+.auth-switch-hint .link-button {
+  background: none;
+  border: none;
+  color: #c5b358;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.auth-switch-hint .link-button:hover {
+  color: #e8d48a;
+}
+
+/* ── Responsive AuthPage ─────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .auth-page-shell {
+    flex-direction: column;
+  }
+
+  .auth-page-hero {
+    padding: 2rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .auth-page-hero .brand-mark.large h1 {
+    font-size: 1.5rem;
+  }
+
+  .auth-page-form {
+    flex: 0 0 auto;
+    border-left: none;
+    border-top: 1px solid #2a3a2e;
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+/* ── Lobby: shared base ─────────────────────────────────────────────────── */
+
+.lobby-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f1923 0%, #1a2a1a 100%);
+}
+
+.lobby-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #2a3a2e;
+  background: rgba(20, 28, 24, 0.95);
+}
+
+.lobby-header .brand-mark.compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0ede0;
+}
+
+.lobby-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.lobby-user-info > span:first-child {
+  font-size: 0.9rem;
+  color: #c0c0a0;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.gm {
+  background: rgba(197, 179, 88, 0.15);
+  color: #c5b358;
+}
+
+.role-badge.player {
+  background: rgba(74, 144, 226, 0.15);
+  color: #6aaeff;
+}
+
+.lobby-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.lobby-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lobby-hero svg {
+  color: #c5b358;
+  opacity: 0.7;
+}
+
+.lobby-hero h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #f0ede0;
+}
+
+.lobby-hero .muted {
+  color: #6a7a6e;
+  max-width: 28rem;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.lobby-footer {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid #2a3a2e;
+  text-align: center;
+  color: #4a5a4e;
+  font-size: 0.82rem;
+}
+
+/* ── Player Lobby ────────────────────────────────────────────────────────── */
+
+.player-lobby .lobby-invite-section {
+  width: 100%;
+  max-width: 32rem;
+}
+
+.invite-code-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8a9a8e;
+}
+
+.invite-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.invite-input-row input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 8px;
+  color: #f0ede0;
+  font-size: 0.9rem;
+}
+
+.invite-input-row input::placeholder {
+  color: #5a6a5e;
+}
+
+/* ── Invite Preview Card ─────────────────────────────────────────────────── */
+
+.invite-preview-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(30, 40, 35, 0.8);
+  border: 1px solid #3a4a3e;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.invite-preview-card.error {
+  border-color: #663333;
+}
+
+.invite-preview-card svg {
+  color: #c5b358;
+}
+
+.invite-preview-card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #f0ede0;
+}
+
+.invite-preview-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #b0b8a0;
+}
+
+.invite-preview-card .error-text {
+  color: #cc6644;
+}
+
+/* ── GM Lobby ────────────────────────────────────────────────────────────── */
+
+.gm-lobby .lobby-create-section {
+  width: 100%;
+  max-width: 36rem;
+}
+
+.gm-lobby .lobby-create-section h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  color: #e0dcc8;
+}
+
+.gm-lobby .lobby-create-section .form-stack {
+  gap: 0.75rem;
+}

@@ -15,13 +15,14 @@ import "./styles.css";
 import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
-import { AuthView } from "./components/AuthView";
+import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { HomebrewPanel } from "./components/HomebrewPanel";
 import { InvitePage } from "./components/InvitePage";
-import { LandingPage } from "./components/LandingPage";
 import { PlayerView } from "./components/PlayerView";
+import { GmLobby } from "./components/GmLobby";
+import { PlayerLobby } from "./components/PlayerLobby";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
@@ -69,9 +70,6 @@ export default function App() {
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
-  const [mode, setMode] = useState<"login" | "register">("register");
-  const [accountType, setAccountType] = useState<"gm" | "player">("gm");
-  const [landingStep, setLandingStep] = useState<"landing" | "auth">("landing");
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
@@ -821,42 +819,6 @@ export default function App() {
     }
   }
 
-  async function handleAuth(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsBusy(true);
-    setMessage("");
-    const form = new FormData(event.currentTarget);
-    const payload =
-      mode === "register"
-        ? {
-            email: String(form.get("email")),
-            display_name: String(form.get("display_name")),
-            password: String(form.get("password")),
-            account_type: accountType,
-            ...(accountType === "player" ? { invite_token: String(form.get("invite_token") || inviteToken || "") || undefined } : {}),
-          }
-        : {
-            email: String(form.get("email")),
-            password: String(form.get("password")),
-          };
-
-    try {
-      const auth = await request<AuthResponse>(`/api/auth/${mode}`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
-      setToken(auth.access_token);
-      setUser(auth.user);
-      setMessage(mode === "register" ? "Compte créé." : "Connexion active.");
-      await loadCampaigns(auth.access_token);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Échec authentification");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
@@ -1036,24 +998,22 @@ export default function App() {
     setSelectedCampaignId("");
   }
 
-  if (inviteToken) {
+  // ── Routing ──────────────────────────────────────────────────
+
+  // 1. Invite link + already logged in → join flow
+  if (inviteToken && user) {
     return (
       <InvitePage
         inviteToken={inviteToken}
         token={token}
-        userDisplayName={user?.display_name ?? null}
+        userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
           localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
           setToken(newToken);
         }}
         onJoined={() => {
-          // token is stale for the registration+auto-join case,
-          // but InvitePage calls onTokenChange before onJoined,
-          // and the token state update is batched — so we read
-          // the latest token from localStorage directly.
           const activeToken = localStorage.getItem(TOKEN_STORAGE_KEY) || token;
           void loadCampaigns(activeToken).then(() => {
-            // Clear the invite flow → go back to the main app
             setInviteToken(null);
             if (window.history.pushState) {
               window.history.pushState({}, "", "/");
@@ -1064,58 +1024,83 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    // Landing page: choose GM or Player path
-    if (landingStep === "landing") {
-      return (
-        <LandingPage
-          onSelect={(type) => {
-            setAccountType(type);
-            setLandingStep("auth");
-          }}
-        />
-      );
-    }
-
-    // Auth form (login or register) for the chosen account type
+  // 2. Invite link + not authenticated → AuthPage with invite context
+  if (inviteToken && !user) {
     return (
-      <main className="auth-shell">
-        <section className="auth-visual">
-          <div className="brand-mark">
-            <Swords aria-hidden="true" />
-            DnD Interface
-          </div>
-          <h1>
-            {accountType === "gm"
-              ? "Prépare la table avant que les joueurs arrivent."
-              : "Rejoins l'aventure avec ton code d'invitation."}
-          </h1>
-          <p>
-            {accountType === "gm"
-              ? "Crée un compte MJ pour gérer tes campagnes, scènes et invitations."
-              : "Utilise le code reçu de ton MJ pour créer ton compte joueur et rejoindre la campagne."}
-          </p>
-          <div className="status-strip">
-            <span>Backend dédié</span>
-            <span>PostgreSQL isolé</span>
-            <span>{accountType === "gm" ? "Compte MJ" : "Compte Joueur"}</span>
-          </div>
-        </section>
-
-        <AuthView
-          mode={mode}
-          accountType={accountType}
-          inviteToken={inviteToken}
-          isBusy={isBusy}
-          onModeChange={setMode}
-          onBack={() => setLandingStep("landing")}
-          onSubmit={handleAuth}
-        />
-      </main>
+      <AuthPage
+        inviteToken={inviteToken}
+        isBusy={isBusy}
+        message={message}
+        onSubmit={async (payload) => {
+          setIsBusy(true);
+          setMessage("");
+          try {
+            const auth = await request<AuthResponse>(`/api/auth/${payload.mode}`, {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+            localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
+            setToken(auth.access_token);
+            setUser(auth.user);
+            await loadCampaigns(auth.access_token);
+            if (payload.mode === "register") {
+              setInviteToken(null);
+              window.history.pushState({}, "", "/");
+            }
+          } catch (err) {
+            setMessage(err instanceof Error ? err.message : "Échec");
+          } finally {
+            setIsBusy(false);
+          }
+        }}
+      />
     );
   }
 
-  // Player role → show player dashboard instead of GM interface
+  // 3. Not authenticated → unified AuthPage
+  if (!user) {
+    return (
+      <AuthPage
+        inviteToken={null}
+        isBusy={isBusy}
+        message={message}
+        onSubmit={async (payload) => {
+          setIsBusy(true);
+          setMessage("");
+          try {
+            const auth = await request<AuthResponse>(`/api/auth/${payload.mode}`, {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+            localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
+            setToken(auth.access_token);
+            setUser(auth.user);
+            await loadCampaigns(auth.access_token);
+          } catch (err) {
+            setMessage(err instanceof Error ? err.message : "Échec");
+          } finally {
+            setIsBusy(false);
+          }
+        }}
+      />
+    );
+  }
+
+  // 4. Player — no campaign → PlayerLobby
+  if (user.account_type === "player" && campaigns.length === 0) {
+    return (
+      <PlayerLobby
+        token={token}
+        userDisplayName={user.display_name}
+        onLogout={logout}
+        onJoined={() => {
+          void loadCampaigns(token);
+        }}
+      />
+    );
+  }
+
+  // 5. Player — has campaign → PlayerView
   if (selectedCampaign && selectedCampaign.role === "player") {
     return (
       <PlayerView
@@ -1127,6 +1112,21 @@ export default function App() {
       />
     );
   }
+
+  // 6. GM — no campaign → GmLobby
+  if (user.account_type === "gm" && campaigns.length === 0) {
+    return (
+      <GmLobby
+        userDisplayName={user.display_name}
+        isBusy={isBusy}
+        message={message}
+        onCreateCampaign={handleCreateCampaign}
+        onLogout={logout}
+      />
+    );
+  }
+
+  // 7. GM — has campaign → full VTT interface
 
   return (
     <main className="app-shell">
