@@ -8272,3 +8272,81 @@ select {
   cursor: pointer;
   color: #2d6a4f;
 }
+
+/* ── Journal Enhancement (Phase 15) ────────────────────────────────────── */
+
+.category-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.category-filter-list .ghost-button {
+  font-size: 0.72rem;
+  padding: 4px 8px;
+}
+
+.pinned-section {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+}
+
+.log-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.log-row-header > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pin-btn {
+  padding: 2px 4px !important;
+  min-width: 20px;
+  border: none !important;
+  background: none !important;
+  color: #6b5e4b;
+}
+
+.pin-btn:hover {
+  color: #f59e0b;
+}
+
+.category-select {
+  font-size: 0.66rem;
+  padding: 2px 4px;
+  border: 1px solid #d4cdb8;
+  border-radius: 3px;
+  background: #fff;
+  color: #6b5e4b;
+  max-width: 100px;
+}
+
+.compact-log-row.pinned {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+}
+
+.compact-log-row .log-row-content small {
+  display: block;
+  margin-top: 2px;
+}

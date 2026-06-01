@@ -1,7 +1,15 @@
+import { Bookmark, BookmarkCheck, Dices, Filter, Pin, PinOff } from "lucide-react";
 import type { FormEvent } from "react";
-import { Dices } from "lucide-react";
 
 import type { Character, GameLogEntry, Roll } from "../api/types";
+
+const CATEGORIES = [
+  { id: "general", label: "General", emoji: "📝" },
+  { id: "combat", label: "Combat", emoji: "⚔️" },
+  { id: "rp", label: "Roleplay", emoji: "🎭" },
+  { id: "exploration", label: "Exploration", emoji: "🗺️" },
+  { id: "gm_note", label: "Note MJ", emoji: "🔒" },
+] as const;
 
 type SessionLogPanelProps = {
   characters: Character[];
@@ -9,8 +17,10 @@ type SessionLogPanelProps = {
   rolls: Roll[];
   logEntries: GameLogEntry[];
   isBusy: boolean;
+  token: string;
   onRoll: (event: FormEvent<HTMLFormElement>) => void;
   onAddNote: (event: FormEvent<HTMLFormElement>) => void;
+  onRefresh: (category?: string) => void;
 };
 
 export function SessionLogPanel({
@@ -19,12 +29,67 @@ export function SessionLogPanel({
   rolls,
   logEntries,
   isBusy,
+  token,
   onRoll,
   onAddNote,
+  onRefresh,
 }: SessionLogPanelProps) {
   const latestRoll = rolls[0];
-  const publicLogCount = logEntries.filter((entry) => entry.visibility === "public").length;
-  const gmLogCount = logEntries.filter((entry) => entry.visibility === "gm").length;
+  const pinnedEntries = logEntries.filter((e) => e.pinned);
+  const sessionMarkers = logEntries.filter((e) => e.session_marker);
+
+  async function togglePin(entry: GameLogEntry) {
+    try {
+      await fetch(`/api/campaigns/${entry.campaign_id}/log/${entry.id}/pin`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ pinned: !entry.pinned }),
+      });
+      onRefresh();
+    } catch {
+      // silently ignore
+    }
+  }
+
+  async function setCategory(entry: GameLogEntry, category: string) {
+    try {
+      await fetch(`/api/campaigns/${entry.campaign_id}/log/${entry.id}/category`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ category }),
+      });
+      onRefresh();
+    } catch {
+      // silently ignore
+    }
+  }
+
+  async function createSessionMarker() {
+    try {
+      const response = await fetch(
+        `/api/campaigns/${logEntries[0]?.campaign_id}/log/session-marker`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ label: "Nouvelle session" }),
+        },
+      );
+      if (response.ok) {
+        onRefresh();
+      }
+    } catch {
+      // silently ignore
+    }
+  }
 
   return (
     <div className="session-section">
@@ -36,11 +101,18 @@ export function SessionLogPanel({
       <div className="session-command-card">
         <div>
           <span className="session-status">Session live</span>
-          <h4>{latestRoll ? `${latestRoll.label || latestRoll.formula} = ${latestRoll.total}` : "Aucun jet recent"}</h4>
+          <h4>
+            {latestRoll
+              ? `${latestRoll.label || latestRoll.formula} = ${latestRoll.total}`
+              : "Aucun jet recent"}
+          </h4>
           <p>
-            {rolls.length} jet(s) · {publicLogCount} public · {gmLogCount} MJ
+            {rolls.length} jet(s) · {pinnedEntries.length} epingle(s) · {sessionMarkers.length} session(s)
           </p>
         </div>
+        <button className="ghost-button compact" onClick={createSessionMarker} disabled={isBusy} type="button" title="Marquer debut de session">
+          <Bookmark size={14} /> Session
+        </button>
       </div>
 
       <div className="session-compact-layout">
@@ -118,8 +190,69 @@ export function SessionLogPanel({
               </button>
             </form>
           </details>
+
+          {/* Category filters */}
+          <details className="tool-card">
+            <summary>
+              <Filter size={12} /> Categories
+            </summary>
+            <div className="category-filter-list">
+              <button
+                className="ghost-button compact"
+                onClick={() => onRefresh()}
+                type="button"
+              >
+                Tous
+              </button>
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  className="ghost-button compact"
+                  onClick={() => onRefresh(cat.id)}
+                  type="button"
+                >
+                  {cat.emoji} {cat.label}
+                </button>
+              ))}
+            </div>
+          </details>
         </aside>
 
+        {/* Pinned entries */}
+        {pinnedEntries.length > 0 && (
+          <section className="session-history-card pinned-section">
+            <div className="session-subheading">
+              <h4>
+                <Pin size={12} /> Epingles
+              </h4>
+              <small>{pinnedEntries.length}</small>
+            </div>
+            <div className="compact-log-list">
+              {pinnedEntries.map((entry) => (
+                <article className={`compact-log-row ${entry.entry_type} pinned`} key={entry.id}>
+                  <div className="log-row-content">
+                    <span>{entry.message}</span>
+                    <small>
+                      {CATEGORIES.find((c) => c.id === entry.category)?.emoji}{" "}
+                      {entry.category} · {entry.visibility}
+                      {entry.session_marker ? " · 🏁 Session" : ""}
+                    </small>
+                  </div>
+                  <button
+                    className="ghost-button pin-btn"
+                    onClick={() => void togglePin(entry)}
+                    title="Depingler"
+                    type="button"
+                  >
+                    <PinOff size={12} />
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Recent rolls */}
         <section className="session-history-card">
           <div className="session-subheading">
             <h4>Derniers jets</h4>
@@ -145,6 +278,7 @@ export function SessionLogPanel({
           )}
         </section>
 
+        {/* Log entries with categories */}
         <section className="session-history-card">
           <div className="session-subheading">
             <h4>Journal</h4>
@@ -155,10 +289,39 @@ export function SessionLogPanel({
             <p className="muted">Le journal est vide.</p>
           ) : (
             <div className="compact-log-list">
-              {logEntries.slice(0, 12).map((entry) => (
-                <article className={`compact-log-row ${entry.entry_type}`} key={entry.id}>
-                  <span>{entry.message}</span>
-                  <small>{entry.visibility}</small>
+              {logEntries.slice(0, 20).map((entry) => (
+                <article className={`compact-log-row ${entry.entry_type} ${entry.pinned ? "pinned" : ""}`} key={entry.id}>
+                  <div className="log-row-content">
+                    <div className="log-row-header">
+                      <span>{entry.message}</span>
+                      <div className="log-row-actions">
+                        <button
+                          className="ghost-button pin-btn"
+                          onClick={() => void togglePin(entry)}
+                          title={entry.pinned ? "Depingler" : "Epingler"}
+                          type="button"
+                        >
+                          {entry.pinned ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+                        </button>
+                        <select
+                          className="category-select"
+                          value={entry.category}
+                          onChange={(e) => void setCategory(entry, e.target.value)}
+                          title="Changer categorie"
+                        >
+                          {CATEGORIES.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.emoji} {cat.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <small>
+                      {entry.visibility}
+                      {entry.session_marker ? " · 🏁" : ""}
+                    </small>
+                  </div>
                 </article>
               ))}
             </div>

@@ -159,8 +159,10 @@ export function SessionWorkspace({
           rolls={rolls}
           logEntries={logEntries}
           isBusy={isBusy}
+          token=""
           onRoll={onRoll}
           onAddNote={onAddNote}
+          onRefresh={() => {}}
         />
 
         <HandoutPanel

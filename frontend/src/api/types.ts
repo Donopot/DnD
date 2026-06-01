@@ -87,6 +87,12 @@ export type GameLogEntry = {
   visibility: "public" | "gm";
   message: string;
   payload: Record<string, unknown>;
+  category: "general" | "combat" | "rp" | "exploration" | "gm_note";
+  linked_scene_id: string | null;
+  linked_encounter_id: string | null;
+  linked_character_id: string | null;
+  pinned: boolean;
+  session_marker: boolean;
   created_at: string;
 };
 

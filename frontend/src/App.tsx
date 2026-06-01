@@ -1360,8 +1360,28 @@ export default function App() {
                   rolls={rolls}
                   logEntries={logEntries}
                   isBusy={isBusy}
+                  token={token}
                   onRoll={handleRoll}
                   onAddNote={handleLogNote}
+                  onRefresh={(category?) => {
+                    if (selectedCampaign) {
+                      void (async () => {
+                        try {
+                          const url = category
+                            ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
+                            : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
+                          const response = await fetch(url, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
+                          if (response.ok) {
+                            setLogEntries(await response.json());
+                          }
+                        } catch {
+                          // ignore
+                        }
+                      })();
+                    }
+                  }}
                 />
 
                 <HandoutPanel
