@@ -263,7 +263,7 @@ class CombatantCreateRequest(BaseModel):
     armor_class: int | None = Field(default=None, ge=1, le=40)
     hp_current: int | None = Field(default=None, ge=0)
     hp_max: int | None = Field(default=None, ge=0)
-    conditions: list[str] = Field(default_factory=list)
+    conditions: list = Field(default_factory=list)
     notes: str = Field(default="", max_length=2000)
     is_player_controlled: bool = False
     is_hidden: bool = False
@@ -277,7 +277,7 @@ class CombatantUpdateRequest(BaseModel):
     armor_class: int | None = Field(default=None, ge=1, le=40)
     hp_current: int | None = Field(default=None, ge=0)
     hp_max: int | None = Field(default=None, ge=0)
-    conditions: list[str] | None = None
+    conditions: list | None = None
     notes: str | None = Field(default=None, max_length=2000)
     is_player_controlled: bool | None = None
     is_hidden: bool | None = None
@@ -294,7 +294,7 @@ class CombatantPublic(BaseModel):
     armor_class: int | None
     hp_current: int | None
     hp_max: int | None
-    conditions: list[str]
+    conditions: list
     notes: str
     is_player_controlled: bool
     is_hidden: bool
@@ -398,3 +398,32 @@ class HandoutPublic(BaseModel):
     revealed_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class ConditionDetail(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    duration: int | None = Field(default=None, ge=1, le=1000)
+    duration_unit: str | None = Field(default=None, pattern="^(rounds|minutes|hours)$")
+    source: str | None = Field(default=None, max_length=200)
+    is_concentration: bool = False
+
+
+class ApplyConditionRequest(BaseModel):
+    combatant_id: UUID
+    condition: ConditionDetail
+
+
+class RemoveConditionRequest(BaseModel):
+    combatant_id: UUID
+    condition_name: str = Field(min_length=1, max_length=80)
+
+
+class CombatLogEntryPublic(BaseModel):
+    id: UUID
+    encounter_id: UUID
+    campaign_id: UUID
+    combatant_id: UUID | None
+    actor_user_id: UUID | None
+    event_type: str
+    payload: dict[str, Any]
+    created_at: datetime

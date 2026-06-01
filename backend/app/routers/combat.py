@@ -8,12 +8,15 @@ from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.realtime import manager
 from app.schemas import (
+    ApplyConditionRequest,
     CombatantCreateRequest,
     CombatantPublic,
     CombatantUpdateRequest,
+    CombatLogEntryPublic,
     EncounterCreateRequest,
     EncounterDetailPublic,
     EncounterPublic,
+    RemoveConditionRequest,
 )
 
 router = APIRouter(prefix="/api", tags=["combat"])
@@ -432,3 +435,147 @@ async def end_encounter(
     base = encounter_public(row, combatants)
     await broadcast_combat_change(row["campaign_id"], encounter_id)
     return EncounterDetailPublic(**base.model_dump(), combatants=combatants)
+
+
+async def _log_combat_event(
+    encounter_id: UUID,
+    campaign_id: UUID,
+    combatant_id: UUID,
+    actor_user_id: UUID,
+    event_type: str,
+    payload: dict[str, Any],
+) -> None:
+    await get_pool().execute(
+        """
+        insert into combat_log (encounter_id, campaign_id, combatant_id, actor_user_id, event_type, payload)
+        values ($1, $2, $3, $4, $5, $6::jsonb)
+        """,
+        encounter_id,
+        campaign_id,
+        combatant_id,
+        actor_user_id,
+        event_type,
+        json.dumps(payload),
+    )
+
+
+@router.post("/encounters/{encounter_id}/conditions/apply", response_model=CombatantPublic)
+async def apply_condition(
+    encounter_id: UUID,
+    payload: ApplyConditionRequest,
+    current_user=Depends(get_current_user),
+):
+    encounter = await get_encounter_or_404(encounter_id)
+    await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    combatant = await get_combatant_or_404(payload.combatant_id)
+    if combatant["encounter_id"] != encounter_id:
+        raise HTTPException(status_code=400, detail="Combatant does not belong to this encounter")
+
+    conditions = decode_json(combatant["conditions"])
+    condition_names = {c["name"] if isinstance(c, dict) else c for c in conditions}
+    if payload.condition.name in condition_names:
+        raise HTTPException(status_code=409, detail="Condition already applied to this combatant")
+
+    new_condition = payload.condition.model_dump()
+    conditions.append(new_condition)
+
+    row = await get_pool().fetchrow(
+        """
+        update combatants
+        set conditions = $2::jsonb, updated_at = now()
+        where id = $1
+        returning *
+        """,
+        payload.combatant_id,
+        json.dumps(conditions),
+    )
+
+    await _log_combat_event(
+        encounter_id=encounter_id,
+        campaign_id=encounter["campaign_id"],
+        combatant_id=payload.combatant_id,
+        actor_user_id=current_user["id"],
+        event_type="condition_applied",
+        payload={"condition": payload.condition.name, "combatant_name": combatant["name"]},
+    )
+
+    result = combatant_public(row)
+    await broadcast_combat_change(encounter["campaign_id"], encounter_id)
+    return result
+
+
+@router.post("/encounters/{encounter_id}/conditions/remove", response_model=CombatantPublic)
+async def remove_condition(
+    encounter_id: UUID,
+    payload: RemoveConditionRequest,
+    current_user=Depends(get_current_user),
+):
+    encounter = await get_encounter_or_404(encounter_id)
+    await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    combatant = await get_combatant_or_404(payload.combatant_id)
+    if combatant["encounter_id"] != encounter_id:
+        raise HTTPException(status_code=400, detail="Combatant does not belong to this encounter")
+
+    conditions = decode_json(combatant["conditions"])
+    removed = None
+    new_conditions = []
+    for c in conditions:
+        name = c["name"] if isinstance(c, dict) else c
+        if name == payload.condition_name and removed is None:
+            removed = c
+            continue
+        new_conditions.append(c)
+
+    if removed is None:
+        raise HTTPException(status_code=404, detail="Condition not found on this combatant")
+
+    row = await get_pool().fetchrow(
+        """
+        update combatants
+        set conditions = $2::jsonb, updated_at = now()
+        where id = $1
+        returning *
+        """,
+        payload.combatant_id,
+        json.dumps(new_conditions),
+    )
+
+    await _log_combat_event(
+        encounter_id=encounter_id,
+        campaign_id=encounter["campaign_id"],
+        combatant_id=payload.combatant_id,
+        actor_user_id=current_user["id"],
+        event_type="condition_removed",
+        payload={"condition": payload.condition_name, "combatant_name": combatant["name"]},
+    )
+
+    result = combatant_public(row)
+    await broadcast_combat_change(encounter["campaign_id"], encounter_id)
+    return result
+
+
+@router.get("/encounters/{encounter_id}/log", response_model=list[CombatLogEntryPublic])
+async def get_combat_log(
+    encounter_id: UUID,
+    current_user=Depends(get_current_user),
+) -> list[CombatLogEntryPublic]:
+    encounter = await get_encounter_or_404(encounter_id)
+    role = await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    visibility_clause = "true" if role in {"gm", "co_gm"} else "event_type not in ('damage', 'heal')"
+
+    rows = await get_pool().fetch(
+        f"""
+        select *
+        from combat_log
+        where encounter_id = $1
+          and ({visibility_clause})
+        order by created_at desc
+        limit 100
+        """,
+        encounter_id,
+    )
+
+    return [CombatLogEntryPublic(**dict(row)) for row in rows]
