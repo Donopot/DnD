@@ -182,6 +182,7 @@ sh scripts/smoke-backend.sh               # pas de régression smoke
 ✅ Broadcast temps réel après chaque mutation d'état partagé
 ✅ Validation métier côté backend (jamais faire confiance au frontend)
 ✅ Limites explicites (taille upload, nombre d'éléments, etc.)
+✅ **Mettre à jour la documentation après chaque phase mergée**
 
 ### 5.2 À ne pas faire
 ❌ Modifier une migration existante

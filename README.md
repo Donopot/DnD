@@ -1,49 +1,32 @@
-# DnD SaaS
+# DnD SaaS — Virtual Tabletop
 
 Second SaaS for a Dungeons & Dragons browser-first VTT, designed to run isolated
 from the existing documentary SaaS on the HP Mini.
 
-## Phase 1 Scope
+## Architecture
 
-This repository contains the infrastructure and minimal app skeleton:
-
-- dedicated frontend service;
-- dedicated FastAPI backend service;
-- dedicated PostgreSQL database;
-- dedicated MinIO object storage;
-- dedicated Redis instance;
-- dedicated Docker network;
-- separated environment file;
-- separated backup scripts;
-- Caddy routing example for `dnd.dtmini.com`.
-
-The only intended shared component with the documentary SaaS is the host-level
-Caddy entrypoint.
+| Composant | Technologie | Port interne |
+|-----------|------------|-------------|
+| Frontend | React 19 + Vite | 8090 |
+| Backend | FastAPI (Python 3.13) | 8091 |
+| Database | PostgreSQL 16 | 5432 |
+| Storage | MinIO (S3) | 9000 |
+| Cache | Redis | 6379 |
 
 ## Local Start
 
-Copy the environment file:
-
 ```bash
 cp .env.example .env
-```
-
-Start the stack:
-
-```bash
 docker compose up -d --build
 ```
 
 Open:
+- Frontend: http://127.0.0.1:8090
+- Backend health: http://127.0.0.1:8091/api/health
 
-- frontend: http://127.0.0.1:8090
-- backend health: http://127.0.0.1:8091/api/health
+## Production (HP Mini)
 
-## Production Layout
-
-Recommended server path on the HP Mini:
-
-```txt
+```
 /home/donopot/dnd-saas
   .env
   docker-compose.yml
@@ -53,76 +36,117 @@ Recommended server path on the HP Mini:
 ```
 
 Do not reuse credentials, databases, buckets, volumes or `.env` files from the
-documentary SaaS.
+documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 ## Caddy
 
-Use `infra/caddy/Caddyfile.dnd.example` as the routing reference. The preferred
-production shape is:
+- `https://dnd.dtmini.com` → DnD frontend
+- `https://dnd.dtmini.com/api/*` → DnD backend
+- `https://dnd.dtmini.com/ws/*` → DnD backend WebSocket
 
-- `https://dnd.dtmini.com` -> DnD frontend
-- `https://dnd.dtmini.com/api/*` -> DnD backend
-- `https://dnd.dtmini.com/ws/*` -> DnD backend websocket endpoints
+## Backend
 
-## Backups
+### Métriques
 
-Scripts are provided in `scripts/`:
+| Métrique | Valeur |
+|----------|--------|
+| Routeurs | 11 |
+| Endpoints | 84 |
+| Migrations | 14 |
+| Schémas Pydantic | 53 |
+| Tests unitaires (pytest) | 33 |
+| Smoke tests shell | 16 |
+| Dép. Python | ~4069 lignes |
 
-- `backup-postgres.sh`
-- `backup-minio.sh`
-- `smoke-phase2.sh`
-- `smoke-phase3.sh`
-- `smoke-phase4.sh`
-- `smoke-phase5.sh`
+### Endpoints par domaine
 
-They write to `./backups` by default when run from the repository root on the
-server.
+| Domaine | Router | Endpoints |
+|---------|--------|-----------|
+| Auth | `auth.py` | 3 |
+| Campagnes + Invitations | `campaigns.py` | 7 |
+| Personnages | `characters.py` | 5 |
+| Scènes + Tokens | `vtt.py` | 8 |
+| Combat | `combat.py` | 11 |
+| Dés + Journal | `session.py` | 9 |
+| Assets + Backgrounds | `assets.py` | 4 |
+| Handouts | `handouts.py` | 5 |
+| Homebrew | `homebrew.py` | 9 |
+| Notes MJ | `gm_notes.py` | 5 |
+| Interface Joueur | `player.py` | 8 |
+| **Total** | | **84** |
 
-## Current Product Phase
+### Dépendances
 
-Phase 2 is implemented in the app skeleton:
+- FastAPI, asyncpg, PyJWT, bcrypt, pydantic, slowapi, boto3
 
-- email/password auth;
-- JWT session token;
-- campaign creation and listing;
-- campaign members;
-- player invitation links;
-- minimal React dashboard.
+## Frontend
 
-Phase 3 is also implemented:
+| Métrique | Valeur |
+|----------|--------|
+| Composants React | 25 |
+| Modules Vite | 1759 |
+| CSS | ~8350 lignes |
 
-- campaign-scoped character sheets;
-- HP, AC, speed, level, class and ancestry;
-- flexible JSONB blocks for attributes, skills, attacks, inventory, spells and resources;
-- dashboard character creation and sheet preview.
+### Composants
 
-Phase 4 is implemented:
+| Composant | Rôle |
+|-----------|------|
+| `App.tsx` | Root : auth, routage rôle (GM vs Player), WebSocket |
+| `PlayerView.tsx` | Dashboard joueur : persos, dés, handouts, combat |
+| `InvitePage.tsx` | Page `/invite/{token}` : preview + acceptation |
+| `VttBoard.tsx` | Carte interactive (scènes, tokens, assets) |
+| `CombatPanel.tsx` | Gestion combat : initiative, HP, KO |
+| `HandoutPanel.tsx` | Documents partagés : création, révélation |
+| `SessionLogPanel.tsx` | Journal : dés, notes, catégories, épingles |
+| `InitiativePanel.tsx` | Piste d'initiative légère (localStorage) |
+| `CharacterPanel.tsx` | Création + liste personnages |
+| `EditCharacterSheet.tsx` | Fiche éditable : stats, inventaire, sorts, attaques |
+| `VisibilityInspectorPanel.tsx` | Contrôle visibilité tokens (toggle, bulk) |
+| `GmNotesPanel.tsx` | Notes MJ privées |
+| `AuthView.tsx` | Login/register |
+| `CampaignViewTabs.tsx` | Onglets campagne GM |
+| `SessionWorkspace.tsx` | Layout session live (carte + combat + journal) |
 
-- campaign dice rolls;
-- normal, advantage and disadvantage modes;
-- public and GM-only visibility;
-- campaign game log;
-- dashboard dice and journal panel.
+### Dépendances
 
-Phase 5 is implemented:
+- React 19, Vite 8, TypeScript, lucide-react
 
-- campaign WebSocket endpoint;
-- authenticated campaign membership check;
-- presence count;
-- realtime notifications for rolls and log notes;
-- dashboard realtime status.
+## Phases complétées
 
-Run the smoke test on the HP Mini:
+| # | Titre | Backend | Frontend |
+|---|-------|---------|----------|
+| 1 | Infra (Docker, réseau isolé) | ✅ | - |
+| 2 | Auth + Campagnes | ✅ | ✅ |
+| 3 | Fiches personnages | ✅ | ✅ |
+| 4 | Dés + Journal | ✅ | ✅ |
+| 5 | WebSocket temps réel | ✅ | ✅ |
+| 6 | Tokens + Scènes | ✅ | ✅ (VttBoard) |
+| 7 | Combat (initiative, tours) | ✅ | ✅ (CombatPanel) |
+| 8 | Assets (upload cartes) | ✅ | ✅ |
+| 9 | Homebrew (créatures, objets) | ✅ | ❌ |
+| 10 | Handouts (documents partagés) | ✅ | ✅ |
+| 11 | Initiative Tracker | ✅ | ✅ |
+| 12 | Visibilité (contrôle tokens) | ✅ | ✅ |
+| 13 | Fiche éditable | ✅ | ✅ |
+| 14 | Interface Joueur | ✅ | ✅ |
+| 15 | Journal structuré | ✅ | ✅ |
+
+## Tests
 
 ```bash
-cd /home/donopot/dnd-saas
-sh scripts/smoke-phase2.sh
-sh scripts/smoke-phase3.sh
-sh scripts/smoke-phase4.sh
-sh scripts/smoke-phase5.sh
-```
+# Unitaires (backend)
+cd backend && uv run pytest tests/ -v
 
+# Smoke tests (sur le serveur avec API active)
+sh scripts/smoke-phase2.sh
+# ... smoke-phase3.sh → smoke-phase15.sh
+
+# Frontend
+cd frontend && npx tsc --noEmit && npx vite build
+```
 
 ## Documentation
 
 - [Roadmap projet](docs/roadmap.md)
+- [Règles développeur](.hermes/developer-rules.md)
+- [CHANGELOG](CHANGELOG.md)
