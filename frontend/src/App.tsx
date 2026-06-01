@@ -12,6 +12,7 @@ import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
+import { RulesReference } from "./components/RulesReference";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { HomebrewPanel } from "./components/HomebrewPanel";
 import { GmMessagePanel } from "./components/GmMessagePanel";
@@ -1016,6 +1017,12 @@ export default function App() {
             token={token}
             members={members}
           />
+        </details>
+
+        {/* SRD Reference */}
+        <details className="gm-panel-section">
+          <summary>📖 Règles (SRD)</summary>
+          <RulesReference />
         </details>
       </aside>
 
