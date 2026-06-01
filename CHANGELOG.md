@@ -4,6 +4,71 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 22] — Map interactive joueur (ping, règle, drag token) (2026-06-01)
+
+### Added
+- `MapTools.tsx` : composant interactivité carte (229 lignes)
+  - Ping : clic sur la carte → broadcast position, animation dot 2.5s
+  - Règle : clic-début → clic-fin → mesure distance affichée en pieds (snap 5ft)
+  - Drag token : les joueurs peuvent déplacer leurs propres tokens (par character_id)
+  - Toolbar flottante avec boutons Crosshair / Ruler
+- WebSocket handlers dans `session.py` :
+  - `map_ping` : broadcast position ping à tous les clients
+  - `ruler` : broadcast mesure visuelle aux autres joueurs
+  - `player_move_token` : validation propriétaire via join characters, update DB, broadcast
+- CSS : `.map-tools-bar`, `.map-tool-btn`, `.map-ping-dot` (animation fade), `.map-ruler`, `.ruler-label`
+
+### Changed
+- `CampaignMap.tsx` : intégration `<MapTools>`, nouvelle prop `userId`, filtrage `myTokenIds` via `character_id` → `owner_user_id`
+- `PlayerView.tsx` : passage `wsRef` + `userId` à CampaignMap
+- `App.tsx` : passage `userId` à CampaignMap
+
+### Fixed
+- WebSocket `player_move_token` : colonnes `pos_x/pos_y` → `x/y` (noms corrects)
+- WebSocket `player_move_token` : colonnes inexistantes `player_controlled/owner_user_id` → join `characters`
+- MapTools `myTokenIds` : filtrage par `character_id` au lieu de colonnes inexistantes
+
+### Files
+- `frontend/src/components/MapTools.tsx` — nouveau (229 lignes)
+- `frontend/src/components/CampaignMap.tsx` — +29/-2 lignes
+- `frontend/src/components/PlayerView.tsx` — +2 lignes
+- `frontend/src/App.tsx` — +2 lignes
+- `backend/app/routers/session.py` — +74/-2 lignes
+- `frontend/src/styles.css` — +108 lignes (MapTools)
+
+---
+
+## [Phase 21] — Communication MJ↔Joueur (messages, annonces, jets secrets) (2026-06-01)
+
+### Added
+- Migration `018_gm_messages.sql` : table `gm_messages` (type message/announcement/secret_roll)
+- Router `messages.py` : 7 nouveaux endpoints
+  - `POST /api/campaigns/{id}/messages` — envoyer message privé
+  - `POST /api/campaigns/{id}/announce` — annonce broadcast à tous les joueurs
+  - `POST /api/campaigns/{id}/secret-roll` — jet secret (visible joueur cible + MJ)
+  - `GET /api/campaigns/{id}/messages/inbox` — boîte de réception joueur
+  - `GET /api/campaigns/{id}/announcements` — liste annonces
+  - `PATCH /api/messages/{id}/read` — marquer comme lu
+- `GmMessagePanel.tsx` : panneau communication MJ (3 tabs 💬 msg / 📢 annonces / 🎲 jets secrets)
+- `PlayerNotifications.tsx` : cloche 🔔 avec dropdown inbox + annonces, polling 30s
+
+### Changed
+- `App.tsx` : intégration `GmMessagePanel` dans la 3e colonne GM
+- `PlayerView.tsx` : intégration `PlayerNotifications` dans le header joueur
+- `styles.css` : +205 lignes (message panels, notifications)
+
+### Files
+- `backend/migrations/018_gm_messages.sql` — nouveau
+- `backend/app/routers/messages.py` — nouveau (7 endpoints)
+- `backend/app/schemas.py` — +4 schémas (GmMessageCreate, etc.)
+- `backend/tests/test_messages.py` — nouveau (7 tests)
+- `frontend/src/components/GmMessagePanel.tsx` — nouveau
+- `frontend/src/components/PlayerNotifications.tsx` — nouveau
+- `frontend/src/App.tsx` — intégration panel
+- `frontend/src/components/PlayerView.tsx` — intégration notifications
+
+---
+
 ## [Phase 20] — Refonte Totale Interfaces MJ/Joueur + Vault Personnages (2026-06-01)
 
 ### Added

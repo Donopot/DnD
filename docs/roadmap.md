@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-06-01
 
-## ✅ Complétées (Phases 1–20)
+## ✅ Complétées (Phases 1–22)
 
 | # | Titre | Date |
 |---|-------|------|
@@ -26,13 +26,13 @@ Dernière mise à jour : 2026-06-01
 | 18 | Interactions Joueur | 2026-06 |
 | 19 | Refonte Auth & 4 Layouts | 2026-06 |
 | 20 | Refonte Totale Interfaces + Vault Persos | 2026-06 |
+| 21 | Communication MJ↔Joueur (messages, annonces, jets secrets) | 2026-06 |
+| 22 | Map interactive joueur (ping, règle, drag tokens via WebSocket) | 2026-06 |
 
 ## 🔜 Prochaines
 
 | # | Titre | Priorité | Estimation |
 |---|-------|----------|------------|
-| 21 | Communication MJ↔Joueur (jet secret, annonces, msgs privés) | Haute | 2 jours |
-| 22 | Map interactive joueur (ping, déplacement token, mesure) | Haute | 3 jours |
 | 23 | Gestion perso par le MJ (items, XP, conditions) | Moyenne | 3 jours |
 | 24 | Mesures et gabarits (distance, AoE) | Moyenne | 2 jours |
 | 25 | SRD et règles de base | Basse | 2 jours |
@@ -41,7 +41,7 @@ Dernière mise à jour : 2026-06-01
 
 ## Métriques actuelles
 
-- **Backend** : 88 endpoints, 11 routeurs, 17 migrations, 57 schémas, 42 tests
-- **Frontend** : 33 composants React, ~10244 lignes CSS, 1765 modules Vite
+- **Backend** : 95 endpoints, 12 routeurs, 18 migrations, 61 schémas, 49 tests
+- **Frontend** : 36 composants React, ~10550 lignes CSS, 1758 modules Vite
 - **Layouts** : AuthPage, PlayerLobby, GMLobby, GM Campaign (3 colonnes), Player Campaign (map+panneaux)
-- **Temps réel** : WebSocket scène/tokens/handouts/combat
+- **Temps réel** : WebSocket (scène, tokens, handouts, combat, ping, règle, drag token)
