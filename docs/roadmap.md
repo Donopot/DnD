@@ -69,99 +69,21 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 
 ## Etat actuel
 
-### Phase 1 - Infrastructure isolee
-
-Statut : terminee.
-
-Livrables :
-- stack Docker dediee ;
-- backend FastAPI ;
-- frontend React/Nginx ;
-- PostgreSQL dedie ;
-- MinIO dedie ;
-- Redis dedie ;
-- ports locaux 8090 et 8091 ;
-- documentation initiale.
-
-### Phase 2 - Authentification, campagnes et invitations
-
-Statut : terminee.
-
-Livrables :
-- inscription ;
-- connexion ;
-- JWT ;
-- campagnes ;
-- membres ;
-- roles GM, co-GM, player ;
-- invitations ;
-- smoke test Phase 2.
-
-### Phase 3 - Fiches personnages
-
-Statut : terminee.
-
-Livrables :
-- creation de personnage ;
-- rattachement a une campagne ;
-- proprietaire de fiche ;
-- attributs, PV, CA, vitesse, inventaire, sorts, notes ;
-- permissions joueurs/MJ ;
-- smoke test Phase 3.
-
-### Phase 4 - Des et journal de session
-
-Statut : terminee.
-
-Livrables :
-- parser de formules de des ;
-- jets normaux, avantage, desavantage ;
-- journal de session ;
-- notes de session ;
-- visibilite publique ou GM ;
-- smoke test Phase 4.
-
-### Phase 5 - Temps reel
-
-Statut : terminee.
-
-Livrables :
-- WebSocket par campagne ;
-- presence simple ;
-- broadcast session_changed ;
-- rechargement frontend du journal ;
-- smoke test Phase 5.
-
-### Phase 6 - Session VTT minimale
-
-Statut : terminee.
-
-Livrables :
-- scenes de campagne ;
-- tokens de scene ;
-- position x/y ;
-- grille simple ;
-- creation et deplacement de token ;
-- proxy Nginx local pour /api et /ws ;
-- frontend VTT minimal ;
-- smoke test Phase 6.
-
-### Phase 7 - Combat manager minimal
-
-Statut : terminee.
-
-Livrables :
-- encounters ;
-- combattants ;
-- initiative ;
-- round ;
-- tour actif ;
-- demarrage du combat ;
-- tour suivant ;
-- fin du combat ;
-- PV, CA, conditions simples ;
-- frontend combat minimal ;
-- smoke test Phase 7.
+### Phase 1 - Infrastructure isolee ✅
+### Phase 2 - Authentification, campagnes et invitations ✅
+### Phase 3 - Fiches personnages ✅
+### Phase 4 - Des et journal de session ✅
+### Phase 5 - Temps reel ✅
+### Phase 6 - Session VTT minimale ✅
+### Phase 7 - Combat manager minimal ✅
+### Phase 8 - Cartes, assets et fonds de scene ✅
+### Phase 9 - UX carte avancee ✅
+### Phase 10 - Handouts, notes et documents ✅
+### Phase 11 - Conditions et etats de combat ✅
+### Phase 12 - Initiative et automatisation legeres ✅
+### Phase 13 - Bibliotheque homebrew minimale ✅ (backend)
+### Phase 14 - Acces joueur et experience session ✅
+### Phase 15 - Journal de campagne structure ✅
 
 ## Roadmap detaillee
 
@@ -663,10 +585,9 @@ Mitigation : garder des migrations simples, idempotentes, testees par rebuild Do
 
 La prochaine phase recommandee est :
 
-Phase 8 - Cartes, assets et fonds de scene.
+**Phase 13 (frontend) — Bibliotheque homebrew.**
 
 Raison :
-- les scenes, tokens et combats existent deja ;
-- la carte reste abstraite ;
-- l'upload d'image via MinIO donnera une forte valeur produit ;
-- cela exploite directement l'infrastructure deja en place.
+- le backend homebrew est deja complet (creatures, items, import/export) ;
+- le frontend homebrew est la seule phase frontend manquante ;
+- ensuite Phase 16 — Fog of war.
