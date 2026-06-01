@@ -33,7 +33,8 @@ Dernière mise à jour : 2026-06-01
 | 25 | SRD et règles de base | 2026-06 |
 | 26 | Sauvegardes et maintenance | 2026-06 |
 | 27 | Beta privée (polish final) | 2026-06 |
-| 28 | 🔥 Upgrade total de la Map (review + snap-grid + nameplates + zoom-cursor + grid toggle + fog undo) | 2026-06 |
+| 28 | 🔥 Upgrade total de la Map | 2026-06 |
+| 29 | ⚔️ Système de combat complet (tracker visuel, tours, actions rapides) | 2026-06 |
 
 ## 🔜 Prochaines phases
 
@@ -47,8 +48,8 @@ Dernière mise à jour : 2026-06-01
 
 ## Métriques actuelles
 
-- **Backend** : 100 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests unitaires
-- **Frontend** : 39 composants React, ~11 200 lignes CSS, 1760 modules Vite
+- **Backend** : 103 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests unitaires
+- **Frontend** : 40 composants React, ~11 400 lignes CSS, 1761 modules Vite
 - **Layouts** : 5 layouts distincts
 - **Temps réel** : WebSocket 8 types de messages (présence, scène, tokens, handouts, combat, ping, règle/drag/AoE)
 - **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE shapes
