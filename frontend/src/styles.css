@@ -11766,3 +11766,73 @@ select {
   font-size: 0.68rem;
   color: #8a9a8e;
 }
+
+/* ── Session Stats ─────────────────────────────────────────────────────── */
+
+.session-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ss-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+}
+
+.ss-card {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  background: rgba(30,40,35,0.4);
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  color: #c0c0a0;
+}
+
+.ss-card > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.ss-value, .ss-nat {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #e0dcc8;
+}
+
+.ss-label {
+  font-size: 0.58rem;
+  color: #6a7a6e;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.ss-card.highlight { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
+.ss-card.highlight .ss-nat { color: #22c55e; }
+.ss-card.danger { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+.ss-card.danger .ss-nat { color: #ef4444; }
+
+.ss-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ss-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.4rem;
+  background: rgba(20,28,22,0.4);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: #8a9a8e;
+}
+
+.ss-detail-val {
+  font-weight: 700;
+  color: #c0c0a0;
+}

@@ -15,6 +15,7 @@ import { CombatTracker } from "./components/CombatTracker";
 import { DiceRoller } from "./components/DiceRoller";
 import { EncounterBuilder } from "./components/EncounterBuilder";
 import { QuickActions } from "./components/QuickActions";
+import { SessionStats } from "./components/SessionStats";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { RulesReference } from "./components/RulesReference";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -1004,6 +1005,15 @@ export default function App() {
           <summary>⚡ Actions rapides</summary>
           <QuickActions
             onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
+          />
+        </details>
+
+        {/* Session Stats */}
+        <details className="gm-panel-section">
+          <summary>📊 Statistiques</summary>
+          <SessionStats
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
           />
         </details>
 
