@@ -12,6 +12,7 @@ import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { CombatTracker } from "./components/CombatTracker";
+import { DiceRoller } from "./components/DiceRoller";
 import { EncounterBuilder } from "./components/EncounterBuilder";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { RulesReference } from "./components/RulesReference";
@@ -600,26 +601,44 @@ export default function App() {
 
   async function handleRoll(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCampaign) {
-      return;
-    }
+    if (!selectedCampaign) return;
+    const form = new FormData(event.currentTarget);
+    await doRoll(
+      String(form.get("formula")),
+      String(form.get("label")),
+      String(form.get("mode")) as "normal" | "advantage" | "disadvantage",
+      String(form.get("visibility")),
+      String(form.get("character_id") || ""),
+    );
+  }
+
+  async function handleQuickRoll(formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") {
+    if (!selectedCampaign) return;
+    await doRoll(formula, label, mode, "public", selectedCharacter?.id ?? "");
+  }
+
+  async function doRoll(
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+    visibility: string,
+    characterId: string,
+  ) {
     setIsBusy(true);
     setMessage("");
-    const form = new FormData(event.currentTarget);
-    const characterId = String(form.get("character_id") || "");
     try {
-      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign.id}/rolls`, {
+      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign!.id}/rolls`, {
         method: "POST",
         body: JSON.stringify({
-          formula: String(form.get("formula")),
-          label: String(form.get("label")),
-          mode: String(form.get("mode")),
-          visibility: String(form.get("visibility")),
+          formula,
+          label,
+          mode,
+          visibility,
           character_id: characterId || null,
         }),
       });
       setRolls((current) => [roll, ...current].slice(0, 100));
-      await loadSessionLog(selectedCampaign.id);
+      await loadSessionLog(selectedCampaign!.id);
       setMessage(`Jet: ${roll.total}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to roll dice");
@@ -968,6 +987,14 @@ export default function App() {
           <EncounterBuilder
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
+          />
+        </details>
+
+        {/* Dice Roller */}
+        <details className="gm-panel-section">
+          <summary>🎲 Lancer de dés</summary>
+          <DiceRoller
+            onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
           />
         </details>
 
