@@ -216,3 +216,16 @@ sh scripts/smoke-backend.sh               # pas de régression smoke
 2. **Oubli de broadcast** → toute mutation de scene/token/combat doit broadcast
 3. **Permission laxiste** → `require_campaign_role` AVANT toute opération
 4. **Transaction manquante** → tout INSERT multi-tables doit être dans une transaction
+
+---
+
+## 8. Tests de non-régression auth
+
+Après toute modification touchant au flux d'authentification ou au routage (App.tsx, AuthPage, PlayerView, PlayerLobby, GmLobby, InvitePage), vérifier manuellement les 6 parcours :
+
+1. **MJ sans campagne** → GmLobby (formulaire création visible)
+2. **MJ avec campagne** → interface VTT complète (sidebar, workspace, cartes)
+3. **Joueur sans campagne** → PlayerLobby (champ code invitation visible)
+4. **Joueur avec campagne** → PlayerView (6 onglets visibles)
+5. **Lien /invite/{token} sans compte** → AuthPage avec contexte invite, inscription player auto-join
+6. **Lien /invite/{token} déjà connecté** → InvitePage avec bouton Rejoindre

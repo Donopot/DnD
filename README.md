@@ -53,8 +53,8 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | Routeurs | 11 |
 | Endpoints | 83 |
 | Migrations | 16 |
-| Schémas Pydantic | 56 |
-| Tests unitaires (pytest) | 33 |
+| Schémas Pydantic | 53 |
+| Tests unitaires (pytest) | 36 |
 | Smoke tests shell | 16 |
 | Dép. Python | ~4100 lignes |
 
@@ -83,18 +83,22 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 | Métrique | Valeur |
 |----------|--------|
-| Composants React | 29 |
-| Modules Vite | 1763 |
-| CSS | ~8885 lignes |
+| Composants React | 31 |
+| Modules Vite | 1765 |
+| CSS | ~9356 lignes |
 
 ### Composants
 
 | Composant | Rôle |
 |-----------|------|
-| `App.tsx` | Root : auth, routage rôle (GM vs Player), WebSocket |
+| `App.tsx` | Root : routage 7 branches (AuthPage, lobbys, PlayerView, VTT) + WebSocket |
+| `AuthPage.tsx` | Page unique login/register : choix GM/Joueur, force mot de passe, honeypot |
 | `PlayerView.tsx` | Dashboard joueur 6 onglets : persos, carte, dés, documents, combat, journal |
 | `PlayerMap.tsx` | Carte joueur read-only : scène, tokens, fog of war, zoom |
-| `InvitePage.tsx` | Page `/invite/{token}` : preview + acceptation |
+| `PlayerLobby.tsx` | Hall joueur sans campagne : entrer code invitation, preview, join |
+| `GmLobby.tsx` | Hall MJ sans campagne : formulaire création |
+| `InvitePage.tsx` | Page `/invite/{token}` : preview + acceptation (utilisateur déjà connecté) |
+| `InvitePreviewCard.tsx` | Carte preview invitation + bouton Rejoindre (réutilisable) |
 | `VttBoard.tsx` | Carte interactive (scènes, tokens, assets) |
 | `CombatPanel.tsx` | Gestion combat : initiative, HP, KO |
 | `HandoutPanel.tsx` | Documents partagés : création, révélation |
@@ -105,8 +109,6 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | `VisibilityInspectorPanel.tsx` | Contrôle visibilité tokens (toggle, bulk) |
 | `GmNotesPanel.tsx` | Notes MJ privées |
 | `HomebrewPanel.tsx` | Bibliothèque homebrew : créatures, objets, import/export |
-| `AuthView.tsx` | Login/register (MJ ou Joueur, selon accountType) |
-| `LandingPage.tsx` | Page d'accueil : choix MJ vs Joueur |
 | `CampaignViewTabs.tsx` | Onglets campagne GM |
 | `SessionWorkspace.tsx` | Layout session live (carte + combat + journal) |
 | `FogLayer.tsx` | Brouillard de guerre : canvas overlay, drag-to-reveal |
@@ -134,16 +136,17 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 13 | Fiche éditable | ✅ | ✅ |
 | 14 | Interface Joueur | ✅ | ✅ |
 | 15 | Journal structuré | ✅ | ✅ |
-| 16 | Fog of war | ✅ | ✅ |
+| 16 | Fog of War | ✅ | ✅ |
 | 17 | Auth GM/Joueur distinct | ✅ | ✅ |
-| 18 | Interactions joueur (carte, journal, dés, import) | ✅ | ✅ |
-| 19 | Communication MJ↔Joueur (jet secret, annonces, msg privés) | - | - |
-| 20 | Map interactive joueur (ping, déplacement token, mesure) | - | - |
-| 21 | Gestion perso par le MJ (items, XP, conditions) | - | - |
-| 22 | Mesures et gabarits | - | - |
-| 23 | SRD et règles de base | - | - |
-| 24 | Sauvegardes et maintenance | - | - |
-| 25 | Beta privée | - | - |
+| 18 | Interactions Joueur | ✅ | ✅ |
+| 19 | Refonte Auth & 4 Layouts | ✅ | ✅ |
+| 20 | Communication MJ↔Joueur (jet secret, annonces, msg privés) | - | - |
+| 21 | Map interactive joueur (ping, déplacement token, mesure) | - | - |
+| 22 | Gestion perso par le MJ (items, XP, conditions) | - | - |
+| 23 | Mesures et gabarits | - | - |
+| 24 | SRD et règles de base | - | - |
+| 25 | Sauvegardes et maintenance | - | - |
+| 26 | Beta privée | - | - |
 
 ## Tests
 

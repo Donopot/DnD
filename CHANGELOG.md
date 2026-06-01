@@ -4,6 +4,45 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 19] — Refonte Auth & Routage 4 Layouts (2026-06-01)
+
+### Added
+- `AuthPage.tsx` : page unique login/register remplaçant LandingPage + AuthView
+  - Choix GM/Joueur dans le formulaire d'inscription (radio cards)
+  - Indicateur force mot de passe (barre colorée)
+  - Confirmation mot de passe avec validation inline
+  - Honeypot anti-bot (champ website caché)
+  - 2 niveaux (invite context vs standalone)
+- `PlayerLobby.tsx` : hall joueur sans campagne (entrer code invitation, preview, join)
+- `GmLobby.tsx` : hall MJ sans campagne (formulaire création campagne)
+- `InvitePreviewCard.tsx` : composant réutilisable preview + join invitation
+- Backend sécurité : `confirm_password`, complexité mot de passe (minuscule/majuscule/chiffre), honeypot
+- 6 nouveaux tests unitaires backend (RegisterRequest schema validation)
+
+### Changed
+- App.tsx : nouveau routage 7 branches explicites (invite+user, invite+!user, !user, player 0 camp, player+ camp, gm 0 camp, gm+ camp)
+- InvitePage.tsx : réduit au cas "déjà connecté + lien invite" (le cas non-connecté est géré par AuthPage)
+
+### Removed
+- `LandingPage.tsx` : absorbé par AuthPage
+- `AuthView.tsx` : absorbé par AuthPage
+- `handleAuth` dans App.tsx : inline dans les callbacks AuthPage
+- States `mode`, `accountType`, `landingStep` dans App.tsx
+
+### Files
+- `frontend/src/components/AuthPage.tsx` — nouveau (264 lignes)
+- `frontend/src/components/PlayerLobby.tsx` — nouveau (102 lignes)
+- `frontend/src/components/GmLobby.tsx` — nouveau (92 lignes)
+- `frontend/src/components/InvitePreviewCard.tsx` — nouveau (98 lignes)
+- `frontend/src/App.tsx` — +80/-110 lignes (refonte routage)
+- `frontend/src/components/InvitePage.tsx` — -115 lignes (réduit)
+- `frontend/src/styles.css` — +470 lignes (AuthPage, lobbys)
+- `backend/app/schemas.py` — +22 lignes (RegisterRequest)
+- `backend/app/routers/auth.py` — +4 lignes (honeypot)
+- `backend/tests/test_security.py` — +50 lignes (6 tests)
+
+---
+
 ## [Phase 18] — Interactions Joueur (2026-06-01)
 
 ### Added

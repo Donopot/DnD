@@ -87,13 +87,14 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 ### Phase 16 - Fog of war simple ✅
 ### Phase 17 - Auth GM/Joueur distinct ✅
 ### Phase 18 - Interactions joueur (carte, journal, dés, import) ✅
-### Phase 19 - Communication MJ↔Joueur (jet secret, annonces, messages privés) 🔜
-### Phase 20 - Map interactive joueur (ping, déplacement token, mesure) 🔜
-### Phase 21 - Gestion personnage par le MJ (items, XP, conditions visibles) 🔜
-### Phase 22 - Mesures et gabarits
-### Phase 23 - SRD et règles de base
-### Phase 24 - Sauvegardes, maintenance et exploitation
-### Phase 25 - Beta privée
+### Phase 19 - Refonte Auth & Routage 4 Layouts ✅
+### Phase 20 - Communication MJ↔Joueur (jet secret, annonces, messages privés) 🔜
+### Phase 21 - Map interactive joueur (ping, déplacement token, mesure) 🔜
+### Phase 22 - Gestion personnage par le MJ (items, XP, conditions visibles) 🔜
+### Phase 23 - Mesures et gabarits
+### Phase 24 - SRD et règles de base
+### Phase 25 - Sauvegardes, maintenance et exploitation
+### Phase 26 - Beta privée
 
 ## Roadmap detaillee
 
@@ -468,7 +469,41 @@ Livrables :
 - Le joueur exporte sa fiche en JSON, puis l'importe dans une autre campagne.
 - Les mises à jour du MJ (scène, tokens) sont visibles en temps réel.
 
-## Phase 19 - Communication MJ↔Joueur (jet secret, annonces, messages privés)
+## Phase 19 - Refonte Auth & Routage 4 Layouts
+
+### Objectif
+
+Unifier le flux d'authentification en une seule page login/register, puis router vers 4 layouts distincts selon account_type × has_campaign.
+
+### Backend
+
+Livrables :
+- `RegisterRequest` enrichi : `confirm_password`, complexité mot de passe (minuscule/majuscule/chiffre), honeypot `website`
+- `model_validator` passwords_match
+- `field_validator` password_complexity
+- Rejet silencieux honeypot dans `auth.py`
+- 6 tests unitaires schema validation
+
+### Frontend
+
+Livrables :
+- `AuthPage.tsx` : page unique login/register (choix GM/Joueur, indicateur force mot de passe, confirmation, honeypot)
+- `PlayerLobby.tsx` : hall joueur sans campagne (entrer code invitation, preview, join)
+- `GmLobby.tsx` : hall MJ sans campagne (formulaire création campagne)
+- `InvitePreviewCard.tsx` : composant réutilisable preview + join
+- `App.tsx` refonte : 7 branches de routage explicites
+- Suppression `LandingPage.tsx` et `AuthView.tsx`
+
+### Critère d'acceptation
+
+- Un nouvel utilisateur arrive sur une seule page, s'inscrit comme MJ ou Joueur.
+- Un MJ sans campagne voit le GmLobby (formulaire création).
+- Un MJ avec campagne voit l'interface VTT complète.
+- Un joueur sans campagne voit le PlayerLobby (entrer code invitation).
+- Un joueur avec campagne voit le PlayerView.
+- Le mot de passe est validé côté client ET serveur (complexité, confirmation).
+
+## Phase 20 - Communication MJ↔Joueur (jet secret, annonces, messages privés)
 
 ### Objectif
 
