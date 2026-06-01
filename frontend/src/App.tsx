@@ -16,6 +16,7 @@ import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
+import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerView } from "./components/PlayerView";
@@ -1292,33 +1293,16 @@ export default function App() {
                     </div>
 
                     {selectedCharacter && (
-                      <article className="sheet-preview">
-                        <div className="sheet-title">
-                          <div>
-                            <h4>{selectedCharacter.name}</h4>
-                            <p>
-                              {selectedCharacter.ancestry || "Origine libre"} ·{" "}
-                              {selectedCharacter.class_name || "Classe libre"} · niveau {selectedCharacter.level}
-                            </p>
-                          </div>
-                          <HeartPulse aria-hidden="true" />
-                        </div>
-                        <div className="stat-strip">
-                          <span>CA {selectedCharacter.armor_class}</span>
-                          <span>PV {selectedCharacter.hp_current}/{selectedCharacter.hp_max}</span>
-                          <span>VIT {selectedCharacter.speed}</span>
-                          <span>PB +{selectedCharacter.proficiency_bonus}</span>
-                        </div>
-                        <div className="ability-summary">
-                          {Object.entries(selectedCharacter.attributes).map(([key, value]) => (
-                            <span key={key}>
-                              <strong>{key.toUpperCase()}</strong>
-                              {value}
-                            </span>
-                          ))}
-                        </div>
-                        {selectedCharacter.notes && <p className="sheet-notes">{selectedCharacter.notes}</p>}
-                      </article>
+                      <EditCharacterSheet
+                        character={selectedCharacter}
+                        token={token}
+                        isBusy={isBusy}
+                        onSave={(updated) => {
+                          setCharacters((current) =>
+                            current.map((c) => (c.id === updated.id ? updated : c)),
+                          );
+                        }}
+                      />
                     )}
                   </div>
                 </div>

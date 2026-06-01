@@ -18,6 +18,7 @@ import type {
   Member,
   Roll,
 } from "../api/types";
+import { EditCharacterSheet } from "./EditCharacterSheet";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -399,36 +400,17 @@ export function PlayerView({
 
         {/* Character sheet preview */}
         {selectedCharacter ? (
-          <article className="player-sheet-preview">
-            <div className="sheet-title">
-              <div>
-                <h4>{selectedCharacter.name}</h4>
-                <p>
-                  {selectedCharacter.ancestry || "Origine libre"} ·{" "}
-                  {selectedCharacter.class_name || "Classe libre"} · niv. {selectedCharacter.level}
-                </p>
-              </div>
-              <HeartPulse aria-hidden="true" />
-            </div>
-            <div className="stat-strip">
-              <span>CA {selectedCharacter.armor_class}</span>
-              <span>PV {selectedCharacter.hp_current}/{selectedCharacter.hp_max}</span>
-              <span>VIT {selectedCharacter.speed}</span>
-              <span>PB +{selectedCharacter.proficiency_bonus}</span>
-            </div>
-            <div className="ability-summary">
-              {Object.entries(selectedCharacter.attributes).map(([key, value]) => (
-                <span key={key}>
-                  <strong>{key.toUpperCase()}</strong>
-                  {value}
-                  <small>({Math.floor((value - 10) / 2) >= 0 ? "+" : ""}
-                    {Math.floor((value - 10) / 2)})</small>
-                </span>
-              ))}
-            </div>
-            {selectedCharacter.notes && (
-              <p className="sheet-notes">{selectedCharacter.notes}</p>
-            )}
+          <>
+            <EditCharacterSheet
+              character={selectedCharacter}
+              token={token}
+              isBusy={isBusy}
+              onSave={(updated) => {
+                setCharacters((current) =>
+                  current.map((c) => (c.id === updated.id ? updated : c)),
+                );
+              }}
+            />
             {/* Quick roll buttons */}
             <div className="player-quick-rolls">
               <p className="small-label">Jets rapides</p>
@@ -445,7 +427,7 @@ export function PlayerView({
                 ))}
               </div>
             </div>
-          </article>
+          </>
         ) : (
           <p className="muted">Selectionne un personnage.</p>
         )}

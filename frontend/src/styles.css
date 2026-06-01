@@ -8115,3 +8115,160 @@ select {
 }
 
 /* End Player View CSS */
+
+/* ── Edit Character Sheet (Phase 13) ───────────────────────────────────── */
+
+.sheet-preview.editable {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sheet-actions .ghost-button.compact {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.sheet-name-edit {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #161b18;
+  border: 1px solid #d4cdb8;
+  border-radius: 4px;
+  padding: 4px 8px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.character-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.edit-grid label,
+.edit-abilities label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78rem;
+  color: #5a4e3e;
+}
+
+.edit-grid input,
+.edit-abilities input,
+.character-edit-form textarea,
+.edit-notes textarea {
+  padding: 6px 8px;
+  border: 1px solid #d4cdb8;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.edit-abilities h5 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #1b4332;
+}
+
+.edit-section {
+  border: 1px solid #e0d8c8;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.edit-section summary {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1b4332;
+  cursor: pointer;
+}
+
+.edit-section textarea {
+  margin-top: 8px;
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.78rem;
+  min-height: 80px;
+}
+
+.edit-section small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #6b5e4b;
+}
+
+.edit-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78rem;
+  color: #5a4e3e;
+}
+
+.sheet-section {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e0d8c8;
+}
+
+.sheet-section h5 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: #1b4332;
+}
+
+.sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sheet-list li {
+  font-size: 0.82rem;
+  color: #161b18;
+  padding: 2px 0;
+}
+
+.sheet-toast {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #2d6a4f;
+}
+
+.sheet-toast p {
+  margin: 0;
+}
+
+.sheet-toast button {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #2d6a4f;
+}
