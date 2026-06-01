@@ -11,6 +11,7 @@ import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveMo
 import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
+import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { HandoutPanel } from "./components/HandoutPanel";
 import { HomebrewPanel } from "./components/HomebrewPanel";
 import { GmMessagePanel } from "./components/GmMessagePanel";
@@ -49,6 +50,7 @@ export default function App() {
   const [members, setMembers] = useState<Member[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
+  const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [scenes, setScenes] = useState<Scene[]>([]);
@@ -912,15 +914,27 @@ export default function App() {
 
             <div className="character-list">
               {characters.map((ch) => (
-                <button
+                <div
                   className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
                   key={ch.id}
-                  onClick={() => setSelectedCharacterId(ch.id)}
-                  type="button"
                 >
-                  <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
-                  <em>{ch.hp_current}/{ch.hp_max} PV</em>
-                </button>
+                  <button
+                    className="character-row-btn"
+                    onClick={() => setSelectedCharacterId(ch.id)}
+                    type="button"
+                  >
+                    <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
+                    <em>{ch.hp_current}/{ch.hp_max} PV</em>
+                  </button>
+                  <button
+                    className="character-inspect-btn"
+                    onClick={() => setInspectedCharacterId(ch.id)}
+                    title="Gérer (PV, XP, équipement, conditions)"
+                    type="button"
+                  >
+                    🔍
+                  </button>
+                </div>
               ))}
             </div>
 
@@ -1006,6 +1020,22 @@ export default function App() {
       </aside>
 
       <MessageDock message={message} />
+
+      {/* ── Character Inspector Modal ─────────────────────────── */}
+      {inspectedCharacterId && (() => {
+        const char = characters.find((c) => c.id === inspectedCharacterId);
+        if (!char) return null;
+        return (
+          <GmCharacterInspector
+            character={char}
+            token={token}
+            onClose={() => setInspectedCharacterId("")}
+            onCharacterUpdated={(updated) =>
+              setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
+            }
+          />
+        );
+      })()}
     </main>
   );
 }

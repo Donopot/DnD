@@ -12,6 +12,11 @@ from app.schemas import (
     CharacterPublic,
     CharacterSubmitRequest,
     CharacterUpdateRequest,
+    ConditionsUpdateRequest,
+    HpAdjustRequest,
+    InventoryItemRequest,
+    ResourceRequest,
+    XpUpdateRequest,
 )
 from app.utils import decode_json, jsonb
 
@@ -25,6 +30,7 @@ JSON_FIELDS = {
     "inventory",
     "spells",
     "resources",
+    "conditions",
 }
 
 
@@ -420,3 +426,199 @@ async def approve_character(
 
     return character_public(row)
 
+
+# ── Phase 23: Character Management (GM only) ────────────────────────────────
+
+@router.patch("/characters/{character_id}/xp", response_model=CharacterPublic)
+async def update_character_xp(
+    character_id: UUID,
+    payload: XpUpdateRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Add XP to a character. GM only."""
+    char = await get_character_or_404(character_id)
+    campaign_id = char["campaign_id"]
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Character is not in a campaign")
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    new_xp = char["xp"] + payload.amount
+    row = await get_pool().fetchrow(
+        "update characters set xp = $1, updated_at = now() where id = $2 returning *",
+        new_xp,
+        character_id,
+    )
+
+    note = payload.note or f"+{payload.amount} XP"
+    await get_pool().execute(
+        """insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload)
+           values ($1, $2, 'note', 'gm', $3, '{}'::jsonb)""",
+        campaign_id,
+        current_user["id"],
+        f"{char['name']} : {note} (total: {new_xp} XP)",
+    )
+
+    return character_public(row)
+
+
+@router.patch("/characters/{character_id}/conditions", response_model=CharacterPublic)
+async def update_character_conditions(
+    character_id: UUID,
+    payload: ConditionsUpdateRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Set active conditions on a character. GM only."""
+    char = await get_character_or_404(character_id)
+    campaign_id = char["campaign_id"]
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Character is not in a campaign")
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    conditions_json = json.dumps(payload.conditions)
+    row = await get_pool().fetchrow(
+        "update characters set conditions = $1::jsonb, updated_at = now() where id = $2 returning *",
+        conditions_json,
+        character_id,
+    )
+
+    cond_names = [c.get("name", "?") for c in payload.conditions]
+    await get_pool().execute(
+        """insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload)
+           values ($1, $2, 'note', 'gm', $3, '{}'::jsonb)""",
+        campaign_id,
+        current_user["id"],
+        f"{char['name']} : conditions -> {', '.join(cond_names) if cond_names else 'aucune'}",
+    )
+
+    return character_public(row)
+
+
+@router.patch("/characters/{character_id}/hp", response_model=CharacterPublic)
+async def adjust_character_hp(
+    character_id: UUID,
+    payload: HpAdjustRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Heal or damage a character. GM only."""
+    char = await get_character_or_404(character_id)
+    campaign_id = char["campaign_id"]
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Character is not in a campaign")
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    new_hp = max(0, min(char["hp_max"], char["hp_current"] + payload.amount))
+    row = await get_pool().fetchrow(
+        "update characters set hp_current = $1, updated_at = now() where id = $2 returning *",
+        new_hp,
+        character_id,
+    )
+
+    verb = "soigne" if payload.amount > 0 else "subit"
+    note = payload.note or f"{verb} {abs(payload.amount)} PV"
+    await get_pool().execute(
+        """insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload)
+           values ($1, $2, 'note', 'gm', $3, '{}'::jsonb)""",
+        campaign_id,
+        current_user["id"],
+        f"{char['name']} {note} (PV: {new_hp}/{char['hp_max']})",
+    )
+
+    return character_public(row)
+
+
+@router.patch("/characters/{character_id}/inventory", response_model=CharacterPublic)
+async def manage_character_inventory(
+    character_id: UUID,
+    payload: InventoryItemRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Add, remove, or update an inventory item. GM only."""
+    char = await get_character_or_404(character_id)
+    campaign_id = char["campaign_id"]
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Character is not in a campaign")
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    inventory = decode_json(char["inventory"]) if isinstance(char["inventory"], str) else char["inventory"]
+    if not isinstance(inventory, list):
+        inventory = []
+
+    action = payload.action
+    if action == "add":
+        inventory.append(payload.item)
+        log_msg = f"{char['name']} recoit {payload.item.get('name', 'objet')}"
+    elif action == "remove":
+        if payload.index is None or payload.index < 0 or payload.index >= len(inventory):
+            raise HTTPException(status_code=422, detail="Invalid index for remove action")
+        removed = inventory.pop(payload.index)
+        log_msg = f"{char['name']} perd {removed.get('name', 'objet')}"
+    elif action == "update":
+        if payload.index is None or payload.index < 0 or payload.index >= len(inventory):
+            raise HTTPException(status_code=422, detail="Invalid index for update action")
+        inventory[payload.index] = payload.item
+        log_msg = f"{char['name']} : {payload.item.get('name', 'objet')} mis a jour"
+
+    row = await get_pool().fetchrow(
+        "update characters set inventory = $1::jsonb, updated_at = now() where id = $2 returning *",
+        json.dumps(inventory),
+        character_id,
+    )
+
+    await get_pool().execute(
+        """insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload)
+           values ($1, $2, 'note', 'gm', $3, '{}'::jsonb)""",
+        campaign_id,
+        current_user["id"],
+        log_msg,
+    )
+
+    return character_public(row)
+
+
+@router.patch("/characters/{character_id}/resources", response_model=CharacterPublic)
+async def manage_character_resources(
+    character_id: UUID,
+    payload: ResourceRequest,
+    current_user=Depends(get_current_user),
+) -> CharacterPublic:
+    """Add, remove, or update a resource (spell slots, abilities). GM only."""
+    char = await get_character_or_404(character_id)
+    campaign_id = char["campaign_id"]
+    if not campaign_id:
+        raise HTTPException(status_code=400, detail="Character is not in a campaign")
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    resources = decode_json(char["resources"]) if isinstance(char["resources"], str) else char["resources"]
+    if not isinstance(resources, list):
+        resources = []
+
+    action = payload.action
+    if action == "add":
+        resources.append(payload.resource)
+        log_msg = f"{char['name']} : nouvelle ressource {payload.resource.get('name', '?')}"
+    elif action == "remove":
+        if payload.index is None or payload.index < 0 or payload.index >= len(resources):
+            raise HTTPException(status_code=422, detail="Invalid index for remove action")
+        removed = resources.pop(payload.index)
+        log_msg = f"{char['name']} : ressource {removed.get('name', '?')} retiree"
+    elif action == "update":
+        if payload.index is None or payload.index < 0 or payload.index >= len(resources):
+            raise HTTPException(status_code=422, detail="Invalid index for update action")
+        resources[payload.index] = payload.resource
+        log_msg = f"{char['name']} : ressource {payload.resource.get('name', '?')} mise a jour"
+
+    row = await get_pool().fetchrow(
+        "update characters set resources = $1::jsonb, updated_at = now() where id = $2 returning *",
+        json.dumps(resources),
+        character_id,
+    )
+
+    await get_pool().execute(
+        """insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload)
+           values ($1, $2, 'note', 'gm', $3, '{}'::jsonb)""",
+        campaign_id,
+        current_user["id"],
+        log_msg,
+    )
+
+    return character_public(row)

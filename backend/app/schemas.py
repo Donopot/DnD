@@ -155,6 +155,8 @@ class CharacterPublic(CharacterBase):
     owner_user_id: UUID
     status: str = "active"  # personal | submitted | active | archived
     submitted_to_campaign_id: UUID | None = None
+    xp: int = 0
+    conditions: list[dict[str, Any]] = []
     created_at: datetime
     updated_at: datetime
 
@@ -614,3 +616,36 @@ class GmMessagePublic(BaseModel):
     roll_data: dict[str, Any] | None = None
     read_at: datetime | None = None
     created_at: datetime
+
+
+# ── Phase 23: Character Management (GM) ─────────────────────────────────────
+
+class XpUpdateRequest(BaseModel):
+    """Add XP to a character. GM only."""
+    amount: int = Field(ge=0, le=999999)
+    note: str = Field(default="", max_length=200)
+
+
+class ConditionsUpdateRequest(BaseModel):
+    """Set active conditions on a character. GM only."""
+    conditions: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class HpAdjustRequest(BaseModel):
+    """Adjust HP (positive=heal, negative=damage). GM only."""
+    amount: int
+    note: str = Field(default="", max_length=200)
+
+
+class InventoryItemRequest(BaseModel):
+    """Add, remove, or update an inventory item. GM only."""
+    action: str = Field(pattern="^(add|remove|update)$")
+    item: dict[str, Any]
+    index: int | None = None  # required for remove/update
+
+
+class ResourceRequest(BaseModel):
+    """Add, remove, or update a resource (spell slots, abilities). GM only."""
+    action: str = Field(pattern="^(add|remove|update)$")
+    resource: dict[str, Any]
+    index: int | None = None  # required for remove/update

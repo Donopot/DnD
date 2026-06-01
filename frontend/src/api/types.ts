@@ -53,6 +53,8 @@ export type Character = {
   proficiency_bonus: number;
   hp_current: number;
   hp_max: number;
+  xp: number;
+  conditions: Record<string, unknown>[];
   attributes: Record<"str" | "dex" | "con" | "int" | "wis" | "cha", number>;
   skills: Record<string, unknown>;
   saving_throws: Record<string, unknown>;
