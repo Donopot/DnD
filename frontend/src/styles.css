@@ -9518,3 +9518,311 @@ select {
   cursor: grabbing;
   opacity: 0.85;
 }
+
+/* ── GM Campaign Shell (3-column layout) ────────────────────────────────── */
+
+.gm-campaign-shell {
+  display: grid;
+  grid-template-columns: 210px 1fr 320px;
+  height: 100vh;
+  overflow: hidden;
+  background: #0f1923;
+}
+
+.gm-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(15, 25, 20, 0.95);
+  border-right: 1px solid #2a3a2e;
+  overflow-y: auto;
+}
+
+.gm-sidebar .brand-mark.compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0ede0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.gm-campaign-list h4,
+.gm-members-list h4 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6a7a6e;
+  margin: 0 0 0.35rem;
+}
+
+.gm-campaign-item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  margin-bottom: 0.25rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #c0c0a0;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.gm-campaign-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.gm-campaign-item.selected {
+  background: rgba(197, 179, 88, 0.1);
+  border-color: rgba(197, 179, 88, 0.3);
+}
+
+.gm-campaign-item strong {
+  color: #e0dcc8;
+  font-size: 0.85rem;
+}
+
+.gm-campaign-item small {
+  color: #6a7a6e;
+  font-size: 0.72rem;
+}
+
+.gm-member-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.8rem;
+  color: #a0a890;
+}
+
+.gm-member-row small {
+  color: #6a7a6e;
+  text-transform: capitalize;
+}
+
+.gm-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #2a3a2e;
+}
+
+/* Map area */
+.gm-map-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gm-map-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: rgba(20, 28, 24, 0.95);
+  border-bottom: 1px solid #2a3a2e;
+  flex-shrink: 0;
+  gap: 0.75rem;
+}
+
+.gm-campaign-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #e0dcc8;
+}
+
+.session-live-mode-buttons.compact {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.session-live-mode-buttons.compact button {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  background: #2a3a2e;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.session-live-mode-buttons.compact button.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+/* Right panels */
+.gm-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  background: rgba(15, 25, 20, 0.95);
+  border-left: 1px solid #2a3a2e;
+}
+
+.gm-panel-section {
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.gm-panel-section summary {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c0c0a0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gm-panel-section summary:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gm-panel-section[open] summary {
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.gm-panel-section .character-section,
+.gm-panel-section .character-form,
+.gm-panel-section .character-list {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Compact character form */
+.gm-panel-section .character-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gm-panel-section .character-form input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #e8e4d8;
+  font-size: 0.8rem;
+}
+
+.gm-panel-section .mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.gm-panel-section .character-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+/* ── Player Campaign Shell (map + panels) ───────────────────────────────── */
+
+.player-campaign-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #0f1923;
+}
+
+.player-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.player-map-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.player-panels {
+  width: 340px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: rgba(15, 25, 20, 0.95);
+  border-left: 1px solid #2a3a2e;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.player-panels .player-tab,
+.player-panels .player-tab-section {
+  padding: 0.75rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.player-panels h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #e0dcc8;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Compact player panels */
+.player-panels .character-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.player-panels .character-form input,
+.player-panels .character-form select {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #e8e4d8;
+  font-size: 0.8rem;
+}
+
+.player-panels .mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.player-panels .player-char-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #c0c0a0;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.player-panels .player-char-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.player-panels .player-char-row.selected {
+  background: rgba(197, 179, 88, 0.1);
+  border-color: rgba(197, 179, 88, 0.3);
+}

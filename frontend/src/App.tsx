@@ -15,6 +15,7 @@ import "./styles.css";
 import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
+import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -1127,332 +1128,204 @@ export default function App() {
   }
 
   // 7. GM — has campaign → full VTT interface
+  //     Layout: sidebar | CampaignMap | panels
 
   return (
-    <main className="app-shell">
-      <aside className="sidebar">
+    <main className="gm-campaign-shell">
+      {/* ── Sidebar ─────────────────────────────────────────── */}
+      <aside className="gm-sidebar">
         <div className="brand-mark compact">
           <Swords aria-hidden="true" />
           DnD
         </div>
-        <button className="ghost-button" onClick={() => void loadCampaigns()} type="button">
-          <RefreshCw aria-hidden="true" />
-          Actualiser
-        </button>
-        <button className="ghost-button" onClick={logout} type="button">
-          <DoorOpen aria-hidden="true" />
-          Sortir
-        </button>
+
+        <div className="gm-campaign-list">
+          <h4>Mes tables</h4>
+          {campaigns.map((c) => (
+            <button
+              className={`gm-campaign-item ${selectedCampaign?.id === c.id ? "selected" : ""}`}
+              key={c.id}
+              onClick={() => {
+                setSelectedCampaignId(c.id);
+                setLatestInvite(null);
+              }}
+              type="button"
+            >
+              <strong>{c.name}</strong>
+              <small>{c.member_count} membres</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="gm-members-list">
+          <h4>Membres</h4>
+          {members.map((m) => (
+            <div className="gm-member-row" key={m.user_id}>
+              <span>{m.display_name}</span>
+              <small>{m.role}</small>
+            </div>
+          ))}
+        </div>
+
+        <div className="gm-sidebar-actions">
+          <button className="primary-button compact" disabled={isBusy} onClick={handleCreateInvite} type="button">
+            <UserPlus aria-hidden="true" size={14} />
+            Inviter
+          </button>
+          <button className="ghost-button compact" onClick={logout} type="button">
+            <DoorOpen aria-hidden="true" size={14} />
+            Sortir
+          </button>
+        </div>
       </aside>
 
-      <section className="workspace">
-        <header className="topbar">
+      {/* ── Centre — Carte ──────────────────────────────────── */}
+      <section className="gm-map-area">
+        <div className="gm-map-topbar">
           <div>
-            <p className="small-label">Connecte comme {user.display_name}</p>
-            <h1>Campagnes</h1>
+            <span className="realtime-pill">{realtimeStatus}</span>
+            <span>{presenceCount} connectés</span>
           </div>
-          <div className="topbar-status">
-            <span className={`realtime-pill ${realtimeStatus}`}>{realtimeStatus}</span>
-            <span>{presenceCount} connecte(s)</span>
-            <Shield aria-hidden="true" />
+          <span className="gm-campaign-name">{selectedCampaign?.name ?? "Campagne"}</span>
+          <div className="session-live-mode-buttons compact" aria-label="Modes">
+            {SESSION_LIVE_MODES.map((m) => (
+              <button
+                key={m.id}
+                className={activeSessionLiveMode === m.id ? "active" : ""}
+                onClick={() => setActiveSessionLiveMode(m.id)}
+                type="button"
+              >
+                {m.label}
+              </button>
+            ))}
           </div>
-        </header>
+        </div>
 
-        <div className="workspace-grid">
-          <section className="panel">
-            <h2>Nouvelle campagne</h2>
-            <form onSubmit={handleCreateCampaign} className="form-stack">
-              <label>
-                Nom
-                <input name="name" minLength={2} maxLength={120} required />
-              </label>
-              <label>
-                Description
-                <textarea name="description" maxLength={2000} rows={4} />
-              </label>
-              <button className="primary-button" disabled={isBusy} type="submit">
-                <Plus aria-hidden="true" />
-                Creer
+        <CampaignMap
+          isGM={true}
+          campaignId={selectedCampaign?.id ?? ""}
+          token={token}
+          scenes={scenes}
+          selectedScene={selectedScene}
+          selectedSceneId={selectedSceneId}
+          sceneTokens={sceneTokens}
+          sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
+          characters={characters}
+          onSelectScene={setSelectedSceneId}
+          onLoadSceneTokens={(id) => void loadSceneTokens(id)}
+          onMoveToken={(t, dx, dy) => void handleMoveToken(t, dx, dy)}
+        />
+      </section>
+
+      {/* ── Droite — Panneaux ───────────────────────────────── */}
+      <aside className="gm-panels">
+        {/* Characters panel */}
+        <details className="gm-panel-section" open>
+          <summary>👤 Personnages</summary>
+          <div className="character-section" data-campaign-tab="characters">
+            <form className="character-form" onSubmit={handleCreateCharacter}>
+              <label><input name="name" minLength={2} maxLength={120} required placeholder="Nom du personnage" /></label>
+              <div className="mini-grid">
+                <label><input name="ancestry" maxLength={80} placeholder="Origine" /></label>
+                <label><input name="class_name" maxLength={80} placeholder="Classe" /></label>
+              </div>
+              <div className="mini-grid">
+                <label><input name="level" type="number" min={1} max={20} defaultValue={1} placeholder="Niv." /></label>
+                <label><input name="hp_max" type="number" min={1} defaultValue={10} placeholder="PV" /></label>
+                <label><input name="armor_class" type="number" min={1} max={40} defaultValue={10} placeholder="CA" /></label>
+                <label><input name="speed" type="number" min={0} max={200} defaultValue={30} placeholder="Vit." /></label>
+              </div>
+              <button className="primary-button compact" disabled={isBusy} type="submit">
+                <Plus aria-hidden="true" size={12} /> Ajouter
               </button>
             </form>
-          </section>
 
-          <section className="panel campaign-list">
-            <h2>Tables actives</h2>
-            {campaigns.length === 0 ? (
-              <div className="empty-state">
-                <Castle aria-hidden="true" />
-                <p>Aucune campagne pour le moment.</p>
-              </div>
-            ) : (
-              campaigns.map((campaign) => (
+            <div className="character-list">
+              {characters.map((ch) => (
                 <button
-                  className={`campaign-row ${selectedCampaign?.id === campaign.id ? "selected" : ""}`}
-                  key={campaign.id}
-                  onClick={() => {
-                    setSelectedCampaignId(campaign.id);
-                    setLatestInvite(null);
-                  }}
+                  className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
+                  key={ch.id}
+                  onClick={() => setSelectedCharacterId(ch.id)}
                   type="button"
                 >
-                  <span>
-                    <strong>{campaign.name}</strong>
-                    <small>{campaign.member_count} membre(s)</small>
-                  </span>
-                  <em>{campaign.role}</em>
+                  <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
+                  <em>{ch.hp_current}/{ch.hp_max} PV</em>
                 </button>
-              ))
+              ))}
+            </div>
+
+            {selectedCharacter && (
+              <EditCharacterSheet
+                character={selectedCharacter}
+                token={token}
+                isBusy={isBusy}
+                onSave={(updated) => setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))}
+              />
             )}
-          </section>
+          </div>
+        </details>
 
-          <section className={`panel detail-panel campaign-view-${activeCampaignView}`}>
-            <h2>{selectedCampaign?.name ?? "Selection"}</h2>
-            {selectedCampaign ? (
-              <>
-                <CampaignViewTabs activeView={activeCampaignView} onChange={setActiveCampaignView} />
+        {/* Combat — quick state */}
+        <details className="gm-panel-section">
+          <summary>⚔️ Combat</summary>
+          <p className="muted">Gestion du combat — via VttBoard en mode avancé.</p>
+        </details>
 
+        {/* Session Log */}
+        <details className="gm-panel-section">
+          <summary>📋 Journal</summary>
+          <SessionLogPanel
+            characters={characters}
+            selectedCharacter={selectedCharacter}
+            rolls={rolls}
+            logEntries={logEntries}
+            isBusy={isBusy}
+            token={token}
+            onRoll={handleRoll}
+            onAddNote={handleLogNote}
+            onRefresh={(category?) => {
+              if (selectedCampaign) {
+                void (async () => {
+                  try {
+                    const url = category
+                      ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
+                      : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
+                    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                    if (response.ok) setLogEntries(await response.json());
+                  } catch { /* ignore */ }
+                })();
+              }
+            }}
+          />
+        </details>
 
-                <section className="campaign-overview-tab" data-campaign-tab="overview">
-                <p className="muted">
-                  {selectedCampaign.description || "Aucune description pour cette campagne."}
-                </p>
-                <div className="action-row">
-                  <button className="primary-button" disabled={isBusy} onClick={handleCreateInvite} type="button">
-                    <UserPlus aria-hidden="true" />
-                    Inviter un joueur
-                  </button>
-                  {latestInvite && (
-                    <button className="ghost-button" onClick={copyInvite} type="button">
-                      <Copy aria-hidden="true" />
-                      Copier le lien
-                    </button>
-                  )}
-                </div>
-                {latestInvite && (
-                  <code className="invite-code">
-                    {window.location.origin}/invite/{latestInvite.token}
-                  </code>
-                )}
-                <h3>Membres</h3>
-                <div className="member-list">
-                  {members.map((member) => (
-                    <div className="member-row" key={member.user_id}>
-                      <span>{member.display_name}</span>
-                      <small>{member.role}</small>
-                    </div>
-                  ))}
-                </div>
-                </section>
+        {/* Handouts */}
+        <details className="gm-panel-section">
+          <summary>📄 Documents</summary>
+          <HandoutPanel
+            handouts={handouts}
+            scenes={scenes}
+            isBusy={isBusy}
+            onCreateHandout={handleCreateHandout}
+            onRevealHandout={(h) => void handleRevealHandout(h)}
+            onDeleteHandout={(h) => void handleDeleteHandout(h)}
+          />
+        </details>
 
-                <div className="character-section" data-campaign-tab="characters">
-                  <div className="section-heading">
-                    <h3>Personnages</h3>
-                    <ScrollText aria-hidden="true" />
-                  </div>
-                  <form className="character-form" onSubmit={handleCreateCharacter}>
-                    <label>
-                      Nom
-                      <input name="name" minLength={2} maxLength={120} required />
-                    </label>
-                    <label>
-                      Origine
-                      <input name="ancestry" maxLength={80} placeholder="Humain, elfe..." />
-                    </label>
-                    <label>
-                      Classe
-                      <input name="class_name" maxLength={80} placeholder="Guerrier, mage..." />
-                    </label>
-                    <div className="mini-grid">
-                      <label>
-                        Niveau
-                        <input name="level" type="number" min={1} max={20} defaultValue={1} />
-                      </label>
-                      <label>
-                        PV max
-                        <input name="hp_max" type="number" min={1} defaultValue={10} />
-                      </label>
-                      <label>
-                        CA
-                        <input name="armor_class" type="number" min={1} max={40} defaultValue={10} />
-                      </label>
-                      <label>
-                        Vitesse
-                        <input name="speed" type="number" min={0} max={200} defaultValue={30} />
-                      </label>
-                    </div>
-                    <div className="ability-grid" aria-label="Caracteristiques">
-                      {(["str", "dex", "con", "int", "wis", "cha"] as const).map((ability) => (
-                        <label key={ability}>
-                          {ability.toUpperCase()}
-                          <input name={ability} type="number" min={1} max={30} defaultValue={10} />
-                        </label>
-                      ))}
-                    </div>
-                    <label>
-                      Notes
-                      <textarea name="notes" rows={3} maxLength={4000} />
-                    </label>
-                    <button className="primary-button" disabled={isBusy} type="submit">
-                      <Plus aria-hidden="true" />
-                      Ajouter la fiche
-                    </button>
-                  </form>
+        {/* Homebrew */}
+        <details className="gm-panel-section">
+          <summary>📚 Bibliothèque</summary>
+          <HomebrewPanel
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
+            scenes={scenes}
+            encounters={encounters}
+            isBusy={isBusy}
+          />
+        </details>
+      </aside>
 
-                  <div className="character-layout">
-                    <div className="character-list">
-                      {characters.length === 0 ? (
-                        <div className="empty-state compact-empty">
-                          <ScrollText aria-hidden="true" />
-                          <p>Aucune fiche dans cette campagne.</p>
-                        </div>
-                      ) : (
-                        characters.map((character) => (
-                          <button
-                            className={`character-row ${selectedCharacter?.id === character.id ? "selected" : ""}`}
-                            key={character.id}
-                            onClick={() => setSelectedCharacterId(character.id)}
-                            type="button"
-                          >
-                            <span>
-                              <strong>{character.name}</strong>
-                              <small>
-                                Niv. {character.level} {character.class_name || "Aventurier"}
-                              </small>
-                            </span>
-                            <em>{character.hp_current}/{character.hp_max} PV</em>
-                          </button>
-                        ))
-                      )}
-                    </div>
-
-                    {selectedCharacter && (
-                      <EditCharacterSheet
-                        character={selectedCharacter}
-                        token={token}
-                        isBusy={isBusy}
-                        onSave={(updated) => {
-                          setCharacters((current) =>
-                            current.map((c) => (c.id === updated.id ? updated : c)),
-                          );
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-
-                <section className="session-live-mode-bar">
-                  <div>
-                    <span className="session-status">Session Live</span>
-                    <h3>Mode {activeSessionLiveModeDetail.label}</h3>
-                    <p>{activeSessionLiveModeDetail.description}</p>
-                  </div>
-
-                  <div className="session-live-mode-buttons" aria-label="Modes Session Live">
-                    {SESSION_LIVE_MODES.map((mode) => (
-                      <button
-                        className={activeSessionLiveMode === mode.id ? "active" : ""}
-                        key={mode.id}
-                        onClick={() => setActiveSessionLiveMode(mode.id)}
-                        type="button"
-                      >
-                        <strong>{mode.label}</strong>
-                        <small>{mode.description}</small>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-
-                {activeCampaignView === "live" || activeCampaignView === "preparation" ? (
-                <VttBoard
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  scenes={scenes}
-                  selectedScene={selectedScene}
-                  selectedSceneId={selectedSceneId}
-                  sceneTokens={sceneTokens}
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                  assets={assets}
-                  selectedAssetId={selectedAssetId}
-                  sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
-                  isBusy={isBusy}
-                  onSelectScene={setSelectedSceneId}
-                  onLoadSceneTokens={(sceneId) => void loadSceneTokens(sceneId)}
-                  onCreateScene={handleCreateScene}
-                  onUploadAsset={handleUploadAsset}
-                  onSelectAsset={setSelectedAssetId}
-                  onSetSceneBackground={() => void handleSetSceneBackground()}
-                  onCreateToken={handleCreateToken}
-                  onMoveToken={(tokenToMove, dx, dy) => void handleMoveToken(tokenToMove, dx, dy)}
-                  sessionLiveMode={activeCampaignView === "live" ? activeSessionLiveMode : undefined}
-                />
-                ) : null}
-
-                <SessionLogPanel
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                  rolls={rolls}
-                  logEntries={logEntries}
-                  isBusy={isBusy}
-                  token={token}
-                  onRoll={handleRoll}
-                  onAddNote={handleLogNote}
-                  onRefresh={(category?) => {
-                    if (selectedCampaign) {
-                      void (async () => {
-                        try {
-                          const url = category
-                            ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
-                            : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
-                          const response = await fetch(url, {
-                            headers: { Authorization: `Bearer ${token}` },
-                          });
-                          if (response.ok) {
-                            setLogEntries(await response.json());
-                          }
-                        } catch {
-                          // ignore
-                        }
-                      })();
-                    }
-                  }}
-                />
-
-                <HandoutPanel
-                  handouts={handouts}
-                  scenes={scenes}
-                  isBusy={isBusy}
-                  onCreateHandout={handleCreateHandout}
-                  onRevealHandout={(handout) => void handleRevealHandout(handout)}
-                  onDeleteHandout={(handout) => void handleDeleteHandout(handout)}
-                />
-
-                <HomebrewPanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  scenes={scenes}
-                  encounters={encounters}
-                  isBusy={isBusy}
-                />
-
-                <section className="gm-placeholder-tab gm-settings-placeholder">
-                  <h3>Parametres</h3>
-                  <p className="muted">Espace prevu pour la configuration de campagne et de session.</p>
-                  <ul>
-                    <li>Permissions joueurs</li>
-                    <li>Systeme de jeu</li>
-                    <li>Options de visibilite</li>
-                    <li>Layouts, raccourcis et import/export</li>
-                  </ul>
-                </section>
-              </>
-            ) : (
-              <p className="muted">Cree ou selectionne une campagne.</p>
-            )}
-          </section>
-        </div>
-        <MessageDock message={message} />
-      </section>
+      <MessageDock message={message} />
     </main>
   );
 }

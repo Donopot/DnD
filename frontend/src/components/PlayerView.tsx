@@ -23,9 +23,10 @@ import type {
   Member,
   Roll,
   Scene,
+  SceneToken,
 } from "../api/types";
+import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
-import { PlayerMap } from "./PlayerMap";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -119,6 +120,12 @@ export function PlayerView({
   const [activeTab, setActiveTab] = useState<TabId>("characters");
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
+
+  // ─── Map state (scenes, tokens, background) ──────────────────────────
+  const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
+  const [playerScene, setPlayerScene] = useState<Scene | null>(null);
+  const [playerTokens, setPlayerTokens] = useState<SceneToken[]>([]);
+  const [playerBgUrl, setPlayerBgUrl] = useState("");
 
   // ─── Character creation form ───────────────────────────────────────────
   const [charForm, setCharForm] = useState<PlayerCharacterFormData>({
@@ -234,7 +241,28 @@ export function PlayerView({
   useEffect(() => {
     void loadPlayerData();
     void loadSessionLog();
+    void loadPlayerMapData();
   }, [cid]);
+
+  // ─── Map data loading ──────────────────────────────────────────────────
+  async function loadPlayerMapData() {
+    try {
+      const scenes = await playerRequest<Scene[]>(`/campaigns/${cid}/player/scenes`, token).catch(() => [] as Scene[]);
+      setPlayerScenes(scenes);
+      const active = scenes.find((s: Scene) => s.is_active) ?? scenes[0] ?? null;
+      if (active) {
+        setPlayerScene(active);
+        await loadPlayerTokens(active.id);
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function loadPlayerTokens(sceneId: string) {
+    try {
+      const tokens = await playerRequest<SceneToken[]>(`/player/scenes/${sceneId}/tokens`, token).catch(() => [] as SceneToken[]);
+      setPlayerTokens(tokens);
+    } catch { /* ignore */ }
+  }
 
   // ─── Load encounter detail ─────────────────────────────────────────────
   async function loadEncounterDetail(encounterId: string) {
@@ -777,11 +805,7 @@ export function PlayerView({
   );
 
   // ── Map tab ────────────────────────────────────────────────────────────
-  const mapTab = (
-    <section className="player-tab map">
-      <PlayerMap campaignId={cid} token={token} wsRef={wsRef} />
-    </section>
-  );
+  const mapTab = null; // replaced by CampaignMap in main render
 
   // ── Dice tab ───────────────────────────────────────────────────────────
   const diceTab = (
@@ -1025,63 +1049,35 @@ export function PlayerView({
     </section>
   );
 
-  // ─── Main render ───────────────────────────────────────────────────────
+  // ─── Main render — split layout: map | panels ──────────────────────────
   return (
-    <main className="player-view">
+    <main className="player-campaign-shell">
       {campaignHeader}
 
-      <div className="player-tab-bar">
-        <button
-          className={`player-tab-btn ${activeTab === "characters" ? "active" : ""}`}
-          onClick={() => setActiveTab("characters")}
-          type="button"
-        >
-          <ScrollText size={16} aria-hidden="true" /> Personnages
-        </button>
-        <button
-          className={`player-tab-btn ${activeTab === "map" ? "active" : ""}`}
-          onClick={() => setActiveTab("map")}
-          type="button"
-        >
-          <MapPin size={16} aria-hidden="true" /> Carte
-        </button>
-        <button
-          className={`player-tab-btn ${activeTab === "dice" ? "active" : ""}`}
-          onClick={() => setActiveTab("dice")}
-          type="button"
-        >
-          <Dice1 size={16} aria-hidden="true" /> Dés
-        </button>
-        <button
-          className={`player-tab-btn ${activeTab === "handouts" ? "active" : ""}`}
-          onClick={() => setActiveTab("handouts")}
-          type="button"
-        >
-          <ScrollText size={16} aria-hidden="true" /> Documents
-        </button>
-        <button
-          className={`player-tab-btn ${activeTab === "combat" ? "active" : ""}`}
-          onClick={() => setActiveTab("combat")}
-          type="button"
-        >
-          <Swords size={16} aria-hidden="true" /> Combat
-        </button>
-        <button
-          className={`player-tab-btn ${activeTab === "journal" ? "active" : ""}`}
-          onClick={() => setActiveTab("journal")}
-          type="button"
-        >
-          <MessageSquare size={16} aria-hidden="true" /> Journal
-        </button>
-      </div>
+      <div className="player-workspace">
+        {/* ── Map (left) ──────────────────────────────────────── */}
+        <section className="player-map-area">
+          <CampaignMap
+            isGM={false}
+            campaignId={cid}
+            token={token}
+            scenes={playerScenes}
+            selectedScene={playerScene ?? undefined}
+            selectedSceneId={playerScene?.id ?? ""}
+            sceneTokens={playerTokens}
+            sceneBackgroundObjectUrl={playerBgUrl}
+            characters={characters}
+          />
+        </section>
 
-      <div className="player-tab-content">
-        {activeTab === "characters" && charactersTab}
-        {activeTab === "map" && mapTab}
-        {activeTab === "dice" && diceTab}
-        {activeTab === "handouts" && handoutsTab}
-        {activeTab === "combat" && combatTab}
-        {activeTab === "journal" && journalTab}
+        {/* ── Panels (right) ──────────────────────────────────── */}
+        <aside className="player-panels">
+          {charactersTab}
+          {diceTab}
+          {handoutsTab}
+          {combatTab}
+          {journalTab}
+        </aside>
       </div>
 
       {message && (
