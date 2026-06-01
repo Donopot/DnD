@@ -17,6 +17,8 @@ import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
 import { HandoutPanel } from "./components/HandoutPanel";
+import { InvitePage } from "./components/InvitePage";
+import { PlayerView } from "./components/PlayerView";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
@@ -66,6 +68,10 @@ export default function App() {
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
   const [mode, setMode] = useState<"login" | "register">("register");
   const [message, setMessage] = useState("");
+  const [inviteToken, setInviteToken] = useState<string | null>(() => {
+    const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
+    return match ? match[1] : null;
+  });
   const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("campaign");
   const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -1023,6 +1029,28 @@ export default function App() {
     setSelectedCampaignId("");
   }
 
+  if (inviteToken) {
+    return (
+      <InvitePage
+        inviteToken={inviteToken}
+        token={token}
+        userDisplayName={user?.display_name ?? null}
+        onTokenChange={(newToken) => {
+          localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+          setToken(newToken);
+        }}
+        onJoined={() => {
+          void loadCampaigns(token).then(() => {
+            // After joining, go to main view
+            if (window.history.pushState) {
+              window.history.pushState({}, "", "/");
+            }
+          });
+        }}
+      />
+    );
+  }
+
   if (!user) {
     return (
       <main className="auth-shell">
@@ -1050,6 +1078,19 @@ export default function App() {
           onSubmit={handleAuth}
         />
       </main>
+    );
+  }
+
+  // Player role → show player dashboard instead of GM interface
+  if (selectedCampaign && selectedCampaign.role === "player") {
+    return (
+      <PlayerView
+        campaign={selectedCampaign}
+        token={token}
+        userDisplayName={user.display_name}
+        presenceCount={presenceCount}
+        onLogout={logout}
+      />
     );
   }
 
