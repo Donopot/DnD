@@ -192,6 +192,10 @@ class ScenePublic(BaseModel):
     background_url: str | None
     background_asset_id: UUID | None = None
     is_active: bool
+    snap_to_grid: bool = True
+    view_zoom: float = 1.0
+    view_pan_x: int = 0
+    view_pan_y: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -347,3 +351,18 @@ class AssetPublic(BaseModel):
 
 class SceneBackgroundUpdateRequest(BaseModel):
     asset_id: UUID | None = None
+
+
+class TokenMoveRequest(BaseModel):
+    x: int = Field(ge=0, le=10000)
+    y: int = Field(ge=0, le=10000)
+
+
+class SceneSettingsUpdateRequest(BaseModel):
+    snap_to_grid: bool | None = None
+    grid_size: int | None = Field(default=None, ge=16, le=200)
+    width: int | None = Field(default=None, ge=200, le=10000)
+    height: int | None = Field(default=None, ge=200, le=10000)
+    view_zoom: float | None = Field(default=None, ge=0.1, le=5.0)
+    view_pan_x: int | None = Field(default=None, ge=-10000, le=10000)
+    view_pan_y: int | None = Field(default=None, ge=-10000, le=10000)

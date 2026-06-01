@@ -10,7 +10,9 @@ from app.realtime import manager
 from app.schemas import (
     SceneCreateRequest,
     ScenePublic,
+    SceneSettingsUpdateRequest,
     TokenCreateRequest,
+    TokenMoveRequest,
     TokenPublic,
     TokenUpdateRequest,
 )
@@ -94,6 +96,20 @@ async def broadcast_vtt_change(campaign_id: UUID, resource: str, scene_id: UUID,
             "campaign_id": str(campaign_id),
             "scene_id": str(scene_id),
             "token_id": str(token_id) if token_id else None,
+        },
+    )
+
+
+async def broadcast_token_move(campaign_id: UUID, scene_id: UUID, token_id: UUID, x: int, y: int) -> None:
+    await manager.broadcast(
+        campaign_id,
+        {
+            "type": "token_moved",
+            "campaign_id": str(campaign_id),
+            "scene_id": str(scene_id),
+            "token_id": str(token_id),
+            "x": x,
+            "y": y,
         },
     )
 
@@ -285,3 +301,69 @@ async def delete_token(
     await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
     await get_pool().execute("delete from scene_tokens where id = $1", token_id)
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token_id)
+
+
+@router.patch("/tokens/{token_id}/move", response_model=TokenPublic)
+async def move_token(
+    token_id: UUID,
+    payload: TokenMoveRequest,
+    current_user=Depends(get_current_user),
+) -> TokenPublic:
+    existing = await get_token_or_404(token_id)
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    row = await get_pool().fetchrow(
+        """
+        update scene_tokens
+        set x = $2, y = $3, updated_at = now()
+        where id = $1
+        returning *
+        """,
+        token_id,
+        payload.x,
+        payload.y,
+    )
+    token = token_public(row)
+    await broadcast_token_move(existing["campaign_id"], existing["scene_id"], token.id, token.x, token.y)
+    return token
+
+
+@router.patch("/scenes/{scene_id}/settings", response_model=ScenePublic)
+async def update_scene_settings(
+    scene_id: UUID,
+    payload: SceneSettingsUpdateRequest,
+    current_user=Depends(get_current_user),
+) -> ScenePublic:
+    scene = await get_scene_or_404(scene_id)
+    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    current = dict(scene)
+    updates = payload.model_dump(exclude_unset=True)
+    for key, value in updates.items():
+        current[key] = value
+
+    row = await get_pool().fetchrow(
+        """
+        update campaign_scenes
+        set
+            snap_to_grid = $2,
+            grid_size = $3,
+            width = $4,
+            height = $5,
+            view_zoom = $6,
+            view_pan_x = $7,
+            view_pan_y = $8,
+            updated_at = now()
+        where id = $1
+        returning *
+        """,
+        scene_id,
+        current["snap_to_grid"],
+        current["grid_size"],
+        current["width"],
+        current["height"],
+        current["view_zoom"],
+        current["view_pan_x"],
+        current["view_pan_y"],
+    )
+    return scene_public(row)
