@@ -366,3 +366,35 @@ class SceneSettingsUpdateRequest(BaseModel):
     view_zoom: float | None = Field(default=None, ge=0.1, le=5.0)
     view_pan_x: int | None = Field(default=None, ge=-10000, le=10000)
     view_pan_y: int | None = Field(default=None, ge=-10000, le=10000)
+
+
+class HandoutCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    content: str = Field(default="", max_length=50000)
+    visibility: str = Field(default="gm", pattern="^(public|players|gm|gm_team)$")
+    asset_id: UUID | None = None
+    scene_id: UUID | None = None
+
+
+class HandoutUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    content: str | None = Field(default=None, max_length=50000)
+    visibility: str | None = Field(default=None, pattern="^(public|players|gm|gm_team)$")
+    asset_id: UUID | None = None
+    scene_id: UUID | None = None
+    is_revealed: bool | None = None
+
+
+class HandoutPublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    author_user_id: UUID
+    title: str
+    content: str
+    visibility: str
+    asset_id: UUID | None
+    scene_id: UUID | None
+    is_revealed: bool
+    revealed_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
