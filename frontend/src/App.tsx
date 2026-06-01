@@ -871,6 +871,8 @@ export default function App() {
 
         <CampaignMap
           isGM={true}
+          wsRef={wsRef}
+          userId={user?.id}
           campaignId={selectedCampaign?.id ?? ""}
           token={token}
           scenes={scenes}

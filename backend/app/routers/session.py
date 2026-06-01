@@ -343,6 +343,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
         if row is None:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
+        role = row["role"]
     except (PyJWTError, HTTPException):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -367,8 +368,79 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
     try:
         while True:
             message = await websocket.receive_json()
-            if message.get("type") == "ping":
+            msg_type = message.get("type")
+
+            if msg_type == "ping":
                 await websocket.send_json({"type": "pong"})
+
+            elif msg_type == "map_ping":
+                # Broadcast ping position to all clients in the campaign
+                await manager.broadcast(
+                    campaign_id,
+                    {
+                        "type": "map_ping",
+                        "x": message.get("x", 0),
+                        "y": message.get("y", 0),
+                        "user_id": str(user_id),
+                        "ts": message.get("ts", 0),
+                    },
+                )
+
+            elif msg_type == "player_move_token":
+                # Player can only move tokens they own (player_controlled)
+                token_id = message.get("token_id")
+                new_x = message.get("x", 0)
+                new_y = message.get("y", 0)
+                scene_id = message.get("scene_id")
+
+                if role == "player":
+                    # Verify the token belongs to a character owned by this player
+                    token_row = await get_pool().fetchrow(
+                        "select st.id from scene_tokens st "
+                        "join characters c on c.id = st.character_id "
+                        "where st.id = $1 and st.scene_id = $2 and c.owner_user_id = $3",
+                        token_id,
+                        scene_id,
+                        user_id,
+                    )
+                    if not token_row:
+                        await websocket.send_json({"type": "error", "detail": "Token non autorisé"})
+                        continue
+
+                # Update token position in DB
+                await get_pool().execute(
+                    "update scene_tokens set x = $1, y = $2, updated_at = now() where id = $3",
+                    new_x,
+                    new_y,
+                    token_id,
+                )
+
+                # Broadcast the move to all clients
+                await manager.broadcast(
+                    campaign_id,
+                    {
+                        "type": "token_moved",
+                        "token_id": str(token_id),
+                        "x": new_x,
+                        "y": new_y,
+                        "user_id": str(user_id),
+                    },
+                )
+
+            elif msg_type == "ruler":
+                # Broadcast ruler measurement (visual only, GM and other players see it)
+                await manager.broadcast(
+                    campaign_id,
+                    {
+                        "type": "ruler",
+                        "x1": message.get("x1", 0),
+                        "y1": message.get("y1", 0),
+                        "x2": message.get("x2", 0),
+                        "y2": message.get("y2", 0),
+                        "user_id": str(user_id),
+                    },
+                )
+
     except WebSocketDisconnect:
         count = manager.disconnect(campaign_id, websocket)
         await manager.broadcast(

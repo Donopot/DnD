@@ -1,5 +1,6 @@
 import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { FogLayer } from "./FogLayer";
+import { MapTools } from "./MapTools";
 import type { Character, Scene, SceneToken } from "../api/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -15,8 +16,12 @@ type CampaignMapProps = {
   sceneTokens: SceneToken[];
   sceneBackgroundObjectUrl: string;
   characters: Character[];
+  /** ID of the current user (for filtering player-controllable tokens) */
+  userId?: string;
   /** true = GM (move tokens, edit fog), false = Player (read-only) */
   isGM: boolean;
+  /** WebSocket ref for real-time ping/ruler/token drag */
+  wsRef: React.RefObject<WebSocket | null>;
   // GM-only callbacks
   onSelectScene?: (sceneId: string) => void;
   onLoadSceneTokens?: (sceneId: string) => void;
@@ -40,8 +45,10 @@ export function CampaignMap({
   selectedSceneId,
   sceneTokens,
   sceneBackgroundObjectUrl,
-  characters: _characters,
+  characters,
   isGM,
+  wsRef,
+  userId,
   onSelectScene,
   onLoadSceneTokens,
   onMoveToken,
@@ -250,6 +257,26 @@ export function CampaignMap({
                 {token.name.slice(0, 2).toUpperCase()}
               </button>
             ))}
+
+            {/* Ping / Ruler / Token drag tools */}
+            <MapTools
+              canvasRef={boardRef as React.RefObject<HTMLDivElement | null>}
+              zoom={zoom}
+              isGM={isGM}
+              wsRef={wsRef}
+              myTokenIds={
+                isGM
+                  ? new Set(sceneTokens.map((t) => t.id))
+                  : new Set(
+                      sceneTokens
+                        .filter((t) => {
+                          if (!t.character_id || !userId) return false;
+                          return characters.some((c) => c.id === t.character_id && c.owner_user_id === userId);
+                        })
+                        .map((t) => t.id)
+                    )
+              }
+            />
           </div>
         </div>
       </div>

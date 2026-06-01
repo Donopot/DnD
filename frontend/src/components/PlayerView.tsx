@@ -1065,6 +1065,8 @@ export function PlayerView({
         <section className="player-map-area">
           <CampaignMap
             isGM={false}
+            wsRef={wsRef}
+            userId={userId}
             campaignId={cid}
             token={token}
             scenes={playerScenes}
