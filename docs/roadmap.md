@@ -81,9 +81,10 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 ### Phase 10 - Handouts, notes et documents ✅
 ### Phase 11 - Conditions et etats de combat ✅
 ### Phase 12 - Initiative et automatisation legeres ✅
-### Phase 13 - Bibliotheque homebrew minimale ✅ (backend)
+### Phase 13 - Bibliotheque homebrew minimale ✅
 ### Phase 14 - Acces joueur et experience session ✅
 ### Phase 15 - Journal de campagne structure ✅
+### Phase 16 - Fog of war simple 🔜
 
 ## Roadmap detaillee
 
@@ -585,9 +586,9 @@ Mitigation : garder des migrations simples, idempotentes, testees par rebuild Do
 
 La prochaine phase recommandee est :
 
-**Phase 13 (frontend) — Bibliotheque homebrew.**
+**Phase 16 — Fog of war simple.**
 
 Raison :
-- le backend homebrew est deja complet (creatures, items, import/export) ;
-- le frontend homebrew est la seule phase frontend manquante ;
-- ensuite Phase 16 — Fog of war.
+- toutes les phases 1→15 sont désormais full-stack ;
+- le fog of war est la prochaine feature à forte valeur joueur ;
+- le backend fog of war reste à concevoir (endpoints + migration).

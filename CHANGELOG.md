@@ -4,6 +4,23 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 13 Homebrew] — Bibliothèque Homebrew frontend (2026-06-01)
+
+### Added
+- `HomebrewPanel.tsx` : liste, détail, création créatures et objets
+- CRUD complet (créer, lister, voir, supprimer)
+- Boutons « Ajouter à la scène » et « Ajouter au combat » pour les créatures
+- Import/Export JSON de toute la bibliothèque
+- Types `HomebrewCreature` et `HomebrewItem`
+
+### Files
+- `frontend/src/components/HomebrewPanel.tsx` — nouveau (473 lignes)
+- `frontend/src/api/types.ts` — +30 lignes
+- `frontend/src/App.tsx` — +9 lignes
+- `frontend/src/styles.css` — +98 lignes
+
+---
+
 ## [Phase 15] — Journal structuré (2026-06-01)
 
 ### Added
