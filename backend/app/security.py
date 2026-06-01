@@ -4,6 +4,7 @@ from uuid import UUID
 import bcrypt
 import jwt
 from fastapi import HTTPException, status
+from jwt import PyJWTError
 
 from app.config import get_settings
 
@@ -33,7 +34,7 @@ def decode_access_token(token: str) -> UUID:
     try:
         payload = jwt.decode(token, settings.backend_secret_key, algorithms=[ALGORITHM])
         return UUID(payload["sub"])
-    except Exception as exc:
+    except PyJWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

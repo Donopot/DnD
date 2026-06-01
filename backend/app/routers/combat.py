@@ -1,4 +1,5 @@
 import json
+import random
 from typing import Any
 from uuid import UUID
 
@@ -20,14 +21,9 @@ from app.schemas import (
     EncounterPublic,
     RemoveConditionRequest,
 )
+from app.utils import decode_json, jsonb
 
 router = APIRouter(prefix="/api", tags=["combat"])
-
-
-def decode_json(value: Any) -> Any:
-    if isinstance(value, str):
-        return json.loads(value)
-    return value
 
 
 def combatant_public(row) -> CombatantPublic:
@@ -279,7 +275,7 @@ async def create_combatant(
         payload.armor_class,
         payload.hp_current,
         payload.hp_max,
-        json.dumps(payload.conditions),
+        jsonb(payload.conditions),
         payload.notes.strip(),
         payload.is_player_controlled,
         payload.is_hidden,
@@ -336,7 +332,7 @@ async def update_combatant(
         current["armor_class"],
         current["hp_current"],
         current["hp_max"],
-        json.dumps(decode_json(current["conditions"])),
+        jsonb(decode_json(current["conditions"])),
         current["notes"],
         current["is_player_controlled"],
         current["is_hidden"],
@@ -457,7 +453,7 @@ async def _log_combat_event(
         combatant_id,
         actor_user_id,
         event_type,
-        json.dumps(payload),
+        jsonb(payload),
     )
 
 
@@ -490,7 +486,7 @@ async def apply_condition(
         returning *
         """,
         payload.combatant_id,
-        json.dumps(conditions),
+        jsonb(conditions),
     )
 
     await _log_combat_event(
@@ -541,7 +537,7 @@ async def remove_condition(
         returning *
         """,
         payload.combatant_id,
-        json.dumps(new_conditions),
+        jsonb(new_conditions),
     )
 
     await _log_combat_event(
@@ -681,7 +677,6 @@ async def roll_initiative(
                 dex_score = attrs.get("dex", 10)
                 dex_mod = (dex_score - 10) // 2
 
-        import random
         roll = random.randint(1, 20)
         total = roll + dex_mod
 

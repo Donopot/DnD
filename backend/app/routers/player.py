@@ -9,6 +9,7 @@ from app.schemas import (
     CampaignPublic,
     CharacterPublic,
     HandoutPublic,
+    PlayerEncounterPublic,
     ScenePublic,
     TokenPublic,
 )
@@ -106,7 +107,8 @@ async def player_scene_tokens(scene_id: UUID, current_user=Depends(get_current_u
         "select * from scene_tokens where scene_id = $1 and is_hidden = false order by created_at asc",
         scene_id,
     )
-    return [TokenPublic(**dict(r)) for r in rows]
+    # Strip metadata for player view
+    return [TokenPublic(**{**dict(r), "metadata": {}}) for r in rows]
 
 
 @router.get("/campaigns/{campaign_id}/player/handouts", response_model=list[HandoutPublic])
@@ -125,7 +127,7 @@ async def player_handouts(campaign_id: UUID, current_user=Depends(get_current_us
     return [HandoutPublic(**dict(r)) for r in rows]
 
 
-@router.get("/player/encounters/{encounter_id}")
+@router.get("/player/encounters/{encounter_id}", response_model=PlayerEncounterPublic)
 async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_user)):
     encounter = await get_pool().fetchrow("select * from combat_encounters where id = $1", encounter_id)
     if encounter is None:
@@ -137,13 +139,13 @@ async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_
         "select * from combatants where encounter_id = $1 and is_hidden = false order by initiative desc",
         encounter_id,
     )
-    return {
-        "id": str(encounter["id"]),
-        "name": encounter["name"],
-        "status": encounter["status"],
-        "round_number": encounter["round_number"],
-        "turn_index": encounter["turn_index"],
-        "combatants": [
+    return PlayerEncounterPublic(
+        id=encounter["id"],
+        name=encounter["name"],
+        status=encounter["status"],
+        round_number=encounter["round_number"],
+        turn_index=encounter["turn_index"],
+        combatants=[
             {
                 "id": str(c["id"]),
                 "name": c["name"],
@@ -156,7 +158,7 @@ async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_
             }
             for c in combatants
         ],
-    }
+    )
 
 
 # ============================================================

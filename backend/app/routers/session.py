@@ -16,15 +16,11 @@ from app.schemas import (
     SessionMarkerRequest,
 )
 from app.security import decode_access_token
+from app.utils import decode_json, jsonb
+from jwt import PyJWTError
 
 router = APIRouter(prefix="/api", tags=["session"])
 ws_router = APIRouter(tags=["realtime"])
-
-
-def decode_json(value):
-    if isinstance(value, str):
-        return json.loads(value)
-    return value
 
 
 def roll_public(row) -> RollPublic:
@@ -125,6 +121,8 @@ async def create_roll(
 @router.get("/campaigns/{campaign_id}/rolls", response_model=list[RollPublic])
 async def list_rolls(
     campaign_id: UUID,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
     current_user=Depends(get_current_user),
 ) -> list[RollPublic]:
     role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
@@ -135,9 +133,11 @@ async def list_rolls(
         from dice_rolls
         where campaign_id = $1 {visibility_clause}
         order by created_at desc
-        limit 100
+        limit $2 offset $3
         """,
         campaign_id,
+        limit,
+        offset,
     )
     return [roll_public(row) for row in rows]
 
@@ -145,6 +145,8 @@ async def list_rolls(
 @router.get("/campaigns/{campaign_id}/log", response_model=list[GameLogEntryPublic])
 async def list_log(
     campaign_id: UUID,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
     category: str | None = Query(default=None),
     pinned: bool | None = Query(default=None),
     linked_scene_id: UUID | None = Query(default=None),
@@ -178,8 +180,10 @@ async def list_log(
 
     where = " and ".join(filters)
     rows = await get_pool().fetch(
-        f"select * from game_log_entries where {where} order by created_at desc limit 200",
+        f"select * from game_log_entries where {where} order by created_at desc limit ${idx} offset ${idx+1}",
         *params,
+        limit,
+        offset,
     )
     return [log_public(row) for row in rows]
 
@@ -339,7 +343,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
         if row is None:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
-    except Exception:
+    except (PyJWTError, HTTPException):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 

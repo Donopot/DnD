@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.schemas import CharacterCreateRequest, CharacterPublic, CharacterUpdateRequest
+from app.utils import decode_json, jsonb
 
 router = APIRouter(prefix="/api", tags=["characters"])
 
@@ -19,12 +20,6 @@ JSON_FIELDS = {
     "spells",
     "resources",
 }
-
-
-def decode_json(value: Any) -> Any:
-    if isinstance(value, str):
-        return json.loads(value)
-    return value
 
 
 def character_public(row) -> CharacterPublic:

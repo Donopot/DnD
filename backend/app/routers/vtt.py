@@ -1,4 +1,3 @@
-import json
 from typing import Any
 from uuid import UUID
 
@@ -16,14 +15,9 @@ from app.schemas import (
     TokenPublic,
     TokenUpdateRequest,
 )
+from app.utils import decode_json, jsonb
 
 router = APIRouter(prefix="/api", tags=["vtt"])
-
-
-def decode_json(value: Any) -> Any:
-    if isinstance(value, str):
-        return json.loads(value)
-    return value
 
 
 def scene_public(row) -> ScenePublic:
@@ -33,6 +27,13 @@ def scene_public(row) -> ScenePublic:
 def token_public(row) -> TokenPublic:
     data = dict(row)
     data["metadata"] = decode_json(data["metadata"])
+    return TokenPublic(**data)
+
+
+def token_public_filtered(row) -> TokenPublic:
+    """Token view for players — metadata is stripped to prevent GM info leaks."""
+    data = dict(row)
+    data["metadata"] = {}  # players never see token metadata
     return TokenPublic(**data)
 
 
@@ -206,7 +207,10 @@ async def list_tokens(
         """,
         scene_id,
     )
-    return [token_public(row) for row in rows]
+    # GM/co-GM see full metadata; players get empty metadata
+    if role in {"gm", "co_gm"}:
+        return [token_public(row) for row in rows]
+    return [token_public_filtered(row) for row in rows]
 
 
 @router.post("/scenes/{scene_id}/tokens", response_model=TokenPublic, status_code=status.HTTP_201_CREATED)
@@ -238,7 +242,7 @@ async def create_token(
         payload.size,
         payload.color.strip(),
         payload.is_hidden,
-        json.dumps(payload.metadata),
+        jsonb(payload.metadata),
     )
     token = token_public(row)
     await broadcast_vtt_change(scene["campaign_id"], "token", scene_id, token.id)
@@ -285,7 +289,7 @@ async def update_token(
         current["size"],
         current["color"],
         current["is_hidden"],
-        json.dumps(decode_json(current["metadata"])),
+        jsonb(decode_json(current["metadata"])),
     )
     token = token_public(row)
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)

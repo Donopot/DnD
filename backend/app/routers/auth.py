@@ -1,5 +1,7 @@
 from asyncpg import UniqueViolationError
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.db import get_pool
 from app.deps import get_current_user
@@ -7,6 +9,7 @@ from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserPublic
 from app.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 def user_public(row) -> UserPublic:
@@ -19,7 +22,8 @@ def user_public(row) -> UserPublic:
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest) -> AuthResponse:
+@limiter.limit("5/minute")
+async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
     try:
         row = await get_pool().fetchrow(
             """
@@ -38,7 +42,8 @@ async def register(payload: RegisterRequest) -> AuthResponse:
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(payload: LoginRequest) -> AuthResponse:
+@limiter.limit("10/minute")
+async def login(request: Request, payload: LoginRequest) -> AuthResponse:
     row = await get_pool().fetchrow(
         """
         select id, email, display_name, password_hash, created_at
@@ -56,4 +61,3 @@ async def login(payload: LoginRequest) -> AuthResponse:
 @router.get("/me", response_model=UserPublic)
 async def me(current_user=Depends(get_current_user)) -> UserPublic:
     return user_public(current_user)
-

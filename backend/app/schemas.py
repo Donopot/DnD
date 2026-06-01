@@ -537,3 +537,13 @@ class CreatureToTokenRequest(BaseModel):
 class CreatureToCombatantRequest(BaseModel):
     encounter_id: UUID
     initiative: int = Field(default=0, ge=-20, le=60)
+
+
+class PlayerEncounterPublic(BaseModel):
+    """Safe encounter view for players — hides sensitive combatant data."""
+    id: UUID
+    name: str
+    status: str
+    round_number: int
+    turn_index: int
+    combatants: list[dict[str, Any]]

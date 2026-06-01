@@ -1,4 +1,3 @@
-import json
 from typing import Any
 from uuid import UUID
 
@@ -16,14 +15,9 @@ from app.schemas import (
     HomebrewItemPublic,
     HomebrewItemUpdateRequest,
 )
+from app.utils import decode_json, jsonb
 
 router = APIRouter(prefix="/api", tags=["homebrew"])
-
-
-def decode_json(value: Any) -> Any:
-    if isinstance(value, str):
-        return json.loads(value)
-    return value
 
 
 def creature_public(row) -> HomebrewCreaturePublic:
@@ -76,7 +70,7 @@ async def create_creature(campaign_id: UUID, payload: HomebrewCreatureCreateRequ
         """,
         campaign_id, payload.name.strip(), payload.description, payload.armor_class,
         payload.hp_max, payload.speed,
-        json.dumps(payload.attributes), json.dumps(payload.attacks), json.dumps(payload.spells),
+        jsonb(payload.attributes), jsonb(payload.attacks), jsonb(payload.spells),
         payload.size, payload.challenge_rating, payload.type,
     )
     return creature_public(row)
@@ -104,7 +98,7 @@ async def update_creature(creature_id: UUID, payload: HomebrewCreatureUpdateRequ
         where id=$1 returning *
         """,
         creature_id, cur["name"], cur["description"], cur["armor_class"], cur["hp_max"], cur["speed"],
-        json.dumps(cur["attributes"]), json.dumps(cur["attacks"]), json.dumps(cur["spells"]),
+        jsonb(cur["attributes"]), jsonb(cur["attacks"]), jsonb(cur["spells"]),
         cur["size"], cur["challenge_rating"], cur["type"],
     )
     return creature_public(row)
@@ -133,7 +127,7 @@ async def creature_to_token(creature_id: UUID, payload: CreatureToTokenRequest, 
         returning *
         """,
         payload.scene_id, c["name"], payload.x, payload.y,
-        json.dumps({"creature_id": str(creature_id), "hp_max": c["hp_max"], "ac": c["armor_class"]}),
+        jsonb({"creature_id": str(creature_id), "hp_max": c["hp_max"], "ac": c["armor_class"]}),
     )
     return dict(row)
 
@@ -181,7 +175,7 @@ async def create_item(campaign_id: UUID, payload: HomebrewItemCreateRequest, cur
         returning *
         """,
         campaign_id, payload.name.strip(), payload.description, payload.item_type, payload.rarity,
-        json.dumps(payload.properties),
+        jsonb(payload.properties),
     )
     return item_public(row)
 
@@ -200,7 +194,7 @@ async def update_item(item_id: UUID, payload: HomebrewItemUpdateRequest, current
         where id=$1 returning *
         """,
         item_id, cur["name"], cur["description"], cur["item_type"], cur["rarity"],
-        json.dumps(cur["properties"]),
+        jsonb(cur["properties"]),
     )
     return item_public(row)
 
@@ -239,8 +233,8 @@ async def import_homebrew(campaign_id: UUID, payload: dict[str, Any], current_us
             """,
             campaign_id, c_data["name"], c_data.get("description", ""),
             c_data.get("armor_class", 10), c_data.get("hp_max", 1), c_data.get("speed", 30),
-            json.dumps(c_data.get("attributes", {})), json.dumps(c_data.get("attacks", [])),
-            json.dumps(c_data.get("spells", [])),
+            jsonb(c_data.get("attributes", {})), jsonb(c_data.get("attacks", [])),
+            jsonb(c_data.get("spells", [])),
             c_data.get("size", "medium"), c_data.get("challenge_rating", 0),
             c_data.get("type", "monster"),
         )
@@ -254,7 +248,7 @@ async def import_homebrew(campaign_id: UUID, payload: dict[str, Any], current_us
             """,
             campaign_id, i_data["name"], i_data.get("description", ""),
             i_data.get("item_type", "misc"), i_data.get("rarity", "common"),
-            json.dumps(i_data.get("properties", {})),
+            jsonb(i_data.get("properties", {})),
         )
         results["items"] += 1
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.realtime import manager
-from app.schemas import HandoutCreateRequest, HandoutPublic, HandoutUpdateRequest
+from app.schemas import (
+    HandoutCreateRequest,
+    HandoutPublic,
+    HandoutUpdateRequest,
+)
+from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["handouts"])
 
@@ -16,56 +21,34 @@ def handout_public(row) -> HandoutPublic:
 
 
 async def get_handout_or_404(handout_id: UUID):
-    row = await get_pool().fetchrow(
-        """
-        select *
-        from handouts
-        where id = $1
-        """,
-        handout_id,
-    )
+    row = await get_pool().fetchrow("select * from handouts where id = $1", handout_id)
     if row is None:
         raise HTTPException(status_code=404, detail="Handout not found")
     return row
 
 
+def _visibility_filter(role: str) -> str:
+    if role in {"gm", "co_gm"}:
+        return "visibility in ('public', 'players', 'gm', 'gm_team')"
+    return "(visibility = 'public' or (visibility = 'players' and is_revealed = true))"
+
+
 async def validate_handout_links(campaign_id: UUID, scene_id: UUID | None, asset_id: UUID | None) -> None:
     if scene_id is not None:
-        scene_exists = await get_pool().fetchval(
-            """
-            select exists (
-                select 1
-                from campaign_scenes
-                where id = $1 and campaign_id = $2
-            )
-            """,
-            scene_id,
-            campaign_id,
+        scene = await get_pool().fetchrow(
+            "select id from campaign_scenes where id = $1 and campaign_id = $2",
+            scene_id, campaign_id,
         )
-        if not scene_exists:
+        if scene is None:
             raise HTTPException(status_code=400, detail="Scene does not belong to this campaign")
 
     if asset_id is not None:
-        asset_exists = await get_pool().fetchval(
-            """
-            select exists (
-                select 1
-                from campaign_assets
-                where id = $1 and campaign_id = $2
-            )
-            """,
-            asset_id,
-            campaign_id,
+        asset = await get_pool().fetchrow(
+            "select id from campaign_assets where id = $1 and campaign_id = $2",
+            asset_id, campaign_id,
         )
-        if not asset_exists:
+        if asset is None:
             raise HTTPException(status_code=400, detail="Asset does not belong to this campaign")
-
-
-def _visibility_filter(role: str) -> str:
-    """Build a visibility WHERE clause based on user role."""
-    if role in {"gm", "co_gm"}:
-        return "true"
-    return "(visibility = 'public' or (visibility = 'players' and is_revealed = true))"
 
 
 @router.get("/campaigns/{campaign_id}/handouts", response_model=list[HandoutPublic])
@@ -78,7 +61,7 @@ async def list_handouts(
 
     scene_filter = ""
     params: list = [campaign_id]
-    if scene_id is not None:
+    if scene_id:
         scene_filter = "and scene_id = $2"
         params.append(scene_id)
 
