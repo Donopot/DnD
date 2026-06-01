@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-06-01
 
-## ✅ Complétées (Phases 1–22)
+## ✅ Complétées (Phases 1–27) — Beta privée 🎉
 
 | # | Titre | Date |
 |---|-------|------|
@@ -30,18 +30,15 @@ Dernière mise à jour : 2026-06-01
 | 22 | Map interactive joueur (ping, règle, drag tokens via WebSocket) | 2026-06 |
 | 23 | Gestion perso par le MJ (XP, conditions, HP, inventaire) | 2026-06 |
 | 24 | Mesures et gabarits (distance, AoE) | 2026-06 |
+| 25 | SRD et règles de base | 2026-06 |
+| 26 | Sauvegardes et maintenance | 2026-06 |
+| 27 | Beta privée (polish final, README, documentation) | 2026-06 |
 
-## 🔜 Prochaines
+## Métriques finales
 
-| # | Titre | Priorité | Estimation |
-|---|-------|----------|------------|
-| 25 | SRD et règles de base | Basse | 2 jours |
-| 26 | Sauvegardes et maintenance | Moyenne | 2 jours |
-| 27 | Beta privée | Haute | 3 jours |
-
-## Métriques actuelles
-
-- **Backend** : 100 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests
-- **Frontend** : 37 composants React, ~10950 lignes CSS, 1759 modules Vite
-- **Layouts** : AuthPage, PlayerLobby, GMLobby, GM Campaign (3 colonnes), Player Campaign (map+panneaux)
-- **Temps réel** : WebSocket (scène, tokens, handouts, combat, ping, règle, drag token, AoE)
+- **Backend** : 100 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests unitaires
+- **Frontend** : 39 composants React, ~11 050 lignes CSS, 1760 modules Vite
+- **Layouts** : 5 layouts (AuthPage, PlayerLobby, GMLobby, GM Campaign, Player Campaign)
+- **Temps réel** : WebSocket (présence, scène, tokens, handouts, combat, ping, règle, drag token, AoE)
+- **Maintenance** : 3 cron jobs (backup 03h, audit 06h, suggestions 07h30)
+- **Sécurité** : JWT, rate limiting, honeypot, complexité mdp, rôles
