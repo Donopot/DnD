@@ -89,19 +89,89 @@ sh scripts/smoke-backend.sh        # régression
 
 ---
 
-## 4. Git
+## 4. Git — Workflow de branches
 
-### 4.1 Commits
+### 4.1 Stratégie de branches
+
+```
+main ──────────────────────────────────────────────► (stable, déployable)
+  │
+  ├── feat/phase-9-token-ux ────► merge ──► main
+  ├── feat/phase-10-handouts ───► merge ──► main
+  ├── fix/review-backend ───────► merge ──► main
+  └── feat/phase-16-xxx ────────► (en cours)
+```
+
+**Règles :**
+- **`main`** = branche stable, toujours déployable. Jamais de commit direct.
+- **`feat/<nom>`** = nouvelle fonctionnalité ou phase. Créée depuis `main`, mergée dans `main`.
+- **`fix/<nom>`** = correction de bug, refacto, review. Même workflow.
+- **1 branche = 1 objectif** (1 phase, 1 bugfix, 1 review).
+
+### 4.2 Cycle de vie d'une branche
+
+```bash
+# 1. Démarrer une feature
+git checkout main
+git pull origin main
+git checkout -b feat/phase-16-combat-avance
+
+# 2. Travailler, commit régulièrement
+git add -A
+git commit -m "feat(phase16): ajout du système de dégâts"
+
+# 3. Push quotidien (sauvegarde + visibilité)
+git push origin feat/phase-16-combat-avance
+
+# 4. Une fois terminé — vérifier que main n'a pas bougé
+git checkout main
+git pull origin main
+git checkout feat/phase-16-combat-avance
+git merge main          # intégrer les éventuels changements de main
+
+# 5. Tests finaux sur la branche
+#   - compilation ✓
+#   - tests unitaires ✓
+#   - smoke tests ✓
+
+# 6. Merge dans main et push
+git checkout main
+git merge feat/phase-16-combat-avance
+git push origin main
+
+# 7. Nettoyer
+git branch -d feat/phase-16-combat-avance
+git push origin --delete feat/phase-16-combat-avance
+```
+
+### 4.3 Convention de nommage des branches
+
+| Type | Format | Exemple |
+|------|--------|---------|
+| Nouvelle feature | `feat/<kebab-case>` | `feat/phase-12-initiative-auto` |
+| Correction | `fix/<kebab-case>` | `fix/review-backend-securite` |
+| Refactoring | `refactor/<kebab-case>` | `refactor/centralize-json-helpers` |
+| Documentation | `docs/<kebab-case>` | `docs/api-endpoints-reference` |
+
+### 4.4 Commits
+
 - Format : `type(scope): description`
 - Types : `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
-- Scope : `backend`, `migration`, `phase{N}`, `smoke`
-- Exemple : `feat(backend): add token move endpoint with snap_to_grid`
+- Scope : `backend`, `migration`, `phase{N}`, `smoke`, `review`
+- Exemples :
+  - `feat(phase12): add auto-initiative with d20 + DEX modifier`
+  - `fix(review): replace except Exception with PyJWTError in security.py`
+  - `test(backend): add 33 unit tests for dice, security, utils`
 - Commits atomiques (1 migration = 1 commit, 1 endpoint = 1 commit)
-- Commit après chaque tâche réussie
 
-### 4.2 Branches
-- Branche par phase : `phase-9-token-ux`
-- Merge dans `main` après validation complète
+### 4.5 Avant chaque merge dans `main`
+
+Checklist obligatoire :
+```bash
+uv run pytest backend/tests/ -q           # tous les tests unitaires passent
+python3 -m compileall backend/app         # pas d'erreur de syntaxe
+sh scripts/smoke-backend.sh               # pas de régression smoke
+```
 
 ---
 
