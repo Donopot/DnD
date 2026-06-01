@@ -165,6 +165,21 @@ export type Combatant = {
   updated_at: string;
 };
 
+export type Handout = {
+  id: string;
+  campaign_id: string;
+  author_user_id: string;
+  title: string;
+  content: string;
+  visibility: "public" | "players" | "gm" | "gm_team";
+  asset_id: string | null;
+  scene_id: string | null;
+  is_revealed: boolean;
+  revealed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type EncounterDetail = Encounter & {
   combatants: Combatant[];
 };

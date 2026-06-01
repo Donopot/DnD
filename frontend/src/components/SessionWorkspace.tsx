@@ -6,11 +6,13 @@ import type {
   Combatant,
   Encounter,
   GameLogEntry,
+  Handout,
   Roll,
   Scene,
   SceneToken,
 } from "../api/types";
 import { CombatPanel } from "./CombatPanel";
+import { HandoutPanel } from "./HandoutPanel";
 import { SessionLogPanel } from "./SessionLogPanel";
 import { SessionQuickActions } from "./SessionQuickActions";
 import { VttBoard } from "./VttBoard";
@@ -29,6 +31,7 @@ type SessionWorkspaceProps = {
   encounters: Encounter[];
   selectedEncounter: Encounter | undefined;
   combatants: Combatant[];
+  handouts: Handout[];
   rolls: Roll[];
   logEntries: GameLogEntry[];
   isBusy: boolean;
@@ -51,6 +54,9 @@ type SessionWorkspaceProps = {
   onToggleDefeated: (combatant: Combatant) => void;
   onRoll: (event: FormEvent<HTMLFormElement>) => void;
   onAddNote: (event: FormEvent<HTMLFormElement>) => void;
+  onCreateHandout: (event: FormEvent<HTMLFormElement>) => void;
+  onRevealHandout: (handout: Handout) => void;
+  onDeleteHandout: (handout: Handout) => void;
 };
 
 export function SessionWorkspace({
@@ -67,6 +73,7 @@ export function SessionWorkspace({
   encounters,
   selectedEncounter,
   combatants,
+  handouts,
   rolls,
   logEntries,
   isBusy,
@@ -89,6 +96,9 @@ export function SessionWorkspace({
   onToggleDefeated,
   onRoll,
   onAddNote,
+  onCreateHandout,
+  onRevealHandout,
+  onDeleteHandout,
 }: SessionWorkspaceProps) {
   return (
     <div className="session-workspace">
@@ -151,6 +161,15 @@ export function SessionWorkspace({
           isBusy={isBusy}
           onRoll={onRoll}
           onAddNote={onAddNote}
+        />
+
+        <HandoutPanel
+          handouts={handouts}
+          scenes={scenes}
+          isBusy={isBusy}
+          onCreateHandout={onCreateHandout}
+          onRevealHandout={onRevealHandout}
+          onDeleteHandout={onDeleteHandout}
         />
       </aside>
     </div>

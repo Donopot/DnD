@@ -16,6 +16,7 @@ import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { AuthView } from "./components/AuthView";
+import { HandoutPanel } from "./components/HandoutPanel";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
@@ -28,6 +29,7 @@ import type {
   Encounter,
   EncounterDetail,
   GameLogEntry,
+  Handout,
   Invite,
   Member,
   Roll,
@@ -58,6 +60,7 @@ export default function App() {
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
   const [combatants, setCombatants] = useState<Combatant[]>([]);
+  const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
   const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
@@ -115,6 +118,7 @@ export default function App() {
     void loadVttState(selectedCampaign.id);
     void loadAssets(selectedCampaign.id);
     void loadCombatState(selectedCampaign.id);
+    void loadHandouts(selectedCampaign.id);
   }, [selectedCampaign?.id]);
 
   useEffect(() => {
@@ -190,6 +194,9 @@ export default function App() {
         }
         if (payload.resource === "encounter") {
           void loadCombatState(selectedCampaign.id);
+        }
+        if (payload.resource === "handout") {
+          void loadHandouts(selectedCampaign.id);
         }
       }
     };
@@ -464,6 +471,14 @@ export default function App() {
     }
   }
 
+  async function loadHandouts(campaignId: string) {
+    try {
+      setHandouts(await request<Handout[]>(`/api/campaigns/${campaignId}/handouts`));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to load handouts");
+    }
+  }
+
   async function handleCreateEncounter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -492,6 +507,80 @@ export default function App() {
       setMessage("Combat cree.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create encounter");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedCampaign) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    const form = new FormData(event.currentTarget);
+    const sceneId = String(form.get("scene_id") || "");
+
+    try {
+      const handout = await request<Handout>(`/api/campaigns/${selectedCampaign.id}/handouts`, {
+        method: "POST",
+        body: JSON.stringify({
+          title: String(form.get("title")),
+          content: String(form.get("content") || ""),
+          visibility: String(form.get("visibility") || "gm"),
+          scene_id: sceneId || null,
+        }),
+      });
+
+      setHandouts((current) => [handout, ...current]);
+      event.currentTarget.reset();
+      setMessage("Handout cree.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to create handout");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleRevealHandout(handout: Handout) {
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const updated = await request<Handout>(`/api/handouts/${handout.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ is_revealed: true }),
+      });
+
+      setHandouts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setMessage(`Handout "${updated.title}" partage aux joueurs.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to reveal handout");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleDeleteHandout(handout: Handout) {
+    if (!confirm(`Supprimer le handout "${handout.title}" ?`)) {
+      return;
+    }
+
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      await request<void>(`/api/handouts/${handout.id}`, { method: "DELETE" });
+      setHandouts((current) => current.filter((item) => item.id !== handout.id));
+      setMessage("Handout supprime.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to delete handout");
     } finally {
       setIsBusy(false);
     }
@@ -1246,16 +1335,14 @@ export default function App() {
                   onAddNote={handleLogNote}
                 />
 
-                <section className="gm-placeholder-tab gm-library-placeholder">
-                  <h3>Bibliotheque</h3>
-                  <p className="muted">Espace prevu pour les ressources reutilisables de campagne.</p>
-                  <ul>
-                    <li>PNJ, monstres et creatures</li>
-                    <li>Objets, sorts et regles</li>
-                    <li>Cartes, tokens et documents</li>
-                    <li>Tables aleatoires et modeles de rencontre</li>
-                  </ul>
-                </section>
+                <HandoutPanel
+                  handouts={handouts}
+                  scenes={scenes}
+                  isBusy={isBusy}
+                  onCreateHandout={handleCreateHandout}
+                  onRevealHandout={(handout) => void handleRevealHandout(handout)}
+                  onDeleteHandout={(handout) => void handleDeleteHandout(handout)}
+                />
 
                 <section className="gm-placeholder-tab gm-settings-placeholder">
                   <h3>Parametres</h3>
