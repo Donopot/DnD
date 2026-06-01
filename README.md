@@ -83,9 +83,9 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 | Métrique | Valeur |
 |----------|--------|
-| Composants React | 25 |
-| Modules Vite | 1759 |
-| CSS | ~8350 lignes |
+| Composants React | 26 |
+| Modules Vite | 1760 |
+| CSS | ~8450 lignes |
 
 ### Composants
 
@@ -103,6 +103,7 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | `EditCharacterSheet.tsx` | Fiche éditable : stats, inventaire, sorts, attaques |
 | `VisibilityInspectorPanel.tsx` | Contrôle visibilité tokens (toggle, bulk) |
 | `GmNotesPanel.tsx` | Notes MJ privées |
+| `HomebrewPanel.tsx` | Bibliothèque homebrew : créatures, objets, import/export |
 | `AuthView.tsx` | Login/register |
 | `CampaignViewTabs.tsx` | Onglets campagne GM |
 | `SessionWorkspace.tsx` | Layout session live (carte + combat + journal) |
@@ -123,7 +124,7 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 6 | Tokens + Scènes | ✅ | ✅ (VttBoard) |
 | 7 | Combat (initiative, tours) | ✅ | ✅ (CombatPanel) |
 | 8 | Assets (upload cartes) | ✅ | ✅ |
-| 9 | Homebrew (créatures, objets) | ✅ | ❌ |
+| 9 | Homebrew (créatures, objets) | ✅ | ✅ |
 | 10 | Handouts (documents partagés) | ✅ | ✅ |
 | 11 | Initiative Tracker | ✅ | ✅ |
 | 12 | Visibilité (contrôle tokens) | ✅ | ✅ |

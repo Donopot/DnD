@@ -4,7 +4,7 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
-## [Phase 13 Homebrew] — Bibliothèque Homebrew frontend (2026-06-01)
+## [Phase 9 Homebrew] — Bibliothèque Homebrew frontend (2026-06-01)
 
 ### Added
 - `HomebrewPanel.tsx` : liste, détail, création créatures et objets
