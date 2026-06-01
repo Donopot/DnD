@@ -1,24 +1,31 @@
 import {
   Castle,
   Dice1,
+  Download,
   HeartPulse,
+  MessageSquare,
   RefreshCw,
   ScrollText,
   Shield,
   Swords,
+  Upload,
   Users,
+  MapPin,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Campaign,
   Character,
   Combatant,
   Encounter,
+  GameLogEntry,
   Handout,
   Member,
   Roll,
+  Scene,
 } from "../api/types";
 import { EditCharacterSheet } from "./EditCharacterSheet";
+import { PlayerMap } from "./PlayerMap";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -58,7 +65,9 @@ type PlayerSummary = {
   created_at: string;
 };
 
-// ─── API helpers (inline to keep component self-contained) ───────────────
+type TabId = "characters" | "map" | "dice" | "handouts" | "combat" | "journal";
+
+// ─── API helpers ──────────────────────────────────────────────────────────
 
 async function playerRequest<T>(
   path: string,
@@ -95,17 +104,19 @@ export function PlayerView({
   presenceCount,
   onLogout,
 }: PlayerViewProps) {
+  const wsRef = useRef<WebSocket | null>(null);
+  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
+
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [rolls, setRolls] = useState<Roll[]>([]);
+  const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounter, setSelectedEncounter] = useState<Encounter | null>(null);
   const [combatants, setCombatants] = useState<Combatant[]>([]);
-  const [activeTab, setActiveTab] = useState<"characters" | "dice" | "handouts" | "combat">(
-    "characters",
-  );
+  const [activeTab, setActiveTab] = useState<TabId>("characters");
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -129,9 +140,51 @@ export function PlayerView({
   // ─── Dice roller ───────────────────────────────────────────────────────
   const [diceFormula, setDiceFormula] = useState("1d20");
   const [diceLabel, setDiceLabel] = useState("");
+  const [diceMode, setDiceMode] = useState<"normal" | "advantage" | "disadvantage">("normal");
   const [diceResult, setDiceResult] = useState<Roll | null>(null);
 
+  // ─── Journal note ──────────────────────────────────────────────────────
+  const [noteText, setNoteText] = useState("");
+
   const cid = campaign.id;
+
+  // ─── WebSocket ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    wsRef.current?.close();
+    setRealtimeStatus("offline");
+
+    if (!token || !cid) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(
+      `${protocol}://${window.location.host}/ws/campaigns/${cid}?token=${encodeURIComponent(token)}`,
+    );
+    wsRef.current = socket;
+    setRealtimeStatus("connecting");
+
+    socket.onopen = () => {
+      setRealtimeStatus("online");
+      socket.send(JSON.stringify({ type: "ping" }));
+    };
+
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+      if (payload.type === "session_changed") {
+        void loadSessionLog();
+        if (payload.resource === "handout") {
+          void loadHandouts();
+        }
+        if (payload.resource === "encounter") {
+          void loadCombatState();
+        }
+      }
+    };
+
+    socket.onclose = () => setRealtimeStatus("offline");
+    socket.onerror = () => setRealtimeStatus("offline");
+
+    return () => socket.close();
+  }, [cid, token]);
 
   // ─── Data loading ──────────────────────────────────────────────────────
   async function loadPlayerData() {
@@ -152,12 +205,35 @@ export function PlayerView({
         setSelectedCharacter(chars[0]);
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erreur chargement donnees");
+      setMessage(error instanceof Error ? error.message : "Erreur chargement données");
     }
+  }
+
+  async function loadSessionLog() {
+    try {
+      const entries = await playerRequest<GameLogEntry[]>(
+        `/campaigns/${cid}/log?limit=50`,
+        token,
+      ).catch(() => [] as GameLogEntry[]);
+      setLogEntries(entries.filter((e) => e.visibility === "public"));
+    } catch { /* ignore */ }
+  }
+
+  async function loadHandouts() {
+    try {
+      setHandouts(await playerRequest<Handout[]>(`/campaigns/${cid}/player/handouts`, token));
+    } catch { /* ignore */ }
+  }
+
+  async function loadCombatState() {
+    try {
+      setEncounters(await playerRequest<Encounter[]>(`/campaigns/${cid}/encounters`, token).catch(() => []));
+    } catch { /* ignore */ }
   }
 
   useEffect(() => {
     void loadPlayerData();
+    void loadSessionLog();
   }, [cid]);
 
   // ─── Load encounter detail ─────────────────────────────────────────────
@@ -244,12 +320,73 @@ export function PlayerView({
         hp_max: 10, armor_class: 10, speed: 30,
         str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
       });
-      setMessage(`${character.name} cree !`);
+      setMessage(`${character.name} créé !`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erreur creation personnage");
+      setMessage(error instanceof Error ? error.message : "Erreur création personnage");
     } finally {
       setIsBusy(false);
     }
+  }
+
+  // ─── Character import/export ───────────────────────────────────────────
+  function handleExportCharacter() {
+    if (!selectedCharacter) return;
+    const blob = new Blob([JSON.stringify(selectedCharacter, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selectedCharacter.name.replace(/\s+/g, "_")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setMessage(`${selectedCharacter.name} exporté !`);
+  }
+
+  function handleImportCharacter() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text) as Character;
+        // Create a new character from the imported data
+        const pb = Math.max(2, Math.ceil(imported.level / 4) + 1);
+        const character = await playerRequest<Character>(
+          `/campaigns/${cid}/characters`,
+          token,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              name: imported.name || "Perso importé",
+              ancestry: imported.ancestry || "",
+              class_name: imported.class_name || "",
+              level: imported.level || 1,
+              armor_class: imported.armor_class || 10,
+              speed: imported.speed || 30,
+              proficiency_bonus: pb,
+              hp_current: imported.hp_max || imported.hp_current || 1,
+              hp_max: imported.hp_max || 10,
+              attributes: imported.attributes || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+              skills: imported.skills || {},
+              saving_throws: imported.saving_throws || {},
+              attacks: imported.attacks || [],
+              inventory: imported.inventory || [],
+              spells: imported.spells || [],
+              resources: imported.resources || [],
+              notes: imported.notes || "",
+            }),
+          },
+        );
+        setCharacters((current) => [character, ...current]);
+        setSelectedCharacter(character);
+        setMessage(`${character.name} importé !`);
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Erreur import");
+      }
+    };
+    input.click();
   }
 
   // ─── Dice roller ───────────────────────────────────────────────────────
@@ -268,7 +405,7 @@ export function PlayerView({
           body: JSON.stringify({
             formula: diceFormula,
             label: diceLabel || diceFormula,
-            mode: "normal",
+            mode: diceMode,
             visibility: "public",
             character_id: selectedCharacter?.id ?? null,
           }),
@@ -276,15 +413,15 @@ export function PlayerView({
       );
       setRolls((current) => [roll, ...current].slice(0, 50));
       setDiceResult(roll);
-      setMessage(`Resultat: ${roll.total}`);
+      setMessage(`Résultat: ${roll.total}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erreur lancer de des");
+      setMessage(error instanceof Error ? error.message : "Erreur lancer de dés");
     } finally {
       setIsBusy(false);
     }
   }
 
-  // ─── Quick d20 ─────────────────────────────────────────────────────────
+  // ─── Quick d20 / skill roll ────────────────────────────────────────────
   async function quickD20(modifier: number, label: string) {
     if (!cid) return;
     try {
@@ -320,7 +457,42 @@ export function PlayerView({
     return mods;
   }, [selectedCharacter]);
 
-  // ─── Quick d20 modifiers based on selected character ───────────────────
+  // ─── Skill modifiers ───────────────────────────────────────────────────
+  const skillMods = useMemo(() => {
+    if (!selectedCharacter) return [] as { name: string; mod: number }[];
+    const attrToSkill: Record<string, string> = {
+      str: "str", dex: "dex", con: "con", int: "int", wis: "wis", cha: "cha",
+    };
+    const skillNames: Record<string, string[]> = {
+      str: ["Athlétisme"],
+      dex: ["Acrobaties", "Discrétion", "Escamotage"],
+      con: [], // Constitution has no standard skills
+      int: ["Arcanes", "Histoire", "Investigation", "Nature", "Religion"],
+      wis: ["Dressage", "Médecine", "Perception", "Perspicacité", "Survie"],
+      cha: ["Intimidation", "Persuasion", "Représentation", "Tromperie"],
+    };
+
+    const skills = selectedCharacter.skills as Record<string, unknown> || {};
+    const result: { name: string; mod: number }[] = [];
+
+    for (const [attr, names] of Object.entries(skillNames)) {
+      const attrBonus = attrMod[attr] ?? 0;
+      for (const name of names) {
+        const hasProficiency = skills[name] === "proficient" || skills[name] === "expertise";
+        const hasExpertise = skills[name] === "expertise";
+        const profBonus = hasExpertise
+          ? (selectedCharacter.proficiency_bonus ?? 2) * 2
+          : hasProficiency
+            ? (selectedCharacter.proficiency_bonus ?? 2)
+            : 0;
+        result.push({ name, mod: attrBonus + profBonus });
+      }
+    }
+
+    return result;
+  }, [selectedCharacter, attrMod]);
+
+  // ─── Quick d20 modifiers ───────────────────────────────────────────────
   const quickRolls = useMemo(() => {
     if (!selectedCharacter) return [{ label: "d20", mod: 0 }];
     return [
@@ -331,9 +503,31 @@ export function PlayerView({
       { label: "INT", mod: attrMod.int ?? 0 },
       { label: "SAG", mod: attrMod.wis ?? 0 },
       { label: "CHA", mod: attrMod.cha ?? 0 },
-      { label: "Bonus Maitrise", mod: (attrMod.str ?? 0) + selectedCharacter.proficiency_bonus },
     ];
   }, [selectedCharacter, attrMod]);
+
+  // ─── Note posting ──────────────────────────────────────────────────────
+  async function handlePostNote(event: FormEvent) {
+    event.preventDefault();
+    if (!cid || !noteText.trim()) return;
+    setIsBusy(true);
+    try {
+      await playerRequest(`/campaigns/${cid}/log`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          message: noteText.trim(),
+          visibility: "public",
+        }),
+      });
+      setNoteText("");
+      setMessage("Note envoyée !");
+      void loadSessionLog();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erreur envoi note");
+    } finally {
+      setIsBusy(false);
+    }
+  }
 
   // ─── Views ─────────────────────────────────────────────────────────────
 
@@ -351,8 +545,9 @@ export function PlayerView({
         )}
       </div>
       <div className="player-header-meta">
+        <span className={`realtime-pill ${realtimeStatus}`}>{realtimeStatus}</span>
         <span className="player-status">
-          <Swords aria-hidden="true" /> {presenceCount} connecte(s)
+          <Swords aria-hidden="true" /> {presenceCount} connecté(s)
         </span>
         <span className="player-status">
           <Shield aria-hidden="true" /> {userDisplayName} (joueur)
@@ -374,7 +569,7 @@ export function PlayerView({
           {characters.length === 0 ? (
             <div className="empty-state compact-empty">
               <ScrollText aria-hidden="true" />
-              <p>Cree ton premier personnage.</p>
+              <p>Crée ton premier personnage.</p>
             </div>
           ) : (
             characters.map((char) => (
@@ -396,9 +591,21 @@ export function PlayerView({
               </button>
             ))
           )}
+
+          {/* Import / Export */}
+          {characters.length > 0 && (
+            <div className="player-char-io">
+              <button className="ghost-button compact" onClick={handleExportCharacter} type="button" disabled={!selectedCharacter}>
+                <Download size={14} /> Exporter
+              </button>
+              <button className="ghost-button compact" onClick={handleImportCharacter} type="button">
+                <Upload size={14} /> Importer
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Character sheet preview */}
+        {/* Character sheet + quick rolls */}
         {selectedCharacter ? (
           <>
             <EditCharacterSheet
@@ -411,9 +618,9 @@ export function PlayerView({
                 );
               }}
             />
-            {/* Quick roll buttons */}
+            {/* Quick attribute rolls */}
             <div className="player-quick-rolls">
-              <p className="small-label">Jets rapides</p>
+              <p className="small-label">Caractéristiques</p>
               <div className="quick-roll-buttons">
                 {quickRolls.map((qr) => (
                   <button
@@ -427,14 +634,32 @@ export function PlayerView({
                 ))}
               </div>
             </div>
+            {/* Skill rolls */}
+            {skillMods.length > 0 && (
+              <div className="player-quick-rolls">
+                <p className="small-label">Compétences</p>
+                <div className="quick-roll-buttons">
+                  {skillMods.map((sk) => (
+                    <button
+                      key={sk.name}
+                      className="quick-roll-btn skill"
+                      onClick={() => void quickD20(sk.mod, sk.name)}
+                      type="button"
+                    >
+                      {sk.name} {sk.mod >= 0 ? "+" : ""}{sk.mod}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         ) : (
-          <p className="muted">Selectionne un personnage.</p>
+          <p className="muted">Sélectionne un personnage.</p>
         )}
 
         {/* Simplified creation form */}
         <div className="player-char-create">
-          <h3>Creer un personnage</h3>
+          <h3>Créer un personnage</h3>
           <form onSubmit={handleCreateCharacter} className="form-stack">
             <label>
               Nom *
@@ -522,7 +747,7 @@ export function PlayerView({
                 />
               </label>
             </div>
-            <div className="ability-grid" aria-label="Caracteristiques">
+            <div className="ability-grid" aria-label="Caractéristiques">
               {(["str", "dex", "con", "int", "wis", "cha"] as const).map((ability) => (
                 <label key={ability}>
                   {ability.toUpperCase()}
@@ -543,11 +768,18 @@ export function PlayerView({
             </div>
             <button className="primary-button" disabled={isBusy} type="submit">
               <ScrollText aria-hidden="true" />
-              Creer le personnage
+              Créer le personnage
             </button>
           </form>
         </div>
       </div>
+    </section>
+  );
+
+  // ── Map tab ────────────────────────────────────────────────────────────
+  const mapTab = (
+    <section className="player-tab map">
+      <PlayerMap campaignId={cid} token={token} wsRef={wsRef} />
     </section>
   );
 
@@ -558,11 +790,11 @@ export function PlayerView({
         {/* Dice roller */}
         <div className="player-dice-roller">
           <h3>
-            <Dice1 aria-hidden="true" /> Lancer les des
+            <Dice1 aria-hidden="true" /> Lancer les dés
           </h3>
           <form onSubmit={handleRoll} className="form-stack">
             <label>
-              {selectedCharacter ? `Joueur: ${selectedCharacter.name}` : "Aucun personnage selectionne"}
+              {selectedCharacter ? `Joueur: ${selectedCharacter.name}` : "Aucun personnage sélectionné"}
             </label>
             <label>
               Formule
@@ -574,13 +806,36 @@ export function PlayerView({
               />
             </label>
             <label>
-              Libelle (optionnel)
+              Libellé (optionnel)
               <input
                 value={diceLabel}
                 onChange={(e) => setDiceLabel(e.target.value)}
-                placeholder="Attaque, discretion..."
+                placeholder="Attaque, discrétion..."
               />
             </label>
+            <div className="dice-mode-toggle" aria-label="Mode de lancer">
+              <button
+                className={diceMode === "normal" ? "active" : ""}
+                onClick={() => setDiceMode("normal")}
+                type="button"
+              >
+                Normal
+              </button>
+              <button
+                className={diceMode === "advantage" ? "active" : ""}
+                onClick={() => setDiceMode("advantage")}
+                type="button"
+              >
+                ⬆ Avantage
+              </button>
+              <button
+                className={diceMode === "disadvantage" ? "active" : ""}
+                onClick={() => setDiceMode("disadvantage")}
+                type="button"
+              >
+                ⬇ Désavantage
+              </button>
+            </div>
             <button className="primary-button" disabled={isBusy} type="submit">
               <Dice1 aria-hidden="true" /> Lancer
             </button>
@@ -591,7 +846,7 @@ export function PlayerView({
               <Dice1 size={32} aria-hidden="true" />
               <div>
                 <strong>{diceResult.total}</strong>
-                <small>{diceResult.formula} — {diceResult.label || "Jet"}</small>
+                <small>{diceResult.formula} — {diceResult.label || "Jet"}{diceResult.mode !== "normal" ? ` (${diceResult.mode})` : ""}</small>
               </div>
             </div>
           )}
@@ -610,6 +865,7 @@ export function PlayerView({
                   <span className="roll-formula">{roll.formula}</span>
                   <span className="roll-label">
                     {roll.label || ""}
+                    {roll.mode !== "normal" ? ` (${roll.mode})` : ""}
                     {roll.character_id ? " · " + (characters.find((c) => c.id === roll.character_id)?.name ?? "PJ") : ""}
                   </span>
                 </div>
@@ -625,12 +881,12 @@ export function PlayerView({
   const handoutsTab = (
     <section className="player-tab handouts">
       <h3>
-        <ScrollText aria-hidden="true" /> Documents partages
+        <ScrollText aria-hidden="true" /> Documents partagés
       </h3>
       {handouts.length === 0 ? (
         <div className="empty-state compact-empty">
           <ScrollText aria-hidden="true" />
-          <p>Aucun document partage pour le moment.</p>
+          <p>Aucun document partagé pour le moment.</p>
         </div>
       ) : (
         <div className="handout-list">
@@ -659,7 +915,7 @@ export function PlayerView({
   const combatTab = (
     <section className="player-tab combat">
       <h3>
-        <Swords aria-hidden="true" /> Etat du combat
+        <Swords aria-hidden="true" /> État du combat
       </h3>
       {encounters.length === 0 ? (
         <div className="empty-state compact-empty">
@@ -678,7 +934,7 @@ export function PlayerView({
               >
                 <span>
                   <strong>{enc.name}</strong>
-                  <small>{enc.status === "active" ? "⚔️ En cours" : enc.status === "ended" ? "✓ Termine" : "✏ Preparation"}</small>
+                  <small>{enc.status === "active" ? "⚔️ En cours" : enc.status === "ended" ? "✓ Terminé" : "✏ Préparation"}</small>
                 </span>
                 {enc.status === "active" && <em>Round {enc.round_number}</em>}
               </button>
@@ -695,11 +951,14 @@ export function PlayerView({
                 .filter((c) => !c.is_hidden)
                 .sort((a, b) => b.initiative - a.initiative)
                 .map((combatant) => (
-                  <div className="combatant-readonly-row" key={combatant.id}>
+                  <div
+                    className={`combatant-readonly-row ${combatant.is_player_controlled ? "my-turn" : ""}`}
+                    key={combatant.id}
+                  >
                     <span>
                       <strong>{combatant.name}</strong>
                       {combatant.is_player_controlled && (
-                        <small>👤 Joueur</small>
+                        <small className="my-turn-badge">🎯 Ton perso</small>
                       )}
                     </span>
                     <span>
@@ -712,6 +971,57 @@ export function PlayerView({
           )}
         </div>
       )}
+    </section>
+  );
+
+  // ── Journal tab ────────────────────────────────────────────────────────
+  const journalTab = (
+    <section className="player-tab journal">
+      <div className="player-journal-layout">
+        {/* Note input */}
+        <form className="player-note-form" onSubmit={handlePostNote}>
+          <h3>
+            <MessageSquare aria-hidden="true" /> Écrire une note
+          </h3>
+          <textarea
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Décris ce que ton personnage fait, pose une question au MJ..."
+            rows={3}
+            maxLength={2000}
+          />
+          <button className="primary-button compact" disabled={isBusy || !noteText.trim()} type="submit">
+            Envoyer
+          </button>
+        </form>
+
+        {/* Session log */}
+        <div className="player-session-log">
+          <div className="section-heading">
+            <h3>Journal de session</h3>
+            <button className="ghost-button compact" onClick={() => void loadSessionLog()} type="button">
+              <RefreshCw size={14} />
+            </button>
+          </div>
+          {logEntries.length === 0 ? (
+            <p className="muted">Aucun événement pour le moment.</p>
+          ) : (
+            <div className="log-list-compact">
+              {logEntries.map((entry) => (
+                <div className="log-row-compact" key={entry.id}>
+                  <span className="log-entry-type">{entry.entry_type === "roll" ? "🎲" : entry.entry_type === "note" ? "📝" : "📋"}</span>
+                  <span className="log-entry-msg">{entry.message}</span>
+                  {entry.character_id && (
+                    <span className="log-entry-char">
+                      · {characters.find((c) => c.id === entry.character_id)?.name ?? "PJ"}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 
@@ -729,11 +1039,18 @@ export function PlayerView({
           <ScrollText size={16} aria-hidden="true" /> Personnages
         </button>
         <button
+          className={`player-tab-btn ${activeTab === "map" ? "active" : ""}`}
+          onClick={() => setActiveTab("map")}
+          type="button"
+        >
+          <MapPin size={16} aria-hidden="true" /> Carte
+        </button>
+        <button
           className={`player-tab-btn ${activeTab === "dice" ? "active" : ""}`}
           onClick={() => setActiveTab("dice")}
           type="button"
         >
-          <Dice1 size={16} aria-hidden="true" /> Des
+          <Dice1 size={16} aria-hidden="true" /> Dés
         </button>
         <button
           className={`player-tab-btn ${activeTab === "handouts" ? "active" : ""}`}
@@ -749,13 +1066,22 @@ export function PlayerView({
         >
           <Swords size={16} aria-hidden="true" /> Combat
         </button>
+        <button
+          className={`player-tab-btn ${activeTab === "journal" ? "active" : ""}`}
+          onClick={() => setActiveTab("journal")}
+          type="button"
+        >
+          <MessageSquare size={16} aria-hidden="true" /> Journal
+        </button>
       </div>
 
       <div className="player-tab-content">
         {activeTab === "characters" && charactersTab}
+        {activeTab === "map" && mapTab}
         {activeTab === "dice" && diceTab}
         {activeTab === "handouts" && handoutsTab}
         {activeTab === "combat" && combatTab}
+        {activeTab === "journal" && journalTab}
       </div>
 
       {message && (

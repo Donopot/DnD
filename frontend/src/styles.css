@@ -8623,3 +8623,262 @@ select {
 .auth-role-badge svg {
   opacity: 0.85;
 }
+
+/* ── Player: Map tab ────────────────────────────────────────────────────── */
+
+.player-map-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 50vh;
+}
+
+.player-map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.player-map-toolbar strong {
+  font-size: 1rem;
+  color: #f0ede0;
+}
+
+.player-map-toolbar small {
+  color: #8a9a8e;
+  font-size: 0.8rem;
+}
+
+.player-map-toolbar select {
+  padding: 0.25rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 6px;
+  color: #e8e4d8;
+  font-size: 0.82rem;
+}
+
+.player-map-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.player-map-zoom button {
+  padding: 0.15rem 0.45rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #e8e4d8;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.player-map-zoom span {
+  font-size: 0.8rem;
+  color: #8a9a8e;
+  min-width: 2.8rem;
+  text-align: center;
+}
+
+.player-map-viewport {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  background: #1a1e2b;
+}
+
+.player-map-surface {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.player-map-board {
+  position: relative;
+  background-image:
+    linear-gradient(rgba(74, 90, 78, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 90, 78, 0.2) 1px, transparent 1px);
+  transform-origin: top left;
+}
+
+.player-map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* Player tokens on map */
+.player-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Player: Dice mode toggle ───────────────────────────────────────────── */
+
+.dice-mode-toggle {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.dice-mode-toggle button {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #4a5a4e;
+  border-radius: 6px;
+  background: #2a3a3a;
+  color: #b0b8a0;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.dice-mode-toggle button.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+/* Skill roll buttons */
+.quick-roll-btn.skill {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.quick-roll-btn.skill:hover {
+  background: rgba(124, 58, 237, 0.25);
+}
+
+/* ── Player: Character import/export ────────────────────────────────────── */
+
+.player-char-io {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #3a4a3e;
+}
+
+/* ── Player: Journal tab ────────────────────────────────────────────────── */
+
+.player-journal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.player-note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.player-note-form h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 1rem;
+  color: #e0dcc8;
+}
+
+.player-note-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 8px;
+  color: #f0ede0;
+  font-size: 0.88rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.player-note-form textarea::placeholder {
+  color: #6a7a6e;
+}
+
+.player-session-log .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.player-session-log .section-heading h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #e0dcc8;
+}
+
+.log-list-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.log-row-compact {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.84rem;
+  color: #c0c0a0;
+}
+
+.log-entry-type {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.log-entry-msg {
+  flex: 1;
+  color: #e0dcc8;
+}
+
+.log-entry-char {
+  flex-shrink: 0;
+  color: #8a9a8e;
+  font-size: 0.78rem;
+}
+
+/* ── Player: "My turn" badge in combat ──────────────────────────────────── */
+
+.combatant-readonly-row.my-turn {
+  border-left: 3px solid #c5b358;
+  padding-left: 0.75rem;
+  background: rgba(197, 179, 88, 0.08);
+}
+
+.my-turn-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+  color: #c5b358;
+  font-weight: 600;
+}
