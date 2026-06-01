@@ -4,6 +4,29 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 18] — Interactions Joueur (2026-06-01)
+
+### Added
+- `PlayerMap.tsx` : carte read-only pour le joueur (scène active, tokens visibles, fog of war, zoom/pan)
+- WebSocket temps réel dans PlayerView (mise à jour automatique scène/token/handout/combat)
+- Onglet Journal : historique de session public + écriture de notes
+- Onglet Carte : intégration PlayerMap avec sélecteur de scènes
+- Import/Export JSON de personnage (boutons dans l'onglet Personnages)
+- Jets avec avantage/désavantage (toggle normal/advantage/disadvantage)
+- Jets par compétence (boutons contextuels basés sur les skills du perso)
+- Badge "🎯 Ton perso" dans l'onglet Combat pour les combattants player_controlled
+
+### Changed
+- `PlayerView.tsx` : refonte complète, 4→6 onglets, WebSocket, dés améliorés
+- `FogLayer.tsx` déjà compatible `isGM=false` (utilisé par PlayerMap)
+
+### Files
+- `frontend/src/components/PlayerMap.tsx` — nouveau (217 lignes)
+- `frontend/src/components/PlayerView.tsx` — +360/-35 lignes (refonte)
+- `frontend/src/styles.css` — +260 lignes (map joueur, journal, dés, compétences)
+
+---
+
 ## [Phase 17] — Auth GM/Joueur distinct (2026-06-01)
 
 ### Added

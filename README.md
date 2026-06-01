@@ -83,16 +83,17 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 
 | Métrique | Valeur |
 |----------|--------|
-| Composants React | 28 |
-| Modules Vite | 1762 |
-| CSS | ~8625 lignes |
+| Composants React | 29 |
+| Modules Vite | 1763 |
+| CSS | ~8885 lignes |
 
 ### Composants
 
 | Composant | Rôle |
 |-----------|------|
 | `App.tsx` | Root : auth, routage rôle (GM vs Player), WebSocket |
-| `PlayerView.tsx` | Dashboard joueur : persos, dés, handouts, combat |
+| `PlayerView.tsx` | Dashboard joueur 6 onglets : persos, carte, dés, documents, combat, journal |
+| `PlayerMap.tsx` | Carte joueur read-only : scène, tokens, fog of war, zoom |
 | `InvitePage.tsx` | Page `/invite/{token}` : preview + acceptation |
 | `VttBoard.tsx` | Carte interactive (scènes, tokens, assets) |
 | `CombatPanel.tsx` | Gestion combat : initiative, HP, KO |
@@ -135,7 +136,8 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 15 | Journal structuré | ✅ | ✅ |
 | 16 | Fog of war | ✅ | ✅ |
 | 17 | Auth GM/Joueur distinct | ✅ | ✅ |
-| 18 | Mesures et gabarits | - | - |
+| 18 | Interactions joueur (carte, journal, dés, import) | ✅ | ✅ |
+| 19 | Mesures et gabarits | - | - |
 
 ## Tests
 
