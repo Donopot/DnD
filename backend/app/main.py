@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.db import close_db, connect_db
-from app.routers import auth, campaigns, characters, session, vtt, combat, assets, gm_notes, handouts, homebrew
+from app.routers import auth, campaigns, characters, session, vtt, combat, assets, gm_notes, handouts, homebrew, player
 
 settings = get_settings()
 
@@ -30,6 +30,7 @@ app.include_router(assets.router)
 app.include_router(gm_notes.router)
 app.include_router(handouts.router)
 app.include_router(homebrew.router)
+app.include_router(player.router)
 app.include_router(session.ws_router)
 
 
