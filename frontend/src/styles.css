@@ -11128,3 +11128,226 @@ select {
   pointer-events: none;
   z-index: 49;
 }
+
+/* ── Combat Tracker ─────────────────────────────────────────────────────── */
+
+.combat-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.combat-select {
+  padding: 0.35rem 0.5rem;
+  background: #0a0e0b;
+  border: 1px solid #3a4a3e;
+  border-radius: 6px;
+  color: #e0dcc8;
+  font-size: 0.8rem;
+}
+
+.combat-message {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  background: rgba(197,179,88,0.08);
+  border: 1px solid rgba(197,179,88,0.2);
+  border-radius: 5px;
+  color: #c5b358;
+  font-size: 0.73rem;
+}
+
+.combat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.combat-round {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c5b358;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.combat-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.combat-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(30,40,35,0.4);
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: all 0.15s ease;
+}
+
+.combat-btn:hover { color: #c0c0a0; border-color: #5a6a5e; }
+.combat-btn.primary { color: #22c55e; border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08); }
+.combat-btn.primary:hover { background: rgba(34,197,94,0.15); }
+.combat-btn.danger { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
+.combat-btn.danger:hover { background: rgba(239,68,68,0.15); }
+.combat-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.combat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.combatant-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  background: rgba(20,28,22,0.6);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.combatant-row.active {
+  border-color: #c5b358;
+  background: rgba(197,179,88,0.06);
+  box-shadow: 0 0 8px rgba(197,179,88,0.15);
+}
+
+.combatant-row.defeated {
+  opacity: 0.5;
+}
+
+.combatant-row.defeated .combatant-name {
+  text-decoration: line-through;
+}
+
+.combatant-init {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(197,179,88,0.1);
+  border: 1px solid rgba(197,179,88,0.3);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #c5b358;
+  flex-shrink: 0;
+}
+
+.combatant-info {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  overflow: hidden;
+}
+
+.combatant-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e0dcc8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combatant-meta {
+  font-size: 0.62rem;
+  color: #5a6a5e;
+}
+
+.combatant-hp {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 90px;
+}
+
+.combatant-hp-bar {
+  flex: 1;
+  height: 6px;
+  background: #2a3a2e;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.combatant-hp-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.combatant-hp-fill.good { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.combatant-hp-fill.warn { background: linear-gradient(90deg, #eab308, #ca8a04); }
+.combatant-hp-fill.crit { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.combatant-hp-text {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #8a9a8e;
+  min-width: 40px;
+  text-align: right;
+}
+
+.combatant-dmg-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.dmg-btn, .heal-btn {
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.58rem;
+  font-weight: 600;
+  transition: all 0.1s ease;
+}
+
+.dmg-btn {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.2);
+}
+.dmg-btn:hover { background: rgba(239,68,68,0.2); }
+.dmg-btn.sm { padding: 0.1rem 0.25rem; font-size: 0.55rem; }
+.dmg-btn.revive { background: rgba(34,197,94,0.1); color: #22c55e; border-color: rgba(34,197,94,0.2); }
+
+.heal-btn {
+  background: rgba(34,197,94,0.1);
+  color: #22c55e;
+  border-color: rgba(34,197,94,0.2);
+}
+.heal-btn:hover { background: rgba(34,197,94,0.2); }
+
+.combatant-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: 100%;
+}
+
+.cond-tag {
+  padding: 0.05rem 0.3rem;
+  background: rgba(197,179,88,0.08);
+  border: 1px solid rgba(197,179,88,0.2);
+  border-radius: 3px;
+  font-size: 0.58rem;
+  color: #c5b358;
+}

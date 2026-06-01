@@ -11,6 +11,7 @@ import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveMo
 import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
+import { CombatTracker } from "./components/CombatTracker";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { RulesReference } from "./components/RulesReference";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -950,10 +951,14 @@ export default function App() {
           </div>
         </details>
 
-        {/* Combat — quick state */}
-        <details className="gm-panel-section">
+        {/* Combat Tracker */}
+        <details className="gm-panel-section" open>
           <summary>⚔️ Combat</summary>
-          <p className="muted">Gestion du combat — via VttBoard en mode avancé.</p>
+          <CombatTracker
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
+            onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+          />
         </details>
 
         {/* Session Log */}

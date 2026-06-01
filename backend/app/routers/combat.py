@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
@@ -705,3 +706,115 @@ async def reroll_initiative(
 ) -> EncounterDetailPublic:
     """Alias for roll-initiative with same behavior."""
     return await roll_initiative(encounter_id, payload, current_user)
+
+
+# ── Phase 29: Combat complet — actions rapides, prev turn, reorder ──────────
+
+class QuickDamageRequest(BaseModel):
+    combatant_id: UUID
+    amount: int
+    note: str = Field(default="", max_length=200)
+
+
+class ReorderRequest(BaseModel):
+    combatant_ids: list[UUID]  # new initiative order (first = highest)
+
+
+@router.post("/encounters/{encounter_id}/prev-turn", response_model=EncounterDetailPublic)
+async def prev_turn(
+    encounter_id: UUID,
+    current_user=Depends(get_current_user),
+) -> EncounterDetailPublic:
+    encounter = await get_encounter_or_404(encounter_id)
+    await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    combatants = await load_combatants(encounter_id, include_hidden=True)
+    active = [c for c in combatants if not c.is_defeated]
+
+    if not active:
+        raise HTTPException(status_code=400, detail="Encounter has no active combatants")
+
+    prev_index = encounter["turn_index"] - 1
+    prev_round = encounter["round_number"]
+
+    if prev_index < 0:
+        if prev_round <= 1:
+            raise HTTPException(status_code=400, detail="Already at the first turn of round 1")
+        prev_index = len(active) - 1
+        prev_round -= 1
+
+    row = await get_pool().fetchrow(
+        """update combat_encounters
+           set turn_index = $2, round_number = $3, status = 'active', updated_at = now()
+           where id = $1 returning *""",
+        encounter_id, prev_index, prev_round,
+    )
+
+    combatants = await load_combatants(encounter_id, include_hidden=True)
+    base = encounter_public(row, combatants)
+    await broadcast_combat_change(row["campaign_id"], encounter_id)
+    return EncounterDetailPublic(**base.model_dump(), combatants=combatants)
+
+
+@router.post("/combatants/{combatant_id}/quick-damage", response_model=CombatantPublic)
+async def quick_damage(
+    combatant_id: UUID,
+    payload: QuickDamageRequest,
+    current_user=Depends(get_current_user),
+) -> CombatantPublic:
+    existing = await get_combatant_or_404(combatant_id)
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    new_hp = max(0, min(existing["hp_max"], existing["hp_current"] + payload.amount))
+    is_defeated = new_hp <= 0
+
+    row = await get_pool().fetchrow(
+        """update combatants
+           set hp_current = $2, is_defeated = $3, updated_at = now()
+           where id = $1 returning *""",
+        combatant_id, new_hp, is_defeated,
+    )
+
+    verb = "heal" if payload.amount > 0 else "damage"
+    await _log_combat_event(
+        encounter_id=existing["encounter_id"],
+        campaign_id=existing["campaign_id"],
+        combatant_id=combatant_id,
+        actor_user_id=current_user["id"],
+        event_type=verb,
+        payload={
+            "amount": abs(payload.amount),
+            "new_hp": new_hp,
+            "hp_max": existing["hp_max"],
+            "note": payload.note,
+            "combatant_name": existing["name"],
+        },
+    )
+
+    result = combatant_public(row)
+    await broadcast_combat_change(existing["campaign_id"], existing["encounter_id"])
+    return result
+
+
+@router.post("/encounters/{encounter_id}/reorder", response_model=EncounterDetailPublic)
+async def reorder_initiative(
+    encounter_id: UUID,
+    payload: ReorderRequest,
+    current_user=Depends(get_current_user),
+) -> EncounterDetailPublic:
+    encounter = await get_encounter_or_404(encounter_id)
+    await require_campaign_role(encounter["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    # Assign descending initiative values based on position
+    base = 1000
+    for idx, cb_id in enumerate(payload.combatant_ids):
+        await get_pool().execute(
+            "update combatants set initiative = $2, updated_at = now() where id = $1 and encounter_id = $3",
+            cb_id, base - idx, encounter_id,
+        )
+
+    row = await get_pool().fetchrow("select * from combat_encounters where id = $1", encounter_id)
+    combatants = await load_combatants(encounter_id, include_hidden=True)
+    base_enc = encounter_public(row, combatants)
+    await broadcast_combat_change(encounter["campaign_id"], encounter_id)
+    return EncounterDetailPublic(**base_enc.model_dump(), combatants=combatants)
