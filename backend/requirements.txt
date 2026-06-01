@@ -5,5 +5,6 @@ email-validator==2.3.0
 fastapi==0.115.12
 PyJWT==2.10.1
 pydantic-settings==2.9.1
-uvicorn[standard]==0.34.2
 python-multipart==0.0.20
+slowapi==0.1.9
+uvicorn[standard]==0.34.2
