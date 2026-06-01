@@ -848,6 +848,56 @@ export function VttBoard({
               selectedScene={selectedScene}
               selectedToken={selectedToken}
               sceneTokens={sceneTokens}
+              isBusy={false}
+              onToggleTokenVisibility={(token) => {
+                void (async () => {
+                  try {
+                    const response = await fetch(`/api/tokens/${token.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ is_hidden: !token.is_hidden }),
+                    });
+                    if (response.ok) {
+                      // Reload scene tokens to reflect change
+                      onLoadSceneTokens(selectedScene?.id ?? "");
+                    }
+                  } catch {
+                    // silently ignore
+                  }
+                })();
+              }}
+              onRevealAllTokens={() => {
+                void (async () => {
+                  try {
+                    for (const token of sceneTokens.filter((t) => t.is_hidden)) {
+                      await fetch(`/api/tokens/${token.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ is_hidden: false }),
+                      });
+                    }
+                    onLoadSceneTokens(selectedScene?.id ?? "");
+                  } catch {
+                    // silently ignore
+                  }
+                })();
+              }}
+              onHideAllTokens={() => {
+                void (async () => {
+                  try {
+                    for (const token of sceneTokens.filter((t) => !t.is_hidden)) {
+                      await fetch(`/api/tokens/${token.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ is_hidden: true }),
+                      });
+                    }
+                    onLoadSceneTokens(selectedScene?.id ?? "");
+                  } catch {
+                    // silently ignore
+                  }
+                })();
+              }}
             />
           </details>
 

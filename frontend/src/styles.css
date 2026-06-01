@@ -5858,6 +5858,42 @@ select {
 
 /* End Sprint GM-2G - Visibility inspector panel */
 
+/* Phase 12 — Visibility controls */
+
+.visibility-bulk-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.visibility-bulk-actions .ghost-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+}
+
+.visibility-token-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.visibility-token-actions .ghost-button.compact {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  min-width: 28px;
+  justify-content: center;
+}
+
+.visibility-token-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Stabilisation UI panneaux GM */
 
 .gm-mode-play .vtt-panels-menu,
