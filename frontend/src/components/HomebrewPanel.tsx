@@ -3,12 +3,9 @@ import {
   Download,
   FlaskConical,
   Plus,
-  ScrollText,
-  Shield,
   Swords,
   Trash2,
   Upload,
-  Zap,
 } from "lucide-react";
 import type { HomebrewCreature, HomebrewItem, Scene, Encounter } from "../api/types";
 

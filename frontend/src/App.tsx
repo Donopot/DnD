@@ -1,18 +1,11 @@
-import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Castle,
-  Copy,
   DoorOpen,
-  HeartPulse,
   Plus,
-  RefreshCw,
-  Shield,
-  ScrollText,
   Swords,
   UserPlus,
 } from "lucide-react";
 import "./styles.css";
-import { CampaignViewTabs } from "./components/CampaignViewTabs";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { CampaignMap } from "./components/CampaignMap";
@@ -25,7 +18,6 @@ import { PlayerView } from "./components/PlayerView";
 import { GmLobby } from "./components/GmLobby";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { SessionLogPanel } from "./components/SessionLogPanel";
-import { VttBoard } from "./components/VttBoard";
 import { MessageDock } from "./components/common";
 import type {
   Asset,
@@ -76,7 +68,6 @@ export default function App() {
     const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
     return match ? match[1] : null;
   });
-  const [activeCampaignView, setActiveCampaignView] = useState<CampaignView>("campaign");
   const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -98,11 +89,6 @@ export default function App() {
   const selectedEncounter = useMemo(
     () => encounters.find((encounter) => encounter.id === selectedEncounterId) ?? encounters[0],
     [encounters, selectedEncounterId],
-  );
-
-  const activeSessionLiveModeDetail = useMemo(
-    () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
-    [activeSessionLiveMode],
   );
 
   useEffect(() => {
@@ -335,79 +321,6 @@ export default function App() {
     }
   }
 
-  async function handleCreateScene(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedCampaign) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    const form = new FormData(event.currentTarget);
-
-    try {
-      const scene = await request<Scene>(`/api/campaigns/${selectedCampaign.id}/scenes`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          description: String(form.get("description")),
-          grid_size: Number(form.get("grid_size") || 50),
-          width: Number(form.get("width") || 1200),
-          height: Number(form.get("height") || 800),
-          is_active: true,
-        }),
-      });
-
-      setScenes((current) => [scene, ...current]);
-      setSelectedSceneId(scene.id);
-      setSceneTokens([]);
-      event.currentTarget.reset();
-      setMessage("Scene creee.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to create scene");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleCreateToken(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedScene) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    const form = new FormData(event.currentTarget);
-    const characterId = String(form.get("character_id") || "");
-    const character = characters.find((item) => item.id === characterId);
-
-    try {
-      const token = await request<SceneToken>(`/api/scenes/${selectedScene.id}/tokens`, {
-        method: "POST",
-        body: JSON.stringify({
-          character_id: characterId || null,
-          name: String(form.get("name") || character?.name || "Token"),
-          x: Number(form.get("x") || 0),
-          y: Number(form.get("y") || 0),
-          size: Number(form.get("size") || 1),
-          color: String(form.get("color") || "#7c3aed"),
-        }),
-      });
-
-      setSceneTokens((current) => [...current, token]);
-      event.currentTarget.reset();
-      setMessage("Token ajoute.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to create token");
-    } finally {
-      setIsBusy(false);
-    }
-  }
 
   async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
     setIsBusy(true);
@@ -493,38 +406,6 @@ export default function App() {
     }
   }
 
-  async function handleCreateEncounter(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedCampaign) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    const form = new FormData(event.currentTarget);
-
-    try {
-      const encounter = await request<Encounter>(`/api/campaigns/${selectedCampaign.id}/encounters`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          scene_id: selectedScene?.id ?? null,
-        }),
-      });
-
-      setEncounters((current) => [encounter, ...current]);
-      setSelectedEncounterId(encounter.id);
-      setCombatants([]);
-      event.currentTarget.reset();
-      setMessage("Combat cree.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to create encounter");
-    } finally {
-      setIsBusy(false);
-    }
-  }
 
   async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -600,141 +481,6 @@ export default function App() {
     }
   }
 
-  async function handleAddCombatant(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedEncounter) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    const form = new FormData(event.currentTarget);
-    const characterId = String(form.get("character_id") || "");
-    const tokenId = String(form.get("token_id") || "");
-    const character = characters.find((item) => item.id === characterId);
-    const tokenItem = sceneTokens.find((item) => item.id === tokenId);
-
-    try {
-      await request<Combatant>(`/api/encounters/${selectedEncounter.id}/combatants`, {
-        method: "POST",
-        body: JSON.stringify({
-          token_id: tokenId || null,
-          character_id: characterId || null,
-          name: String(form.get("name") || character?.name || tokenItem?.name || "Combattant"),
-          initiative: Number(form.get("initiative") || 0),
-          armor_class: Number(form.get("armor_class") || character?.armor_class || 10),
-          hp_current: Number(form.get("hp_current") || character?.hp_current || 1),
-          hp_max: Number(form.get("hp_max") || character?.hp_max || 1),
-          is_player_controlled: Boolean(characterId),
-          is_hidden: false,
-        }),
-      });
-
-      event.currentTarget.reset();
-      await loadEncounterDetail(selectedEncounter.id);
-      setMessage("Combattant ajoute.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to add combatant");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleStartEncounter() {
-    if (!selectedEncounter) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/start`, {
-        method: "POST",
-      });
-      updateEncounterFromDetail(detail);
-      setMessage("Combat demarre.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to start encounter");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleNextTurn() {
-    if (!selectedEncounter) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/next-turn`, {
-        method: "POST",
-      });
-      updateEncounterFromDetail(detail);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to advance turn");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleEndEncounter() {
-    if (!selectedEncounter) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${selectedEncounter.id}/end`, {
-        method: "POST",
-      });
-      updateEncounterFromDetail(detail);
-      setMessage("Combat termine.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to end encounter");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleAdjustCombatantHp(combatant: Combatant, delta: number) {
-    const currentHp = combatant.hp_current ?? 0;
-
-    try {
-      const updated = await request<Combatant>(`/api/combatants/${combatant.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          hp_current: Math.max(0, currentHp + delta),
-        }),
-      });
-
-      setCombatants((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to update HP");
-    }
-  }
-
-  async function handleToggleDefeated(combatant: Combatant) {
-    try {
-      const updated = await request<Combatant>(`/api/combatants/${combatant.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          is_defeated: !combatant.is_defeated,
-        }),
-      });
-
-      setCombatants((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to update combatant");
-    }
-  }
 
   async function loadAssets(campaignId: string) {
     try {
@@ -746,79 +492,6 @@ export default function App() {
     }
   }
 
-  async function handleUploadAsset(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedCampaign) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    const form = new FormData(event.currentTarget);
-    const upload = new FormData();
-    const file = form.get("file");
-
-    if (!(file instanceof File) || file.size === 0) {
-      setMessage("Selectionne une image de carte.");
-      setIsBusy(false);
-      return;
-    }
-
-    upload.append("file", file);
-
-    try {
-      const response = await fetch(`/api/campaigns/${selectedCampaign.id}/assets`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: upload,
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ detail: "Unable to upload asset" }));
-        throw new Error(body.detail ?? "Unable to upload asset");
-      }
-
-      const asset = (await response.json()) as Asset;
-      setAssets((current) => [asset, ...current]);
-      setSelectedAssetId(asset.id);
-      event.currentTarget.reset();
-      setMessage("Carte uploadee.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to upload asset");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleSetSceneBackground() {
-    if (!selectedScene) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const scene = await request<Scene>(`/api/scenes/${selectedScene.id}/background`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          asset_id: selectedAssetId || null,
-        }),
-      });
-
-      setScenes((current) => current.map((item) => (item.id === scene.id ? scene : item)));
-      setSelectedSceneId(scene.id);
-      setMessage("Fond de scene mis a jour.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to set scene background");
-    } finally {
-      setIsBusy(false);
-    }
-  }
 
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -975,14 +648,6 @@ export default function App() {
     }
   }
 
-  async function copyInvite() {
-    if (!latestInvite) {
-      return;
-    }
-    const url = `${window.location.origin}/invite/${latestInvite.token}`;
-    await navigator.clipboard.writeText(url);
-    setMessage("Lien copie.");
-  }
 
   function logout() {
     localStorage.removeItem(TOKEN_STORAGE_KEY);

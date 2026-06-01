@@ -22,7 +22,6 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
   const [start, setStart] = useState({ x: 0, y: 0 });
   const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
   const [showFog, setShowFog] = useState(true);
-  const canvasScale = 1;
 
   // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
   const fogInteractive = isGM && showFog && !panMode;

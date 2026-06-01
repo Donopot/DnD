@@ -9,8 +9,6 @@ import {
   Shield,
   Swords,
   Upload,
-  Users,
-  MapPin,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Shield, Swords, Plus, Send, Edit3, ChevronRight, User, Sparkles } from "lucide-react";
+import { Shield, Plus, Send, Edit3, User, Sparkles } from "lucide-react";
 import { Character } from "../api/types";
 
 type PersonalCharactersSectionProps = {

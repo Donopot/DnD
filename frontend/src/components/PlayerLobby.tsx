@@ -2,7 +2,6 @@ import { FormEvent, useState } from "react";
 import { Castle, DoorOpen, UserPlus } from "lucide-react";
 import { InvitePreviewCard } from "./InvitePreviewCard";
 import { PersonalCharactersSection } from "./PersonalCharactersSection";
-import { Character } from "../api/types";
 
 type PlayerLobbyProps = {
   token: string;

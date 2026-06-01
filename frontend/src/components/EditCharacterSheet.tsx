@@ -1,4 +1,4 @@
-import { Edit2, HeartPulse, Save, X } from "lucide-react";
+import { Edit2, Save, X } from "lucide-react";
 import { FormEvent, useState } from "react";
 import type { Character } from "../api/types";
 

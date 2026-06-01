@@ -25,7 +25,6 @@ type GmNotesPanelProps = {
 
 export function GmNotesPanel({ campaignId, token, selectedScene, selectedToken }: GmNotesPanelProps) {
   const sceneId = selectedScene?.id ?? "";
-  const [notes, setNotes] = useState<GmNote[]>([]);
   const [content, setContent] = useState("");
   const [noteId, setNoteId] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState("");

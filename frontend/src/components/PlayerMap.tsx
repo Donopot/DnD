@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { FogLayer } from "./FogLayer";
 import type { Scene, SceneToken } from "../api/types";
 
-const TOKEN_STORAGE_KEY = "dnd_access_token";
-
 type PlayerScene = Scene;
 
 type PlayerMapProps = {

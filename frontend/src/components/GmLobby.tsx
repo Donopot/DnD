@@ -1,7 +1,6 @@
 import { FormEvent } from "react";
 import { Castle, Crown, DoorOpen, Plus } from "lucide-react";
 import { PersonalCharactersSection } from "./PersonalCharactersSection";
-import { Character } from "../api/types";
 
 type GmLobbyProps = {
   userDisplayName: string;
