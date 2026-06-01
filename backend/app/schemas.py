@@ -168,7 +168,24 @@ class GameLogEntryPublic(BaseModel):
     visibility: str
     message: str
     payload: dict[str, Any]
+    category: str = "general"
+    linked_scene_id: UUID | None = None
+    linked_encounter_id: UUID | None = None
+    linked_character_id: UUID | None = None
+    pinned: bool = False
+    session_marker: bool = False
     created_at: datetime
+
+
+class SessionMarkerRequest(BaseModel):
+    label: str = Field(default="", max_length=200)
+
+
+class LogExportRequest(BaseModel):
+    format: str = Field(default="markdown", pattern="^(markdown|json)$")
+    category: str | None = None
+    from_date: datetime | None = None
+    to_date: datetime | None = None
 
 
 class SceneCreateRequest(BaseModel):

@@ -1,13 +1,20 @@
 import json
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.dice import roll_with_mode
 from app.realtime import manager
-from app.schemas import GameLogEntryPublic, GameLogNoteRequest, RollCreateRequest, RollPublic
+from app.schemas import (
+    GameLogEntryPublic,
+    GameLogNoteRequest,
+    LogExportRequest,
+    RollCreateRequest,
+    RollPublic,
+    SessionMarkerRequest,
+)
 from app.security import decode_access_token
 
 router = APIRouter(prefix="/api", tags=["session"])
@@ -138,19 +145,41 @@ async def list_rolls(
 @router.get("/campaigns/{campaign_id}/log", response_model=list[GameLogEntryPublic])
 async def list_log(
     campaign_id: UUID,
+    category: str | None = Query(default=None),
+    pinned: bool | None = Query(default=None),
+    linked_scene_id: UUID | None = Query(default=None),
+    linked_encounter_id: UUID | None = Query(default=None),
     current_user=Depends(get_current_user),
 ) -> list[GameLogEntryPublic]:
     role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
-    visibility_clause = "" if role in {"gm", "co_gm"} else "and visibility = 'public'"
+    filters = ["campaign_id = $1"]
+    params: list = [campaign_id]
+    idx = 2
+
+    if role not in {"gm", "co_gm"}:
+        filters.append("visibility = 'public'")
+
+    if category:
+        filters.append(f"category = ${idx}")
+        params.append(category)
+        idx += 1
+    if pinned is not None:
+        filters.append(f"pinned = ${idx}")
+        params.append(pinned)
+        idx += 1
+    if linked_scene_id:
+        filters.append(f"linked_scene_id = ${idx}::uuid")
+        params.append(str(linked_scene_id))
+        idx += 1
+    if linked_encounter_id:
+        filters.append(f"linked_encounter_id = ${idx}::uuid")
+        params.append(str(linked_encounter_id))
+        idx += 1
+
+    where = " and ".join(filters)
     rows = await get_pool().fetch(
-        f"""
-        select *
-        from game_log_entries
-        where campaign_id = $1 {visibility_clause}
-        order by created_at desc
-        limit 150
-        """,
-        campaign_id,
+        f"select * from game_log_entries where {where} order by created_at desc limit 200",
+        *params,
     )
     return [log_public(row) for row in rows]
 
@@ -186,6 +215,107 @@ async def create_log_note(
         },
     )
     return entry
+
+
+@router.post("/campaigns/{campaign_id}/log/session-marker", response_model=GameLogEntryPublic, status_code=201)
+async def create_session_marker(
+    campaign_id: UUID,
+    payload: SessionMarkerRequest,
+    current_user=Depends(get_current_user),
+) -> GameLogEntryPublic:
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+    row = await get_pool().fetchrow(
+        """
+        insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload, pinned, session_marker)
+        values ($1, $2, 'note', 'gm', $3, '{}'::jsonb, true, true)
+        returning *
+        """,
+        campaign_id, current_user["id"], payload.label.strip() or "Session marker",
+    )
+    return log_public(row)
+
+
+@router.get("/campaigns/{campaign_id}/log/sessions")
+async def list_sessions(campaign_id: UUID, current_user=Depends(get_current_user)):
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+    markers = await get_pool().fetch(
+        """
+        select id, message as label, created_at
+        from game_log_entries
+        where campaign_id = $1 and session_marker = true
+        order by created_at asc
+        """,
+        campaign_id,
+    )
+    return [
+        {"id": str(m["id"]), "label": m["label"], "at": m["created_at"].isoformat()}
+        for m in markers
+    ]
+
+
+@router.get("/campaigns/{campaign_id}/log/export")
+async def export_log(
+    campaign_id: UUID,
+    fmt: str = Query(default="markdown", alias="format"),
+    category: str | None = Query(default=None),
+    current_user=Depends(get_current_user),
+):
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+    filters = ["campaign_id = $1"]
+    params: list = [campaign_id]
+    if category:
+        filters.append("category = $2")
+        params.append(category)
+    where = " and ".join(filters)
+    rows = await get_pool().fetch(
+        f"select * from game_log_entries where {where} order by created_at asc limit 500",
+        *params,
+    )
+
+    if fmt == "json":
+        return [log_public(r).model_dump() for r in rows]
+
+    # Markdown export
+    lines = ["# Journal de campagne", ""]
+    for r in rows:
+        ts = r["created_at"].strftime("%H:%M")
+        cat = r["category"]
+        vis = "🔒" if r["visibility"] == "gm" else ""
+        lines.append(f"- **[{ts}]** {vis} {r['message']}  ")
+        if r["pinned"]:
+            lines[-1] += "📌 "
+        lines.append(f"  `{cat}` — {r['entry_type']}")
+        lines.append("")
+    return {"format": "markdown", "content": "\n".join(lines)}
+
+
+@router.patch("/log-entries/{entry_id}/pin", response_model=GameLogEntryPublic)
+async def toggle_pin(entry_id: UUID, current_user=Depends(get_current_user)):
+    entry = await get_pool().fetchrow("select * from game_log_entries where id = $1", entry_id)
+    if entry is None:
+        raise HTTPException(404, "Log entry not found")
+    await require_campaign_role(entry["campaign_id"], current_user["id"], {"gm", "co_gm"})
+    row = await get_pool().fetchrow(
+        "update game_log_entries set pinned = not pinned where id = $1 returning *",
+        entry_id,
+    )
+    return log_public(row)
+
+
+@router.patch("/log-entries/{entry_id}/category", response_model=GameLogEntryPublic)
+async def update_entry_category(entry_id: UUID, category: str = Query(...), current_user=Depends(get_current_user)):
+    valid = {"general", "combat", "rp", "exploration", "gm_note"}
+    if category not in valid:
+        raise HTTPException(422, f"Invalid category. Must be one of: {valid}")
+    entry = await get_pool().fetchrow("select * from game_log_entries where id = $1", entry_id)
+    if entry is None:
+        raise HTTPException(404, "Log entry not found")
+    await require_campaign_role(entry["campaign_id"], current_user["id"], {"gm", "co_gm"})
+    row = await get_pool().fetchrow(
+        "update game_log_entries set category = $2 where id = $1 returning *",
+        entry_id, category,
+    )
+    return log_public(row)
 
 
 @ws_router.websocket("/ws/campaigns/{campaign_id}")
