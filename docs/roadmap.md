@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-06-01
 
-## ✅ Complétées (Phases 1–28)
+## ✅ Complétées — 33/33 phases 🎉
 
 | # | Titre | Date |
 |---|-------|------|
@@ -34,23 +34,19 @@ Dernière mise à jour : 2026-06-01
 | 26 | Sauvegardes et maintenance | 2026-06 |
 | 27 | Beta privée (polish final) | 2026-06 |
 | 28 | 🔥 Upgrade total de la Map | 2026-06 |
-| 29 | ⚔️ Système de combat complet (tracker visuel, tours, actions rapides) | 2026-06 |
+| 29 | ⚔️ Système de combat complet | 2026-06 |
+| 30 | 🧩 Générateur de rencontres (CR calc + random) | 2026-06 |
+| 31 | 🎲 Lancer de dés visuels (animations CSS) | 2026-06 |
+| 32 | ⚡ Macros et barre d'actions rapides | 2026-06 |
+| 33 | 📊 Statistiques de session | 2026-06 |
 
-## 🔜 Prochaines phases
+## Métriques finales
 
-| # | Titre | Priorité | Estimation |
-|---|-------|----------|------------|
-| 29 | Système de combat complet (tours, rounds, initiative visuelle, actions) | Haute | 3 jours |
-| 30 | Générateur de rencontres (CR calculator, random encounters) | Moyenne | 2 jours |
-| 31 | Lancer de dés public avec effets visuels (animations 3D dés) | Moyenne | 3 jours |
-| 32 | Système de macros et raccourcis (barre d'actions personnalisable) | Basse | 2 jours |
-| 33 | Logs et analytics (audit des actions, stats de session) | Basse | 2 jours |
-
-## Métriques actuelles
-
-- **Backend** : 103 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests unitaires
-- **Frontend** : 40 composants React, ~11 400 lignes CSS, 1761 modules Vite
+- **Backend** : 103 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests
+- **Frontend** : 43 composants React, ~11 700 lignes CSS, 1762 modules Vite
 - **Layouts** : 5 layouts distincts
-- **Temps réel** : WebSocket 8 types de messages (présence, scène, tokens, handouts, combat, ping, règle/drag/AoE)
-- **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE shapes
+- **Temps réel** : WebSocket 8 types de messages
+- **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE
+- **Combat** : tracker visuel, actions rapides, initiative, conditions, CR calculator
+- **Outils MJ** : générateur rencontres, dés animés, macros, stats, rules reference
 - **Maintenance** : 3 cron jobs (backup 03h, audit 06h, suggestions 07h30)
