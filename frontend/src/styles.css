@@ -9354,3 +9354,167 @@ select {
 .gm-lobby .lobby-create-section .form-stack {
   gap: 0.75rem;
 }
+
+/* ── CampaignMap: shared map component ──────────────────────────────────── */
+
+.campaign-map-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.campaign-map-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 20vh;
+  color: #6a7a6e;
+}
+
+.campaign-map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid #2a3a2e;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.campaign-map-toolbar strong {
+  font-size: 0.95rem;
+  color: #e0dcc8;
+}
+
+.campaign-map-toolbar select {
+  padding: 0.3rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 6px;
+  color: #e8e4d8;
+  font-size: 0.82rem;
+  min-width: 10rem;
+}
+
+.campaign-map-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.campaign-map-zoom button {
+  padding: 0.15rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #e8e4d8;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 1.5rem;
+}
+
+.campaign-map-zoom span {
+  font-size: 0.8rem;
+  color: #8a9a8e;
+  min-width: 2.8rem;
+  text-align: center;
+}
+
+.campaign-map-pan-toggle {
+  padding: 0.2rem 0.6rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.campaign-map-pan-toggle.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+/* Map viewport */
+.campaign-map-viewport {
+  flex: 1;
+  overflow: auto;
+  background: #1a1e2b;
+  cursor: default;
+}
+
+.campaign-map-viewport.pan-mode {
+  cursor: grab;
+}
+
+.campaign-map-viewport.panning {
+  cursor: grabbing;
+}
+
+/* Map surface (zoom wrapper) */
+.campaign-map-surface {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* Map board */
+.campaign-map-board {
+  position: relative;
+  background-image:
+    linear-gradient(rgba(74, 90, 78, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 90, 78, 0.15) 1px, transparent 1px);
+  transform-origin: top left;
+}
+
+.campaign-map-board.with-background {
+  background-image: none;
+}
+
+.campaign-map-board.is-dragging {
+  cursor: grabbing;
+}
+
+/* Background image */
+.campaign-map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Tokens on map */
+.campaign-map-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  z-index: 5;
+  padding: 0;
+}
+
+.campaign-map-token.selected {
+  border-color: #c5b358;
+  box-shadow: 0 0 8px rgba(197, 179, 88, 0.6);
+}
+
+.campaign-map-token.dragging {
+  cursor: grabbing;
+  opacity: 0.85;
+}
