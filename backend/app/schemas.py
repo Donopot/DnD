@@ -435,3 +435,88 @@ class BulkInitiativeRequest(BaseModel):
 
 class EncounterFromSceneRequest(BaseModel):
     name: str = Field(min_length=2, max_length=120)
+
+
+class HomebrewCreatureCreateRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    description: str = Field(default="", max_length=4000)
+    armor_class: int = Field(default=10, ge=1, le=40)
+    hp_max: int = Field(default=1, ge=1)
+    speed: int = Field(default=30, ge=0, le=200)
+    attributes: dict[str, int] = Field(default_factory=lambda: {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10})
+    attacks: list[dict[str, Any]] = Field(default_factory=list)
+    spells: list[dict[str, Any]] = Field(default_factory=list)
+    size: str = Field(default="medium", pattern="^(tiny|small|medium|large|huge|gargantuan)$")
+    challenge_rating: float = Field(default=0, ge=0, le=30)
+    type: str = Field(default="monster", max_length=40)
+
+
+class HomebrewCreatureUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    description: str | None = Field(default=None, max_length=4000)
+    armor_class: int | None = Field(default=None, ge=1, le=40)
+    hp_max: int | None = Field(default=None, ge=1)
+    speed: int | None = Field(default=None, ge=0, le=200)
+    attributes: dict[str, int] | None = None
+    attacks: list[dict[str, Any]] | None = None
+    spells: list[dict[str, Any]] | None = None
+    size: str | None = Field(default=None, pattern="^(tiny|small|medium|large|huge|gargantuan)$")
+    challenge_rating: float | None = Field(default=None, ge=0, le=30)
+    type: str | None = Field(default=None, max_length=40)
+
+
+class HomebrewCreaturePublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    name: str
+    description: str
+    armor_class: int
+    hp_max: int
+    speed: int
+    attributes: dict[str, int]
+    attacks: list[dict[str, Any]]
+    spells: list[dict[str, Any]]
+    size: str
+    challenge_rating: float
+    type: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class HomebrewItemCreateRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    description: str = Field(default="", max_length=4000)
+    item_type: str = Field(default="misc", max_length=60)
+    rarity: str = Field(default="common", pattern="^(common|uncommon|rare|very_rare|legendary)$")
+    properties: dict[str, Any] = Field(default_factory=dict)
+
+
+class HomebrewItemUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    description: str | None = Field(default=None, max_length=4000)
+    item_type: str | None = Field(default=None, max_length=60)
+    rarity: str | None = Field(default=None, pattern="^(common|uncommon|rare|very_rare|legendary)$")
+    properties: dict[str, Any] | None = None
+
+
+class HomebrewItemPublic(BaseModel):
+    id: UUID
+    campaign_id: UUID
+    name: str
+    description: str
+    item_type: str
+    rarity: str
+    properties: dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreatureToTokenRequest(BaseModel):
+    scene_id: UUID
+    x: int = Field(default=0, ge=0, le=10000)
+    y: int = Field(default=0, ge=0, le=10000)
+
+
+class CreatureToCombatantRequest(BaseModel):
+    encounter_id: UUID
+    initiative: int = Field(default=0, ge=-20, le=60)
