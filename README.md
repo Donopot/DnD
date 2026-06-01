@@ -137,7 +137,13 @@ documentary SaaS. Only shared component: host-level Caddy entrypoint.
 | 16 | Fog of war | ✅ | ✅ |
 | 17 | Auth GM/Joueur distinct | ✅ | ✅ |
 | 18 | Interactions joueur (carte, journal, dés, import) | ✅ | ✅ |
-| 19 | Mesures et gabarits | - | - |
+| 19 | Communication MJ↔Joueur (jet secret, annonces, msg privés) | - | - |
+| 20 | Map interactive joueur (ping, déplacement token, mesure) | - | - |
+| 21 | Gestion perso par le MJ (items, XP, conditions) | - | - |
+| 22 | Mesures et gabarits | - | - |
+| 23 | SRD et règles de base | - | - |
+| 24 | Sauvegardes et maintenance | - | - |
+| 25 | Beta privée | - | - |
 
 ## Tests
 

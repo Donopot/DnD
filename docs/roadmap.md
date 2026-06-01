@@ -86,7 +86,14 @@ Les regles DnD complexes, le fog of war, la lumiere dynamique, les reactions, la
 ### Phase 15 - Journal de campagne structure ✅
 ### Phase 16 - Fog of war simple ✅
 ### Phase 17 - Auth GM/Joueur distinct ✅
-### Phase 18 - Mesures et gabarits 🔜
+### Phase 18 - Interactions joueur (carte, journal, dés, import) ✅
+### Phase 19 - Communication MJ↔Joueur (jet secret, annonces, messages privés) 🔜
+### Phase 20 - Map interactive joueur (ping, déplacement token, mesure) 🔜
+### Phase 21 - Gestion personnage par le MJ (items, XP, conditions visibles) 🔜
+### Phase 22 - Mesures et gabarits
+### Phase 23 - SRD et règles de base
+### Phase 24 - Sauvegardes, maintenance et exploitation
+### Phase 25 - Beta privée
 
 ## Roadmap detaillee
 
@@ -431,7 +438,141 @@ Livrables :
 - Un nouveau MJ choisit « Je suis MJ », crée son compte, crée une campagne.
 - Un compte player ne peut pas créer de campagne (erreur 403).
 
-## Phase 18 - Mesures, gabarits et aides tactiques
+## Phase 18 - Interactions joueur (carte, journal, dés, import)
+
+### Objectif
+
+Donner au joueur une interface riche lui permettant de voir la carte, suivre la session, lancer des dés avec avantage/désavantage, et gérer ses personnages.
+
+### Backend
+
+Aucun — tous les endpoints étaient déjà prêts (player_scenes, player_scene_tokens, GET /log, POST /log, GET /rolls, POST /rolls, GET /characters, PATCH /characters, WebSocket existant).
+
+### Frontend
+
+Livrables :
+- `PlayerMap.tsx` : carte read-only (scène active, tokens visibles, fog of war, zoom/pan local) ;
+- WebSocket temps réel connecté dans PlayerView (mise à jour auto scène/token/handout/combat) ;
+- Onglet Carte : intégration PlayerMap avec sélecteur de scènes ;
+- Onglet Journal : historique session publique + écriture de notes ;
+- Onglet Personnages : import/export JSON de fiche, boutons de jets par compétence ;
+- Onglet Dés : toggle avantage/normal/désavantage ;
+- Onglet Combat : badge « 🎯 Ton perso » sur les combattants player_controlled ;
+- Onglet Documents : inchangé.
+
+### Critère d'acceptation
+
+- Le joueur voit la carte active avec les tokens et le brouillard.
+- Le joueur écrit une note publique, elle apparaît dans le journal.
+- Le joueur lance un dé avec avantage, le résultat est correct.
+- Le joueur exporte sa fiche en JSON, puis l'importe dans une autre campagne.
+- Les mises à jour du MJ (scène, tokens) sont visibles en temps réel.
+
+## Phase 19 - Communication MJ↔Joueur (jet secret, annonces, messages privés)
+
+### Objectif
+
+Permettre les échanges discrets entre le MJ et les joueurs : jets cachés, annonces épinglées, messages privés.
+
+### Backend
+
+Livrables :
+- Migration mineure : `recipient_user_id` sur `game_log_entries` pour les messages privés ;
+- `POST /api/campaigns/{id}/log` accepte `recipient_user_id` (optionnel) ;
+- `GET /api/campaigns/{id}/log` pour joueur filtre aussi `recipient_user_id = current_user OR recipient_user_id IS NULL` ;
+- `POST /api/campaigns/{id}/rolls` supporte déjà `visibility=gm` (jet secret) — rien à changer ;
+- Audit permission : seuls GM et co_GM peuvent définir `recipient_user_id`.
+
+### Frontend
+
+Livrables :
+- **Jet secret** : toggle 🔒 Secret (MJ) dans le lanceur de dés joueur, envoi avec `visibility=gm` ;
+- **Annonces épinglées** : le MJ poste une note avec `pinned=true`, un bandeau 📢 apparaît en haut de l'interface joueur ;
+- **Messages privés** : le MJ sélectionne un joueur destinataire dans le panneau journal, le message n'est visible que par ce joueur ;
+- Indicateur visuel dans le journal : 🔒 = secret, 📢 = épinglé, 💬 = privé.
+
+### Critère d'acceptation
+
+- Le joueur lance un jet secret, il apparaît dans le journal du MJ mais pas dans la vue publique des autres joueurs.
+- Le MJ épingle « Vous trouvez un coffre », le bandeau apparaît chez tous les joueurs.
+- Le MJ envoie un message privé à Elara, seul Elara le voit dans son journal.
+
+### Hors scope
+
+- Chat en temps réel (messages instantanés comme Discord).
+- Fils de discussion (threaded messages).
+
+## Phase 20 - Map interactive joueur (ping, déplacement token, mesure)
+
+### Objectif
+
+Permettre au joueur d'interagir avec la carte : signaler une position, déplacer son personnage, mesurer des distances.
+
+### Backend
+
+Livrables :
+- `PATCH /api/tokens/{id}/move` : accepter le rôle `player` si le token est lié à un personnage dont `owner_user_id = current_user.id` ;
+- Vérification dans le handler : `token.character_id → character.owner_user_id == current_user.id` ;
+- Pas de stockage pour le ping (événement WebSocket uniquement).
+
+### Frontend
+
+Livrables :
+- **Ping carte** : clic du joueur sur la carte → animation de pulse (cercle 2s) + pseudo, broadcast WebSocket à tous ;
+- **Déplacement token** : les tokens `player_controlled` sont drag-and-drop sur la carte joueur ; mise à jour via `PATCH /api/tokens/{id}/move` ; broadcast WebSocket ;
+- **Mesure distance** : outil 📏 dans la toolbar carte joueur, clic-drag affiche la distance en cases (calcul côté client basé sur `grid_size`) ;
+- Curseur change selon l'outil actif (ping=pointer, déplacement=grab, mesure=crosshair).
+
+### Critère d'acceptation
+
+- Le joueur clique sur la carte, un ping « Donopot » pulse et tous les autres joueurs + MJ le voient.
+- Le joueur drag son token Elara de 3 cases, la position est sauvegardée et broadcastée.
+- Le joueur mesure 30 ft (6 cases), l'indicateur affiche « 30 ft · 6 cases ».
+- Un joueur ne peut PAS déplacer un token qui ne lui appartient pas.
+
+### Hors scope
+
+- Gabarits de sorts (cercle, cône, rectangle) → Phase 22.
+- Déplacement avec waypoints.
+
+## Phase 21 - Gestion personnage par le MJ (items, XP, conditions visibles)
+
+### Objectif
+
+Permettre au MJ de gérer les personnages joueurs à distance : donner des objets, ajuster l'XP, appliquer des conditions visibles.
+
+### Backend
+
+Aucune migration requise — tout utilise les endpoints existants :
+- `PATCH /api/characters/{id}` → `inventory` (merge JSONB), `level`, `hp_current`, `hp_max` ;
+- `POST /api/campaigns/{id}/log` pour notifier le joueur ;
+- Les conditions de combat existent déjà dans `combat.py` (conditions sur les combattants).
+
+Livrables optionnels :
+- Migration `character_conditions` si on veut des conditions persistantes hors combat (table séparée ou champ JSONB sur `characters`).
+
+### Frontend
+
+Livrables :
+- **Attribuer item** : dans EditCharacterSheet (vue MJ), bouton « 🎁 Donner un objet » → formulaire nom + description → ajout dans `inventory` → notification joueur ;
+- **Attribuer XP/level** : champ niveau éditable par le MJ avec indicateur de palier (5e, 9e, 13e, 17e = +1 proficiency bonus) ;
+- **Ajuster PV** : boutons +1/-1 PV ou champ direct, avec notification joueur ;
+- **Conditions visibles** : si le personnage a un combattant associé avec des conditions actives, les afficher sur la fiche personnage (badge « Empoisonné », « Paralysé ») ;
+- Notification WebSocket au joueur quand son personnage est modifié par le MJ.
+
+### Critère d'acceptation
+
+- Le MJ ajoute « Épée +1 » dans l'inventaire d'Elara, Elara le voit apparaître.
+- Le MJ passe Elara niveau 5, sa fiche est mise à jour (proficiency bonus recalculé).
+- Le MJ applique « Empoisonné » au combattant d'Elara, le badge apparaît sur sa fiche personnage.
+
+### Hors scope
+
+- Feuille de trésor partagée (party loot).
+- calcul automatique des PV par niveau (HP rolling).
+- Gestions des sorts appris par niveau.
+
+## Phase 22 - Mesures, gabarits et aides tactiques
 
 ### Objectif
 
@@ -459,7 +600,7 @@ Livrables :
 - Le MJ affiche un gabarit de sort.
 - Les joueurs le voient.
 
-## Phase 18 - SRD et regles de base
+## Phase 23 - SRD et règles de base
 
 ### Objectif
 
@@ -488,7 +629,7 @@ Livrables :
 - Le MJ recherche un monstre ou sort.
 - Le MJ peut utiliser une creature comme base de combattant.
 
-## Phase 19 - Sauvegardes, maintenance et exploitation
+## Phase 24 - Sauvegardes, maintenance et exploitation
 
 ### Objectif
 
@@ -511,7 +652,7 @@ Livrables :
 - Restore de test fonctionne.
 - Procedure documentee.
 
-## Phase 20 - Beta privee
+## Phase 25 - Beta privee
 
 ### Objectif
 
