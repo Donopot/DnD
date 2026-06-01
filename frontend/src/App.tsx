@@ -14,6 +14,7 @@ import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { CombatTracker } from "./components/CombatTracker";
 import { DiceRoller } from "./components/DiceRoller";
 import { EncounterBuilder } from "./components/EncounterBuilder";
+import { QuickActions } from "./components/QuickActions";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { RulesReference } from "./components/RulesReference";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -994,6 +995,14 @@ export default function App() {
         <details className="gm-panel-section">
           <summary>🎲 Lancer de dés</summary>
           <DiceRoller
+            onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
+          />
+        </details>
+
+        {/* Quick Actions / Macros */}
+        <details className="gm-panel-section">
+          <summary>⚡ Actions rapides</summary>
+          <QuickActions
             onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
           />
         </details>
