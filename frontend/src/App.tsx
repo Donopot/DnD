@@ -12,6 +12,7 @@ import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { CombatTracker } from "./components/CombatTracker";
+import { EncounterBuilder } from "./components/EncounterBuilder";
 import { GmCharacterInspector } from "./components/GmCharacterInspector";
 import { RulesReference } from "./components/RulesReference";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -958,6 +959,15 @@ export default function App() {
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
             onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+          />
+        </details>
+
+        {/* Encounter Builder */}
+        <details className="gm-panel-section">
+          <summary>🧩 Générateur de rencontres</summary>
+          <EncounterBuilder
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
           />
         </details>
 

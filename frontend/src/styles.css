@@ -11351,3 +11351,114 @@ select {
   font-size: 0.58rem;
   color: #c5b358;
 }
+
+/* ── Encounter Builder ──────────────────────────────────────────────────── */
+
+.encounter-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eb-config {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.eb-config label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.73rem;
+  color: #8a9a8e;
+}
+
+.eb-config input {
+  width: 50px;
+  padding: 0.25rem 0.3rem;
+  background: #0a0e0b;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #e0dcc8;
+  font-size: 0.75rem;
+}
+
+.eb-add-form {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.eb-add-form input,
+.eb-add-form select {
+  padding: 0.3rem 0.4rem;
+  background: #0a0e0b;
+  border: 1px solid #3a4a3e;
+  border-radius: 5px;
+  color: #e0dcc8;
+  font-size: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.eb-random {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.eb-random select {
+  flex: 1;
+  padding: 0.3rem 0.4rem;
+  background: #0a0e0b;
+  border: 1px solid #3a4a3e;
+  border-radius: 5px;
+  color: #e0dcc8;
+  font-size: 0.75rem;
+}
+
+.eb-monsters {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.eb-monster-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.4rem;
+  background: rgba(30,40,35,0.3);
+  border-radius: 4px;
+  font-size: 0.73rem;
+}
+
+.eb-monster-name { color: #c0c0a0; flex: 1; }
+.eb-monster-cr { color: #c5b358; font-weight: 600; }
+.eb-monster-count { color: #6a7a6e; }
+
+.eb-difficulty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.eb-diff-bar {
+  height: 8px;
+  background: #2a3a2e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.eb-diff-fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.eb-diff-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+}
