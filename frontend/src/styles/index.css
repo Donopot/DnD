@@ -3,6 +3,7 @@
 
 @import "./tokens.css";
 @import "./reset.css";
+@import "./typography.css";
 @import "./components.css";
 @import "./shell-gm.css";
 @import "./map.css";
@@ -10,3 +11,4 @@
 @import "./player.css";
 @import "./lobby-auth.css";
 @import "./responsive.css";
+@import "./themes.css";

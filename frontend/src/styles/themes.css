@@ -1,0 +1,81 @@
+/* themes.css — Accessibilité (focus, reduced-motion, light theme) */
+
+/* ── Light theme overrides ── */
+[data-theme="light"] {
+  --bg-global: #faf9f5;
+  --bg-canvas: #f0ede5;
+  --bg-surface: #ffffff;
+  --bg-surface-secondary: #f5f3ed;
+  --bg-surface-elevated: #ffffff;
+  --border-subtle: #e0ddd5;
+  --border-active: #b8860b;
+  --accent-primary: #b8860b;
+  --accent-secondary: var(--accent-primary);
+  --text-strong: #1a1a1a;
+  --text-normal: #444444;
+  --text-weak: #888888;
+  --danger: #c0392b;
+  --warning: #b8860b;
+  --success: #16a34a;
+
+  /* Re-cascade aliases for light theme */
+  --bg-primary: var(--bg-global);
+  --bg-secondary: var(--bg-surface);
+  --bg-card: var(--bg-surface-secondary);
+  --bg-input: var(--bg-surface-secondary);
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(184, 134, 11, 0.1);
+  --bg-tooltip: #2a2a2a;
+  --bg-modal: #ffffff;
+  --text-primary: var(--text-strong);
+  --text-secondary: var(--text-normal);
+  --text-tertiary: var(--text-weak);
+  --text-muted: var(--text-weak);
+  --text-brand: var(--accent-primary);
+  --text-inverse: #f0ede0;
+  --border-color: var(--border-subtle);
+  --border-hover: #ccc8be;
+  --border-light: rgba(0, 0, 0, 0.06);
+  --accent: var(--accent-primary);
+  --accent-dim: rgba(184, 134, 11, 0.12);
+  --accent-glow: rgba(184, 134, 11, 0.2);
+  --brand-green: var(--accent-secondary);
+  --brand-green-dim: rgba(31, 95, 67, 0.12);
+  --danger-dim: rgba(192, 57, 43, 0.1);
+  --success-dim: rgba(22, 163, 74, 0.1);
+  --scrollbar-thumb: #ccc8be;
+  --scrollbar-track: transparent;
+
+  color: var(--text-primary);
+  background: var(--bg-global);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Focus outlines ── */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  transition: outline-color 0.15s ease;
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--accent-dim);
+  color: var(--text-strong);
+}
