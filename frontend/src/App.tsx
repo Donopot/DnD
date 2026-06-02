@@ -24,7 +24,7 @@ import { PlayerView } from "./components/PlayerView";
 import { QuickActions } from "./components/QuickActions";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
+import { SESSION_LIVE_MODES, SESSION_LIVE_PANEL_SETS, type SessionLiveMode } from "./config/sessionLiveModes";
 import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
@@ -199,6 +199,12 @@ export default function App() {
 
   const activeSessionLiveModeDetail = useMemo(
     () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
+    [activeSessionLiveMode],
+  );
+
+  /** Ensemble des IDs de panneaux visibles dans le mode de session actif. */
+  const liveModePanelIds = useMemo(
+    () => new Set(SESSION_LIVE_PANEL_SETS[activeSessionLiveMode] ?? []),
     [activeSessionLiveMode],
   );
 
@@ -1012,6 +1018,7 @@ export default function App() {
           {gmView === "live" && (
             <>
               {/* Combat Tracker */}
+              {liveModePanelIds.has("combat") && (
               <details className="gm-panel-section" open>
                 <summary>
                   ⚔️ Combat
@@ -1034,8 +1041,10 @@ export default function App() {
                   onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
                 />
               </details>
+              )}
 
               {/* Encounter Builder */}
+              {liveModePanelIds.has("encounter-builder") && (
               <details className="gm-panel-section">
                 <summary>
                   🧩 Générateur de rencontres
@@ -1054,8 +1063,10 @@ export default function App() {
                 </summary>
                 <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
               </details>
+              )}
 
               {/* Dice Roller */}
+              {liveModePanelIds.has("dice-roller") && (
               <details className="gm-panel-section">
                 <summary>
                   🎲 Lancer de dés
@@ -1074,8 +1085,10 @@ export default function App() {
                 </summary>
                 <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
               </details>
+              )}
 
               {/* Quick Actions / Macros */}
+              {liveModePanelIds.has("quick-actions") && (
               <details className="gm-panel-section">
                 <summary>
                   ⚡ Actions rapides
@@ -1094,8 +1107,10 @@ export default function App() {
                 </summary>
                 <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
               </details>
+              )}
 
               {/* Messages MJ → Joueurs */}
+              {liveModePanelIds.has("gm-messages") && (
               <details className="gm-panel-section">
                 <summary>
                   💬 Communication
@@ -1118,8 +1133,10 @@ export default function App() {
                   members={members}
                 />
               </details>
+              )}
 
               {/* GmNotesPanel */}
+              {liveModePanelIds.has("gm-notes") && (
               <details className="gm-panel-section">
                 <summary>
                   📝 Notes MJ
@@ -1142,8 +1159,10 @@ export default function App() {
                   selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
                 />
               </details>
+              )}
 
               {/* InitiativePanel */}
+              {liveModePanelIds.has("initiative") && (
               <details className="gm-panel-section">
                 <summary>
                   ⏱️ Initiative
@@ -1162,8 +1181,10 @@ export default function App() {
                 </summary>
                 <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
               </details>
+              )}
 
               {/* TokenDetailPanel */}
+              {liveModePanelIds.has("token-detail") && (
               <details className="gm-panel-section">
                 <summary>
                   🔍 Détail token
@@ -1199,8 +1220,10 @@ export default function App() {
                   }}
                 />
               </details>
+              )}
 
               {/* VisibilityInspectorPanel */}
+              {liveModePanelIds.has("visibility-inspector") && (
               <details className="gm-panel-section">
                 <summary>
                   👁️ Visibilité
@@ -1223,6 +1246,7 @@ export default function App() {
                   sceneTokens={sceneTokens}
                 />
               </details>
+              )}
             </>
           )}
 
@@ -1230,6 +1254,7 @@ export default function App() {
           {gmView === "journal" && (
             <>
               {/* Session Log */}
+              {liveModePanelIds.has("session-log") && (
               <details className="gm-panel-section">
                 <summary>
                   📋 Journal
@@ -1274,8 +1299,10 @@ export default function App() {
                   }}
                 />
               </details>
+              )}
 
               {/* Session Stats */}
+              {liveModePanelIds.has("session-stats") && (
               <details className="gm-panel-section">
                 <summary>
                   📊 Statistiques
@@ -1294,6 +1321,7 @@ export default function App() {
                 </summary>
                 <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
               </details>
+              )}
             </>
           )}
 
@@ -1301,6 +1329,7 @@ export default function App() {
           {gmView === "preparation" && (
             <>
               {/* Dungeon Generator */}
+              {liveModePanelIds.has("dungeon-generator") && (
               <details className="gm-panel-section">
                 <summary>
                   🗺️ Générateur de donjons
@@ -1319,8 +1348,10 @@ export default function App() {
                 </summary>
                 <DungeonGenerator token={token} />
               </details>
+              )}
 
               {/* Handouts */}
+              {liveModePanelIds.has("handouts") && (
               <details className="gm-panel-section">
                 <summary>
                   📄 Documents
@@ -1346,6 +1377,7 @@ export default function App() {
                   onDeleteHandout={(h) => void handleDeleteHandout(h)}
                 />
               </details>
+              )}
             </>
           )}
 
@@ -1353,6 +1385,7 @@ export default function App() {
           {gmView === "library" && (
             <>
               {/* Bestiary */}
+              {liveModePanelIds.has("bestiary") && (
               <details className="gm-panel-section">
                 <summary>
                   💀 Bestiaire
@@ -1371,8 +1404,10 @@ export default function App() {
                 </summary>
                 <BestiaryPanel token={token} />
               </details>
+              )}
 
               {/* Spellbook */}
+              {liveModePanelIds.has("spellbook") && (
               <details className="gm-panel-section">
                 <summary>
                   ✨ Grimoire
@@ -1391,8 +1426,10 @@ export default function App() {
                 </summary>
                 <SpellbookPanel token={token} />
               </details>
+              )}
 
               {/* Item Compendium */}
+              {liveModePanelIds.has("items") && (
               <details className="gm-panel-section">
                 <summary>
                   🎒 Équipement
@@ -1411,8 +1448,10 @@ export default function App() {
                 </summary>
                 <ItemCompendium token={token} />
               </details>
+              )}
 
               {/* Homebrew */}
+              {liveModePanelIds.has("homebrew") && (
               <details className="gm-panel-section">
                 <summary>
                   📚 Bibliothèque
@@ -1437,8 +1476,10 @@ export default function App() {
                   isBusy={isBusy}
                 />
               </details>
+              )}
 
               {/* SRD Reference */}
+              {liveModePanelIds.has("rules") && (
               <details className="gm-panel-section">
                 <summary>
                   📖 Règles (SRD)
@@ -1457,12 +1498,14 @@ export default function App() {
                 </summary>
                 <RulesReference />
               </details>
+              )}
             </>
           )}
 
           {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
           {gmView === "campaign" && (
             <>
+              {liveModePanelIds.has("campaign-info") && (
               <details className="gm-panel-section" open>
                 <summary>📋 Infos campagne</summary>
                 {selectedCampaign && (
@@ -1490,12 +1533,14 @@ export default function App() {
                   </div>
                 )}
               </details>
+              )}
             </>
           )}
 
           {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
           {gmView === "characters" && (
             <>
+              {liveModePanelIds.has("characters") && (
               <details className="gm-panel-section" open>
                 <summary>👤 Personnages</summary>
                 <div className="character-section">
@@ -1617,8 +1662,10 @@ export default function App() {
                   )}
                 </div>
               </details>
+              )}
 
               {/* PartySummaryPanel */}
+              {liveModePanelIds.has("party-summary") && (
               <details className="gm-panel-section">
                 <summary>
                   📊 Résumé du groupe
@@ -1640,6 +1687,7 @@ export default function App() {
                   selectedCharacter={selectedCharacter}
                 />
               </details>
+              )}
             </>
           )}
 
