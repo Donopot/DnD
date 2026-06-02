@@ -3,7 +3,7 @@
  * Sera supprimé en PANEL-5.
  */
 
-import type { SessionLiveMode } from "./gmPanels";
+import type { SessionLiveMode } from "./sessionLiveModes";
 
 export {
   type GmPanelId as VttPanelId,
