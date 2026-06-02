@@ -296,3 +296,22 @@ export type Spell = {
   source: string;
   created_at: string;
 };
+
+// ── Items ────────────────────────────────────────────────────────────────
+
+export type Item = {
+  id: string;
+  name: string;
+  category: string;
+  rarity: string;
+  attunement: boolean;
+  cost: string | null;
+  weight: string | null;
+  description: string;
+  properties: string[];
+  damage: string | null;
+  ac: number | null;
+  armor_type: string | null;
+  source: string;
+  created_at: string;
+};

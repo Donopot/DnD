@@ -30,6 +30,7 @@ const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m =
 const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => ({ default: m.BestiaryPanel })));
 const SpellbookPanel = lazy(() => import("./components/SpellbookPanel").then(m => ({ default: m.SpellbookPanel })));
 const DungeonGenerator = lazy(() => import("./components/DungeonGenerator").then(m => ({ default: m.DungeonGenerator })));
+const ItemCompendium = lazy(() => import("./components/ItemCompendium").then(m => ({ default: m.ItemCompendium })));
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -1187,6 +1188,12 @@ export default function App() {
             </button>
           </summary>
           <BestiaryPanel token={token} />
+        </details>
+
+        {/* Item Compendium */}
+        <details className="gm-panel-section">
+          <summary>🎒 Équipement</summary>
+          <ItemCompendium token={token} />
         </details>
       </aside>
       </Suspense>

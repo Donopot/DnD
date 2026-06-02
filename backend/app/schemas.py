@@ -735,3 +735,24 @@ class DungeonGenerateRequest(BaseModel):
     room_count: int = Field(default=8, ge=3, le=30)
     seed: int | None = None
     theme: str = Field(default="dungeon", pattern="^(dungeon|cave|temple|ruins)$")
+
+
+# ── Items ─────────────────────────────────────────────────────────────────
+
+class ItemPublic(BaseModel):
+    id: UUID
+    name: str
+    category: str
+    rarity: str
+    attunement: bool
+    cost: str | None = None
+    weight: str | None = None
+    description: str
+    properties: list[str] = []
+    damage: str | None = None
+    ac: int | None = None
+    armor_type: str | None = None
+    source: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
