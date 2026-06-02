@@ -150,5 +150,5 @@ async def login(request: Request, payload: LoginRequest) -> AuthResponse:
 
 @router.get("/me", response_model=UserPublic)
 @shared_limiter.limit("60/minute")
-async def me(current_user=Depends(get_current_user)) -> UserPublic:
+async def me(request: Request, current_user=Depends(get_current_user)) -> UserPublic:
     return user_public(current_user)
