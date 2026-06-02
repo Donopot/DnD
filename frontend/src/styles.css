@@ -12674,3 +12674,82 @@ select {
   color: #5a6a5e;
   text-align: right;
 }
+
+/* ====== Dungeon Generator =========================================== */
+
+.dungeon-generator {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dungeon-controls {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.dungeon-control-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dungeon-control-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.68rem;
+  color: #6a7a6e;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dungeon-control-row select,
+.dungeon-control-row input {
+  padding: 0.25rem 0.35rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #c0c0a0;
+  font-size: 0.75rem;
+  min-width: 70px;
+}
+
+.dungeon-seed {
+  font-size: 0.7rem;
+  color: #5a6a5e;
+  font-family: monospace;
+}
+
+.dungeon-preview {
+  flex: 1;
+  overflow: auto;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.dungeon-canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dungeon-canvas-wrapper canvas {
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  max-width: 100%;
+  height: auto;
+}
+
+.dungeon-info {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  color: #6a7a6e;
+}

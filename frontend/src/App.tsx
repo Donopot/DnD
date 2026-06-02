@@ -29,6 +29,7 @@ const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspecto
 const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
 const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => ({ default: m.BestiaryPanel })));
 const SpellbookPanel = lazy(() => import("./components/SpellbookPanel").then(m => ({ default: m.SpellbookPanel })));
+const DungeonGenerator = lazy(() => import("./components/DungeonGenerator").then(m => ({ default: m.DungeonGenerator })));
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -1031,10 +1032,13 @@ export default function App() {
               <ExternalLink size={12} />
             </button>
           </summary>
-          <EncounterBuilder
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-          />
+          <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
+        </details>
+
+        {/* Dungeon Generator */}
+        <details className="gm-panel-section">
+          <summary>🗺️ Générateur de donjons</summary>
+          <DungeonGenerator token={token} />
         </details>
 
         {/* Dice Roller */}

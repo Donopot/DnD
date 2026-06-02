@@ -725,3 +725,13 @@ class SpellPublic(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Dungeon Generator ─────────────────────────────────────────────────────
+
+class DungeonGenerateRequest(BaseModel):
+    width: int = Field(default=50, ge=20, le=120)
+    height: int = Field(default=40, ge=20, le=100)
+    room_count: int = Field(default=8, ge=3, le=30)
+    seed: int | None = None
+    theme: str = Field(default="dungeon", pattern="^(dungeon|cave|temple|ruins)$")
