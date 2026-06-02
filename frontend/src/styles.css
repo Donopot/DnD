@@ -2442,9 +2442,9 @@ select {
   gap: 8px;
   margin: 0 0 12px;
   padding: 10px;
-  border: 1px solid #e0d7c7;
-  border-radius: 12px;
-  background: #fffdf7;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-secondary);
 }
 
 .map-overview-header {
@@ -9051,17 +9051,17 @@ select {
 }
 
 .player-map-toolbar small {
-  color: #8a9a8e;
+  color: var(--text-weak);
   font-size: 0.8rem;
 }
 
 .player-map-toolbar select {
   padding: 0.25rem 0.5rem;
-  background: #2a3a2e;
-  border: 1px solid #4a5a4e;
-  border-radius: 6px;
-  color: #e8e4d8;
-  font-size: 0.82rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-normal);
+  font-size: var(--text-sm);
 }
 
 .player-map-zoom {
@@ -9796,86 +9796,138 @@ select {
 
 .campaign-map-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-4);
   height: 100%;
   min-height: 20vh;
-  color: var(--text-muted);
+  color: var(--text-weak);
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.campaign-map-empty::before {
+  content: "🗺️";
+  font-size: 2.5rem;
+  margin-bottom: var(--space-2);
+  opacity: 0.6;
+}
+
+.campaign-map-empty .muted {
+  font-size: var(--text-lg);
+  color: var(--text-weak);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.campaign-map-empty .muted::after {
+  content: "Ajoute une carte pour commencer ta session.";
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--text-weak);
+  margin-top: var(--space-2);
+  opacity: 0.7;
 }
 
 .campaign-map-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--bg-hover);
-  border-bottom: 1px solid var(--border-color);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
   flex-wrap: wrap;
+  min-height: 44px;
 }
 
 .campaign-map-toolbar strong {
-  font-size: 0.95rem;
-  color: var(--text-primary);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
 .campaign-map-toolbar select {
-  padding: 0.3rem 0.5rem;
-  background: #2a3a2e;
-  border: 1px solid #4a5a4e;
-  border-radius: 6px;
-  color: #e8e4d8;
-  font-size: 0.82rem;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-normal);
+  font-size: var(--text-sm);
   min-width: 10rem;
+}
+
+.campaign-map-toolbar select:focus-visible {
+  border-color: var(--accent-primary);
+  outline: none;
 }
 
 .campaign-map-zoom {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
   margin-left: auto;
 }
 
 .campaign-map-zoom button {
   padding: 0.15rem 0.5rem;
-  background: #2a3a2e;
-  border: 1px solid #4a5a4e;
-  border-radius: 4px;
-  color: #e8e4d8;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-normal);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
   min-width: 1.5rem;
+  transition: all 0.15s;
+}
+
+.campaign-map-zoom button:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
 }
 
 .campaign-map-zoom span {
-  font-size: 0.8rem;
-  color: #8a9a8e;
+  font-size: var(--text-xs);
+  color: var(--text-weak);
   min-width: 2.8rem;
   text-align: center;
 }
 
+.campaign-map-grid-toggle,
 .campaign-map-pan-toggle {
-  padding: 0.2rem 0.6rem;
-  background: #2a3a2e;
-  border: 1px solid #4a5a4e;
-  border-radius: 4px;
-  color: #8a9a8e;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
+.campaign-map-grid-toggle:hover,
+.campaign-map-pan-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-normal);
+}
+
+.campaign-map-grid-toggle.active,
 .campaign-map-pan-toggle.active {
-  background: #1b4332;
-  color: var(--accent);
-  border-color: var(--accent);
+  background: var(--bg-active);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
 /* Map viewport */
 .campaign-map-viewport {
   flex: 1;
   overflow: auto;
-  background: #1a1e2b;
+  background: var(--bg-canvas);
   cursor: default;
 }
 
@@ -11261,39 +11313,45 @@ select {
 
 .map-tools-bar {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: var(--space-2);
+  right: var(--space-2);
   z-index: 40;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  padding: var(--space-1);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
 }
 
 .map-tool-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 14, 11, 0.85);
-  border: 1px solid #3a4a3e;
-  border-radius: 6px;
-  color: #8a9a8e;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .map-tool-btn:hover {
-  color: var(--accent);
-  border-color: #5a6a5e;
+  color: var(--accent-primary);
+  background: var(--bg-hover);
+  border-color: var(--border-subtle);
 }
 
 .map-tool-btn.active {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
   background: var(--accent-dim);
-  box-shadow: 0 0 8px var(--accent-dim);
+  box-shadow: var(--shadow-glow-gold);
 }
 
 .map-tools-overlay {
@@ -11307,8 +11365,8 @@ select {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(197, 179, 88, 0.6);
-  border: 2px solid #c5b358;
+  background: var(--accent-dim);
+  border: 2px solid var(--accent-primary);
   transform: translate(-50%, -50%);
   animation: ping-fade 2.5s ease-out forwards;
   pointer-events: none;
@@ -11335,10 +11393,9 @@ select {
 
 .ruler-line {
   height: 2px;
-  background: rgba(197, 179, 88, 0.6);
+  background: var(--accent-dim);
   border-radius: 1px;
 }
-
 .ruler-line::after {
   content: "";
   position: absolute;
@@ -11346,23 +11403,34 @@ select {
   top: -3px;
   width: 8px;
   height: 8px;
-  background: var(--accent);
+  background: var(--accent-primary);
   border-radius: 50%;
 }
 
 .ruler-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--accent);
-  background: rgba(10, 14, 11, 0.8);
+  color: var(--accent-primary);
+  background: var(--bg-surface);
   padding: 1px 5px;
   border-radius: 4px;
   white-space: nowrap;
 }
 
+.aoe-label {
+  position: absolute;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  background: var(--bg-surface);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
 .map-ruler.preview .ruler-line {
   background: var(--accent-glow);
-  border: 1px dashed rgba(197, 179, 88, 0.5);
+  border: 1px dashed var(--accent-primary);
 }
 
 /* ── Character row inspect button ───────────────────────────────────────── */
@@ -11710,23 +11778,23 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 40, 35, 0.6);
-  border: 1px solid #3a4a3e;
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
-  color: #8a9a8e;
+  color: var(--text-weak);
   cursor: pointer;
   font-size: 0.55rem;
 }
 
 .aoe-size-btn:hover {
-  color: var(--accent);
-  border-color: #5a6a5e;
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
 .aoe-size-label {
   font-size: 0.62rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-primary);
   min-width: 30px;
   text-align: center;
 }
@@ -11740,15 +11808,15 @@ select {
   background: radial-gradient(
     circle,
     var(--accent-dim) 0%,
-    rgba(197, 179, 88, 0.05) 70%,
+    rgba(214, 168, 79, 0.05) 70%,
     transparent 100%
   );
-  border: 1px solid rgba(197, 179, 88, 0.4);
+  border: 1px solid var(--accent-glow);
 }
 
 .aoe-cube {
-  background: rgba(197, 179, 88, 0.08);
-  border: 1px dashed rgba(197, 179, 88, 0.4);
+  background: var(--accent-dim);
+  border: 1px dashed var(--accent-glow);
 }
 
 .aoe-line {
@@ -11760,8 +11828,8 @@ select {
     var(--accent-dim) 80%,
     transparent
   );
-  border-top: 1px solid rgba(197, 179, 88, 0.4);
-  border-bottom: 1px solid rgba(197, 179, 88, 0.4);
+  border-top: 2px solid var(--accent-glow);
+  border-bottom: 2px solid var(--accent-glow);
 }
 
 /* ── Rules Reference (SRD) ──────────────────────────────────────────────── */
@@ -11996,8 +12064,8 @@ select {
   transform: translateX(-50%);
   font-size: 0.55rem;
   font-weight: 600;
-  color: var(--text-primary);
-  background: rgba(10, 14, 11, 0.85);
+  color: var(--text-strong);
+  background: var(--bg-surface);
   padding: 1px 4px;
   border-radius: 3px;
   white-space: nowrap;
@@ -12082,13 +12150,12 @@ select {
   position: absolute;
   font-size: 0.6rem;
   font-weight: 700;
-  color: var(--accent);
-  background: rgba(10, 14, 11, 0.8);
+  color: var(--accent-primary);
+  background: var(--bg-surface);
   padding: 1px 4px;
   border-radius: 3px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 49;
 }
 
 /* ── Combat Tracker ─────────────────────────────────────────────────────── */
