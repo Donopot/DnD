@@ -9532,6 +9532,16 @@ select {
   background: #0f1923;
 }
 
+/* Focus map mode — sidebar + panels hidden, map fullscreen */
+.gm-campaign-shell.focus-map {
+  grid-template-columns: 0 1fr 0;
+}
+
+.gm-campaign-shell.focus-map .gm-sidebar,
+.gm-campaign-shell.focus-map .gm-panels {
+  display: none;
+}
+
 .gm-sidebar {
   display: flex;
   flex-direction: column;
@@ -9540,6 +9550,9 @@ select {
   background: rgba(15, 25, 20, 0.95);
   border-right: 1px solid #2a3a2e;
   overflow-y: auto;
+  resize: horizontal;
+  min-width: 160px;
+  max-width: 340px;
 }
 
 .gm-sidebar .brand-mark.compact {
@@ -9664,6 +9677,26 @@ select {
   border-color: #c5b358;
 }
 
+.focus-map-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #2a3a2e;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.focus-map-btn:hover {
+  background: #3a4a3e;
+  color: #e0dcc8;
+}
+
 /* Right panels */
 .gm-panels {
   display: flex;
@@ -9672,6 +9705,14 @@ select {
   overflow-y: auto;
   background: rgba(15, 25, 20, 0.95);
   border-left: 1px solid #2a3a2e;
+  resize: horizontal;
+  min-width: 240px;
+  max-width: 500px;
+  direction: rtl; /* move resize handle to left edge */
+}
+
+.gm-panels > * {
+  direction: ltr; /* restore text direction in children */
 }
 
 .gm-panel-section {

@@ -25,6 +25,7 @@ import type {
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
 import { PlayerNotifications } from "./PlayerNotifications";
+import { useSceneBackground } from "../hooks/useSceneBackground";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -125,7 +126,7 @@ export function PlayerView({
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
   const [playerScene, setPlayerScene] = useState<Scene | null>(null);
   const [playerTokens, setPlayerTokens] = useState<SceneToken[]>([]);
-  const [__bgUrl, _setPlayerBgUrl] = useState("");
+  const sceneBackgroundObjectUrl = useSceneBackground(playerScene, token);
 
   // ─── Character creation form ───────────────────────────────────────────
   const [charForm, setCharForm] = useState<PlayerCharacterFormData>({
@@ -1070,7 +1071,7 @@ export function PlayerView({
             selectedScene={playerScene ?? undefined}
             selectedSceneId={playerScene?.id ?? ""}
             sceneTokens={playerTokens}
-            sceneBackgroundObjectUrl={""}
+            sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
             characters={characters}
           />
         </section>

@@ -61,12 +61,19 @@ export function CampaignMap({
   const [selectedTokenId, setSelectedTokenId] = useState("");
   const [showGrid, setShowGrid] = useState(true);
 
-  // Reset zoom/scroll when scene changes
+  // Reset zoom and center on scene when scene changes
   useEffect(() => {
     setZoom(1);
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-      scrollRef.current.scrollTop = 0;
+    const el = scrollRef.current;
+    if (el && selectedScene) {
+      // Center the viewport on the scene image
+      const sw = selectedScene.width ?? 2800;
+      const sh = selectedScene.height ?? 2100;
+      el.scrollLeft = Math.max(0, (sw - el.clientWidth) / 2);
+      el.scrollTop = Math.max(0, (sh - el.clientHeight) / 2);
+    } else if (el) {
+      el.scrollLeft = 0;
+      el.scrollTop = 0;
     }
   }, [selectedSceneId]);
 

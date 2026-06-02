@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { DoorOpen, Plus, Swords, UserPlus } from "lucide-react";
+import { DoorOpen, Maximize2, Minimize2, Plus, Swords, UserPlus } from "lucide-react";
 import "./styles.css";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { CampaignMap } from "./components/CampaignMap";
+import { useSceneBackground } from "./hooks/useSceneBackground";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { QuickActions } from "./components/QuickActions";
@@ -62,7 +63,6 @@ export default function App() {
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
   const [, setAssetList] = useState<Asset[]>([]);
   const [, setSelectedAssetId] = useState<string>("");
-  const [sceneBackgroundObjectUrl, setSceneBackgroundObjectUrl] = useState<string>("");
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
   const [, setCombatants] = useState<Combatant[]>([]);
@@ -77,6 +77,7 @@ export default function App() {
   });
   const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
+  const [isFocusMap, setIsFocusMap] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
   const selectedCampaign = useMemo(
@@ -92,6 +93,8 @@ export default function App() {
     () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
     [scenes, selectedSceneId],
   );
+
+  const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
 
   useEffect(() => {
     if (!token) {
@@ -118,46 +121,6 @@ export default function App() {
     void loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [selectedCampaign?.id]);
-
-  useEffect(() => {
-    if (!selectedScene?.background_url || !token) {
-      setSceneBackgroundObjectUrl("");
-      return;
-    }
-
-    let isCancelled = false;
-    let objectUrl = "";
-
-    async function loadSceneBackground() {
-      const response = await fetch(selectedScene.background_url!, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to load scene background");
-      }
-
-      const blob = await response.blob();
-      objectUrl = URL.createObjectURL(blob);
-
-      if (!isCancelled) {
-        setSceneBackgroundObjectUrl(objectUrl);
-      }
-    }
-
-    void loadSceneBackground().catch(() => {
-      if (!isCancelled) {
-        setSceneBackgroundObjectUrl("");
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [selectedScene?.background_url, token]);
 
   useEffect(() => {
     wsRef.current?.close();
@@ -823,7 +786,7 @@ export default function App() {
   //     Layout: sidebar | CampaignMap | panels
 
   return (
-    <main className="gm-campaign-shell">
+    <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside className="gm-sidebar">
         <div className="brand-mark compact">
@@ -891,6 +854,14 @@ export default function App() {
               </button>
             ))}
           </div>
+          <button
+            className="focus-map-btn"
+            onClick={() => setIsFocusMap((prev) => !prev)}
+            title={isFocusMap ? "Quitter plein écran" : "Carte plein écran"}
+            type="button"
+          >
+            {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
         </div>
 
         <CampaignMap
