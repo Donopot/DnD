@@ -1,0 +1,587 @@
+/* lobby-auth.css — auto-extracted from styles.css */
+
+/* ── Invite Page ── */
+/* ── Invite Page ───────────────────────────────────────────────────────── */
+
+.invite-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1b4332, #081c15);
+  padding: 24px;
+}
+
+.invite-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.invite-card h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #1b4332;
+}
+
+.invite-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #161b18;
+}
+
+.invite-card p {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  color: #5a4e3e;
+}
+
+.invite-card .muted {
+  font-size: 0.82rem;
+  color: #6b5e4b;
+}
+
+.invite-card .error-text {
+  color: #c0392b;
+  font-size: 0.84rem;
+}
+
+.invite-card .primary-button {
+  font-size: 1rem;
+  padding: 12px 32px;
+  margin-top: 8px;
+}
+
+.invite-card .auth-view {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .player-char-layout,
+  .player-dice-layout,
+  .player-combat-view {
+    grid-template-columns: 1fr;
+  }
+
+  .player-campaign-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* End Player View CSS */
+
+
+/* ── Landing Page ── */
+/* ── Landing Page ───────────────────────────────────────────────────────── */
+
+
+
+.landing-hero .brand-mark.large {
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--accent);
+}
+
+.landing-hero .brand-mark.large h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f8f4e8;
+}
+
+
+
+
+.landing-choice:hover {
+  transform: translateY(-2px);
+}
+
+.landing-choice.gm-choice:hover {
+  border-color: var(--accent);
+  background: rgba(197, 179, 88, 0.08);
+}
+
+.landing-choice.player-choice:hover {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+
+
+
+
+
+
+
+
+/* ── AuthView updated: role badge, header ── */
+/* ── AuthView updated: role badge, header ───────────────────────────────── */
+
+
+
+
+
+/* ── AuthPage: unified login/register ── */
+/* ── AuthPage: unified login/register ───────────────────────────────────── */
+
+.auth-page-shell {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-global) 0%, var(--bg-surface) 100%);
+}
+
+.auth-page-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  gap: 1.5rem;
+}
+
+.auth-page-hero .brand-mark.large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-page-hero .brand-mark.large h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-brand);
+  margin: 0;
+}
+
+.auth-page-tagline {
+  font-size: 1.1rem;
+  color: #8a9a8e;
+  max-width: 24rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.auth-page-form {
+  flex: 0 0 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2.5rem 2rem;
+  background: rgba(20, 30, 25, 0.9);
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+}
+
+.auth-page-form .auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-page-form .auth-tabs button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  background: #1a2a1e;
+  color: #8a9a8e;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.auth-page-form .auth-tabs button.active {
+  background: #1b4332;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Account type radio cards */
+.account-type-radio-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.account-type-radio-group legend {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8a9a8e;
+  margin-bottom: 0.25rem;
+}
+
+.account-type-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid #2a3a2e;
+  border-radius: 10px;
+  background: rgba(30, 40, 35, 0.6);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.account-type-radio input[type="radio"] {
+  display: none;
+}
+
+.account-type-radio.selected {
+  border-color: var(--accent);
+  background: rgba(197, 179, 88, 0.08);
+}
+
+.account-type-radio svg {
+  flex-shrink: 0;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.account-type-radio.selected svg {
+  opacity: 1;
+}
+
+.account-type-radio div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.account-type-radio strong {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.account-type-radio small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Password input with toggle */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.password-input-wrapper .icon-button {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #8a9a8e;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .icon-button:hover {
+  color: var(--accent);
+}
+
+/* Password strength bar */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.password-strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #2a3a2e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.password-strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition:
+    width 0.2s,
+    background 0.2s;
+}
+
+.password-strength-fill.strength-0 {
+  background: #cc4444;
+}
+.password-strength-fill.strength-1 {
+  background: #cc6644;
+}
+.password-strength-fill.strength-2 {
+  background: #cc9944;
+}
+.password-strength-fill.strength-3 {
+  background: #88aa44;
+}
+.password-strength-fill.strength-4 {
+  background: #44aa44;
+}
+.password-strength-fill.strength-5 {
+  background: #44aa66;
+}
+
+.strength-label {
+  font-size: 0.75rem;
+  min-width: 5rem;
+  text-align: right;
+}
+
+.strength-label.strength-0,
+.strength-label.strength-1 {
+  color: #cc6644;
+}
+.strength-label.strength-2 {
+  color: #cc9944;
+}
+.strength-label.strength-3,
+.strength-label.strength-4,
+.strength-label.strength-5 {
+  color: #88aa44;
+}
+
+/* Field error inline */
+.field-error {
+  display: block;
+  font-size: 0.78rem;
+  color: #cc6644;
+  margin-top: 0.25rem;
+}
+
+/* Honeypot — invisible to humans */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+}
+
+/* Auth switch hint */
+.auth-switch-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.auth-switch-hint .link-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.auth-switch-hint .link-button:hover {
+  color: #e8d48a;
+}
+
+
+/* ── Responsive AuthPage ── */
+/* ── Responsive AuthPage ─────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .auth-page-shell {
+    flex-direction: column;
+  }
+
+  .auth-page-hero {
+    padding: 2rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .auth-page-hero .brand-mark.large h1 {
+    font-size: 1.5rem;
+  }
+
+  .auth-page-form {
+    flex: 0 0 auto;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+
+/* ── Lobby: shared base ── */
+/* ── Lobby: shared base ─────────────────────────────────────────────────── */
+
+.lobby-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-global) 0%, var(--bg-surface) 100%);
+}
+
+.lobby-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(20, 28, 24, 0.95);
+}
+
+.lobby-header .brand-mark.compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-brand);
+}
+
+.lobby-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.lobby-user-info > span:first-child {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.gm {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.role-badge.player {
+  background: rgba(74, 144, 226, 0.15);
+  color: #6aaeff;
+}
+
+.lobby-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.lobby-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lobby-hero svg {
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.lobby-hero h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-brand);
+}
+
+.lobby-hero .muted {
+  color: var(--text-muted);
+  max-width: 28rem;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.lobby-footer {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  color: #4a5a4e;
+  font-size: 0.82rem;
+}
+
+
+/* ── Invite Preview Card ── */
+/* ── Invite Preview Card ─────────────────────────────────────────────────── */
+
+.invite-preview-card {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(30, 40, 35, 0.8);
+  border: 1px solid #3a4a3e;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.invite-preview-card.error {
+  border-color: #663333;
+}
+
+.invite-preview-card svg {
+  color: var(--accent);
+}
+
+.invite-preview-card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-brand);
+}
+
+.invite-preview-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #b0b8a0;
+}
+
+.invite-preview-card .error-text {
+  color: #cc6644;
+}
+

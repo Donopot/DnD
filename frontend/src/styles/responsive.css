@@ -1,0 +1,211 @@
+/* responsive.css — auto-extracted from styles.css */
+
+/* ── Responsive: Tablet (< 1024px) ── */
+/* ── Responsive: Tablet (< 1024px) ──────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  /* Auth: stack vertically */
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-visual {
+    min-height: 20vh;
+    padding: 1.5rem;
+  }
+
+  /* Lobby: tighter padding */
+  .lobby-content {
+    padding: 1.25rem;
+    gap: 1.5rem;
+  }
+
+  .lobby-hero h2 {
+    font-size: 1.25rem;
+  }
+
+  .lobby-hero .muted {
+    max-width: 22rem;
+    font-size: 0.88rem;
+  }
+
+  .personal-chars-section {
+    max-width: 100%;
+  }
+
+
+/* ── GM Campaign: sidebar collapses to top bar on narrow screens ── */
+  /* GM Campaign: sidebar collapses to top bar on narrow screens */
+  .gm-campaign-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .gm-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    overflow-y: visible;
+    align-items: center;
+  }
+
+  .gm-sidebar .brand-mark.compact {
+    padding-bottom: 0;
+    border-bottom: none;
+    margin-right: auto;
+  }
+
+  .gm-sidebar-actions {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+
+  .gm-map-area {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+
+/* ── GM map toolbar: scroll horizontally if needed ── */
+  /* GM map toolbar: scroll horizontally if needed */
+  .campaign-map-toolbar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  /* Player Campaign: panels go below map */
+  .player-workspace {
+    flex-direction: column;
+  }
+
+  .player-panels {
+    width: 100%;
+    max-height: 35vh;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+
+  /* Auth page: tighter padding */
+  .auth-page-hero {
+    padding: 1.5rem;
+  }
+
+  .auth-page-hero .brand-mark.large {
+    font-size: 1.4rem;
+  }
+
+  .auth-page-form {
+    padding: 1.25rem;
+  }
+
+  .two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ── Responsive: Mobile (< 600px) ── */
+/* ── Responsive: Mobile (< 600px) ───────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .lobby-header {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .lobby-header .brand-mark.compact {
+    font-size: 0.95rem;
+  }
+
+  .lobby-user-info > span:first-child {
+    display: none;
+  }
+
+  .lobby-hero svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .lobby-hero h2 {
+    font-size: 1.1rem;
+  }
+
+  .lobby-hero .muted {
+    font-size: 0.8rem;
+    max-width: 18rem;
+  }
+
+  .invite-input-row {
+    flex-direction: column;
+  }
+
+  .invite-input-row button {
+    width: 100%;
+  }
+
+  .personal-char-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+
+  .char-card-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .gm-campaign-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-sidebar {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .gm-campaign-item {
+    font-size: 0.78rem;
+  }
+
+  .player-workspace {
+    flex-direction: column;
+  }
+
+  .player-map-area {
+    flex: none;
+    height: 50vh;
+  }
+
+  .player-panels {
+    width: 100%;
+    max-height: 45vh;
+  }
+
+  .campaign-map-toolbar select {
+    min-width: 8rem;
+    font-size: 0.75rem;
+  }
+
+  .campaign-map-zoom button {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .auth-page-hero h1 {
+    font-size: 1.2rem;
+  }
+
+  .auth-page-form {
+    padding: 1rem;
+  }
+}
+

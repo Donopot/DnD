@@ -1,0 +1,736 @@
+/* map.css — auto-extracted from styles.css */
+
+/* ── Phase 9-1 map drag, snap and zoom ── */
+/* Phase 9-1 map drag, snap and zoom */
+
+
+
+
+
+
+
+.snap-toggle.active {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+
+
+
+
+
+.map-board {
+  transform-origin: top left;
+}
+
+.map-board.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.map-token {
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-token.dragging {
+  cursor: grabbing;
+  opacity: 0.82;
+}
+
+.map-token.selected {
+  z-index: 4;
+  outline: 3px solid #f5c542;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 4px var(--border-subtle),
+    0 12px 28px rgba(35, 48, 40, 0.34);
+}
+
+.token-row.selected {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  box-shadow: inset 4px 0 0 var(--accent-primary);
+}
+
+@media (max-width: 760px) {
+  .map-ux-toolbar {
+    display: grid;
+  }
+
+  .selected-token-card {
+    min-width: 0;
+  }
+}
+
+/* End Phase 9-1 map drag, snap and zoom */
+
+
+/* ── Phase 9-2 map pan ── */
+/* Phase 9-2 map pan */
+
+.pan-toggle,
+.reset-map-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font-weight: 900;
+}
+
+.pan-toggle.active {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+
+.map-scroll.pan-mode {
+  cursor: grab;
+}
+
+.map-scroll.panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.map-scroll.pan-mode .map-board {
+  cursor: grab;
+}
+
+.map-scroll.panning .map-board {
+  cursor: grabbing;
+}
+
+.map-scroll.pan-mode .map-token {
+  cursor: pointer;
+}
+
+/* End Phase 9-2 map pan */
+
+
+/* ── Phase 9-4 map keyboard shortcuts ── */
+/* Phase 9-4 map keyboard shortcuts */
+
+
+
+.keyboard-help summary::-webkit-details-marker {
+  display: none;
+}
+
+.keyboard-help[open] summary {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+
+
+
+
+@media (max-width: 760px) {
+  .keyboard-help {
+    min-width: 0;
+  }
+}
+
+/* End Phase 9-4 map keyboard shortcuts */
+
+
+/* ── Phase 9-5 map overview mini-map ── */
+/* Phase 9-5 map overview mini-map */
+
+
+
+
+
+
+
+
+
+.map-overview-token.selected {
+  width: 13px;
+  height: 13px;
+  border-color: #f5c542;
+  box-shadow:
+    0 0 0 3px rgba(245, 197, 66, 0.28),
+    0 4px 10px rgba(35, 48, 40, 0.34);
+}
+
+
+@media (max-width: 760px) {
+  .map-overview-map {
+    height: 96px;
+  }
+}
+
+/* End Phase 9-5 map overview mini-map */
+
+
+/* ── Phase 9-6 VTT usable layout ── */
+/* Phase 9-6 VTT usable layout */
+
+.workspace {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 16px 18px;
+}
+
+.detail-panel {
+  width: 100%;
+  max-width: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.map-board {
+  margin: 0;
+}
+
+
+
+
+
+
+
+.map-overview-token.selected {
+  width: 15px;
+  height: 15px;
+}
+
+.token-detail-panel {
+  position: relative;
+}
+
+.tool-card {
+  background: var(--bg-surface-secondary);
+}
+
+.tool-card summary {
+  min-height: 42px;
+}
+
+@media (min-width: 1500px) {
+  .vtt-layout {
+    grid-template-columns: minmax(900px, 1fr) 400px;
+  }
+
+  .session-workspace .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .map-scroll {
+    min-height: 700px;
+  }
+
+  .session-workspace .map-scroll {
+    min-height: 720px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .session-workspace,
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .vtt-control-panel,
+  .session-workspace .vtt-control-panel,
+  .session-side-zone {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 70vh;
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    padding: 10px;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 62vh;
+    min-height: 420px;
+  }
+
+  .map-ux-toolbar {
+    position: static;
+  }
+}
+
+.floating-toggle.active {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+
+
+
+
+.floating-widget-resize-handle:hover {
+  opacity: 1;
+}
+
+
+.floating-widget.token-detail-panel,
+.floating-widget.tool-card {
+  background: var(--bg-surface-elevated);
+}
+
+@media (max-width: 760px) {
+  .floating-widget {
+    left: 8px !important;
+    width: calc(100vw - 16px) !important;
+  }
+}
+
+/* End Phase 10-1 free UX panels */
+
+
+/* ── Fog of War (Phase 16) ── */
+/* ── Fog of War (Phase 16) ─────────────────────────────────────────── */
+
+.fog-layer-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.fog-canvas {
+  pointer-events: auto;
+}
+
+.fog-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.fog-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #d4cdb8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #5a4e3e;
+}
+
+.fog-toggle-btn.active {
+  background: #1b4332;
+  color: #f8f4e8;
+  border-color: #1b4332;
+}
+
+.fog-save-error {
+  position: absolute;
+  top: 48px;
+  right: 8px;
+  z-index: 20;
+  padding: 4px 8px;
+  border: 1px solid rgba(220, 60, 60, 0.55);
+  border-radius: 6px;
+  background: rgba(45, 18, 18, 0.92);
+  color: #ffd6d6;
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+
+
+/* ── Player: Map tab ── */
+/* ── Player: Map tab ────────────────────────────────────────────────────── */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Player tokens on map */
+
+
+/* ── CampaignMap: shared map component ── */
+/* ── CampaignMap: shared map component ──────────────────────────────────── */
+
+.campaign-map-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+}
+
+.campaign-map-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  height: 100%;
+  min-height: 20vh;
+  color: var(--text-weak);
+  text-align: center;
+  padding: var(--space-6);
+}
+
+.campaign-map-empty::before {
+  content: "🗺️";
+  font-size: 2.5rem;
+  margin-bottom: var(--space-2);
+  opacity: 0.6;
+}
+
+.campaign-map-empty .muted {
+  font-size: var(--text-lg);
+  color: var(--text-weak);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.campaign-map-empty .muted::after {
+  content: "Ajoute une carte pour commencer ta session.";
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--text-weak);
+  margin-top: var(--space-2);
+  opacity: 0.7;
+}
+
+.campaign-map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 44px;
+}
+
+.campaign-map-toolbar strong {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.campaign-map-toolbar select {
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-normal);
+  font-size: var(--text-sm);
+  min-width: 10rem;
+}
+
+.campaign-map-toolbar select:focus-visible {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+
+.campaign-map-zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.campaign-map-zoom button {
+  padding: 0.15rem 0.5rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-normal);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 1.5rem;
+  transition: all 0.15s;
+}
+
+.campaign-map-zoom button:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.campaign-map-zoom span {
+  font-size: var(--text-xs);
+  color: var(--text-weak);
+  min-width: 2.8rem;
+  text-align: center;
+}
+
+.campaign-map-grid-toggle,
+.campaign-map-pan-toggle {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-weak);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.campaign-map-grid-toggle:hover,
+.campaign-map-pan-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-normal);
+}
+
+.campaign-map-grid-toggle.active,
+.campaign-map-pan-toggle.active {
+  background: var(--bg-active);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+/* Map viewport */
+.campaign-map-viewport {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg-canvas);
+  cursor: default;
+}
+
+.campaign-map-viewport.pan-mode {
+  cursor: grab;
+}
+
+.campaign-map-viewport.panning {
+  cursor: grabbing;
+}
+
+/* Map surface (zoom wrapper) */
+.campaign-map-surface {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* Map board */
+.campaign-map-board {
+  position: relative;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  transform-origin: top left;
+}
+
+.campaign-map-board.with-background {
+  background-image: none;
+}
+
+.campaign-map-board.is-dragging {
+  cursor: grabbing;
+}
+
+/* Background image */
+.campaign-map-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Tokens on map */
+.campaign-map-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  z-index: 5;
+  padding: 0;
+}
+
+.campaign-map-token.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(197, 179, 88, 0.6);
+}
+
+.campaign-map-token.dragging {
+  cursor: grabbing;
+  opacity: 0.85;
+}
+
+
+/* ── AoE shape overlay ── */
+/* ── AoE shape overlay ──────────────────────────────────────────────────── */
+
+.map-tools-separator {
+  width: 70%;
+  height: 1px;
+  background: var(--scrollbar-thumb);
+  margin: 2px 0;
+}
+
+.aoe-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.aoe-size-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-weak);
+  cursor: pointer;
+  font-size: 0.55rem;
+}
+
+.aoe-size-btn:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.aoe-size-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  min-width: 30px;
+  text-align: center;
+}
+
+.aoe-shape {
+  pointer-events: none;
+}
+
+.aoe-sphere {
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--accent-dim) 0%,
+    rgba(214, 168, 79, 0.05) 70%,
+    transparent 100%
+  );
+  border: 1px solid var(--accent-glow);
+}
+
+.aoe-cube {
+  background: var(--accent-dim);
+  border: 1px dashed var(--accent-glow);
+}
+
+.aoe-line {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-dim) 20%,
+    var(--accent-dim) 50%,
+    var(--accent-dim) 80%,
+    transparent
+  );
+  border-top: 2px solid var(--accent-glow);
+  border-bottom: 2px solid var(--accent-glow);
+}
+
+
+/* ── Token condition badges ── */
+/* ── Token condition badges ─────────────────────────────────────────── */
+
+.token-conditions {
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  display: flex;
+  gap: 1px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.token-condition-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.token-condition-more {
+  font-size: 8px;
+  color: #ccc;
+  font-weight: bold;
+}
+
+
+/* ── AoE labels ── */
+/* ── AoE labels ────────────────────────────────────────────────────────── */
+
+.aoe-label {
+  position: absolute;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  background: var(--bg-surface);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+

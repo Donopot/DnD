@@ -1,0 +1,331 @@
+/* widgets.css — auto-extracted from styles.css */
+
+/* ── Phase 10-2A floating panel toolbar ── */
+/* Phase 10-2A floating panel toolbar */
+
+
+
+
+
+.floating-widget-toolbar-actions button:hover {
+  background: rgba(7, 11, 10, 0.22);
+}
+
+
+
+
+
+.floating-widget-collapsed > :not(.floating-widget-toolbar) {
+  display: none;
+}
+
+
+
+@media (max-width: 760px) {
+  .floating-widget-toolbar {
+    display: grid;
+  }
+
+  .floating-widget-toolbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* End Phase 10-2A floating panel toolbar */
+
+
+/* ── Phase 10-2E compact density and centered main map ── */
+/* Phase 10-2E compact density and centered main map */
+
+html {
+  font-size: 12px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+
+.sidebar {
+  width: 48px;
+  padding: 6px 4px;
+}
+
+.sidebar .brand-mark.compact {
+  transform: scale(0.82);
+}
+
+.sidebar .ghost-button {
+  min-height: 34px;
+  padding: 6px;
+}
+
+.workspace {
+  padding: 6px 8px;
+}
+
+.topbar {
+  min-height: 52px;
+  margin: -6px -8px 8px;
+  padding: 7px 12px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.72rem;
+}
+
+
+
+.detail-panel {
+  padding: 8px;
+}
+
+.campaign-view-tabs {
+  top: 50px;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 4px;
+}
+
+.campaign-view-tabs button {
+  min-height: 42px;
+  padding: 5px 7px;
+}
+
+.campaign-view-tabs strong {
+  font-size: 0.78rem;
+}
+
+.campaign-view-tabs small {
+  font-size: 0.64rem;
+}
+
+.section-heading {
+  margin-bottom: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.map-board {
+  margin: auto;
+}
+
+
+
+
+
+.token-detail-panel {
+  padding: 8px;
+}
+
+.tool-card summary {
+  min-height: 32px;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.tool-card > form,
+.tool-card > div {
+  padding: 8px;
+}
+
+
+
+
+
+
+
+
+.form-stack,
+.scene-form,
+.asset-form,
+.token-form {
+  gap: 7px;
+}
+
+input,
+textarea,
+select {
+  min-height: 28px;
+  padding: 5px 7px;
+  font-size: 0.78rem;
+}
+
+.primary-button,
+.ghost-button {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 185px);
+    min-height: 660px;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vtt-layout,
+  .session-workspace .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 68vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-2E compact density and centered main map */
+
+
+/* ── Phase 10-3B clean GM play/prepare/advanced modes ── */
+/* Phase 10-3B clean GM play/prepare/advanced modes */
+
+
+
+.gm-mode-switch button.active {
+  background: var(--brand-green);
+  color: var(--text-inverse);
+}
+
+
+
+.gm-mode-play .vtt-control-panel > .tool-card {
+  display: none;
+}
+
+.gm-mode-play .vtt-control-panel > .map-overview,
+.gm-mode-play .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+
+
+.gm-mode-prepare .vtt-control-panel > .tool-card,
+.gm-mode-prepare .vtt-control-panel > .map-overview,
+.gm-mode-prepare .vtt-control-panel > .token-detail-panel {
+  display: grid;
+}
+
+
+
+
+
+
+
+
+@media (max-width: 1250px) {
+  .gm-mode-play .vtt-layout,
+  .gm-mode-prepare .vtt-layout,
+  .gm-mode-advanced .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-mode-play .map-scroll,
+  .gm-mode-prepare .map-scroll,
+  .gm-mode-advanced .map-scroll {
+    height: 70vh;
+    min-height: 460px;
+  }
+}
+
+/* End Phase 10-3B clean GM play/prepare/advanced modes */
+
+
+/* ── Phase 10-3E final GM play cleanup ── */
+/* Phase 10-3E final GM play cleanup */
+
+.gm-mode-play .section-heading {
+  display: none;
+}
+
+
+
+.gm-mode-play .gm-cockpit-actions button:nth-child(3),
+.gm-mode-play .gm-cockpit-actions button:nth-child(5) {
+  display: none;
+}
+
+
+
+
+.gm-mode-play .vtt-control-panel > .tool-card,
+.gm-mode-play .vtt-control-panel > .token-detail-panel {
+  display: none;
+}
+
+
+
+
+
+
+
+
+
+
+.gm-mode-play .map-token {
+  font-size: 0.68rem;
+}
+
+
+
+
+
+@media (min-width: 1500px) {
+  .gm-mode-play .vtt-layout {
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+
+  .gm-mode-play .map-scroll,
+  .session-workspace .gm-mode-play .map-scroll {
+    height: calc(100vh - 168px);
+    min-height: 740px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .gm-mode-play .vtt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .gm-mode-play .map-scroll,
+  .session-workspace .gm-mode-play .map-scroll {
+    height: 72vh;
+    min-height: 460px;
+  }
+
+  .gm-mode-play .vtt-control-panel > .map-overview {
+    max-width: 320px;
+  }
+}
+
+/* End Phase 10-3E final GM play cleanup */
+

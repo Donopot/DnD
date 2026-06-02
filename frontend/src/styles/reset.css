@@ -1,0 +1,226 @@
+/* reset.css — auto-extracted from styles.css */
+
+/* ── Phase 10-2C floating panel presets ── */
+/* Phase 10-2C floating panel presets */
+
+
+
+
+.vtt-panels-menu-group:first-child button {
+  border-color: var(--accent-secondary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+/* End Phase 10-2C floating panel presets */
+
+
+/* ── Phase 10-2D compact VTT UI and usable presets ── */
+/* Phase 10-2D compact VTT UI and usable presets */
+
+html {
+  font-size: 14px;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+
+.sidebar {
+  padding: 10px 8px;
+}
+
+.workspace {
+  max-width: none;
+  padding: 10px 12px;
+}
+
+.topbar {
+  margin: -10px -12px 12px;
+  padding: 10px 16px;
+}
+
+.topbar h1 {
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+  line-height: 1;
+}
+
+.topbar p,
+.topbar small {
+  font-size: 0.78rem;
+}
+
+
+.panel,
+.detail-panel,
+.vtt-board-panel,
+.token-detail-panel,
+.map-overview,
+.tool-card {
+  border-radius: 12px;
+}
+
+.detail-panel {
+  padding: 12px;
+}
+
+.campaign-view-tabs {
+  top: 60px;
+  margin: 10px 0;
+  padding: 6px;
+}
+
+.campaign-view-tabs button {
+  min-height: 54px;
+  padding: 8px;
+}
+
+.section-heading {
+  margin-bottom: 8px;
+}
+
+.section-heading h3 {
+  font-size: 1rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.vtt-panels-menu-group .preset-button:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+}
+
+
+
+@media (min-width: 1300px) {
+  .workspace-grid {
+    grid-template-columns: minmax(220px, 280px) minmax(220px, 280px) minmax(0, 1fr);
+  }
+
+  .detail-panel {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 1500px) {
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: calc(100vh - 240px);
+    min-height: 620px;
+  }
+}
+
+@media (max-width: 900px) {
+  html {
+    font-size: 13px;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .map-scroll,
+  .session-workspace .map-scroll {
+    height: 66vh;
+    min-height: 420px;
+  }
+}
+
+/* End Phase 10-2D compact VTT UI and usable presets */
+
+
+/* ── Sprint 1 Lot 1 - persistent presets and custom GM layout ── */
+/* Sprint 1 Lot 1 - persistent presets and custom GM layout */
+
+
+.vtt-panels-menu[open] {
+  z-index: 7000;
+}
+
+.vtt-panels-menu[open] .vtt-panels-menu-content {
+  position: fixed;
+  top: 74px;
+  right: 18px;
+  z-index: 7000;
+  display: grid;
+  width: min(380px, calc(100vw - 36px));
+  max-height: calc(100vh - 110px);
+  overflow: auto;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--bg-surface-elevated);
+  box-shadow: var(--shadow-panel);
+  backdrop-filter: blur(12px);
+}
+
+
+
+.vtt-panels-preset-grid .preset-button:last-child {
+  grid-column: 1 / -1;
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+}
+
+
+
+
+.save-layout-button:hover:not(:disabled),
+.vtt-panels-preset-grid .preset-button:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+
+@media (max-width: 760px) {
+  .vtt-panels-menu[open] .vtt-panels-menu-content {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+
+  .vtt-panels-preset-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End Sprint 1 Lot 1 - persistent presets and custom GM layout */
+
+
+/* ── Stabilisation UI panneaux GM - reset centralisé ── */
+/* Stabilisation UI panneaux GM - reset centralisé */
+
+
+
+
+
+.vtt-panels-manager-footer .danger-lite:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: #f7d7d0;
+}
+
+
+/* End Stabilisation UI panneaux GM - reset centralisé */
+

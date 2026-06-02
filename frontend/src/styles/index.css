@@ -1,0 +1,12 @@
+/* DnD VTT — Design System (modular CSS) */
+/* Extracted from styles.css */
+
+@import "./tokens.css";
+@import "./reset.css";
+@import "./components.css";
+@import "./shell-gm.css";
+@import "./map.css";
+@import "./widgets.css";
+@import "./player.css";
+@import "./lobby-auth.css";
+@import "./responsive.css";

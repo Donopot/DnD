@@ -10,7 +10,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { type FormEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import "./styles.css";
+import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
 import { type CampaignView, CampaignViewTabs } from "./components/CampaignViewTabs";
