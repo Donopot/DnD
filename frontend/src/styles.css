@@ -79,6 +79,21 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text-strong);
+}
 
 button,
 input,
@@ -255,19 +270,23 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus,
-button:focus-visible {
-  outline: 3px solid rgba(47, 111, 78, 0.24);
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
+  transition: outline-color 0.15s ease;
 }
 
 .message {
   margin: 18px 0 0;
-  color: #8a3b12;
+  color: var(--warning);
   font-weight: 750;
 }
 
 .message.docked {
   position: fixed;
+  transition: opacity 0.3s ease;
   right: 24px;
   bottom: 24px;
   max-width: 360px;
@@ -1914,10 +1933,12 @@ input,
 textarea,
 select {
   border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .message.docked {
   position: fixed;
+  transition: opacity 0.3s ease;
   right: 24px;
   bottom: 24px;
   z-index: 50;
@@ -2680,6 +2701,7 @@ select {
   border-radius: 2px;
   cursor: nwse-resize;
   opacity: 0.8;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
 }
 
 .floating-widget-resize-handle:hover {
@@ -2750,6 +2772,7 @@ select {
   color: #fffdf7;
   font-size: 0.68rem;
   font-weight: 900;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .floating-widget-toolbar-actions button:hover {
@@ -2853,6 +2876,7 @@ select {
   font-size: 0.8rem;
   font-weight: 850;
   text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .vtt-panels-menu-content button:hover:not(:disabled) {
@@ -2920,6 +2944,7 @@ select {
 
 html {
   font-size: 14px;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -4137,6 +4162,7 @@ select {
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .floating-widget-dock-list button:hover {
@@ -4397,6 +4423,7 @@ select {
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .floating-widget-dock-list button:hover {
@@ -4704,6 +4731,7 @@ select {
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .floating-widget-dock-list button:hover {
@@ -5091,6 +5119,7 @@ select {
   font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .floating-widget-dock-list button:hover {
@@ -6577,6 +6606,10 @@ select {
   color: #6f4c11;
 }
 
+.quick-actions-panel-compact button {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
 .quick-actions-panel-compact button:hover {
   border-color: var(--brand-green);
   background: #ddf3df;
@@ -7390,6 +7423,12 @@ select {
   white-space: nowrap;
 }
 
+.gm-panel-button,
+.gm-panel-actions button,
+.gm-panel-content button {
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
 .gm-panel-button:hover:not(:disabled),
 .gm-panel-actions button:hover:not(:disabled),
 .gm-panel-content button:hover:not(:disabled) {
@@ -7550,6 +7589,10 @@ select {
   font-weight: 950;
 }
 
+.token-detail-nudge-grid button {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
 .token-detail-nudge-grid button:hover {
   border-color: var(--brand-green);
   background: #eef8ef;
@@ -7656,6 +7699,10 @@ select {
   color: #c0392b;
 }
 
+.handout-row-actions button.danger {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
 .handout-row-actions button.danger:hover {
   background: #fdecea;
   border-color: #c0392b;
@@ -7744,6 +7791,10 @@ select {
   transition: all 0.15s;
 }
 
+.player-tab-btn {
+  transition: all 0.15s ease;
+}
+
 .player-tab-btn:hover {
   color: #1b4332;
   background: #f3f1ea;
@@ -7797,6 +7848,10 @@ select {
   color: #161b18;
   border-left: 3px solid transparent;
   transition: background 0.12s;
+}
+
+.player-char-row {
+  transition: background 0.15s ease;
 }
 
 .player-char-row:hover {
@@ -7886,6 +7941,10 @@ select {
   color: #2d6a4f;
   cursor: pointer;
   transition: all 0.12s;
+}
+
+.quick-roll-btn {
+  transition: all 0.15s ease;
 }
 
 .quick-roll-btn:hover {
@@ -8499,6 +8558,10 @@ select {
   color: #6b5e4b;
 }
 
+.pin-btn {
+  transition: all 0.15s ease;
+}
+
 .pin-btn:hover {
   color: #f59e0b;
 }
@@ -8574,6 +8637,10 @@ select {
   color: #5a4e3e;
   cursor: pointer;
 }
+.import-label {
+  transition: all 0.15s ease;
+}
+
 .import-label:hover {
   background: #f3f1ea;
 }
@@ -8615,6 +8682,10 @@ select {
   margin-bottom: 2px;
   border-radius: 3px;
 }
+.homebrew-row {
+  transition: background 0.15s ease;
+}
+
 .homebrew-row:hover {
   background: #f3f1ea;
 }
@@ -10303,6 +10374,10 @@ select {
   transition: all 0.15s;
 }
 
+.player-tab-btn {
+  transition: all 0.15s ease;
+}
+
 .player-tab-btn:hover {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.03);
@@ -10452,7 +10527,11 @@ select {
   font-size: 0.82rem;
 }
 
-.player-panels .player-char-row:hover {
+.player-panels .player-char-row {
+  transition: background 0.15s ease;
+}
+
+.player-char-row:hover {
   background: var(--bg-hover);
 }
 
