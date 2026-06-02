@@ -40,6 +40,20 @@ Dernière mise à jour : 2026-06-01
 | 32 | ⚡ Macros et barre d'actions rapides | 2026-06 |
 | 33 | 📊 Statistiques de session | 2026-06 |
 
+## 🔧 En cours — Améliorations UX (audit 2026-06-01)
+
+> 📄 Détail complet : [`docs/frontend-improvement-plan.md`](./frontend-improvement-plan.md)
+
+| Phase | Titre | Priorité | Tâches | Estimé |
+|-------|-------|----------|--------|--------|
+| 34 | 🔴 Correctifs critiques | Bloquant | Fix fond joueur, centrage carte, focus map, resize handles | 2h |
+| 35 | 🟠 Panneaux flottants | Majeur | FloatingPanel system, Combat/Dés flottants, drag-and-drop | 4h |
+| 36 | 🟠 Interface joueur refondue | Majeur | Onglets, dés améliorés, outils map joueurs, notifications | 3h |
+| 37 | 🟡 Carte immersive | Modéré | Minimap, raccourcis, snap visuel, états tokens, transitions | 3h |
+| 38 | 🟢 Polish & DX | Cosmetique | Markdown handouts, dark/light, CSS split, skeletons, toasts | 2h |
+
+**Total restant : ~14h**
+
 ## Métriques finales
 
 - **Backend** : 102 endpoints, 13 routeurs, 19 migrations, 64 schémas, 49 tests

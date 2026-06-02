@@ -4,6 +4,19 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Audit UX + Plan d'amélioration] — Revue exhaustive frontend (2026-06-01)
+
+### Added
+- `docs/frontend-improvement-plan.md` — audit complet 45 composants + 11 855 lignes CSS
+- **5 problèmes critiques identifiés** : fond de carte joueur cassé (bug), pas de mode focus map, pas de panneaux flottants, pas de resize, joueur pas d'onglets
+- **7 problèmes majeurs** : thème figé, outils map inaccessibles joueurs, message dock minimal, pas de raccourcis clavier, pas de minimap
+- **Plan d'amélioration 5 phases** : 16 tâches priorisées, ~14h estimées
+
+### Fixed
+- Aucun correctif dans ce commit — le document liste les actions à venir
+
+---
+
 ## [Phase 33] — Statistiques de session (2026-06-01)
 
 ### Added
