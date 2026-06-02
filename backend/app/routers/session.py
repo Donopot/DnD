@@ -233,7 +233,8 @@ async def create_session_marker(
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
     row = await get_pool().fetchrow(
         """
-        insert into game_log_entries (campaign_id, user_id, entry_type, visibility, message, payload, pinned, session_marker)
+        insert into game_log_entries
+          (campaign_id, user_id, entry_type, visibility, message, payload, pinned, session_marker)
         values ($1, $2, 'note', 'gm', $3, '{}'::jsonb, true, true)
         returning *
         """,

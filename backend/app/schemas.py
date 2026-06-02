@@ -500,7 +500,9 @@ class HomebrewCreatureCreateRequest(BaseModel):
     armor_class: int = Field(default=10, ge=1, le=40)
     hp_max: int = Field(default=1, ge=1)
     speed: int = Field(default=30, ge=0, le=200)
-    attributes: dict[str, int] = Field(default_factory=lambda: {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10})
+    attributes: dict[str, int] = Field(
+        default_factory=lambda: {"str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10}
+    )
     attacks: list[dict[str, Any]] = Field(default_factory=list)
     spells: list[dict[str, Any]] = Field(default_factory=list)
     size: str = Field(default="medium", pattern="^(tiny|small|medium|large|huge|gargantuan)$")

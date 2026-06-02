@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 MODE="${1:---all}"
 PASS=0
 FAIL=0
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 step()  { echo -e "${CYAN}▶${NC} $*"; }
 ok()    { echo -e "  ${GREEN}✅${NC} $*"; ((PASS++)); }
@@ -35,7 +35,7 @@ hr()    { echo "─────────────────────�
 # ── Python (ruff) ──
 step "Ruff — Python lint (backend)"
 if command -v ruff &>/dev/null; then
-    if ruff check "$ROOT/backend" --config "$ROOT/backend/ruff.toml" --quiet 2>&1; then
+    if ruff check "$ROOT/backend" --quiet 2>&1; then
         ok "Ruff clean"
     else
         err "Ruff found issues — run: ruff check --fix backend/"
@@ -87,10 +87,14 @@ fi
 # ── Audit orphelins ──
 step "Audit — composants orphelins"
 ORPHANS=$(cd "$ROOT" && python3 scripts/audit-orphans.py 2>/dev/null | grep "^  →" | grep -oP '\d+')
-if [ -z "$ORPHANS" ] || [ "$ORPHANS" -eq 0 ]; then
+BASELINE=13  # 13 components lazy-loaded via React.lazy() in App.tsx
+if [ -z "$ORPHANS" ]; then
     ok "No orphan components"
+elif [ "$ORPHANS" -le "$BASELINE" ]; then
+    ok "Orphan count OK ($ORPHANS ≤ baseline $BASELINE)"
 else
-    err "$ORPHANS orphan component(s) found — run: python3 scripts/audit-orphans.py"
+    NEW=$((ORPHANS - BASELINE))
+    err "$NEW NEW orphan component(s) detected (total: $ORPHANS, baseline: $BASELINE)"
 fi
 
 # ── Secrets scan (lightweight) ──

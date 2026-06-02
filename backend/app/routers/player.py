@@ -1,3 +1,4 @@
+from contextlib import suppress
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -21,17 +22,23 @@ def _player_role() -> set[str]:
 
 
 # --- Audit helper (non-blocking, best-effort) ---
-async def _audit(campaign_id: UUID, user_id: UUID, resource_type: str, resource_id: UUID | None, action: str, granted: bool, role: str) -> None:
-    try:
+async def _audit(
+    campaign_id: UUID,
+    user_id: UUID,
+    resource_type: str,
+    resource_id: UUID | None,
+    action: str,
+    granted: bool,
+    role: str,
+) -> None:
+    with suppress(Exception):
         await get_pool().execute(
             """
             insert into permission_audit (campaign_id, user_id, resource_type, resource_id, action, granted, role)
             values ($1,$2,$3,$4,$5,$6,$7)
             """,
             campaign_id, user_id, resource_type, resource_id, action, granted, role,
-        )
-    except Exception:
-        pass  # audit failure must never break real functionality
+        )  # audit failure must never break real functionality
 
 
 # ============================================================

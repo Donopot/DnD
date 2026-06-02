@@ -60,8 +60,16 @@ async def list_creatures(campaign_id: UUID, current_user=Depends(get_current_use
     return [creature_public(r) for r in rows]
 
 
-@router.post("/campaigns/{campaign_id}/homebrew/creatures", response_model=HomebrewCreaturePublic, status_code=201)
-async def create_creature(campaign_id: UUID, payload: HomebrewCreatureCreateRequest, current_user=Depends(get_current_user)):
+@router.post(
+    "/campaigns/{campaign_id}/homebrew/creatures",
+    response_model=HomebrewCreaturePublic,
+    status_code=201,
+)
+async def create_creature(
+    campaign_id: UUID,
+    payload: HomebrewCreatureCreateRequest,
+    current_user=Depends(get_current_user),
+):
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
     row = await get_pool().fetchrow(
         """
@@ -85,8 +93,15 @@ async def get_creature(creature_id: UUID, current_user=Depends(get_current_user)
     return creature_public(c)
 
 
-@router.patch("/homebrew/creatures/{creature_id}", response_model=HomebrewCreaturePublic)
-async def update_creature(creature_id: UUID, payload: HomebrewCreatureUpdateRequest, current_user=Depends(get_current_user)):
+@router.patch(
+    "/homebrew/creatures/{creature_id}",
+    response_model=HomebrewCreaturePublic,
+)
+async def update_creature(
+    creature_id: UUID,
+    payload: HomebrewCreatureUpdateRequest,
+    current_user=Depends(get_current_user),
+):
     existing = await get_creature_or_404(creature_id)
     await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
     cur = dict(existing)
@@ -135,7 +150,11 @@ async def creature_to_token(creature_id: UUID, payload: CreatureToTokenRequest, 
 
 
 @router.post("/homebrew/creatures/{creature_id}/to-combatant")
-async def creature_to_combatant(creature_id: UUID, payload: CreatureToCombatantRequest, current_user=Depends(get_current_user)):
+async def creature_to_combatant(
+    creature_id: UUID,
+    payload: CreatureToCombatantRequest,
+    current_user=Depends(get_current_user),
+):
     c = await get_creature_or_404(creature_id)
     await require_campaign_role(c["campaign_id"], current_user["id"], {"gm", "co_gm"})
 

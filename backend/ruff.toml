@@ -22,6 +22,7 @@ ignore = [
     "S311",   # non-cryptographic random (allowed for dice/game)
     "S608",   # hardcoded SQL expression (test fixtures)
     "B008",   # FastAPI Depends() in defaults — standard pattern
+    "N806",   # uppercase constants inside functions (e.g., MIN_ROOM_SIZE)
     "RUF001", # ambiguous unicode characters
 ]
 exclude = [

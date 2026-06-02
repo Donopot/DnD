@@ -96,7 +96,10 @@ async def get_creature_summary(creature_id: str, _user=Depends(get_current_user)
     """Returns a compact summary: name, type, CR, AC, HP, speed, stats."""
     from uuid import UUID
     row = await get_pool().fetchrow(
-        "SELECT id, name, type, size, cr, ac, hp, hp_avg, speed, str, dex, con, int, wis, cha FROM bestiary WHERE id = $1",
+        (
+            "SELECT id, name, type, size, cr, ac, hp, hp_avg, "
+            "speed, str, dex, con, int, wis, cha FROM bestiary WHERE id = $1"
+        ),
         UUID(creature_id),
     )
     if row is None:

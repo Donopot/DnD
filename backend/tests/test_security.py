@@ -1,7 +1,9 @@
 """Unit tests for security utilities and auth schema validation.
 
 Requires env vars to be set before import — see conftest.py or run with:
-  backend_secret_key=test database_url=x redis_url=x minio_endpoint=x minio_bucket=x minio_access_key=x minio_secret_key=x pytest tests/
+  backend_secret_key=test database_url=x redis_url=x \
+  minio_endpoint=x minio_bucket=x minio_access_key=x \
+  minio_secret_key=x pytest tests/
 """
 
 import os

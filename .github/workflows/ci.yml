@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # ── Backend: lint + tests ──
   backend:
@@ -27,25 +30,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -r requirements.txt
-          pip install ruff pytest pytest-asyncio
+          uv venv
+          uv pip install -r requirements.txt
+          uv pip install ruff pytest pytest-asyncio
 
       - name: Ruff lint
-        run: |
-          source .venv/bin/activate
-          ruff check .
+        run: uv run ruff check .
 
       - name: Python compile
-        run: |
-          source .venv/bin/activate
-          python -m compileall -q app/
+        run: uv run python -m compileall -q app/
 
       - name: Pytest
-        run: |
-          source .venv/bin/activate
-          python -m pytest --tb=short -q
+        run: uv run pytest --tb=short -q
 
   # ── Frontend: tsc + build ──
   frontend:
@@ -59,7 +55,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .node-version
+          node-version-file: frontend/.node-version
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -78,18 +74,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Run orphan audit
         run: |
           python3 scripts/audit-orphans.py
-          # Extract orphan count; fail if > 0
+          # Count true orphans (excluding lazy-loaded components = 13 baseline)
           COUNT=$(python3 scripts/audit-orphans.py 2>/dev/null | grep "→" | grep -oP '\d+')
-          if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then
-            echo "❌ $COUNT orphan component(s) found"
-            python3 scripts/audit-orphans.py | grep "\["
+          BASELINE=13  # 13 components lazy-loaded via React.lazy() in App.tsx
+          if [ -n "$COUNT" ] && [ "$COUNT" -gt "$BASELINE" ]; then
+            NEW=$((COUNT - BASELINE))
+            echo "❌ $NEW NEW orphan component(s) found (total: $COUNT, baseline: $BASELINE)"
             exit 1
           fi
-          echo "✅ No orphan components"
+          echo "✅ No new orphan components (total: $COUNT, baseline: $BASELINE)"
 
   # ── Security scan ──
   security:

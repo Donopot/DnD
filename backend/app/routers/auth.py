@@ -95,9 +95,9 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
         except UniqueViolationError as exc:
             raise HTTPException(status_code=409, detail="Cet email est déjà utilisé") from exc
         except ForeignKeyViolationError:
-            raise HTTPException(status_code=410, detail="La campagne n'existe plus ou a été supprimée")
+            raise HTTPException(status_code=410, detail="La campagne n'existe plus ou a été supprimée") from None
         except Exception:
-            raise HTTPException(status_code=500, detail="Erreur interne lors de l'inscription")
+            raise HTTPException(status_code=500, detail="Erreur interne lors de l'inscription") from None
 
         # Auto-join campaign for player registration
         if campaign_id is not None:

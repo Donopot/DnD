@@ -240,7 +240,11 @@ async def get_encounter(
     return EncounterDetailPublic(**base.model_dump(), combatants=combatants)
 
 
-@router.post("/encounters/{encounter_id}/combatants", response_model=CombatantPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/encounters/{encounter_id}/combatants",
+    response_model=CombatantPublic,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_combatant(
     encounter_id: UUID,
     payload: CombatantCreateRequest,
@@ -583,7 +587,11 @@ async def get_combat_log(
     return [CombatLogEntryPublic(**dict(row)) for row in rows]
 
 
-@router.post("/scenes/{scene_id}/encounters/from-scene", response_model=EncounterDetailPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/scenes/{scene_id}/encounters/from-scene",
+    response_model=EncounterDetailPublic,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_encounter_from_scene(
     scene_id: UUID,
     payload: EncounterFromSceneRequest,
