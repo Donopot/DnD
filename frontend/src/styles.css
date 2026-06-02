@@ -1,37 +1,88 @@
+/* ================================================================
+   DESIGN SYSTEM — DnD Virtual Tabletop
+   Direction: Dark fantasy premium, sobre, lisible, immersive
+   Ref: Issue #4 — Plan détaillé d'amélioration UI VTT / MJ
+   ================================================================ */
+
 :root {
-  /* Dark theme (default) */
-  --bg-primary: #0f1923;
-  --bg-secondary: rgba(15, 25, 20, 0.95);
-  --bg-surface: #1a2a24;
-  --bg-card: #1a2a24;
-  --bg-input: #1c2420;
-  --bg-hover: var(--bg-hover);
-  --bg-active: var(--brand-green-dim);
-  --bg-tooltip: #2a3028;
-  --bg-modal: #1a2a24;
-  --text-primary: #e0dcc8;
-  --text-secondary: #c0c0a0;
-  --text-tertiary: #a0a890;
-  --text-muted: #6a7a6e;
-  --text-brand: #f0ede0;
-  --text-inverse: #1a1a1a;
-  --border-color: var(--border-color);
-  --border-hover: #3a4a3e;
-  --border-light: rgba(255, 255, 255, 0.08);
-  --accent: #c5b358;
-  --accent-dim: var(--accent-dim);
-  --accent-glow: var(--accent-glow);
-  --brand-green: #1f5f43;
-  --brand-green-dim: var(--brand-green-dim);
-  --danger: #e06060;
-  --danger-dim: rgba(224, 96, 96, 0.15);
-  --success: #22c55e;
-  --success-dim: rgba(34, 197, 94, 0.15);
-  --scrollbar-thumb: #3a4a3e;
+  /* ── Palette (dark theme default) ─────────────────────────── */
+  --bg-global: #070B0A;           /* Fond principal de l'application */
+  --bg-canvas: #0B0F17;           /* Zone de jeu / scène */
+  --bg-surface: #101816;          /* Sidebars, panneaux principaux */
+  --bg-surface-secondary: #16231F;/* Cartes, onglets, blocs */
+  --bg-surface-elevated: #1D2B26; /* Panels ouverts, menus, modales */
+  --border-subtle: #2B3A34;       /* Séparation légère */
+  --border-active: #D6A84F;       /* Élément sélectionné (or) */
+  --accent-primary: #D6A84F;      /* Or — premium, actif, important */
+  --accent-secondary: #3FBF8F;    /* Vert — succès, online, positif */
+  --text-strong: #F4EFE3;         /* Titres et texte principal */
+  --text-normal: #D7D0C2;         /* Contenu courant */
+  --text-weak: #9CA89F;           /* Labels, descriptions */
+  --danger: #D66A5E;              /* Erreurs, suppression */
+  --warning: #E0B45C;             /* Avertissements */
+  --success: #69C98F;             /* Confirmations */
+
+  /* ── Alias pour compatibilité avec l'existant ────────────── */
+  --bg-primary: var(--bg-global);
+  --bg-secondary: var(--bg-surface);
+  --bg-card: var(--bg-surface-secondary);
+  --bg-input: var(--bg-surface-elevated);
+  --bg-hover: rgba(214, 168, 79, 0.08);
+  --bg-active: rgba(214, 168, 79, 0.15);
+  --bg-tooltip: var(--bg-surface-elevated);
+  --bg-modal: var(--bg-surface-elevated);
+  --text-primary: var(--text-strong);
+  --text-secondary: var(--text-normal);
+  --text-tertiary: var(--text-weak);
+  --text-muted: var(--text-weak);
+  --text-brand: var(--accent-primary);
+  --text-inverse: #070B0A;
+  --border-color: var(--border-subtle);
+  --border-hover: var(--border-active);
+  --border-light: rgba(255, 255, 255, 0.06);
+  --accent: var(--accent-primary);
+  --accent-dim: rgba(214, 168, 79, 0.12);
+  --accent-glow: rgba(214, 168, 79, 0.25);
+  --brand-green: var(--accent-secondary);
+  --brand-green-dim: rgba(63, 191, 143, 0.12);
+  --danger-dim: rgba(214, 106, 94, 0.15);
+  --success-dim: rgba(105, 201, 143, 0.15);
+
+  /* ── Espacements ─────────────────────────────────────────── */
+  --space-1: 4px;                  /* micro-écarts */
+  --space-2: 8px;                  /* boutons compacts */
+  --space-3: 12px;                 /* intérieur de cartes */
+  --space-4: 16px;                 /* padding standard */
+  --space-5: 20px;                 /* panels importants */
+  --space-6: 24px;                 /* sections majeures */
+
+  /* ── Arrondis ────────────────────────────────────────────── */
+  --radius-sm: 6px;                /* boutons compacts */
+  --radius-md: 10px;               /* inputs, tabs */
+  --radius-lg: 14px;               /* panels */
+  --radius-xl: 18px;               /* modales / cartes principales */
+
+  /* ── Ombres ──────────────────────────────────────────────── */
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --shadow-glow-gold: 0 0 0 1px rgba(214, 168, 79, 0.35),
+                      0 0 24px rgba(214, 168, 79, 0.08);
+
+  /* ── Typographie ─────────────────────────────────────────── */
+  --text-xs: 11px;                 /* métadonnées, hints */
+  --text-sm: 12px;                 /* labels, descriptions */
+  --text-md: 14px;                 /* texte courant UI */
+  --text-lg: 16px;                 /* titres de panel */
+  --text-xl: 20px;                 /* titre de scène / section */
+  --text-2xl: 24px;                /* titre de page / campagne */
+
+  /* ── Scrollbar ───────────────────────────────────────────── */
+  --scrollbar-thumb: var(--border-subtle);
   --scrollbar-track: transparent;
 
+  /* ── Global defaults ─────────────────────────────────────── */
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background: var(--bg-global);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -39,35 +90,52 @@
 }
 
 [data-theme="light"] {
-  --bg-primary: #f3f1ea;
-  --bg-secondary: rgba(250, 249, 245, 0.95);
+  --bg-global: #faf9f5;
+  --bg-canvas: #f0ede5;
   --bg-surface: #ffffff;
-  --bg-card: #faf9f5;
-  --bg-input: #f0ede5;
+  --bg-surface-secondary: #f5f3ed;
+  --bg-surface-elevated: #ffffff;
+  --border-subtle: #e0ddd5;
+  --border-active: #b8860b;
+  --accent-primary: #b8860b;
+  --accent-secondary: #1f5f43;
+  --text-strong: #1a1a1a;
+  --text-normal: #444444;
+  --text-weak: #888888;
+  --danger: #c0392b;
+  --warning: #b8860b;
+  --success: #16a34a;
+
+  /* Re-cascade aliases for light theme */
+  --bg-primary: var(--bg-global);
+  --bg-secondary: var(--bg-surface);
+  --bg-card: var(--bg-surface-secondary);
+  --bg-input: var(--bg-surface-secondary);
   --bg-hover: rgba(0, 0, 0, 0.04);
-  --bg-active: var(--brand-green-dim);
+  --bg-active: rgba(184, 134, 11, 0.1);
   --bg-tooltip: #2a2a2a;
   --bg-modal: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #444444;
-  --text-tertiary: #666666;
-  --text-muted: #888888;
-  --text-brand: #1f5f43;
+  --text-primary: var(--text-strong);
+  --text-secondary: var(--text-normal);
+  --text-tertiary: var(--text-weak);
+  --text-muted: var(--text-weak);
+  --text-brand: var(--accent-primary);
   --text-inverse: #f0ede0;
-  --border-color: #e0ddd5;
+  --border-color: var(--border-subtle);
   --border-hover: #ccc8be;
   --border-light: rgba(0, 0, 0, 0.06);
-  --accent: #b8860b;
+  --accent: var(--accent-primary);
   --accent-dim: rgba(184, 134, 11, 0.12);
   --accent-glow: rgba(184, 134, 11, 0.2);
-  --brand-green: #1f5f43;
-  --brand-green-dim: var(--brand-green-dim);
-  --danger: #c0392b;
+  --brand-green: var(--accent-secondary);
+  --brand-green-dim: rgba(31, 95, 67, 0.12);
   --danger-dim: rgba(192, 57, 43, 0.1);
-  --success: #16a34a;
   --success-dim: rgba(22, 163, 74, 0.1);
   --scrollbar-thumb: #ccc8be;
   --scrollbar-track: transparent;
+
+  color: var(--text-primary);
+  background: var(--bg-global);
 }
 
 * {
@@ -9172,7 +9240,7 @@ select {
 .auth-page-shell {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f1923 0%, #1a2a1a 100%);
+  background: linear-gradient(135deg, var(--bg-global) 0%, var(--bg-surface) 100%);
 }
 
 .auth-page-hero {
@@ -9478,7 +9546,7 @@ select {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f1923 0%, #1a2a1a 100%);
+  background: linear-gradient(135deg, var(--bg-global) 0%, var(--bg-surface) 100%);
 }
 
 .lobby-header {
@@ -9953,7 +10021,7 @@ select {
   align-items: center;
   justify-content: space-between;
   padding: 0.4rem 0.75rem;
-  background: rgba(20, 28, 24, 0.95);
+  background: var(--bg-surface);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   gap: 0.75rem;
@@ -9973,16 +10041,16 @@ select {
 .session-live-mode-buttons.compact button {
   padding: 0.2rem 0.55rem;
   font-size: 0.72rem;
-  background: #2a3a2e;
-  border: 1px solid #3a4a3e;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #8a9a8e;
+  color: var(--text-weak);
   cursor: pointer;
   font-weight: 600;
 }
 
 .session-live-mode-buttons.compact button.active {
-  background: #1b4332;
+  background: var(--bg-active);
   color: var(--accent);
   border-color: var(--accent);
 }
@@ -9993,10 +10061,10 @@ select {
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: #2a3a2e;
-  border: 1px solid #3a4a3e;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #8a9a8e;
+  color: var(--text-weak);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
@@ -10073,10 +10141,10 @@ select {
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: #2a3a2e;
-  border: 1px solid #3a4a3e;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #8a9a8e;
+  color: var(--text-weak);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
@@ -10088,7 +10156,7 @@ select {
 }
 
 .gm-panels-toggle.active {
-  background: #1b4332;
+  background: var(--bg-active);
   color: var(--accent);
   border-color: var(--accent);
 }
@@ -10098,9 +10166,9 @@ select {
 .floating-panel {
   position: fixed;
   background: var(--bg-surface);
-  border: 1px solid #3a4a3e;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-panel);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -10125,8 +10193,8 @@ select {
   align-items: center;
   gap: 0.5rem;
   padding: 0.45rem 0.6rem;
-  background: #223328;
-  border-bottom: 1px solid #3a4a3e;
+  background: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-color);
   cursor: grab;
   flex-shrink: 0;
 }
@@ -10136,7 +10204,7 @@ select {
 }
 
 .drag-handle-icon {
-  color: #5a6a5e;
+  color: var(--text-weak);
   flex-shrink: 0;
 }
 
@@ -13404,9 +13472,9 @@ select {
 .campaign-view-tabs button {
   background: transparent;
   border: 1px solid transparent;
-  color: #889988;
+  color: var(--text-weak);
   padding: 0.35rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.8rem;
   text-align: left;
@@ -13423,26 +13491,26 @@ select {
 
 .campaign-view-tabs button small {
   font-size: 0.65rem;
-  color: #667766;
+  color: var(--text-weak);
 }
 
 .campaign-view-tabs button:hover {
   background: var(--bg-hover);
-  border-color: #3a4a3e;
+  border-color: var(--border-hover);
 }
 
 .campaign-view-tabs button.active {
-  background: rgba(90, 160, 110, 0.15);
-  border-color: #5aa06e;
-  color: #c0e0c0;
+  background: var(--bg-active);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .campaign-view-tabs button.active strong {
-  color: #c0e0c0;
+  color: var(--accent-primary);
 }
 
 .campaign-view-tabs button.active small {
-  color: #88a888;
+  color: var(--text-normal);
 }
 
 /* ── Campaign overview in panels ────────────────────────── */
