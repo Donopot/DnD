@@ -106,6 +106,7 @@ import type {
   SceneToken,
   User,
 } from "./api/types";
+import { apiRequest } from "./api/client";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 const TOKEN_STORAGE_KEY = "dnd_access_token";
@@ -292,39 +293,7 @@ export default function App() {
   }, [token, selectedCampaign?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 12_000);
-    let response: Response;
-
-    try {
-      response = await fetch(`${API_BASE}${path}`, {
-        ...options,
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...options.headers,
-        },
-      });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new Error("Le serveur ne répond pas. Réessaie dans quelques secondes.");
-      }
-      throw error;
-    } finally {
-      window.clearTimeout(timeout);
-    }
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({ detail: "Request failed" }));
-      throw new Error(body.detail ?? "Request failed");
-    }
-
-    if (response.status === 204) {
-      return undefined as T;
-    }
-
-    return response.json() as Promise<T>;
+    return apiRequest<T>(path, token, options);
   }
 
   async function bootstrap(activeToken: string) {
