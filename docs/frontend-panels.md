@@ -1,6 +1,6 @@
 # Documentation des panneaux GM
 
-> Généré le 2026-06-02 — PANEL-1 : Registre unique `gmPanels.ts`
+> Généré le 2026-06-02 — PANEL-1 → PANEL-4
 
 ## Registre unique
 
@@ -25,10 +25,10 @@ Tout panneau doit y être déclaré avec :
 | `dice-roller` | 🎲 Lancer de dés | active |
 | `quick-actions` | ⚡ Actions rapides | active |
 | `gm-messages` | 💬 Communication | active |
-| `gm-notes` | 📝 Notes MJ | planned |
-| `initiative` | ⏱️ Initiative | planned |
-| `token-detail` | 🔍 Détail token | planned |
-| `visibility-inspector` | 👁️ Visibilité | planned |
+| `gm-notes` | 📝 Notes MJ | active |
+| `initiative` | ⏱️ Initiative | active |
+| `token-detail` | 🔍 Détail token | active |
+| `visibility-inspector` | 👁️ Visibilité | active |
 | `ambiance` | 🎵 Ambiance | planned |
 | `chat` | 💭 Chat en direct | planned |
 
@@ -64,7 +64,7 @@ Tout panneau doit y être déclaré avec :
 | ID | Label | Statut |
 |----|-------|--------|
 | `characters` | 👤 Personnages | active |
-| `party-summary` | 📊 Résumé du groupe | planned |
+| `party-summary` | 📊 Résumé du groupe | active |
 
 ### Onglet Campagne (`campaign`)
 
@@ -76,25 +76,27 @@ Tout panneau doit y être déclaré avec :
 
 | Ancien (App.tsx) | Nouveau (gmPanels.ts) | Migré ? |
 |-------------------|------------------------|---------|
-| `quickactions` | `quick-actions` | PANEL-2 |
-| `sessionlog` | `session-log` | PANEL-2 |
-| `dice` | `dice-roller` | PANEL-2 |
-| `encounter` | `encounter-builder` | PANEL-2 |
-| `messages` | `gm-messages` | PANEL-2 |
-| `dungeon` | `dungeon-generator` | PANEL-2 |
-| `stats` | `session-stats` | PANEL-2 |
+| `quickactions` | `quick-actions` | ✅ PANEL-2 |
+| `sessionlog` | `session-log` | ✅ PANEL-2 |
+| `dice` | `dice-roller` | ✅ PANEL-2 |
+| `encounter` | `encounter-builder` | ✅ PANEL-2 |
+| `messages` | `gm-messages` | ✅ PANEL-2 |
+| `dungeon` | `dungeon-generator` | ✅ PANEL-2 |
+| `stats` | `session-stats` | ✅ PANEL-2 |
 
 ## Modes de session live
 
-Définis dans `gmPanels.ts` (ex `sessionLiveModes.ts`) :
+Définis dans `frontend/src/config/sessionLiveModes.ts` (source unique).
 
-| Mode | Description |
-|------|-------------|
-| `exploration` | Carte + contexte + notes |
-| `combat` | Initiative + token + actions |
-| `roleplay` | PNJ, relations, secrets |
-| `quick-prep` | Créer/ajuster une scène |
-| `minimal` | Carte dominante, panneaux réduits |
+Chaque mode filtre les panneaux visibles dans la sidebar via `SESSION_LIVE_PANEL_SETS` :
+
+| Mode | Panneaux visibles | Description |
+|------|-------------------|-------------|
+| `exploration` | 21 panneaux | Tous les panneaux actifs |
+| `combat` | 13 panneaux | Combat, initiative, dés, actions, visibilité |
+| `roleplay` | 13 panneaux | Notes, messages, handouts, personnages |
+| `quick-prep` | 14 panneaux | Donjons, bestiaire, sorts, équipement |
+| `minimal` | 6 panneaux | Combat, dés, token, journal, messages |
 
 ## Script de vérification
 
@@ -111,10 +113,10 @@ Vérifie :
 
 ## Roadmap
 
-| Sprint | Objectif |
-|--------|----------|
-| PANEL-1 ✅ | Registre unique + check script + doc |
-| PANEL-2 | Normalisation des IDs dans App.tsx |
-| PANEL-3 | Réintégration panneaux planned |
-| PANEL-4 | Branchement modes Session Live |
-| PANEL-5 | Nettoyage legacy (useFloatingWidgets, VttBoard) |
+| Sprint | Objectif | Statut |
+|--------|----------|--------|
+| PANEL-1 | Registre unique + check script + doc | ✅ |
+| PANEL-2 | Normalisation des IDs dans App.tsx (7 mappings) | ✅ |
+| PANEL-3 | Réintégration 5 panneaux planned → active | ✅ |
+| PANEL-4 | Branchement modes Session Live (21 filtres) | ✅ |
+| PANEL-5 | Nettoyage legacy (useFloatingWidgets, VttBoard, 11 refs) | ⏳ |
