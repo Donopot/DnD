@@ -1,4 +1,6 @@
 import json
+import logging
+import time
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -8,6 +10,23 @@ from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
+
+logger = logging.getLogger(__name__)
+
+# Rate limiting per WebSocket connection
+MAX_WS_MSG_PER_WINDOW = 20
+WS_RATE_WINDOW_SECONDS = 10
+WS_MAX_MSG_SIZE = 4096  # bytes
+
+
+def _validate_coords(x, y, label: str = "") -> None:
+    """Reject non-finite or extreme coordinate values."""
+    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+        raise ValueError(f"{label} coordinates must be numbers")
+    if not (-1_000_000 <= x <= 1_000_000) or not (-1_000_000 <= y <= 1_000_000):
+        raise ValueError(f"{label} coordinates out of range")
+
+
 from jwt import PyJWTError
 
 from app.db import get_pool
@@ -381,14 +400,30 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
     )
 
     try:
+        msg_timestamps: list[float] = []
         while True:
             message = await websocket.receive_json()
             msg_type = message.get("type")
+
+            # Rate limit: max 20 messages per 10-second window
+            now = time.monotonic()
+            cutoff = now - WS_RATE_WINDOW_SECONDS
+            msg_timestamps = [t for t in msg_timestamps if t > cutoff]
+            msg_timestamps.append(now)
+            if len(msg_timestamps) > MAX_WS_MSG_PER_WINDOW:
+                logger.warning(
+                    "WebSocket rate limit hit: user=%s campaign=%s msgs=%d",
+                    user_id, campaign_id, len(msg_timestamps),
+                )
+                await websocket.send_json({"type": "error", "detail": "Rate limit exceeded"})
+                await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+                break
 
             if msg_type == "ping":
                 await websocket.send_json({"type": "pong"})
 
             elif msg_type == "map_ping":
+                _validate_coords(message.get("x", 0), message.get("y", 0), "map_ping")
                 # Broadcast ping position to all clients in the campaign
                 await manager.broadcast(
                     campaign_id,
@@ -407,6 +442,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                 new_x = message.get("x", 0)
                 new_y = message.get("y", 0)
                 scene_id = message.get("scene_id")
+                _validate_coords(new_x, new_y, "player_move_token")
 
                 if role == "player":
                     # Verify the token belongs to a character owned by this player
@@ -479,6 +515,8 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
 
             elif msg_type == "ruler":
                 # Broadcast ruler measurement (visual only, GM and other players see it)
+                _validate_coords(message.get("x1", 0), message.get("y1", 0), "ruler")
+                _validate_coords(message.get("x2", 0), message.get("y2", 0), "ruler")
                 await manager.broadcast(
                     campaign_id,
                     {
