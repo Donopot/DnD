@@ -9,7 +9,7 @@ Virtual Tabletop Donjons & Dragons en navigateur, conçu pour fonctionner sur HP
 | Composant | Technologie | Port interne |
 |-----------|------------|-------------|
 | Frontend | React 19 + Vite | 8090 |
-| Backend | FastAPI (Python 3.13) | 8091 |
+| Backend | FastAPI (Python 3.12) | 8091 |
 | Database | PostgreSQL 16 | 5432 |
 | Storage | MinIO (S3) | 9000 |
 | Cache | Redis | 6379 |
@@ -49,7 +49,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 
 | Domaine | Endpoints |
 |---------|-----------|
-| Auth | register, login, refresh, logout, me |
+| Auth | register, login, me |
 | Campagnes | create, list, join via invite code, members, invites |
 | Personnages | CRUD, vault personnel, soumission MJ, XP, HP, conditions, inventaire, ressources |
 | Dés | lancer (normal/avantage/désavantage), journal des lancers |
@@ -132,7 +132,7 @@ cd frontend && npx tsc --noEmit && npx vite build
 
 ## Sécurité
 
-- JWT (access token 30min, refresh 7j)
+- JWT (access token 7 jours)
 - Rate limiting global 200 req/min (slowapi)
 - Honeypot anti-bot au register
 - Complexité mot de passe (minuscule, majuscule, chiffre, 8+ caractères)
