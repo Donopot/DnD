@@ -60,7 +60,7 @@ Tous les services tournent en local via Docker Compose, isolés des autres proje
 ```
 
 Le `.env` est **volontairement absent du repo** (contient les secrets).
-Il est placé dans `/home/donopot/` et monté via `env_file: - .env` dans Docker Compose.
+Il est placé dans `/home/donopot/` (un niveau au-dessus du repo) et chargé via `env_file: - ../.env` dans Docker Compose.
 
 ### 1.3 Mise en place initiale
 
