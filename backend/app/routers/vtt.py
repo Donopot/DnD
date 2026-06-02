@@ -250,6 +250,10 @@ async def create_token(
     if role == "player" and payload.character_id is None:
         raise HTTPException(status_code=403, detail="Players can only create tokens from their own characters")
 
+    # Players cannot set is_hidden or metadata on tokens
+    is_hidden = False if role == "player" else payload.is_hidden
+    metadata = {} if role == "player" else payload.metadata
+
     row = await get_pool().fetchrow(
         """
         insert into scene_tokens (
@@ -265,8 +269,8 @@ async def create_token(
         payload.y,
         payload.size,
         payload.color.strip(),
-        payload.is_hidden,
-        jsonb(payload.metadata),
+        is_hidden,
+        jsonb(metadata),
     )
     token = token_public(row)
     await cache_invalidate(f"scene:{scene_id}*")
@@ -285,6 +289,24 @@ async def update_token(
 
     current = dict(existing)
     updates = payload.model_dump(exclude_unset=True)
+
+    # Players cannot change is_hidden or metadata
+    if role == "player":
+        updates.pop("is_hidden", None)
+        updates.pop("metadata", None)
+        # Players can only modify tokens linked to their own characters
+        if existing["character_id"]:
+            owned = await get_pool().fetchval(
+                "select 1 from characters where id = $1 and owner_user_id = $2",
+                existing["character_id"],
+                current_user["id"],
+            )
+            if not owned:
+                raise HTTPException(status_code=403, detail="Players can only modify their own tokens")
+        # Players cannot change character_id to one they don't own
+        if "character_id" in updates and updates["character_id"] != current["character_id"]:
+            await validate_character_for_scene(existing["scene_id"], updates["character_id"], current_user["id"], role)
+
     for key, value in updates.items():
         current[key] = value.strip() if isinstance(value, str) else value
 
@@ -341,7 +363,17 @@ async def move_token(
     current_user=Depends(get_current_user),
 ) -> TokenPublic:
     existing = await get_token_or_404(token_id)
-    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    # Players can only move tokens linked to their own characters
+    if role == "player" and existing["character_id"]:
+        owned = await get_pool().fetchval(
+            "select 1 from characters where id = $1 and owner_user_id = $2",
+            existing["character_id"],
+            current_user["id"],
+        )
+        if not owned:
+            raise HTTPException(status_code=403, detail="Players can only move their own tokens")
 
     row = await get_pool().fetchrow(
         """
