@@ -188,6 +188,11 @@ export default function App() {
     return () => window.removeEventListener("toggle-focus-map", onToggleFocus);
   }, []);
 
+  const activeSessionLiveModeDetail = useMemo(
+    () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
+    [activeSessionLiveMode],
+  );
+
   useEffect(() => {
     if (!token) {
       return;
