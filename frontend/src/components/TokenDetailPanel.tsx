@@ -10,7 +10,7 @@ type TokenDetailPanelProps = {
   selectedToken: SceneToken | undefined;
   selectedTokenCharacter: Character | undefined;
   selectedTokenPosition: TokenPosition | undefined;
-  onCenterSelectedToken: () => void;
+  onCenterSelectedToken?: () => void;
   onDeselectToken: () => void;
   onNudgeSelectedToken: (dx: number, dy: number) => void;
 };
@@ -109,9 +109,11 @@ export function TokenDetailPanel({
         </header>
 
         <div className="gm-panel-actions grid">
-          <button type="button" onClick={onCenterSelectedToken}>
-            Centrer
-          </button>
+          {onCenterSelectedToken && (
+            <button type="button" onClick={onCenterSelectedToken}>
+              Centrer
+            </button>
+          )}
 
           <button type="button" onClick={onDeselectToken}>
             Désélectionner

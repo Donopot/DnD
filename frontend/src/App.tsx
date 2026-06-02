@@ -1192,7 +1192,6 @@ export default function App() {
                       return t ? { x: t.x, y: t.y } : undefined;
                     })()
                   }
-                  onCenterSelectedToken={() => {}}
                   onDeselectToken={() => setSelectedTokenId("")}
                   onNudgeSelectedToken={(dx, dy) => {
                     const t = sceneTokens.find((t) => t.id === selectedTokenId);
@@ -1751,7 +1750,6 @@ export default function App() {
                   return t ? { x: t.x, y: t.y } : undefined;
                 })()
               }
-              onCenterSelectedToken={() => {}}
               onDeselectToken={() => setSelectedTokenId("")}
               onNudgeSelectedToken={(dx, dy) => {
                 const t = sceneTokens.find((t) => t.id === selectedTokenId);
