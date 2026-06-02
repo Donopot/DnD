@@ -74,6 +74,14 @@ else
     err "TypeScript errors found"
 fi
 
+# ── Biome (frontend format + lint) ──
+step "Biome — frontend lint"
+if (cd "$ROOT/frontend" && npx biome check --max-diagnostics=50 . 2>&1); then
+    ok "Biome clean"
+else
+    err "Biome found issues — run: cd frontend && npx biome check --write ."
+fi
+
 # ── Frontend build ──
 if [[ "$MODE" != "--quick" ]]; then
     step "Vite — production build"

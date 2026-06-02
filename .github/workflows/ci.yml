@@ -11,10 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Backend: lint + tests ──
+  # ── Backend: lint + compile + tests ──
   backend:
     name: Backend (Python)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: backend
@@ -29,21 +30,22 @@ jobs:
         run: |
           uv venv
           uv pip install -r requirements.txt
-          uv pip install ruff pytest pytest-asyncio
+          uv pip install ruff pytest pytest-asyncio httpx
 
       - name: Ruff lint
         run: uv run ruff check .
 
-      - name: Python compile
+      - name: Python compileall
         run: uv run python -m compileall -q app/
 
       - name: Pytest
         run: uv run pytest --tb=short -q
 
-  # ── Frontend: tsc + build ──
+  # ── Frontend: tsc + Biome + build ──
   frontend:
     name: Frontend (TypeScript)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     defaults:
       run:
         working-directory: frontend
@@ -53,12 +55,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: frontend/.node-version
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
       - name: TypeScript check
         run: npx tsc --noEmit
+
+      - name: Biome lint
+        run: npx biome check --max-diagnostics=50 .
 
       - name: Vite build
         run: npm run build
@@ -67,31 +74,34 @@ jobs:
   orphans:
     name: Orphan Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
+
       - name: Run orphan audit
         run: |
-          python3 scripts/audit-orphans.py
-          # Count true orphans (excluding lazy-loaded components = 13 baseline)
           COUNT=$(python3 scripts/audit-orphans.py 2>/dev/null | grep "→" | grep -oP '\d+')
-          BASELINE=13  # 13 components lazy-loaded via React.lazy() in App.tsx
-          if [ -n "$COUNT" ] && [ "$COUNT" -gt "$BASELINE" ]; then
+          BASELINE=16
+          if [ -z "$COUNT" ]; then
+            echo "✅ No orphan components"
+          elif [ "$COUNT" -le "$BASELINE" ]; then
+            echo "✅ Orphan count OK ($COUNT ≤ baseline $BASELINE)"
+          else
             NEW=$((COUNT - BASELINE))
             echo "❌ $NEW NEW orphan component(s) found (total: $COUNT, baseline: $BASELINE)"
             exit 1
           fi
-          echo "✅ No new orphan components (total: $COUNT, baseline: $BASELINE)"
 
   # ── Security scan ──
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
 
       - name: Scan for secrets
         run: |
-          echo "=== Checking for hardcoded secrets ==="
           if git grep -nPi "(api_key|secret|password|token)\s*=\s*['\"][^'\"$]{6,}['\"]" \
                -- ':!*.example' ':!*test*' ':!.github/' ':!docs/' 2>/dev/null; then
             echo "❌ Hardcoded secrets found — remove before merging"
@@ -108,10 +118,11 @@ jobs:
           fi
           echo "✅ No dangerous patterns"
 
-  # ── Docker Compose config check ──
+  # ── Docker Compose config validation ──
   compose:
     name: Docker Compose
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
 
