@@ -27,6 +27,7 @@ const HomebrewPanel = lazy(() => import("./components/HomebrewPanel").then(m => 
 const RulesReference = lazy(() => import("./components/RulesReference").then(m => ({ default: m.RulesReference })));
 const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspector").then(m => ({ default: m.GmCharacterInspector })));
 const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
+const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => ({ default: m.BestiaryPanel })));
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -1142,6 +1143,26 @@ export default function App() {
           <summary>📖 Règles (SRD)</summary>
           <RulesReference />
         </details>
+
+        {/* Bestiary */}
+        <details className="gm-panel-section">
+          <summary>
+            💀 Bestiaire
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("bestiary", "💀 Bestiaire");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
+          <BestiaryPanel token={token} />
+        </details>
       </aside>
       </Suspense>
 
@@ -1173,6 +1194,9 @@ export default function App() {
               campaignId={selectedCampaign?.id ?? ""}
               token={token}
             />
+          )}
+          {panel.id === "bestiary" && (
+            <BestiaryPanel token={token} />
           )}
         </FloatingPanel>
       ))}

@@ -235,3 +235,44 @@ export type GmMessage = {
   read_at: string | null;
   created_at: string;
 };
+
+// ── Bestiary ────────────────────────────────────────────────────────────
+
+export type BestiaryTrait = {
+  name: string;
+  desc: string;
+};
+
+export type BestiaryCreature = {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  alignment: string;
+  cr: number;
+  xp: number;
+  ac: number;
+  ac_type: string | null;
+  hp: string;
+  hp_avg: number;
+  speed: string;
+  str: number;
+  dex: number;
+  con: number;
+  int: number;
+  wis: number;
+  cha: number;
+  skills: string | null;
+  saves: string | null;
+  damage_resistances: string | null;
+  damage_immunities: string | null;
+  condition_immunities: string | null;
+  senses: string;
+  languages: string;
+  traits: BestiaryTrait[];
+  actions: BestiaryTrait[];
+  legendary_actions: BestiaryTrait[];
+  environment: string[] | null;
+  source: string;
+  created_at: string;
+};

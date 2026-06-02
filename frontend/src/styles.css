@@ -12419,3 +12419,258 @@ select {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.8; }
 }
+
+/* ====== Bestiary Panel ============================================== */
+
+.bestiary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bestiary-filters {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.bestiary-search-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.bestiary-search-row input {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #e8e4d8;
+  font-size: 0.8rem;
+}
+
+.bestiary-filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.bestiary-filter-row select {
+  padding: 0.25rem 0.35rem;
+  background: #2a3a2e;
+  border: 1px solid #4a5a4e;
+  border-radius: 4px;
+  color: #c0c0a0;
+  font-size: 0.7rem;
+}
+
+.bestiary-cr-row {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.bestiary-cr-chip {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.68rem;
+  background: #2a3a2e;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+}
+
+.bestiary-cr-chip.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+.bestiary-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.bestiary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a3a2e;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+.bestiary-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bestiary-cr {
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: #c5b358;
+  min-width: 50px;
+}
+
+.bestiary-name {
+  flex: 1;
+  color: #e0dcc8;
+  font-weight: 600;
+}
+
+.bestiary-meta {
+  font-size: 0.68rem;
+  color: #6a7a6e;
+  text-align: right;
+  max-width: 140px;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 1rem;
+}
+
+.bestiary-detail-modal {
+  background: #1a2a24;
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  max-width: 640px;
+  max-height: 90vh;
+  width: 100%;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.bestiary-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.bestiary-detail-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #e0dcc8;
+}
+
+.bestiary-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #6a7a6e;
+  font-style: italic;
+}
+
+.bestiary-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #2a3a2e;
+  font-size: 0.82rem;
+  color: #c0c0a0;
+}
+
+.bestiary-stats-grid strong {
+  color: #8a9a8e;
+  margin-right: 0.35rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.bestiary-cr-badge {
+  color: #c5b358;
+  font-weight: 700;
+}
+
+.bestiary-ability-scores {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #2a3a2e;
+}
+
+.bestiary-ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0.3rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.ability-label {
+  font-size: 0.6rem;
+  color: #6a7a6e;
+  font-weight: 700;
+}
+
+.ability-score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e0dcc8;
+}
+
+.ability-mod {
+  font-size: 0.7rem;
+  color: #c5b358;
+  font-weight: 600;
+}
+
+.bestiary-detail-section {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #2a3a2e;
+  font-size: 0.8rem;
+  color: #c0c0a0;
+}
+
+.bestiary-detail-section strong {
+  display: inline-block;
+  color: #8a9a8e;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  margin-right: 0.5rem;
+  min-width: 120px;
+}
+
+.bestiary-detail-section h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  color: #c5b358;
+  border-bottom: 1px solid #2a3a2e;
+  padding-bottom: 0.25rem;
+}
+
+.bestiary-trait {
+  margin: 0.35rem 0;
+  line-height: 1.5;
+}
+
+.bestiary-trait em {
+  color: #e0dcc8;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.bestiary-detail-footer {
+  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+  color: #5a6a5e;
+  text-align: right;
+}

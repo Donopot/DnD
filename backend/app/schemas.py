@@ -649,3 +649,57 @@ class ResourceRequest(BaseModel):
     action: str = Field(pattern="^(add|remove|update)$")
     resource: dict[str, Any]
     index: int | None = None  # required for remove/update
+
+
+# ── Bestiary ──────────────────────────────────────────────────────────────
+
+class BestiaryTrait(BaseModel):
+    name: str
+    desc: str
+
+
+class BestiaryCreaturePublic(BaseModel):
+    id: UUID
+    name: str
+    type: str
+    size: str
+    alignment: str
+    cr: float
+    xp: int
+    ac: int
+    ac_type: str | None = None
+    hp: str
+    hp_avg: int
+    speed: str
+    str: int
+    dex: int
+    con: int
+    int: int
+    wis: int
+    cha: int
+    skills: str | None = None
+    saves: str | None = None
+    damage_resistances: str | None = None
+    damage_immunities: str | None = None
+    condition_immunities: str | None = None
+    senses: str
+    languages: str
+    traits: list[BestiaryTrait] = []
+    actions: list[BestiaryTrait] = []
+    legendary_actions: list[BestiaryTrait] = []
+    environment: list[str] | None = None
+    source: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class BestiarySearchParams(BaseModel):
+    query: str | None = None
+    cr_min: float | None = None
+    cr_max: float | None = None
+    monster_type: str | None = None
+    environment: str | None = None
+    size: str | None = None
+    limit: int = Field(default=50, ge=1, le=200)
+    offset: int = Field(default=0, ge=0)
