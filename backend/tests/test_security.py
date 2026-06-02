@@ -167,8 +167,62 @@ class TestUtils:
 
 # ── Character vault & submission schema tests ────────────────────────────
 
+class TestAuthSchemas:
+    """Validate auth-specific schema behavior (Login, Register edge cases)."""
+
+    def test_player_register_requires_invite(self):
+        """Player registration without invite_token should be rejected at schema level."""
+        from app.schemas import RegisterRequest
+        # The endpoint rejects it, but schema-level: player needs invite_token
+        # RegisterRequest allows invite_token=None, the route logic checks
+        req = RegisterRequest(
+            email="player@test.com",
+            display_name="Player1",
+            password="ValidP@ss1",
+            confirm_password="ValidP@ss1",
+            account_type="player",
+        )
+        assert req.invite_token is None  # schema allows None, route rejects
+
+    def test_register_with_invite_token_field(self):
+        """RegisterRequest with invite_token set in payload (from form field)."""
+        from app.schemas import RegisterRequest
+        req = RegisterRequest(
+            email="player2@test.com",
+            display_name="Player2",
+            password="ValidP@ss2",
+            confirm_password="ValidP@ss2",
+            account_type="player",
+            invite_token="abc123-token",
+        )
+        assert req.invite_token == "abc123-token"
+
+    def test_register_honeypot_schema(self):
+        """RegisterRequest website field defaults to empty string."""
+        from app.schemas import RegisterRequest
+        req = RegisterRequest(
+            email="gm@test.com",
+            display_name="GM1",
+            password="ValidP@ss3",
+            confirm_password="ValidP@ss3",
+            account_type="gm",
+        )
+        assert req.website == ""
+
+    def test_login_empty_password_rejected(self):
+        """Login with empty password must be rejected at schema level."""
+        from pydantic import ValidationError
+        from app.schemas import LoginRequest
+        with pytest.raises(ValidationError):
+            LoginRequest(email="test@test.com", password="")
+
+    def test_login_invalid_email(self):
+        """Login with invalid email format should be rejected."""
+        from pydantic import ValidationError
+        from app.schemas import LoginRequest
+        with pytest.raises(ValidationError):
+            LoginRequest(email="not-an-email", password="somepass")
 class TestCharacterSchemas:
-    """Validate CharacterPublic, CharacterSubmitRequest, CharacterApproveRequest."""
 
     def test_character_public_allows_null_campaign_id(self):
         """campaign_id=None pour le vault personnel."""

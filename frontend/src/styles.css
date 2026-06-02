@@ -9106,6 +9106,8 @@ select {
 /* Honeypot — invisible to humans */
 .honeypot {
   position: absolute;
+  left: -9999px;
+  top: -9999px;
   opacity: 0;
   pointer-events: none;
   height: 0;
@@ -9113,6 +9115,7 @@ select {
   padding: 0;
   margin: 0;
   border: none;
+  tab-index: -1;
 }
 
 /* Auth switch hint */

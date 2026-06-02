@@ -46,20 +46,21 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
 
   const strength = passwordStrength(password);
   const passwordsMatch = mode === "login" || password === confirmPassword;
+  const loginValid = mode === "login" ? (password.length > 0) : true;
   const canSubmit =
-    mode === "login" || (passwordsMatch && strength.score >= 3 && password.length >= 8);
+    (mode === "login" && loginValid) || (passwordsMatch && strength.score >= 3 && password.length >= 8);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     await onSubmit({
       mode,
-      email: String(form.get("email")),
+      email: String(form.get("email")).trim(),
       password: String(form.get("password")),
       display_name: mode === "register" ? String(form.get("display_name")) : undefined,
       confirm_password: mode === "register" ? String(form.get("confirm_password")) : undefined,
       account_type: accountType,
-      invite_token: inviteToken ?? undefined,
+      invite_token: (form.get("invite_token")?.toString() || inviteToken || undefined) as string | undefined,
       website: String(form.get("website") ?? ""),
     });
   }
@@ -225,14 +226,12 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
             </label>
           )}
 
-          {/* Honeypot — invisible to humans, attractive to bots */}
+          {/* Honeypot — CSS-only, invisible to humans, attractive to bots */}
           <input
             type="text"
             name="website"
-            tabIndex={-1}
             autoComplete="off"
             className="honeypot"
-            aria-hidden="true"
           />
 
           {/* Hidden fields for account_type and optional invite_token */}

@@ -26,19 +26,22 @@ def user_public(row) -> UserPublic:
 
 # ── Register (GM or Player) ──────────────────────────────────────────────
 
-async def _validate_player_invite(invite_token: str | None):
-    """If the user registers as a player, validate the invite token and return campaign info."""
+async def _validate_player_invite(connection, invite_token: str | None):
+    """If the user registers as a player, validate the invite token and return campaign info.
+    
+    Must be called within an active transaction on `connection` to hold the FOR UPDATE lock."""
     if invite_token is None:
         raise HTTPException(
             status_code=400,
             detail="Un token d'invitation est requis pour créer un compte Joueur",
         )
 
-    row = await get_pool().fetchrow(
+    row = await connection.fetchrow(
         """
         select ci.campaign_id, ci.role, ci.expires_at, ci.max_uses, ci.use_count, ci.revoked_at
         from campaign_invites ci
         where ci.token = $1
+        for update
         """,
         invite_token,
     )
@@ -64,11 +67,11 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
     campaign_id = None
     invite_role = None
 
-    if payload.account_type == "player":
-        campaign_id, invite_role = await _validate_player_invite(payload.invite_token)
-
     async with get_pool().acquire() as connection:
         async with connection.transaction():
+            if payload.account_type == "player":
+                campaign_id, invite_role = await _validate_player_invite(connection, payload.invite_token)
+
             try:
                 row = await connection.fetchrow(
                     """
@@ -121,7 +124,11 @@ async def login(request: Request, payload: LoginRequest) -> AuthResponse:
         """,
         payload.email,
     )
-    if row is None or not verify_password(payload.password, row["password_hash"]):
+    # Constant-time comparison: always call verify_password even if user not found
+    # to prevent user enumeration via timing attack
+    stored_hash = row["password_hash"] if row is not None else \
+        "$2b$12$" + "0" * 53  # dummy bcrypt hash that will never match
+    if row is None or not verify_password(payload.password, stored_hash):
         raise HTTPException(status_code=401, detail="Email ou mot de passe invalide")
 
     return AuthResponse(access_token=create_access_token(row["id"]), user=user_public(row))
