@@ -118,9 +118,10 @@ export function PlayerView({
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounter, setSelectedEncounter] = useState<Encounter | null>(null);
   const [combatants, setCombatants] = useState<Combatant[]>([]);
-  const [_, _setActiveTab] = useState<TabId>("characters");
+  const [activeTab, setActiveTab] = useState<TabId>("characters");
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [combatNotification, setCombatNotification] = useState("");
 
   // ─── Map state (scenes, tokens, background) ──────────────────────────
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
@@ -185,6 +186,10 @@ export function PlayerView({
           }
           if (payload.resource === "encounter") {
             void loadCombatState();
+            setCombatNotification("Le combat a été mis à jour !");
+          }
+          if (payload.resource === "scene" || payload.resource === "token") {
+            void loadPlayerMapData();
           }
         }
       } catch {
@@ -439,6 +444,37 @@ export function PlayerView({
             formula: diceFormula,
             label: diceLabel || diceFormula,
             mode: diceMode,
+            visibility: "public",
+            character_id: selectedCharacter?.id ?? null,
+          }),
+        },
+      );
+      setRolls((current) => [roll, ...current].slice(0, 50));
+      setDiceResult(roll);
+      setMessage(`Résultat: ${roll.total}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erreur lancer de dés");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  // ─── Quick roll from buttons ────────────────────────────────────────────
+  async function handleQuickRoll(formula: string, label: string, mode: Roll["mode"]) {
+    if (!cid) return;
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      const roll = await playerRequest<Roll>(
+        `/campaigns/${cid}/rolls`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            formula,
+            label,
+            mode,
             visibility: "public",
             character_id: selectedCharacter?.id ?? null,
           }),
@@ -820,6 +856,17 @@ export function PlayerView({
           <h3>
             <Dice1 aria-hidden="true" /> Lancer les dés
           </h3>
+
+          {/* Quick d20 buttons */}
+          <div className="quick-dice-row">
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Initiative", "normal")} type="button">🎯 Initiative</button>
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Attaque", "normal")} type="button">⚔️ Attaque</button>
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Avantage", "advantage")} type="button">⬆ Avantage</button>
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Désavantage", "disadvantage")} type="button">⬇ Désav.</button>
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Sauvegarde", "normal")} type="button">🛡️ Sauvegarde</button>
+            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Compétence", "normal")} type="button">🔍 Compétence</button>
+          </div>
+
           <form onSubmit={handleRoll} className="form-stack">
             <label>
               {selectedCharacter ? `Joueur: ${selectedCharacter.name}` : "Aucun personnage sélectionné"}
@@ -1076,13 +1123,40 @@ export function PlayerView({
           />
         </section>
 
-        {/* ── Panels (right) ──────────────────────────────────── */}
+        {/* ── Panels (right) — tabbed ────────────────────────── */}
         <aside className="player-panels">
-          {charactersTab}
-          {diceTab}
-          {handoutsTab}
-          {combatTab}
-          {journalTab}
+          {/* Tab bar */}
+          <nav className="player-tab-bar" role="tablist" aria-label="Sections joueur">
+            {([
+              ["characters", "👤", "Persos"],
+              ["dice", "🎲", "Dés"],
+              ["handouts", "📄", "Docs"],
+              ["combat", "⚔️", "Combat"],
+              ["journal", "📝", "Journal"],
+            ] as const).map(([id, icon, label]) => (
+              <button
+                key={id}
+                className={`player-tab-btn${activeTab === id ? " active" : ""}`}
+                onClick={() => setActiveTab(id)}
+                role="tab"
+                aria-selected={activeTab === id}
+                type="button"
+                title={label}
+              >
+                <span className="tab-icon">{icon}</span>
+                <span className="tab-label">{label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Tab content */}
+          <div className="player-tab-content">
+            {activeTab === "characters" && charactersTab}
+            {activeTab === "dice" && diceTab}
+            {activeTab === "handouts" && handoutsTab}
+            {activeTab === "combat" && combatTab}
+            {activeTab === "journal" && journalTab}
+          </div>
         </aside>
       </div>
 
@@ -1092,6 +1166,12 @@ export function PlayerView({
           <button className="ghost-button" onClick={() => setMessage("")} type="button">
             ✕
           </button>
+        </div>
+      )}
+
+      {combatNotification && (
+        <div className="combat-notification" onAnimationEnd={() => setCombatNotification("")}>
+          ⚔️ {combatNotification}
         </div>
       )}
     </main>
