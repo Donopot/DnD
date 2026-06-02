@@ -38,7 +38,7 @@ REGISTRY_IDS=$(extract_registry_ids)
 APP_OPEN_IDS=$(grep -oP 'fp\.open\("\K[^"]+' "$APP" | sort -u)
 APP_RENDER_IDS=$(grep -oP 'panel\.id === "\K[^"]+' "$APP" | sort -u)
 APP_ALL_IDS=$( { echo "$APP_OPEN_IDS"; echo "$APP_RENDER_IDS"; } | sort -u)
-LEGACY_TARGETS=$(extract_legacy_map)
+LEGACY_TARGETS=$(extract_legacy_map || true)
 
 # Détection sidebar : panneaux non-détachables vérifiés par présence dans App.tsx
 sidebar_only_ids="characters campaign-info"
@@ -124,6 +124,10 @@ fi
 echo ""
 echo "─── 3. Cohérence fp.open() ↔ panel.id ───"
 
+# Panneaux non-détachables (sidebar uniquement) — pas de fp.open attendu
+# Liste maintenue manuellement (3 panneaux avec detachable: false dans gmPanels.ts)
+sidebar_only_ids="characters campaign-info settings-placeholder"
+
 float_ok=1
 for id in $APP_OPEN_IDS; do
   if ! echo "$APP_RENDER_IDS" | grep -qFx "$id"; then
@@ -133,7 +137,12 @@ for id in $APP_OPEN_IDS; do
 done
 for id in $APP_RENDER_IDS; do
   if ! echo "$APP_OPEN_IDS" | grep -qFx "$id"; then
-    echo "   ⚠️  panel.id === \"$id\" sans fp.open() (sidebar uniquement ?)"
+    # Vérifier si c'est un panneau non-detachable (normal)
+    if echo "$sidebar_only_ids" | grep -qFw "$id"; then
+      : # ok — panneau sidebar-only
+    else
+      echo "   ⚠️  panel.id === \"$id\" sans fp.open() (sidebar uniquement ?)"
+    fi
   fi
 done
 if [[ $float_ok -eq 1 ]]; then
@@ -167,6 +176,85 @@ if [[ -n "$others" ]]; then
   ERRORS=$((ERRORS + 1))
 else
   echo "   ✅ gmPanels.ts est l'unique registre"
+fi
+
+# ── 6. Cohérence SESSION_LIVE_PANEL_SETS ───────────────────────────
+
+echo ""
+echo "─── 6. Modes session live → panneaux ───"
+
+LIVE_SETS="$ROOT/frontend/src/config/sessionLiveModes.ts"
+if [[ -f "$LIVE_SETS" ]]; then
+  # Extraire tous les IDs de SESSION_LIVE_PANEL_SETS
+  live_ids=$(
+    python3 -c "
+import re, json
+with open('$LIVE_SETS') as f:
+    text = f.read()
+# Trouver la constante SESSION_LIVE_PANEL_SETS
+start = text.find('SESSION_LIVE_PANEL_SETS')
+if start == -1:
+    exit(1)
+# Trouver l'accolade ouvrante après le =
+eq = text.index('=', start)
+brace = text.index('{', eq)
+# Compter les accolades pour trouver la fermeture
+depth = 0
+end = brace
+for i in range(brace, len(text)):
+    if text[i] == '{': depth += 1
+    elif text[i] == '}':
+        depth -= 1
+        if depth == 0:
+            end = i + 1
+            break
+block = text[brace:end]
+# Extraire toutes les chaînes entre guillemets qui ressemblent à des IDs de panneaux
+mode_keys = {'exploration','combat','roleplay','quick-prep','minimal'}
+ids = set(re.findall(r'\"([a-z][-a-z0-9]*)\"', block))
+panel_ids = ids - mode_keys
+for pid in sorted(panel_ids):
+    print(pid)
+" 2>/dev/null
+  )
+
+  # Vérifier que chaque ID de live mode est un panneau actif
+  # Extraire les IDs actifs du registre (cherche id: dans les 5 lignes avant "active")
+  active_ids_py=$(grep -B5 '"active"' "$REGISTRY" | grep -oP 'id:\s*"\K[^"]+' | sort -u | tr '\n' ' ')
+
+  live_bad=""
+  for id in $live_ids; do
+    if ! echo "$active_ids_py" | grep -qFw "$id"; then
+      live_bad="$live_bad $id"
+    fi
+  done
+
+  if [[ -n "$live_bad" ]]; then
+    echo "   ❌ IDs dans SESSION_LIVE_PANEL_SETS non-actifs :$live_bad"
+    ERRORS=$((ERRORS + 1))
+  else
+    echo "   ✅ Tous les IDs des mode sets sont des panneaux actifs"
+  fi
+
+  # Vérifier qu'aucun panneau actif détachable n'est orphelin
+  # Extraire les IDs actifs + détachables du registre
+  detachable_active=$(grep -B5 '"active"' "$REGISTRY" | grep -B3 'detachable: true' | grep -oP 'id:\s*"\K[^"]+' | sort -u | tr '\n' ' ' || true)
+
+  orphan_panels=""
+  for id in $detachable_active; do
+    [[ -z "$id" ]] && continue
+    if ! echo "$live_ids" | grep -qFw "$id"; then
+      orphan_panels="$orphan_panels $id"
+    fi
+  done
+
+  if [[ -n "$orphan_panels" ]]; then
+    echo "   ⚠️  Panneaux actifs orphelins (dans aucun mode) :$orphan_panels"
+  else
+    echo "   ✅ Aucun panneau actif orphelin"
+  fi
+else
+  echo "   ⚠️  $LIVE_SETS introuvable"
 fi
 
 # ── Résumé ───────────────────────────────────────────────────────────

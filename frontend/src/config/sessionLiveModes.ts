@@ -68,6 +68,9 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "characters",
     "campaign-info",
     "party-summary",
+    "chat",
+    "ambiance",
+    "npc-generator",
   ],
   combat: [
     "combat",
@@ -84,6 +87,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "handouts",
     "bestiary",
     "characters",
+    "chat",
   ],
   roleplay: [
     "gm-notes",
@@ -99,6 +103,9 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "bestiary",
     "spellbook",
     "campaign-info",
+    "chat",
+    "ambiance",
+    "npc-generator",
   ],
   "quick-prep": [
     "combat",
@@ -115,6 +122,8 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "quick-actions",
     "characters",
     "campaign-info",
+    "chat",
+    "npc-generator",
   ],
   minimal: [
     "combat",
@@ -123,15 +132,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "quick-actions",
     "gm-messages",
     "initiative",
+    "chat",
   ],
 };
 
-/** Vérifie si un panneau est visible dans le mode de session actif. */
-export function isPanelVisibleInLiveMode(
-  panelId: GmPanelId,
-  mode: SessionLiveMode,
-): boolean {
-  return (SESSION_LIVE_PANEL_SETS[mode] ?? SESSION_LIVE_PANEL_SETS.exploration).includes(
-    panelId,
-  );
-}
