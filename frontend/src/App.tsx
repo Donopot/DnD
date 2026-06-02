@@ -168,16 +168,19 @@ export default function App() {
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
 
-  // Auto-convert message state to toast notifications
+  // Auto-convert message state to toast notifications only after authentication.
+  // On auth screens, keep message visible inside AuthPage.
   useEffect(() => {
-    if (message) {
-      showToast(
-        message,
-        message.includes("Erreur") || message.includes("error") ? "error" : "info",
-      );
-      setMessage("");
+    if (!message || !user) {
+      return;
     }
-  }, [message, showToast]);
+
+    showToast(
+      message,
+      message.includes("Erreur") || message.includes("error") ? "error" : "info",
+    );
+    setMessage("");
+  }, [message, showToast, user]);
 
   // Listen for keyboard shortcut to toggle focus map (from CampaignMap)
   useEffect(() => {

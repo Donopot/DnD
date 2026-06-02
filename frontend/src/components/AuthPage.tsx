@@ -49,6 +49,19 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
     (mode === "login" && loginValid) ||
     (passwordsMatch && strength.score >= 3 && password.length >= 8);
 
+  const disabledReason =
+    mode === "login"
+      ? password.length === 0
+        ? "Renseigne ton mot de passe."
+        : ""
+      : password.length < 8
+        ? "Le mot de passe doit faire au moins 8 caractères."
+        : strength.score < 3
+          ? "Ajoute au moins une minuscule, une majuscule et un chiffre."
+          : !passwordsMatch
+            ? "Les deux mots de passe doivent correspondre."
+            : "";
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isBusy) return;
@@ -253,6 +266,8 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
           {inviteToken && <input type="hidden" name="invite_token" value={inviteToken} />}
 
           {message && <p className="message-text">{message}</p>}
+
+          {!canSubmit && disabledReason && <p className="field-error">{disabledReason}</p>}
 
           <button className="primary-button" disabled={isBusy || !canSubmit} type="submit">
             <Shield aria-hidden="true" size={16} />
