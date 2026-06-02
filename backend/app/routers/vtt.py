@@ -447,7 +447,7 @@ async def get_fog(
 
     result = {
         "scene_id": str(scene_id),
-        "fog_zones": scene.get("fog_zones") or [],
+        "fog_zones": decode_json(scene.get("fog_zones")) or [],
         "scene_width": scene["width"],
         "scene_height": scene["height"],
     }
