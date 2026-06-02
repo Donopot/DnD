@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { DoorOpen, Maximize2, Minimize2, Plus, Swords, UserPlus } from "lucide-react";
+import { DoorOpen, ExternalLink, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Plus, Swords, UserPlus } from "lucide-react";
 import "./styles.css";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { CampaignMap } from "./components/CampaignMap";
 import { useSceneBackground } from "./hooks/useSceneBackground";
+import { useFloatingPanels } from "./hooks/useFloatingPanels";
+import { FloatingPanel } from "./components/FloatingPanel";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { QuickActions } from "./components/QuickActions";
@@ -78,6 +80,8 @@ export default function App() {
   const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
+  const [isPanelsHidden, setIsPanelsHidden] = useState(false);
+  const fp = useFloatingPanels();
   const wsRef = useRef<WebSocket | null>(null);
 
   const selectedCampaign = useMemo(
@@ -862,6 +866,14 @@ export default function App() {
           >
             {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
+          <button
+            className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
+            onClick={() => setIsPanelsHidden((prev) => !prev)}
+            title={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
+            type="button"
+          >
+            {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
+          </button>
         </div>
 
         <CampaignMap
@@ -884,7 +896,7 @@ export default function App() {
 
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
-      <aside className="gm-panels">
+      <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
         {/* Characters panel */}
         <details className="gm-panel-section" open>
           <summary>👤 Personnages</summary>
@@ -945,7 +957,21 @@ export default function App() {
 
         {/* Combat Tracker */}
         <details className="gm-panel-section" open>
-          <summary>⚔️ Combat</summary>
+          <summary>
+            ⚔️ Combat
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("combat", "⚔️ Combat");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
           <CombatTracker
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
@@ -955,7 +981,21 @@ export default function App() {
 
         {/* Encounter Builder */}
         <details className="gm-panel-section">
-          <summary>🧩 Générateur de rencontres</summary>
+          <summary>
+            🧩 Générateur de rencontres
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("encounter", "🧩 Rencontres");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
           <EncounterBuilder
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
@@ -964,7 +1004,21 @@ export default function App() {
 
         {/* Dice Roller */}
         <details className="gm-panel-section">
-          <summary>🎲 Lancer de dés</summary>
+          <summary>
+            🎲 Lancer de dés
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("dice", "🎲 Lancer de dés");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
           <DiceRoller
             onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
           />
@@ -1057,6 +1111,38 @@ export default function App() {
         </details>
       </aside>
       </Suspense>
+
+      {/* ── Floating Panels ──────────────────────────────────── */}
+      {fp.panels.map((panel) => (
+        <FloatingPanel
+          key={panel.id}
+          panel={panel}
+          onClose={() => fp.close(panel.id)}
+          onMinimize={() => fp.minimize(panel.id)}
+          onBringToFront={() => fp.bringToFront(panel.id)}
+          onMove={(x, y) => fp.updatePosition(panel.id, x, y)}
+          onResize={(w, h) => fp.updateSize(panel.id, w, h)}
+        >
+          {panel.id === "combat" && (
+            <CombatTracker
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+            />
+          )}
+          {panel.id === "dice" && (
+            <DiceRoller
+              onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
+            />
+          )}
+          {panel.id === "encounter" && (
+            <EncounterBuilder
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
+          )}
+        </FloatingPanel>
+      ))}
 
       <MessageDock message={message} />
 

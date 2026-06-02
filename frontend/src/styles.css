@@ -9732,6 +9732,162 @@ select {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* Detach button in panel summaries */
+.panel-detach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #6a7a6e;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.panel-detach-btn:hover {
+  background: rgba(197, 179, 88, 0.15);
+  border-color: rgba(197, 179, 88, 0.3);
+  color: #c5b358;
+}
+
+/* Hide-all-panels toggle */
+.gm-panels-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #2a3a2e;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  color: #8a9a8e;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.gm-panels-toggle:hover {
+  background: #3a4a3e;
+  color: #e0dcc8;
+}
+
+.gm-panels-toggle.active {
+  background: #1b4332;
+  color: #c5b358;
+  border-color: #c5b358;
+}
+
+/* ====== Floating Panels ============================================= */
+
+.floating-panel {
+  position: fixed;
+  background: #1a2a24;
+  border: 1px solid #3a4a3e;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.floating-panel.dragging {
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+.floating-panel.resizing {
+  user-select: none;
+}
+
+.floating-panel.minimized {
+  height: auto !important;
+}
+
+.floating-panel-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: #223328;
+  border-bottom: 1px solid #3a4a3e;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.floating-panel-titlebar:active {
+  cursor: grabbing;
+}
+
+.drag-handle-icon {
+  color: #5a6a5e;
+  flex-shrink: 0;
+}
+
+.floating-panel-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e0dcc8;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.floating-panel-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.floating-panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #6a7a6e;
+  cursor: pointer;
+  padding: 0;
+}
+
+.floating-panel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c0c0a0;
+}
+
+.floating-panel-btn-close:hover {
+  background: rgba(220, 60, 60, 0.2);
+  color: #e06060;
+}
+
+.floating-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  color: #c0c0a0;
+}
+
+.floating-panel-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, #4a5a4e 50%);
+  border-radius: 0 0 6px 0;
+}
+
 .gm-panel-section[open] summary {
   border-bottom: 1px solid #2a3a2e;
 }
