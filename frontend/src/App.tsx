@@ -84,6 +84,12 @@ const ChatPanel = lazy(() =>
 const AmbiancePanel = lazy(() =>
   import("./components/AmbiancePanel").then((m) => ({ default: m.AmbiancePanel })),
 );
+const ScenePanel = lazy(() =>
+  import("./components/ScenePanel").then((m) => ({ default: m.ScenePanel })),
+);
+const TokenPanel = lazy(() =>
+  import("./components/TokenPanel").then((m) => ({ default: m.TokenPanel })),
+);
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -1378,6 +1384,70 @@ export default function App() {
           {/* ── PREPARATION — Donjons, Documents ───────────────── */}
           {gmView === "preparation" && (
             <>
+              {/* Scene Panel */}
+              {liveModePanelIds.has("scene") && (
+              <details className="gm-panel-section">
+                <summary>
+                  🎬 Scènes
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("scene", "🎬 Scènes");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <ScenePanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  scenes={scenes}
+                  onSelectScene={(id) => setSelectedSceneId(id)}
+                  onScenesChanged={() => {
+                    if (selectedCampaign?.id) {
+                      void loadVttState(selectedCampaign.id);
+                    }
+                  }}
+                />
+              </details>
+              )}
+
+              {/* Token Panel */}
+              {liveModePanelIds.has("tokens") && (
+              <details className="gm-panel-section">
+                <summary>
+                  🎭 Tokens
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("tokens", "🎭 Tokens");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <TokenPanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  sceneId={selectedScene?.id ?? ""}
+                  tokens={sceneTokens}
+                  onTokensChanged={() => {
+                    if (selectedScene?.id) {
+                      void loadSceneTokens(selectedScene.id);
+                    }
+                  }}
+                />
+              </details>
+              )}
+
               {/* Dungeon Generator */}
               {liveModePanelIds.has("dungeon-generator") && (
               <details className="gm-panel-section">
@@ -1901,6 +1971,32 @@ export default function App() {
           )}
           {panel.id === "ambiance" && <AmbiancePanel isGM={true} />}
           {panel.id === "npc-generator" && <NpcGenerator />}
+          {panel.id === "scene" && (
+            <ScenePanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              scenes={scenes}
+              onSelectScene={(id) => setSelectedSceneId(id)}
+              onScenesChanged={() => {
+                if (selectedCampaign?.id) {
+                  void loadVttState(selectedCampaign.id);
+                }
+              }}
+            />
+          )}
+          {panel.id === "tokens" && (
+            <TokenPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              sceneId={selectedScene?.id ?? ""}
+              tokens={sceneTokens}
+              onTokensChanged={() => {
+                if (selectedScene?.id) {
+                  void loadSceneTokens(selectedScene.id);
+                }
+              }}
+            />
+          )}
         </FloatingPanel>
       ))}
 
