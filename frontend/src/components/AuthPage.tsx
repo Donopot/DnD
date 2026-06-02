@@ -25,7 +25,7 @@ type AuthPageProps = {
 };
 
 export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPageProps) {
-  const [mode, setMode] = useState<AuthMode>("register");
+  const [mode, setMode] = useState<AuthMode>(inviteToken ? "register" : "login");
   const [accountType, setAccountType] = useState<AccountType>(inviteToken ? "player" : "gm");
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
@@ -107,6 +107,16 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
             <LogIn aria-hidden="true" size={16} />
             Connexion
           </button>
+        </div>
+
+        <div className="auth-help-box">
+          {mode === "login" ? (
+            <small>Connecte-toi avec ton email et ton mot de passe. Si tu viens de nettoyer la base, crée un nouveau compte.</small>
+          ) : accountType === "player" ? (
+            <small>Un compte Joueur nécessite un code d’invitation fourni par le MJ.</small>
+          ) : (
+            <small>Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule et un chiffre.</small>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="form-stack">

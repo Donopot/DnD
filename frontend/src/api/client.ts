@@ -39,7 +39,23 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: "Request failed" }));
-    throw new Error(body.detail ?? "Request failed");
+
+    if (Array.isArray(body.detail)) {
+      const message = body.detail
+        .map((item: { msg?: string; loc?: string[] }) => {
+          const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "";
+          return field ? `${field}: ${item.msg ?? "Erreur de validation"}` : item.msg ?? "Erreur de validation";
+        })
+        .join(" · ");
+
+      throw new Error(message || "Erreur de validation");
+    }
+
+    if (typeof body.detail === "string") {
+      throw new Error(body.detail);
+    }
+
+    throw new Error("Request failed");
   }
 
   if (response.status === 204) {
