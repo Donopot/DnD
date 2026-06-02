@@ -40,7 +40,13 @@ export function KeyboardShortcuts({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape" || e.key === "?") {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "?") {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // prevent App.tsx listener from re-opening
         onClose();
       }
     }

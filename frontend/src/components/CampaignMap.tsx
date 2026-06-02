@@ -117,13 +117,14 @@ export function CampaignMap({
     [sceneTokens, selectedTokenIds],
   );
 
-  useNudgeSelectedToken(selectedTokenIds.size > 0, (dx, dy) => {
+  useNudgeSelectedToken(selectedTokenId !== "" || selectedTokenIds.size > 0, (dx, dy) => {
     if (!onMoveToken) return;
+    // Move all multi-selected tokens
     for (const t of selectedTokens) {
       onMoveToken(t, dx, dy);
     }
-    // Also move the primary selected token if not already in set
-    if (selectedToken && !selectedTokenIds.has(selectedToken.id) && selectedTokenIds.size === 0) {
+    // Also move the primary selected token if not already in the multi-set
+    if (selectedToken && !selectedTokenIds.has(selectedToken.id)) {
       onMoveToken(selectedToken, dx, dy);
     }
   }, { gridSize, enabled: isGM });
@@ -549,27 +550,10 @@ export function CampaignMap({
                   role="button"
                   tabIndex={0}
                   aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " — groupe" : ""}`}
-                  onClick={(e) => {
+                  onClick={() => {
                     if (!isGM) return;
-                    if (e.shiftKey) {
-                      setSelectedTokenIds((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(token.id)) {
-                          next.delete(token.id);
-                          if (selectedTokenId === token.id) {
-                            const remaining = [...next];
-                            setSelectedTokenId(remaining[0] ?? "");
-                          }
-                        } else {
-                          next.add(token.id);
-                          setSelectedTokenId(token.id);
-                        }
-                        return next;
-                      });
-                    } else {
-                      setSelectedTokenId(token.id);
-                      setSelectedTokenIds(new Set([token.id]));
-                    }
+                    setSelectedTokenId(token.id);
+                    setSelectedTokenIds(new Set([token.id]));
                   }}
                   onKeyDown={(e) => {
                     if ((e.key === "Enter" || e.key === " ") && isGM) {
@@ -674,8 +658,8 @@ export function CampaignMap({
                   // Center is handled locally
                   if (action === "center") {
                     if (scrollRef.current) {
-                      scrollRef.current.scrollLeft = token.x - scrollRef.current.clientWidth / 2 / zoom;
-                      scrollRef.current.scrollTop = token.y - scrollRef.current.clientHeight / 2 / zoom;
+                      scrollRef.current.scrollLeft = token.x * zoom - scrollRef.current.clientWidth / 2;
+                      scrollRef.current.scrollTop = token.y * zoom - scrollRef.current.clientHeight / 2;
                     }
                   } else {
                     onTokenAction(action, token, value);

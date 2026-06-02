@@ -168,6 +168,7 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
               <button
                 type="button"
                 className="damage-apply"
+                disabled={damageValue === 0}
                 onClick={() => doAction(damageValue >= 0 ? "damage" : "heal", Math.abs(damageValue))}
               >
                 Appliquer
