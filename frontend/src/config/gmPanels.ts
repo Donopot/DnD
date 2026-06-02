@@ -112,7 +112,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "📝",
     category: "live",
     description: "Notes privées de session par scène",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -121,7 +121,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "⏱️",
     category: "live",
     description: "Ordre de tour et rounds",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -130,7 +130,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "🔍",
     category: "live",
     description: "Token sélectionné : stats, position",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -139,7 +139,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "👁️",
     category: "live",
     description: "Contrôle de ce que voient les joueurs",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -291,7 +291,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "📊",
     category: "characters",
     description: "PV, CA, vitesse, perception passive",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
 

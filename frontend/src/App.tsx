@@ -29,6 +29,11 @@ import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
+import { GmNotesPanel } from "./components/GmNotesPanel";
+import { InitiativePanel } from "./components/InitiativePanel";
+import { PartySummaryPanel } from "./components/PartySummaryPanel";
+import { TokenDetailPanel } from "./components/TokenDetailPanel";
+import { VisibilityInspectorPanel } from "./components/VisibilityInspectorPanel";
 
 // ── Lazy-loaded heavy components (code-split for faster initial load) ────
 const CombatTracker = lazy(() =>
@@ -118,6 +123,7 @@ export default function App() {
   const [members, setMembers] = useState<Member[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
+  const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
   const [rolls, setRolls] = useState<Roll[]>([]);
@@ -1112,6 +1118,112 @@ export default function App() {
                   members={members}
                 />
               </details>
+
+              {/* GmNotesPanel */}
+              <details className="gm-panel-section">
+                <summary>
+                  📝 Notes MJ
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("gm-notes", "📝 Notes MJ");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <GmNotesPanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  selectedScene={selectedScene}
+                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                />
+              </details>
+
+              {/* InitiativePanel */}
+              <details className="gm-panel-section">
+                <summary>
+                  ⏱️ Initiative
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("initiative", "⏱️ Initiative");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+              </details>
+
+              {/* TokenDetailPanel */}
+              <details className="gm-panel-section">
+                <summary>
+                  🔍 Détail token
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("token-detail", "🔍 Détail token");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <TokenDetailPanel
+                  selectedScene={selectedScene}
+                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                  selectedTokenCharacter={characters.find(
+                    (c) => c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
+                  )}
+                  selectedTokenPosition={
+                    (() => {
+                      const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                      return t ? { x: t.x, y: t.y } : undefined;
+                    })()
+                  }
+                  onCenterSelectedToken={() => {}}
+                  onDeselectToken={() => setSelectedTokenId("")}
+                  onNudgeSelectedToken={(dx, dy) => {
+                    const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                    if (t) void handleMoveToken(t, dx, dy);
+                  }}
+                />
+              </details>
+
+              {/* VisibilityInspectorPanel */}
+              <details className="gm-panel-section">
+                <summary>
+                  👁️ Visibilité
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("visibility-inspector", "👁️ Visibilité");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <VisibilityInspectorPanel
+                  selectedScene={selectedScene}
+                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                  sceneTokens={sceneTokens}
+                />
+              </details>
             </>
           )}
 
@@ -1506,6 +1618,29 @@ export default function App() {
                   )}
                 </div>
               </details>
+
+              {/* PartySummaryPanel */}
+              <details className="gm-panel-section">
+                <summary>
+                  📊 Résumé du groupe
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("party-summary", "📊 Résumé du groupe");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <PartySummaryPanel
+                  characters={characters}
+                  selectedCharacter={selectedCharacter}
+                />
+              </details>
             </>
           )}
 
@@ -1593,6 +1728,50 @@ export default function App() {
             />
           )}
           {panel.id === "rules" && <RulesReference />}
+          {panel.id === "gm-notes" && (
+            <GmNotesPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              selectedScene={selectedScene}
+              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+            />
+          )}
+          {panel.id === "initiative" && (
+            <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+          )}
+          {panel.id === "token-detail" && (
+            <TokenDetailPanel
+              selectedScene={selectedScene}
+              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+              selectedTokenCharacter={characters.find(
+                (c) => c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
+              )}
+              selectedTokenPosition={
+                (() => {
+                  const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                  return t ? { x: t.x, y: t.y } : undefined;
+                })()
+              }
+              onCenterSelectedToken={() => {}}
+              onDeselectToken={() => setSelectedTokenId("")}
+              onNudgeSelectedToken={(dx, dy) => {
+                const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                if (t) void handleMoveToken(t, dx, dy);
+              }}
+            />
+          )}
+          {panel.id === "visibility-inspector" && (
+            <VisibilityInspectorPanel
+              selectedScene={selectedScene}
+              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+              sceneTokens={sceneTokens}
+            />
+          )}
+          {panel.id === "party-summary" && (
+            <PartySummaryPanel
+              characters={characters}
+              selectedCharacter={selectedCharacter}
+            />
+          )}
         </FloatingPanel>
       ))}
 
