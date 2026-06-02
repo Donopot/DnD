@@ -122,19 +122,19 @@ export function FogLayer({
 
       // Current drawing rect
       if (currentRect && isGM) {
-        ctx.strokeStyle = "#22c55e";
+        ctx.strokeStyle = "#D6A84F";
         ctx.lineWidth = 2;
         ctx.setLineDash([6, 4]);
         ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
         ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(34, 197, 94, 0.15)";
+        ctx.fillStyle = "rgba(214, 168, 79, 0.15)";
         ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
       }
 
       // Zone borders for GM
       if (isGM) {
         for (const zone of zones) {
-          ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+          ctx.strokeStyle = "rgba(214, 168, 79, 0.5)";
           ctx.lineWidth = 1;
           ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
         }
