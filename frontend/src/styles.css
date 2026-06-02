@@ -2734,12 +2734,12 @@ select {
 }
 
 .floating-widget-collapsed {
-  height: auto !important;
-  overflow: hidden !important;
+  height: auto;
+  overflow: hidden;
 }
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-collapsed .floating-widget-toolbar {
@@ -3769,12 +3769,12 @@ select {
 /* Phase 10-3G floating panels final polish */
 
 .floating-widget.tool-card > summary {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget.map-overview .map-overview-header,
 .floating-widget.token-detail-panel .token-detail-heading {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget .floating-widget-toolbar {
@@ -3812,7 +3812,7 @@ select {
 }
 
 .floating-widget.floating-widget-collapsed {
-  width: auto !important;
+  width: auto;
   min-width: 170px;
 }
 
@@ -3948,7 +3948,7 @@ select {
 
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
-  display: block !important;
+  display: block;
 }
 
 .vtt-panels-menu[open] {
@@ -4140,7 +4140,7 @@ select {
 
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
-  display: block !important;
+  display: block;
 }
 
 .vtt-panels-menu[open] {
@@ -4249,12 +4249,12 @@ select {
 }
 
 .floating-widget.tool-card > summary {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget.map-overview .map-overview-header,
 .floating-widget.token-detail-panel .token-detail-heading {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget .floating-widget-toolbar {
@@ -4301,14 +4301,14 @@ select {
 }
 
 .floating-widget.floating-widget-collapsed {
-  width: auto !important;
+  width: auto;
   min-width: 180px;
-  height: auto !important;
-  overflow: hidden !important;
+  height: auto;
+  overflow: hidden;
 }
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -4420,7 +4420,7 @@ select {
 /* Sprint 1 - robust reopen state for GM panels */
 
 .floating-widget[data-floating-runtime-state="closed"] {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget[data-floating-runtime-state="collapsed"] {
@@ -4447,7 +4447,7 @@ select {
 
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
-  display: block !important;
+  display: block;
 }
 
 .vtt-panels-menu[open] {
@@ -4556,12 +4556,12 @@ select {
 }
 
 .floating-widget.tool-card > summary {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget.map-overview .map-overview-header,
 .floating-widget.token-detail-panel .token-detail-heading {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget .floating-widget-toolbar {
@@ -4608,14 +4608,14 @@ select {
 }
 
 .floating-widget.floating-widget-collapsed {
-  width: auto !important;
+  width: auto;
   min-width: 180px;
-  height: auto !important;
-  overflow: hidden !important;
+  height: auto;
+  overflow: hidden;
 }
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -4734,7 +4734,7 @@ select {
 .floating-widget[data-vtt-panel] > summary,
 .floating-widget[data-vtt-panel] .map-overview-header,
 .floating-widget[data-vtt-panel] .token-detail-heading {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget[data-vtt-panel] .floating-widget-toolbar {
@@ -4742,7 +4742,7 @@ select {
 }
 
 .floating-widget[data-vtt-panel].floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .vtt-panels-list button {
@@ -4834,7 +4834,7 @@ select {
 
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
-  display: block !important;
+  display: block;
 }
 
 .vtt-panels-menu[open] {
@@ -4943,12 +4943,12 @@ select {
 }
 
 .floating-widget.tool-card > summary {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget.map-overview .map-overview-header,
 .floating-widget.token-detail-panel .token-detail-heading {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget .floating-widget-toolbar {
@@ -4995,14 +4995,14 @@ select {
 }
 
 .floating-widget.floating-widget-collapsed {
-  width: auto !important;
+  width: auto;
   min-width: 180px;
-  height: auto !important;
-  overflow: hidden !important;
+  height: auto;
+  overflow: hidden;
 }
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -5935,7 +5935,7 @@ select {
 
 .gm-mode-play .vtt-panels-menu,
 .gm-mode-prepare .vtt-panels-menu {
-  display: block !important;
+  display: block;
 }
 
 .vtt-panels-menu[open] {
@@ -6043,7 +6043,7 @@ select {
 .floating-widget[data-vtt-panel] .map-overview-header,
 .floating-widget[data-vtt-panel] .token-detail-heading,
 .floating-widget[data-vtt-panel] h4:first-child {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-toolbar {
@@ -6090,14 +6090,14 @@ select {
 }
 
 .floating-widget.floating-widget-collapsed {
-  width: auto !important;
+  width: auto;
   min-width: 180px;
-  height: auto !important;
-  overflow: hidden !important;
+  height: auto;
+  overflow: hidden;
 }
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -6199,7 +6199,7 @@ select {
 /* Stabilisation UI panneaux GM - reset centralisé */
 
 .reset-panels-button {
-  display: none !important;
+  display: none;
 }
 
 .vtt-panels-manager-footer {
@@ -6237,7 +6237,7 @@ select {
 /* Le reset panneaux doit vivre uniquement dans le menu Panneaux. */
 .map-ux-toolbar .reset-panels-button,
 .gm-cockpit .reset-panels-button {
-  display: none !important;
+  display: none;
 }
 
 /* Reset carte explicite pour éviter la confusion avec les panneaux. */
@@ -6247,7 +6247,7 @@ select {
 
 /* Nettoyage des anciens headers runtime ou headers internes en mode flottant. */
 .floating-widget-drag-handle {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget[data-vtt-panel] > summary,
@@ -6258,7 +6258,7 @@ select {
 .floating-widget[data-vtt-panel] .asset-form > h4:first-child,
 .floating-widget[data-vtt-panel] .asset-picker > h4:first-child,
 .floating-widget[data-vtt-panel] .token-form > h4:first-child {
-  display: none !important;
+  display: none;
 }
 
 /* Menu panneaux plus lisible. */
@@ -6292,7 +6292,7 @@ select {
 
 .map-ux-toolbar .reset-panels-button,
 .gm-cockpit .reset-panels-button {
-  display: none !important;
+  display: none;
 }
 
 .vtt-panels-category {
@@ -6317,7 +6317,7 @@ select {
 .floating-widget[data-vtt-panel] .asset-picker > h4:first-child,
 .floating-widget[data-vtt-panel] .token-form > h4:first-child,
 .floating-widget-drag-handle {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -6640,24 +6640,24 @@ select {
 .detail-panel.campaign-view-live > .character-section,
 .detail-panel.campaign-view-live > .combat-section,
 .detail-panel.campaign-view-live > .session-section {
-  display: none !important;
+  display: none;
 }
 
 .detail-panel.campaign-view-preparation > .character-section,
 .detail-panel.campaign-view-preparation > .combat-section,
 .detail-panel.campaign-view-preparation > .session-section {
-  display: none !important;
+  display: none;
 }
 
 .detail-panel.campaign-view-journal .vtt-section,
 .detail-panel.campaign-view-journal .combat-section {
-  display: none !important;
+  display: none;
 }
 
 .detail-panel.campaign-view-characters .vtt-section,
 .detail-panel.campaign-view-characters .combat-section,
 .detail-panel.campaign-view-characters .session-section {
-  display: none !important;
+  display: none;
 }
 
 .gm-placeholder-tab {
@@ -6696,7 +6696,7 @@ select {
 
 .map-ux-toolbar .reset-panels-button,
 .gm-cockpit .reset-panels-button {
-  display: none !important;
+  display: none;
 }
 
 .vtt-panels-category {
@@ -6758,7 +6758,7 @@ select {
 .floating-widget[data-vtt-panel] .asset-picker > h4:first-child,
 .floating-widget[data-vtt-panel] .token-form > h4:first-child,
 .floating-widget-drag-handle {
-  display: none !important;
+  display: none;
 }
 
 .floating-widget-dock {
@@ -10067,7 +10067,7 @@ select {
 }
 
 .floating-panel.minimized {
-  height: auto !important;
+  height: auto;
 }
 
 .floating-panel-titlebar {

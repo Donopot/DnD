@@ -3,11 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DnD SaaS</title>
+    <meta name="theme-color" content="#1f5f43" />
+    <meta name="description" content="Table de jeu virtuelle pour Donjons & Dragons — MJ et Joueurs en temps réel" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>D&D Virtual Tabletop</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js").catch(function() {});
+      }
+    </script>
   </body>
 </html>
 

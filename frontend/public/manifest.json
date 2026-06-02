@@ -1,0 +1,22 @@
+{
+  "name": "D&D Virtual Tabletop",
+  "short_name": "DnD VTT",
+  "description": "Table de jeu virtuelle pour Donjons & Dragons — gestion de campagnes, combats, personnages et cartes en temps réel",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1f5f43",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
