@@ -40,7 +40,7 @@ Dernière mise à jour : 2026-06-02
 - Connecter le blueprint au repo `Donopot/DnD`
 - Configurer `VITE_API_URL` après 1er déploiement API
 - Provisionner PostgreSQL + Redis + S3 externes
-- 📋 Checklist complète : [docs/deployment-render.md](deployment-render.md)
+- 📋 Guide de déploiement complet : [docs/deployment.md](deployment.md)
 
 ## 🧹 Phase 45 — Nettoyage + Onglets + Panneaux flottants ✅
 
