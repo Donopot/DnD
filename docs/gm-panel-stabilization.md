@@ -1,5 +1,10 @@
 # Stabilisation UI panneaux GM
 
+> ⚠️ **Document historique** — Conserve la trace des passes de stabilisation antérieures.
+> Le système de panneaux a été migré vers `gmPanels.ts` (registre unique) et
+> `useFloatingPanels` (hook standard). Voir `docs/frontend-panels.md` pour l'état
+> actuel (PANEL-1 → PANEL-5 terminés).
+
 ## Objectif
 
 Stabiliser le systeme de panneaux GM avant d'ajouter de nouveaux panneaux.

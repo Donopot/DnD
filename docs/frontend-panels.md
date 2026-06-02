@@ -119,4 +119,38 @@ Vérifie :
 | PANEL-2 | Normalisation des IDs dans App.tsx (7 mappings) | ✅ |
 | PANEL-3 | Réintégration 5 panneaux planned → active | ✅ |
 | PANEL-4 | Branchement modes Session Live (21 filtres) | ✅ |
-| PANEL-5 | Nettoyage legacy (useFloatingWidgets, VttBoard, 11 refs) | ⏳ |
+| PANEL-5 | Nettoyage legacy (useFloatingWidgets, VttBoard, 12 scripts) | ✅ |
+
+## PANEL-5 — Détail du nettoyage
+
+### Suppressions
+
+| Fichier | Raison |
+|---------|--------|
+| `frontend/src/components/QuickActionsPanel.tsx` | Composant orphelin (jamais importé dans App.tsx) |
+| `frontend/src/hooks/useFloatingWidgets.ts` | Remplacé par `useFloatingPanels` (fp.open) |
+| `frontend/src/config/vttPanels.ts` | Wrapper legacy sans consommateur |
+| `scripts/audit-gm-panels-complete.sh` | Référençait VttBoard.tsx (inexistant) |
+| `scripts/check-gm-interface-clean.sh` | idem |
+| `scripts/check-gm-notes-api.sh` | idem |
+| `scripts/check-gm-notes-panel.sh` | idem |
+| `scripts/check-gm-panels-standard-layout.sh` | idem |
+| `scripts/check-panel-interactions.sh` | idem |
+| `scripts/check-panel-system.sh` | idem |
+| `scripts/check-party-summary-panel.sh` | idem |
+| `scripts/check-quick-actions-panel.sh` | idem |
+| `scripts/check-vtt-panels.sh` | idem |
+
+### Migrations
+
+| Composant | Changement |
+|-----------|-----------|
+| `VisibilityInspectorPanel` | `showFloatingWidget()` → callback `onOpenPanel` injecté depuis App.tsx |
+| `sessionLiveModes.ts` | Suppression `FloatingWidgetPreset` + `getPresetForSessionLiveMode()` (code mort) |
+
+### Scripts conservés
+
+| Script | Rôle |
+|--------|------|
+| `check-gm-panels-current.sh` | Vérification cohérence registre ↔ App.tsx |
+| `check-gm-panel-css.sh` | Vérification CSS des panneaux |

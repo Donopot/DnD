@@ -1244,6 +1244,7 @@ export default function App() {
                   selectedScene={selectedScene}
                   selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
                   sceneTokens={sceneTokens}
+                  onOpenPanel={(panelId) => fp.open(panelId, "")}
                 />
               </details>
               )}
@@ -1810,6 +1811,7 @@ export default function App() {
               selectedScene={selectedScene}
               selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
               sceneTokens={sceneTokens}
+              onOpenPanel={(panelId) => fp.open(panelId, "")}
             />
           )}
           {panel.id === "party-summary" && (

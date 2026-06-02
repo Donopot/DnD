@@ -147,7 +147,7 @@ fi
 echo ""
 echo "─── 4. Références legacy VttBoard.tsx ───"
 
-vtt_count=$(grep -rl "VttBoard" "$ROOT/scripts/" 2>/dev/null | wc -l)
+vtt_count=$(grep -rl "VttBoard" "$ROOT/scripts/" 2>/dev/null | grep -v "check-gm-panels-current" | wc -l || true)
 if [[ $vtt_count -gt 0 ]]; then
   echo "   ⚠️  $vtt_count script(s) référencent VttBoard.tsx (→ PANEL-5)"
 else
