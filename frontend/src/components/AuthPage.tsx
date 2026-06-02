@@ -62,6 +62,19 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
             ? "Les deux mots de passe doivent correspondre."
             : "";
 
+  const disabledReason =
+    mode === "login"
+      ? password.length === 0
+        ? "Renseigne ton mot de passe."
+        : ""
+      : password.length < 8
+        ? "Le mot de passe doit faire au moins 8 caractères."
+        : strength.score < 3
+          ? "Ajoute au moins une minuscule, une majuscule et un chiffre."
+          : !passwordsMatch
+            ? "Les deux mots de passe doivent correspondre."
+            : "";
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isBusy) return;
