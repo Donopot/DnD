@@ -114,7 +114,7 @@ request GET /api/health "" "" "$HEALTH" || fail "health failed"
 
 log "Register smoke GM"
 REGISTER="$TMP_DIR/register.json"
-request POST /api/auth/register "{\"email\":\"$EMAIL\",\"display_name\":\"$DISPLAY_NAME\",\"password\":\"$PASSWORD\"}" "" "$REGISTER" || fail "register failed"
+request POST /api/auth/register "{\"email\":\"$EMAIL\",\"display_name\":\"$DISPLAY_NAME\",\"password\":\"$PASSWORD\",\"confirm_password\":\"$PASSWORD\"}" "" "$REGISTER" || fail "register failed"
 
 ACCESS_TOKEN="$(json_get "$REGISTER" access_token)"
 USER_ID="$(json_get "$REGISTER" user.id)"

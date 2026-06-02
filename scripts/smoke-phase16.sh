@@ -5,7 +5,7 @@ EMAIL="smoke-fog-$(date +%s)@test.com"
 PASS="test1234"
 echo "=== Phase 16 Smoke: Fog of War ==="
 
-REG=$(curl -fsS -X POST "$API/auth/register" -H "Content-Type: application/json" -d "{\"email\":\"$EMAIL\",\"display_name\":\"FogTester\",\"password\":\"$PASS\"}")
+REG=$(curl -fsS -X POST "$API/auth/register" -H "Content-Type: application/json" -d "{\"email\":\"$EMAIL\",\"display_name\":\"FogTester\",\"password\":\"$PASS\",\"confirm_password\":\"$PASS\"}")
 TOKEN=$(echo "$REG" | jq -r '.access_token')
 
 CAMP=$(curl -fsS -X POST "$API/campaigns" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"name":"Fog Test Camp","description":"Phase 16 smoke"}')
