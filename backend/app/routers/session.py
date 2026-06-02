@@ -476,6 +476,8 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     )
 
                 await manager.broadcast(campaign_id, chat_payload)
+
+            elif msg_type == "ruler":
                 # Broadcast ruler measurement (visual only, GM and other players see it)
                 await manager.broadcast(
                     campaign_id,
