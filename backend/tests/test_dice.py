@@ -1,7 +1,9 @@
 """Unit tests for the dice roller."""
 
 import pytest
-from app.dice import roll_formula, roll_with_mode, RollResult
+
+from app.dice import roll_formula
+from app.dice import roll_with_mode
 
 
 class TestRollFormula:

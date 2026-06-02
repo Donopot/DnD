@@ -1,11 +1,6 @@
 import type { FloatingWidgetPreset } from "./vttPanels";
 
-export type SessionLiveMode =
-  | "exploration"
-  | "combat"
-  | "roleplay"
-  | "quick-prep"
-  | "minimal";
+export type SessionLiveMode = "exploration" | "combat" | "roleplay" | "quick-prep" | "minimal";
 
 export type SessionLiveModeDefinition = {
   id: SessionLiveMode;

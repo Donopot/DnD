@@ -5,11 +5,11 @@ Requires env vars to be set before import — see conftest.py or run with:
 """
 
 import os
+from datetime import UTC
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
-
 
 # Ensure required env vars exist before importing app modules
 _ENV_DEFAULTS = {
@@ -34,14 +34,16 @@ class TestJWT:
         return uuid4()
 
     def test_create_and_decode(self, user_id):
-        from app.security import create_access_token, decode_access_token
+        from app.security import create_access_token
+        from app.security import decode_access_token
         token = create_access_token(user_id)
         assert isinstance(token, str)
         decoded = decode_access_token(token)
         assert decoded == user_id
 
     def test_expired_token(self, monkeypatch):
-        from app.security import create_access_token, decode_access_token
+        from app.security import create_access_token
+        from app.security import decode_access_token
         monkeypatch.setattr("app.security.settings.access_token_ttl_minutes", -1)
         user_id = uuid4()
         token = create_access_token(user_id)
@@ -57,7 +59,8 @@ class TestJWT:
         assert exc.value.status_code == 401
 
     def test_tampered_token(self, user_id):
-        from app.security import create_access_token, decode_access_token
+        from app.security import create_access_token
+        from app.security import decode_access_token
         token = create_access_token(user_id)
         tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
         with pytest.raises(HTTPException) as exc:
@@ -88,6 +91,7 @@ class TestRegisterSchema:
     def test_password_mismatch(self):
         """confirm_password != password → ValidationError"""
         from pydantic import ValidationError
+
         from app.schemas import RegisterRequest
         payload = {**VALID_REGISTER_PAYLOAD, "confirm_password": "Different1"}
         with pytest.raises(ValidationError) as exc:
@@ -98,6 +102,7 @@ class TestRegisterSchema:
     def test_password_no_uppercase(self):
         """password sans majuscule → ValidationError"""
         from pydantic import ValidationError
+
         from app.schemas import RegisterRequest
         payload = {**VALID_REGISTER_PAYLOAD, "password": "nolower1", "confirm_password": "nolower1"}
         with pytest.raises(ValidationError) as exc:
@@ -108,6 +113,7 @@ class TestRegisterSchema:
     def test_password_no_lowercase(self):
         """password sans minuscule → ValidationError"""
         from pydantic import ValidationError
+
         from app.schemas import RegisterRequest
         payload = {**VALID_REGISTER_PAYLOAD, "password": "UPPERCASE1", "confirm_password": "UPPERCASE1"}
         with pytest.raises(ValidationError) as exc:
@@ -118,6 +124,7 @@ class TestRegisterSchema:
     def test_password_no_digit(self):
         """password sans chiffre → ValidationError"""
         from pydantic import ValidationError
+
         from app.schemas import RegisterRequest
         payload = {**VALID_REGISTER_PAYLOAD, "password": "NoDigitsHere", "confirm_password": "NoDigitsHere"}
         with pytest.raises(ValidationError) as exc:
@@ -128,6 +135,7 @@ class TestRegisterSchema:
     def test_password_too_short(self):
         """password < 8 caractères → ValidationError"""
         from pydantic import ValidationError
+
         from app.schemas import RegisterRequest
         payload = {**VALID_REGISTER_PAYLOAD, "password": "Ab1", "confirm_password": "Ab1"}
         with pytest.raises(ValidationError):
@@ -158,7 +166,8 @@ class TestUtils:
         assert decode_json('[1, 2, 3]') == [1, 2, 3]
 
     def test_jsonb_roundtrip(self):
-        from app.utils import jsonb, decode_json
+        from app.utils import decode_json
+        from app.utils import jsonb
         data = {"nested": {"list": [1, "two", None]}}
         serialized = jsonb(data)
         assert isinstance(serialized, str)
@@ -212,6 +221,7 @@ class TestAuthSchemas:
     def test_login_empty_password_rejected(self):
         """Login with empty password must be rejected at schema level."""
         from pydantic import ValidationError
+
         from app.schemas import LoginRequest
         with pytest.raises(ValidationError):
             LoginRequest(email="test@test.com", password="")
@@ -219,6 +229,7 @@ class TestAuthSchemas:
     def test_login_invalid_email(self):
         """Login with invalid email format should be rejected."""
         from pydantic import ValidationError
+
         from app.schemas import LoginRequest
         with pytest.raises(ValidationError):
             LoginRequest(email="not-an-email", password="somepass")
@@ -226,9 +237,10 @@ class TestCharacterSchemas:
 
     def test_character_public_allows_null_campaign_id(self):
         """campaign_id=None pour le vault personnel."""
-        from app.schemas import CharacterPublic
+        from datetime import datetime
         from uuid import uuid4
-        from datetime import datetime, timezone
+
+        from app.schemas import CharacterPublic
 
         char = CharacterPublic(
             id=uuid4(),
@@ -237,17 +249,18 @@ class TestCharacterSchemas:
             name="Elara",
             level=3,
             status="personal",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         assert char.campaign_id is None
         assert char.status == "personal"
 
     def test_character_public_with_campaign(self):
         """campaign_id set = active dans une campagne."""
-        from app.schemas import CharacterPublic
+        from datetime import datetime
         from uuid import uuid4
-        from datetime import datetime, timezone
+
+        from app.schemas import CharacterPublic
 
         cid = uuid4()
         char = CharacterPublic(
@@ -258,16 +271,17 @@ class TestCharacterSchemas:
             level=2,
             status="active",
             submitted_to_campaign_id=None,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         assert char.campaign_id == cid
         assert char.status == "active"
 
     def test_submit_request_valid(self):
         """CharacterSubmitRequest avec campaign_id valide."""
-        from app.schemas import CharacterSubmitRequest
         from uuid import uuid4
+
+        from app.schemas import CharacterSubmitRequest
 
         req = CharacterSubmitRequest(campaign_id=uuid4())
         assert req.campaign_id is not None

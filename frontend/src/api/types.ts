@@ -221,7 +221,7 @@ export type HomebrewItem = {
   properties: Record<string, unknown>;
   created_at: string;
   updated_at: string;
-}
+};
 
 // Phase 21: Communication MJ↔Joueur
 export type GmMessage = {

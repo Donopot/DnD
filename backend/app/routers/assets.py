@@ -1,15 +1,24 @@
 import re
-from uuid import UUID, uuid4
+from uuid import UUID
+from uuid import uuid4
 
 import boto3
 from botocore.client import Config
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import File
+from fastapi import HTTPException
+from fastapi import UploadFile
+from fastapi import status
 from fastapi.responses import StreamingResponse
 
 from app.config import get_settings
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
-from app.schemas import AssetPublic, SceneBackgroundUpdateRequest, ScenePublic
+from app.deps import get_current_user
+from app.deps import require_campaign_role
+from app.schemas import AssetPublic
+from app.schemas import SceneBackgroundUpdateRequest
+from app.schemas import ScenePublic
 
 router = APIRouter(prefix="/api", tags=["assets"])
 

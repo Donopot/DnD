@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Castle, Swords, UserPlus } from "lucide-react";
+import { useState } from "react";
 
 type InvitePreview = {
   campaign_name: string;
@@ -60,7 +60,9 @@ export function InvitePage({
           <Castle size={48} />
           <h2>Invitation invalide</h2>
           <p>{error}</p>
-          <a href="/" className="primary-button">Retour à l'accueil</a>
+          <a href="/" className="primary-button">
+            Retour à l'accueil
+          </a>
         </div>
       </main>
     );
@@ -107,9 +109,7 @@ export function InvitePage({
           Connecté comme <strong>{userDisplayName}</strong> · rôle{" "}
           <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
         </p>
-        {preview.remaining_uses !== null && (
-          <p>Places restantes: {preview.remaining_uses}</p>
-        )}
+        {preview.remaining_uses !== null && <p>Places restantes: {preview.remaining_uses}</p>}
         {error && <p className="error-text">{error}</p>}
         <button className="primary-button" disabled={isBusy} onClick={handleJoin} type="button">
           <UserPlus aria-hidden="true" />

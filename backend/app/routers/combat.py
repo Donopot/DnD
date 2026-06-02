@@ -1,28 +1,31 @@
-import json
 import random
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
+from pydantic import BaseModel
+from pydantic import Field
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user
+from app.deps import require_campaign_role
 from app.realtime import manager
-from app.schemas import (
-    ApplyConditionRequest,
-    BulkInitiativeRequest,
-    CombatantCreateRequest,
-    CombatantPublic,
-    CombatantUpdateRequest,
-    CombatLogEntryPublic,
-    EncounterCreateRequest,
-    EncounterDetailPublic,
-    EncounterFromSceneRequest,
-    EncounterPublic,
-    RemoveConditionRequest,
-)
-from app.utils import decode_json, jsonb
+from app.schemas import ApplyConditionRequest
+from app.schemas import BulkInitiativeRequest
+from app.schemas import CombatantCreateRequest
+from app.schemas import CombatantPublic
+from app.schemas import CombatantUpdateRequest
+from app.schemas import CombatLogEntryPublic
+from app.schemas import EncounterCreateRequest
+from app.schemas import EncounterDetailPublic
+from app.schemas import EncounterFromSceneRequest
+from app.schemas import EncounterPublic
+from app.schemas import RemoveConditionRequest
+from app.utils import decode_json
+from app.utils import jsonb
 
 router = APIRouter(prefix="/api", tags=["combat"])
 
@@ -611,22 +614,21 @@ async def create_encounter_from_scene(
     if not tokens:
         raise HTTPException(status_code=400, detail="Scene has no tokens to create combatants from")
 
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            encounter = await connection.fetchrow(
-                """
+    async with get_pool().acquire() as connection, connection.transaction():
+        encounter = await connection.fetchrow(
+            """
                 insert into combat_encounters (campaign_id, scene_id, name)
                 values ($1, $2, $3)
                 returning *
                 """,
-                scene["campaign_id"],
-                scene_id,
-                payload.name.strip(),
-            )
+            scene["campaign_id"],
+            scene_id,
+            payload.name.strip(),
+        )
 
-            for token in tokens:
-                await connection.execute(
-                    """
+        for token in tokens:
+            await connection.execute(
+                """
                     insert into combatants (
                         encounter_id, token_id, character_id, name,
                         initiative, armor_class, hp_current, hp_max,
@@ -634,12 +636,12 @@ async def create_encounter_from_scene(
                     )
                     values ($1, $2, $3, $4, 0, 10, 1, 1, false, $5)
                     """,
-                    encounter["id"],
-                    token["id"],
-                    token["character_id"],
-                    token["name"],
-                    token["is_hidden"],
-                )
+                encounter["id"],
+                token["id"],
+                token["character_id"],
+                token["name"],
+                token["is_hidden"],
+            )
 
     combatants = await load_combatants(encounter["id"], include_hidden=True)
     base = encounter_public(encounter, combatants)

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { BarChart3, Dice1, Swords, Timer } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { GameLogEntry, Roll } from "../api/types";
 
 type SessionStatsProps = {
@@ -45,11 +45,14 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
 
       // Sessions
       const sessionsRes = await fetch(`/api/campaigns/${campaignId}/log/sessions`, { headers });
-      const sessions: Array<{ label: string; at: string }> = sessionsRes.ok ? await sessionsRes.json() : [];
+      const sessions: Array<{ label: string; at: string }> = sessionsRes.ok
+        ? await sessionsRes.json()
+        : [];
 
       // Compute stats
       const totals = rolls.filter((r) => r.total > 0);
-      const avg = totals.length > 0 ? Math.round(totals.reduce((s, r) => s + r.total, 0) / totals.length) : 0;
+      const avg =
+        totals.length > 0 ? Math.round(totals.reduce((s, r) => s + r.total, 0) / totals.length) : 0;
       const nat20s = totals.filter((r) => r.total === 20).length;
       const nat1s = totals.filter((r) => r.total === 1).length;
       const highest = totals.length > 0 ? Math.max(...totals.map((r) => r.total)) : 0;
@@ -77,7 +80,9 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
         sessionCount: sessions.length,
         lastSessionAt: sessions.length > 0 ? sessions[sessions.length - 1].at : null,
       });
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoading(false);
   }
 
@@ -141,7 +146,9 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
         {stats.lastSessionAt && (
           <div className="ss-detail-row">
             <span>Dernière session</span>
-            <span className="ss-detail-val">{new Date(stats.lastSessionAt).toLocaleDateString("fr-FR")}</span>
+            <span className="ss-detail-val">
+              {new Date(stats.lastSessionAt).toLocaleDateString("fr-FR")}
+            </span>
           </div>
         )}
       </div>

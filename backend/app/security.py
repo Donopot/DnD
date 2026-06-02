@@ -1,9 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC
+from datetime import datetime
+from datetime import timedelta
 from uuid import UUID
 
 import bcrypt
 import jwt
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status
 from jwt import PyJWTError
 
 from app.config import get_settings
@@ -21,7 +24,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def create_access_token(user_id: UUID) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "iat": int(now.timestamp()),

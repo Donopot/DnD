@@ -1,4 +1,4 @@
-import { Search, Skull, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { BestiaryCreature } from "../api/types";
 
@@ -7,21 +7,43 @@ type BestiaryPanelProps = {
 };
 
 const MONSTER_TYPES = [
-  "aberration", "beast", "celestial", "construct", "dragon",
-  "elemental", "fey", "fiend", "giant", "humanoid",
-  "monstrosity", "ooze", "plant", "undead",
+  "aberration",
+  "beast",
+  "celestial",
+  "construct",
+  "dragon",
+  "elemental",
+  "fey",
+  "fiend",
+  "giant",
+  "humanoid",
+  "monstrosity",
+  "ooze",
+  "plant",
+  "undead",
 ];
 
 const SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
 
 const ENVIRONMENTS = [
-  "arctic", "coastal", "desert", "forest", "grassland",
-  "mountain", "swamp", "underdark", "urban",
+  "arctic",
+  "coastal",
+  "desert",
+  "forest",
+  "grassland",
+  "mountain",
+  "swamp",
+  "underdark",
+  "urban",
 ];
 
 const CR_RANGES: [number, number, string][] = [
-  [0, 0, "CR 0"], [0.125, 0.5, "CR 0–½"], [1, 4, "CR 1–4"],
-  [5, 10, "CR 5–10"], [11, 16, "CR 11–16"], [17, 30, "CR 17+"],
+  [0, 0, "CR 0"],
+  [0.125, 0.5, "CR 0–½"],
+  [1, 4, "CR 1–4"],
+  [5, 10, "CR 5–10"],
+  [11, 16, "CR 11–16"],
+  [17, 30, "CR 17+"],
 ];
 
 export function BestiaryPanel({ token }: BestiaryPanelProps) {
@@ -55,8 +77,9 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
       if (res.ok) {
         setCreatures(await res.json());
       }
-    } catch { /* ignore */ }
-    finally {
+    } catch {
+      /* ignore */
+    } finally {
       setLoading(false);
     }
   }
@@ -82,10 +105,14 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
         setCreatures((prev) => [...prev, ...more]);
         setOffset(newOffset);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
-  useEffect(() => { void search(); }, []);
+  useEffect(() => {
+    void search();
+  }, []);
 
   function crLabel(cr: number): string {
     if (cr === 0.125) return "⅛";
@@ -105,28 +132,54 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
             placeholder="Rechercher une créature..."
             onKeyDown={(e) => e.key === "Enter" && search()}
           />
-          <button className="primary-button compact" onClick={search} type="button" disabled={loading}>
+          <button
+            className="primary-button compact"
+            onClick={search}
+            type="button"
+            disabled={loading}
+          >
             <Search size={14} /> {loading ? "..." : "Chercher"}
           </button>
         </div>
 
         <div className="bestiary-filter-row">
-          <select value={monsterType} onChange={(e) => { setMonsterType(e.target.value); }}>
+          <select
+            value={monsterType}
+            onChange={(e) => {
+              setMonsterType(e.target.value);
+            }}
+          >
             <option value="">Tous types</option>
             {MONSTER_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
-          <select value={size} onChange={(e) => { setSize(e.target.value); }}>
+          <select
+            value={size}
+            onChange={(e) => {
+              setSize(e.target.value);
+            }}
+          >
             <option value="">Toutes tailles</option>
             {SIZES.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
-          <select value={environment} onChange={(e) => { setEnvironment(e.target.value); }}>
+          <select
+            value={environment}
+            onChange={(e) => {
+              setEnvironment(e.target.value);
+            }}
+          >
             <option value="">Tous environnements</option>
             {ENVIRONMENTS.map((env) => (
-              <option key={env} value={env}>{env}</option>
+              <option key={env} value={env}>
+                {env}
+              </option>
             ))}
           </select>
         </div>
@@ -187,25 +240,42 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
                   {selectedCreature.size} {selectedCreature.type}, {selectedCreature.alignment}
                 </p>
               </div>
-              <button className="ghost-button" onClick={() => setSelectedCreature(null)} type="button">
+              <button
+                className="ghost-button"
+                onClick={() => setSelectedCreature(null)}
+                type="button"
+              >
                 <X size={18} />
               </button>
             </div>
 
             <div className="bestiary-stats-grid">
-              <div><strong>Armor Class</strong> {selectedCreature.ac}{selectedCreature.ac_type ? ` (${selectedCreature.ac_type})` : ""}</div>
-              <div><strong>Hit Points</strong> {selectedCreature.hp}</div>
-              <div><strong>Speed</strong> {selectedCreature.speed}</div>
-              <div className="bestiary-cr-badge"><strong>CR</strong> {crLabel(selectedCreature.cr)} ({selectedCreature.xp} XP)</div>
+              <div>
+                <strong>Armor Class</strong> {selectedCreature.ac}
+                {selectedCreature.ac_type ? ` (${selectedCreature.ac_type})` : ""}
+              </div>
+              <div>
+                <strong>Hit Points</strong> {selectedCreature.hp}
+              </div>
+              <div>
+                <strong>Speed</strong> {selectedCreature.speed}
+              </div>
+              <div className="bestiary-cr-badge">
+                <strong>CR</strong> {crLabel(selectedCreature.cr)} ({selectedCreature.xp} XP)
+              </div>
             </div>
 
             <div className="bestiary-ability-scores">
-              {(["str","dex","con","int","wis","cha"] as const).map((ab) => (
+              {(["str", "dex", "con", "int", "wis", "cha"] as const).map((ab) => (
                 <div key={ab} className="bestiary-ability">
                   <span className="ability-label">{ab.toUpperCase()}</span>
                   <span className="ability-score">{(selectedCreature as any)[ab]}</span>
                   <span className="ability-mod">
-                    {(() => { const s = (selectedCreature as any)[ab]; const m = Math.floor((s-10)/2); return m >= 0 ? `+${m}` : `${m}`; })()}
+                    {(() => {
+                      const s = (selectedCreature as any)[ab];
+                      const m = Math.floor((s - 10) / 2);
+                      return m >= 0 ? `+${m}` : `${m}`;
+                    })()}
                   </span>
                 </div>
               ))}

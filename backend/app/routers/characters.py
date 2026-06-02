@@ -1,24 +1,25 @@
 import json
-from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
-from app.schemas import (
-    CharacterApproveRequest,
-    CharacterCreateRequest,
-    CharacterPublic,
-    CharacterSubmitRequest,
-    CharacterUpdateRequest,
-    ConditionsUpdateRequest,
-    HpAdjustRequest,
-    InventoryItemRequest,
-    ResourceRequest,
-    XpUpdateRequest,
-)
-from app.utils import decode_json, jsonb
+from app.deps import get_current_user
+from app.deps import require_campaign_role
+from app.schemas import CharacterApproveRequest
+from app.schemas import CharacterCreateRequest
+from app.schemas import CharacterPublic
+from app.schemas import CharacterSubmitRequest
+from app.schemas import CharacterUpdateRequest
+from app.schemas import ConditionsUpdateRequest
+from app.schemas import HpAdjustRequest
+from app.schemas import InventoryItemRequest
+from app.schemas import ResourceRequest
+from app.schemas import XpUpdateRequest
+from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["characters"])
 

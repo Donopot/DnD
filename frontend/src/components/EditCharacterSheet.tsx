@@ -1,5 +1,5 @@
 import { Edit2, Save, X } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import type { Character } from "../api/types";
 
 type EditCharacterSheetProps = {
@@ -24,7 +24,7 @@ type CharacterEditData = {
   int: number;
   wis: number;
   cha: number;
-  inventory: string;  // JSON edited as text
+  inventory: string; // JSON edited as text
   spells: string;
   attacks: string;
   resources: string;
@@ -51,12 +51,7 @@ function attrMod(value: number) {
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-export function EditCharacterSheet({
-  character,
-  token,
-  isBusy,
-  onSave,
-}: EditCharacterSheetProps) {
+export function EditCharacterSheet({ character, token, isBusy, onSave }: EditCharacterSheetProps) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<CharacterEditData>({
     name: character.name,
@@ -182,8 +177,8 @@ export function EditCharacterSheet({
             <h4>{character.name}</h4>
           )}
           <p>
-            {character.ancestry || "Origine libre"} ·{" "}
-            {character.class_name || "Classe libre"} · niveau {character.level}
+            {character.ancestry || "Origine libre"} · {character.class_name || "Classe libre"} ·
+            niveau {character.level}
           </p>
         </div>
         <div className="sheet-actions">
@@ -258,7 +253,9 @@ export function EditCharacterSheet({
                 min={1}
                 max={40}
                 value={form.armor_class}
-                onChange={(e) => setForm((f) => ({ ...f, armor_class: Number(e.target.value) || 10 }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, armor_class: Number(e.target.value) || 10 }))
+                }
               />
             </label>
             <label>
@@ -267,7 +264,9 @@ export function EditCharacterSheet({
                 type="number"
                 min={0}
                 value={form.hp_current}
-                onChange={(e) => setForm((f) => ({ ...f, hp_current: Number(e.target.value) || 0 }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, hp_current: Number(e.target.value) || 0 }))
+                }
               />
             </label>
             <label>
@@ -376,7 +375,9 @@ export function EditCharacterSheet({
           {/* Read-only view */}
           <div className="stat-strip">
             <span>CA {character.armor_class}</span>
-            <span>PV {character.hp_current}/{character.hp_max}</span>
+            <span>
+              PV {character.hp_current}/{character.hp_max}
+            </span>
             <span>VIT {character.speed}</span>
             <span>PB +{character.proficiency_bonus}</span>
           </div>
@@ -386,7 +387,9 @@ export function EditCharacterSheet({
               <span key={key}>
                 <strong>{label}</strong>
                 {character.attributes[key as keyof typeof character.attributes]}
-                <small>({attrMod(character.attributes[key as keyof typeof character.attributes])})</small>
+                <small>
+                  ({attrMod(character.attributes[key as keyof typeof character.attributes])})
+                </small>
               </span>
             ))}
           </div>
@@ -459,7 +462,9 @@ export function EditCharacterSheet({
       {message && (
         <div className="sheet-toast">
           <p>{message}</p>
-          <button onClick={() => setMessage("")} type="button">✕</button>
+          <button onClick={() => setMessage("")} type="button">
+            ✕
+          </button>
         </div>
       )}
     </article>

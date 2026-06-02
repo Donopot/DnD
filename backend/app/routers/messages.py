@@ -1,19 +1,20 @@
 """Phase 21: Communication MJ↔Joueur — messages privés, annonces, jets secrets."""
 
-from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user
+from app.deps import require_campaign_role
 from app.dice import roll_formula as roll_dice
-from app.schemas import (
-    GmAnnouncementCreate,
-    GmMessageCreate,
-    GmMessagePublic,
-    GmSecretRollCreate,
-)
+from app.schemas import GmAnnouncementCreate
+from app.schemas import GmMessageCreate
+from app.schemas import GmMessagePublic
+from app.schemas import GmSecretRollCreate
 
 router = APIRouter(prefix="/api", tags=["messages"])
 
@@ -42,7 +43,7 @@ async def send_message(
     current_user=Depends(get_current_user),
 ) -> GmMessagePublic:
     """GM sends a private message to a specific player."""
-    role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
 
     # Verify recipient is a member of the campaign
     recipient = await get_pool().fetchrow(

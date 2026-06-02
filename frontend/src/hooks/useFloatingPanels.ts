@@ -50,74 +50,60 @@ export function useFloatingPanels() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }, [panels]);
 
-  const open = useCallback(
-    (id: string, title: string, x?: number, y?: number) => {
-      setPanels((prev) => {
-        const existing = prev.find((p) => p.id === id);
-        if (existing) {
-          // Already open — restore if minimized, bring to front
-          return prev.map((p) =>
-            p.id === id
-              ? { ...p, minimized: false, zIndex: Math.max(...prev.map((x) => x.zIndex), 1000) + 10 }
-              : p,
-          );
-        }
-        // New panel — place near center of viewport
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const newPanel: FloatingPanelState = {
-          id,
-          title,
-          x: x ?? Math.max(50, (vw - DEFAULT_WIDTH) / 2),
-          y: y ?? Math.max(50, (vh - DEFAULT_HEIGHT) / 2),
-          width: DEFAULT_WIDTH,
-          height: DEFAULT_HEIGHT,
-          minimized: false,
-          zIndex: Math.max(...prev.map((p) => p.zIndex), 1000) + 10,
-        };
-        return [...prev, newPanel];
-      });
-    },
-    [],
-  );
+  const open = useCallback((id: string, title: string, x?: number, y?: number) => {
+    setPanels((prev) => {
+      const existing = prev.find((p) => p.id === id);
+      if (existing) {
+        // Already open — restore if minimized, bring to front
+        return prev.map((p) =>
+          p.id === id
+            ? { ...p, minimized: false, zIndex: Math.max(...prev.map((x) => x.zIndex), 1000) + 10 }
+            : p,
+        );
+      }
+      // New panel — place near center of viewport
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const newPanel: FloatingPanelState = {
+        id,
+        title,
+        x: x ?? Math.max(50, (vw - DEFAULT_WIDTH) / 2),
+        y: y ?? Math.max(50, (vh - DEFAULT_HEIGHT) / 2),
+        width: DEFAULT_WIDTH,
+        height: DEFAULT_HEIGHT,
+        minimized: false,
+        zIndex: Math.max(...prev.map((p) => p.zIndex), 1000) + 10,
+      };
+      return [...prev, newPanel];
+    });
+  }, []);
 
   const close = useCallback((id: string) => {
     setPanels((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
   const minimize = useCallback((id: string) => {
-    setPanels((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, minimized: !p.minimized } : p)),
-    );
+    setPanels((prev) => prev.map((p) => (p.id === id ? { ...p, minimized: !p.minimized } : p)));
   }, []);
 
   const bringToFront = useCallback((id: string) => {
     setPanels((prev) => {
       const maxZ = Math.max(...prev.map((p) => p.zIndex), 1000);
-      return prev.map((p) =>
-        p.id === id ? { ...p, zIndex: maxZ + 10 } : p,
-      );
+      return prev.map((p) => (p.id === id ? { ...p, zIndex: maxZ + 10 } : p));
     });
   }, []);
 
   const updatePosition = useCallback((id: string, x: number, y: number) => {
-    setPanels((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, x, y } : p)),
-    );
+    setPanels((prev) => prev.map((p) => (p.id === id ? { ...p, x, y } : p)));
   }, []);
 
-  const updateSize = useCallback(
-    (id: string, width: number, height: number) => {
-      setPanels((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? { ...p, width: Math.max(200, width), height: Math.max(150, height) }
-            : p,
-        ),
-      );
-    },
-    [],
-  );
+  const updateSize = useCallback((id: string, width: number, height: number) => {
+    setPanels((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, width: Math.max(200, width), height: Math.max(150, height) } : p,
+      ),
+    );
+  }, []);
 
   return {
     panels,

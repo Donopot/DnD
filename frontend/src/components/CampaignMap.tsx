@@ -1,8 +1,8 @@
-import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Grid3X3 } from "lucide-react";
+import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Character, Scene, SceneToken } from "../api/types";
 import { FogLayer } from "./FogLayer";
 import { MapTools } from "./MapTools";
-import type { Character, Scene, SceneToken } from "../api/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ export function CampaignMap({
           if (!t.character_id || !userId) return false;
           return characters.some((c) => c.id === t.character_id && c.owner_user_id === userId);
         })
-        .map((t) => t.id)
+        .map((t) => t.id),
     );
   }, [isGM, sceneTokens, characters, userId]);
 
@@ -206,7 +206,10 @@ export function CampaignMap({
 
   // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
 
-  const snapToGrid = useCallback((value: number) => Math.round(value / gridSize) * gridSize, [gridSize]);
+  const snapToGrid = useCallback(
+    (value: number) => Math.round(value / gridSize) * gridSize,
+    [gridSize],
+  );
 
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     if (!isGM || !onMoveToken) return;
@@ -287,10 +290,10 @@ export function CampaignMap({
     // Draw viewport rectangle
     const el = scrollRef.current;
     if (el) {
-      const vx = el.scrollLeft / bw * bw * scale;
-      const vy = el.scrollTop / bh * bh * scale;
-      const vw = (el.clientWidth / zoom) / bw * bw * scale;
-      const vh = (el.clientHeight / zoom) / bh * bh * scale;
+      const vx = (el.scrollLeft / bw) * bw * scale;
+      const vy = (el.scrollTop / bh) * bh * scale;
+      const vw = (el.clientWidth / zoom / bw) * bw * scale;
+      const vh = (el.clientHeight / zoom / bh) * bh * scale;
       ctx.strokeStyle = "#c5b358";
       ctx.lineWidth = 1;
       ctx.strokeRect(sx + vx, sy + vy, vw, vh);
@@ -324,19 +327,23 @@ export function CampaignMap({
             }}
           >
             {scenes.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </select>
         )}
 
-        {scenes.length <= 1 && (
-          <strong>{selectedScene.name}</strong>
-        )}
+        {scenes.length <= 1 && <strong>{selectedScene.name}</strong>}
 
         <div className="campaign-map-zoom">
-          <button type="button" onClick={() => updateZoom(-ZOOM_STEP)} aria-label="Zoom arrière">−</button>
+          <button type="button" onClick={() => updateZoom(-ZOOM_STEP)} aria-label="Zoom arrière">
+            −
+          </button>
           <span>{zoomPercent}%</span>
-          <button type="button" onClick={() => updateZoom(ZOOM_STEP)} aria-label="Zoom avant">+</button>
+          <button type="button" onClick={() => updateZoom(ZOOM_STEP)} aria-label="Zoom avant">
+            +
+          </button>
         </div>
 
         {/* Grid toggle */}
@@ -411,20 +418,29 @@ export function CampaignMap({
             {/* Tokens */}
             {sceneTokens.map((token) => {
               const hpPercent = token.metadata?.hp_max
-                ? Math.round(((token.metadata?.hp_current as number) ?? 0) / (token.metadata.hp_max as number) * 100)
+                ? Math.round(
+                    (((token.metadata?.hp_current as number) ?? 0) /
+                      (token.metadata.hp_max as number)) *
+                      100,
+                  )
                 : null;
 
               const isPlayerToken = myTokenIds.has(token.id);
               const isBloodied = hpPercent !== null && hpPercent <= 50 && hpPercent > 0;
               const isDefeated = hpPercent !== null && hpPercent <= 0;
-              const isConcentrating = (token.metadata as Record<string, unknown> | null)?.conditions && Array.isArray((token.metadata as Record<string, unknown>)?.conditions) && ((token.metadata as Record<string, unknown>)?.conditions as string[]).includes("concentrating");
+              const isConcentrating =
+                (token.metadata as Record<string, unknown> | null)?.conditions &&
+                Array.isArray((token.metadata as Record<string, unknown>)?.conditions) &&
+                ((token.metadata as Record<string, unknown>)?.conditions as string[]).includes(
+                  "concentrating",
+                );
 
               return (
                 <div
                   className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
-                  onClick={() => isGM ? setSelectedTokenId(token.id) : undefined}
+                  onClick={() => (isGM ? setSelectedTokenId(token.id) : undefined)}
                   onPointerDown={(e) => handleTokenPointerDown(e, token)}
                   style={{
                     left: token.x,
@@ -452,9 +468,7 @@ export function CampaignMap({
                   )}
 
                   {/* Selection ring */}
-                  {selectedTokenId === token.id && (
-                    <div className="token-ring" />
-                  )}
+                  {selectedTokenId === token.id && <div className="token-ring" />}
                 </div>
               );
             })}
@@ -475,12 +489,7 @@ export function CampaignMap({
       </div>
 
       {/* ── Minimap ─────────────────────────────────────────── */}
-      <canvas
-        ref={minimapRef}
-        className="campaign-map-minimap"
-        width={160}
-        height={120}
-      />
+      <canvas ref={minimapRef} className="campaign-map-minimap" width={160} height={120} />
     </div>
   );
 }

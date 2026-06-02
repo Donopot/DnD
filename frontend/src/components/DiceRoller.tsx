@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Dice1 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type RollingDie = {
   id: number;
@@ -26,12 +26,15 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
   const animationTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Parse formula like "2d6+3" or "1d20-1"
-  const parseFormula = useCallback((f: string): { count: number; type: string; modifier: number } => {
-    const match = f.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-    if (!match) return { count: 1, type: "d20", modifier: 0 };
-    const mod = match[3] ? parseInt(match[3]) : 0;
-    return { count: parseInt(match[1]), type: `d${match[2]}`, modifier: mod };
-  }, []);
+  const parseFormula = useCallback(
+    (f: string): { count: number; type: string; modifier: number } => {
+      const match = f.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+      if (!match) return { count: 1, type: "d20", modifier: 0 };
+      const mod = match[3] ? parseInt(match[3]) : 0;
+      return { count: parseInt(match[1]), type: `d${match[2]}`, modifier: mod };
+    },
+    [],
+  );
 
   function rollDice() {
     if (rolling) return;
@@ -47,27 +50,44 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
       const total = kept + modifier;
 
       const newDice: RollingDie[] = [
-        { id: ++diceId.current, type: "d20", x: 30 + Math.random() * 40, y: 20 + Math.random() * 30, result: r1, modifier: 0 },
-        { id: ++diceId.current, type: "d20", x: 50 + Math.random() * 40, y: 20 + Math.random() * 30, result: r2, modifier: 0 },
+        {
+          id: ++diceId.current,
+          type: "d20",
+          x: 30 + Math.random() * 40,
+          y: 20 + Math.random() * 30,
+          result: r1,
+          modifier: 0,
+        },
+        {
+          id: ++diceId.current,
+          type: "d20",
+          x: 50 + Math.random() * 40,
+          y: 20 + Math.random() * 30,
+          result: r2,
+          modifier: 0,
+        },
       ];
       setDice(newDice);
 
       animationTimeout.current = setTimeout(() => {
         setDice([]);
         setTotalResult(total);
-        setResultLabel(`${mode === "advantage" ? "Avantage" : "Désavantage"} : ${r1}, ${r2} → ${kept}${modifier >= 0 ? "+" : ""}${modifier} = ${total}`);
+        setResultLabel(
+          `${mode === "advantage" ? "Avantage" : "Désavantage"} : ${r1}, ${r2} → ${kept}${modifier >= 0 ? "+" : ""}${modifier} = ${total}`,
+        );
         setRolling(false);
         onRoll(formula, label || formula, mode);
       }, 2200);
     } else {
       const results: number[] = [];
-      for (let i = 0; i < count; i++) results.push(Math.floor(Math.random() * parseInt(type.slice(1))) + 1);
+      for (let i = 0; i < count; i++)
+        results.push(Math.floor(Math.random() * parseInt(type.slice(1))) + 1);
       const total = results.reduce((s, r) => s + r, 0) + modifier;
 
       const newDice: RollingDie[] = results.map((r, i) => ({
         id: ++diceId.current,
         type,
-        x: 10 + (i * 35) + Math.random() * 20,
+        x: 10 + i * 35 + Math.random() * 20,
         y: 15 + Math.random() * 25,
         result: r,
         modifier: 0,
@@ -77,9 +97,10 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
       animationTimeout.current = setTimeout(() => {
         setDice([]);
         setTotalResult(total);
-        const resultStr = count > 1
-          ? `${results.join(" + ")}${modifier !== 0 ? (modifier > 0 ? " + " : " - ") + Math.abs(modifier) : ""} = ${total}`
-          : `${total}`;
+        const resultStr =
+          count > 1
+            ? `${results.join(" + ")}${modifier !== 0 ? (modifier > 0 ? " + " : " - ") + Math.abs(modifier) : ""} = ${total}`
+            : `${total}`;
         setResultLabel(`${label || formula} : ${resultStr}`);
         setRolling(false);
         onRoll(formula, label || formula, mode);
@@ -88,7 +109,9 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
   }
 
   useEffect(() => {
-    return () => { if (animationTimeout.current) clearTimeout(animationTimeout.current); };
+    return () => {
+      if (animationTimeout.current) clearTimeout(animationTimeout.current);
+    };
   }, []);
 
   const critStyle = (r: number, type: string) => {
@@ -115,7 +138,9 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
 
         {/* Final result display */}
         {totalResult !== null && !rolling && (
-          <div className={`dice-result ${totalResult === 20 ? "nat20" : totalResult === 1 ? "nat1" : ""}`}>
+          <div
+            className={`dice-result ${totalResult === 20 ? "nat20" : totalResult === 1 ? "nat1" : ""}`}
+          >
             <span className="dice-total">{totalResult}</span>
             {resultLabel && <span className="dice-label">{resultLabel}</span>}
           </div>
@@ -140,14 +165,37 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
             className="dice-formula-input"
           />
           <div className="dice-mode-btns">
-            <button className={`dice-mode-btn ${mode === "normal" ? "active" : ""}`} onClick={() => setMode("normal")} type="button" title="Normal">1d20</button>
-            <button className={`dice-mode-btn ${mode === "advantage" ? "active" : ""}`} onClick={() => setMode("advantage")} type="button" title="Avantage">Adv</button>
-            <button className={`dice-mode-btn ${mode === "disadvantage" ? "active" : ""}`} onClick={() => setMode("disadvantage")} type="button" title="Désavantage">Dis</button>
+            <button
+              className={`dice-mode-btn ${mode === "normal" ? "active" : ""}`}
+              onClick={() => setMode("normal")}
+              type="button"
+              title="Normal"
+            >
+              1d20
+            </button>
+            <button
+              className={`dice-mode-btn ${mode === "advantage" ? "active" : ""}`}
+              onClick={() => setMode("advantage")}
+              type="button"
+              title="Avantage"
+            >
+              Adv
+            </button>
+            <button
+              className={`dice-mode-btn ${mode === "disadvantage" ? "active" : ""}`}
+              onClick={() => setMode("disadvantage")}
+              type="button"
+              title="Désavantage"
+            >
+              Dis
+            </button>
           </div>
         </div>
         <div className="dice-quick-row">
           {["1d4", "1d6", "1d8", "1d10", "1d12", "1d20"].map((d) => (
-            <button key={d} className="dice-quick-btn" onClick={() => setFormula(d)} type="button">{d}</button>
+            <button key={d} className="dice-quick-btn" onClick={() => setFormula(d)} type="button">
+              {d}
+            </button>
           ))}
           <input
             type="text"

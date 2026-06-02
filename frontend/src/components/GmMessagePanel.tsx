@@ -1,6 +1,6 @@
-import { FormEvent, useState } from "react";
-import { Megaphone, MessageSquare, Send, Dice1 } from "lucide-react";
-import type { GmMessage as _GmMessageType, Member } from "../api/types";
+import { Dice1, Megaphone, MessageSquare, Send } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import type { Member } from "../api/types";
 
 type GmMessagePanelProps = {
   campaignId: string;
@@ -82,7 +82,10 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
     setIsBusy(true);
     setStatusMsg("");
     try {
-      const body: Record<string, unknown> = { formula: formula.trim(), label: label.trim() || "Jet secret" };
+      const body: Record<string, unknown> = {
+        formula: formula.trim(),
+        label: label.trim() || "Jet secret",
+      };
       if (recipientId) body.recipient_id = recipientId;
       const res = await fetch(`/api/campaigns/${campaignId}/secret-roll`, {
         method: "POST",
@@ -116,7 +119,10 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
           <button
             key={t.id}
             className={`message-tab ${tab === t.id ? "active" : ""}`}
-            onClick={() => { setTab(t.id); setStatusMsg(""); }}
+            onClick={() => {
+              setTab(t.id);
+              setStatusMsg("");
+            }}
             type="button"
           >
             {t.icon} {t.label}
@@ -131,7 +137,9 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
           <select value={recipientId} onChange={(e) => setRecipientId(e.target.value)}>
             <option value="">-- Choisir un joueur --</option>
             {players.map((p) => (
-              <option key={p.user_id} value={p.user_id}>{p.display_name} ({p.role})</option>
+              <option key={p.user_id} value={p.user_id}>
+                {p.display_name} ({p.role})
+              </option>
             ))}
           </select>
         </div>
@@ -139,15 +147,24 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
 
       {/* ── Message privé / Annonce ────────────────────────────── */}
       {(tab === "message" || tab === "announce") && (
-        <form onSubmit={tab === "message" ? handleSendMessage : handleAnnounce} className="message-form">
+        <form
+          onSubmit={tab === "message" ? handleSendMessage : handleAnnounce}
+          className="message-form"
+        >
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder={tab === "announce" ? "📢 Annonce à tous les joueurs..." : "💬 Message privé..."}
+            placeholder={
+              tab === "announce" ? "📢 Annonce à tous les joueurs..." : "💬 Message privé..."
+            }
             rows={3}
             maxLength={tab === "announce" ? 1000 : 2000}
           />
-          <button className="primary-button compact" disabled={isBusy || !content.trim()} type="submit">
+          <button
+            className="primary-button compact"
+            disabled={isBusy || !content.trim()}
+            type="submit"
+          >
             <Send size={14} /> {tab === "announce" ? "Diffuser" : "Envoyer"}
           </button>
         </form>
@@ -158,13 +175,27 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
         <form onSubmit={handleSecretRoll} className="message-form">
           <div className="message-field">
             <label>Label</label>
-            <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="ex: Perception du dragon" maxLength={200} />
+            <input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="ex: Perception du dragon"
+              maxLength={200}
+            />
           </div>
           <div className="message-field">
             <label>Formule</label>
-            <input value={formula} onChange={(e) => setFormula(e.target.value)} placeholder="2d6+4" maxLength={100} />
+            <input
+              value={formula}
+              onChange={(e) => setFormula(e.target.value)}
+              placeholder="2d6+4"
+              maxLength={100}
+            />
           </div>
-          <button className="primary-button compact" disabled={isBusy || !formula.trim()} type="submit">
+          <button
+            className="primary-button compact"
+            disabled={isBusy || !formula.trim()}
+            type="submit"
+          >
             <Dice1 size={14} /> Lancer (secret)
           </button>
         </form>

@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
 import {
-  VTT_PANELS,
+  type FloatingWidgetPreset,
   getVttPanelLabel,
   isVttPanelId,
-  type FloatingWidgetPreset,
+  VTT_PANELS,
 } from "../config/vttPanels";
 
 export type { FloatingWidgetPreset } from "../config/vttPanels";
@@ -75,9 +75,11 @@ function getWidgetTitle(widget: HTMLElement, index: number) {
   return (
     widget.getAttribute("data-floating-title") ||
     (isVttPanelId(id) ? getVttPanelLabel(id) : undefined) ||
-    widget.querySelector<HTMLElement>("summary, h4, .map-overview-header span, .token-detail-heading h4")
-      ?.textContent
-      ?.trim() ||
+    widget
+      .querySelector<HTMLElement>(
+        "summary, h4, .map-overview-header span, .token-detail-heading h4",
+      )
+      ?.textContent?.trim() ||
     `Panneau ${index + 1}`
   );
 }
@@ -129,11 +131,22 @@ function createToolbarButton(label: string, title: string, className: string) {
   return button;
 }
 
-function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: number): WidgetLayout {
+function getPresetLayout(
+  preset: FloatingWidgetPreset,
+  widgetId: string,
+  index: number,
+): WidgetLayout {
   const margin = 18;
   const width = Math.min(390, Math.max(300, window.innerWidth * 0.24));
   const left = Math.max(margin, window.innerWidth - width - margin);
-  const rightColumn = ["minimap", "token-detail", "visibility-inspector", "quick-actions", "party-summary", "initiative"];
+  const rightColumn = [
+    "minimap",
+    "token-detail",
+    "visibility-inspector",
+    "quick-actions",
+    "party-summary",
+    "initiative",
+  ];
   const useRight = rightColumn.includes(widgetId);
   const x = useRight ? left : margin;
   const y = 92 + index * 44;
@@ -163,7 +176,14 @@ function getPresetLayout(preset: FloatingWidgetPreset, widgetId: string, index: 
   }
 
   if (preset === "combat") {
-    const combatOrder = ["initiative", "quick-actions", "token-detail", "visibility-inspector", "party-summary", "minimap"];
+    const combatOrder = [
+      "initiative",
+      "quick-actions",
+      "token-detail",
+      "visibility-inspector",
+      "party-summary",
+      "minimap",
+    ];
     const combatIndex = combatOrder.includes(widgetId) ? combatOrder.indexOf(widgetId) : index;
 
     return {
@@ -197,7 +217,11 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
     return {
       ...common,
       hidden: widgetId === "upload-map" || widgetId === "background",
-      collapsed: widgetId === "initiative" || widgetId === "minimap" || widgetId === "token" || widgetId === "tokens",
+      collapsed:
+        widgetId === "initiative" ||
+        widgetId === "minimap" ||
+        widgetId === "token" ||
+        widgetId === "tokens",
     };
   }
 
@@ -220,9 +244,7 @@ function getPresetMeta(preset: FloatingWidgetPreset, widgetId: string, index: nu
         widgetId === "tokens" ||
         widgetId === "gm-notes",
       collapsed:
-        widgetId === "minimap" ||
-        widgetId === "initiative" ||
-        widgetId === "visibility-inspector",
+        widgetId === "minimap" || widgetId === "initiative" || widgetId === "visibility-inspector",
     };
   }
 
@@ -408,7 +430,11 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
       const metaKey = `${META_PREFIX}${id}`;
 
       const defaultLayout: WidgetLayout = {
-        left: clamp(window.innerWidth - 380 - 24 - index * 18, 12, Math.max(12, window.innerWidth - 120)),
+        left: clamp(
+          window.innerWidth - 380 - 24 - index * 18,
+          12,
+          Math.max(12, window.innerWidth - 120),
+        ),
         top: clamp(96 + index * 38, 12, Math.max(12, window.innerHeight - 80)),
         width: Math.min(380, Math.max(280, window.innerWidth - 48)),
         height: Math.min(420, Math.max(180, window.innerHeight - 120)),
@@ -427,10 +453,26 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
       const actions = document.createElement("div");
       actions.className = "floating-widget-toolbar-actions";
 
-      const frontButton = createToolbarButton("↑", "Mettre au premier plan", "floating-action-front");
-      const pinButton = createToolbarButton("📌", "Épingler dans le panneau latéral", "floating-action-pin");
-      const lockButton = createToolbarButton("🔒", "Verrouiller le panneau", "floating-action-lock");
-      const collapseButton = createToolbarButton("−", "Réduire le panneau", "floating-action-collapse");
+      const frontButton = createToolbarButton(
+        "↑",
+        "Mettre au premier plan",
+        "floating-action-front",
+      );
+      const pinButton = createToolbarButton(
+        "📌",
+        "Épingler dans le panneau latéral",
+        "floating-action-pin",
+      );
+      const lockButton = createToolbarButton(
+        "🔒",
+        "Verrouiller le panneau",
+        "floating-action-lock",
+      );
+      const collapseButton = createToolbarButton(
+        "−",
+        "Réduire le panneau",
+        "floating-action-collapse",
+      );
       const hideButton = createToolbarButton("×", "Fermer le panneau", "floating-action-close");
 
       actions.append(frontButton, pinButton, lockButton, collapseButton, hideButton);
@@ -491,11 +533,15 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
               : "open";
 
         pinButton.textContent = currentMeta.pinned ? "↗" : "📌";
-        pinButton.title = currentMeta.pinned ? "Détacher en panneau flottant" : "Épingler dans le panneau latéral";
+        pinButton.title = currentMeta.pinned
+          ? "Détacher en panneau flottant"
+          : "Épingler dans le panneau latéral";
         pinButton.setAttribute("aria-label", pinButton.title);
 
         lockButton.textContent = currentMeta.locked ? "🔓" : "🔒";
-        lockButton.title = currentMeta.locked ? "Déverrouiller le panneau" : "Verrouiller le panneau";
+        lockButton.title = currentMeta.locked
+          ? "Déverrouiller le panneau"
+          : "Verrouiller le panneau";
         lockButton.setAttribute("aria-label", lockButton.title);
 
         collapseButton.textContent = currentMeta.collapsed ? "+" : "−";
@@ -727,7 +773,10 @@ export function useFloatingWidgets(enabled: boolean, rootSelector: string, refre
         window.removeEventListener("dnd:reset-floating-widgets", handleReset);
         window.removeEventListener("dnd:show-floating-widget", handleShowWidget);
         window.removeEventListener("dnd:apply-floating-widget-preset", handleApplyPreset);
-        window.removeEventListener("dnd:save-floating-widget-custom-preset", handleSaveCustomPreset);
+        window.removeEventListener(
+          "dnd:save-floating-widget-custom-preset",
+          handleSaveCustomPreset,
+        );
 
         if (widget instanceof HTMLDetailsElement && typeof wasDetailsOpen === "boolean") {
           widget.open = wasDetailsOpen;

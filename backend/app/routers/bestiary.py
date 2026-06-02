@@ -1,10 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Query
 
 from app.db import get_pool
 from app.deps import get_current_user
-from app.schemas import BestiaryCreaturePublic, BestiaryTrait
+from app.schemas import BestiaryCreaturePublic
+from app.schemas import BestiaryTrait
 from app.utils import decode_json
 
 router = APIRouter(prefix="/api/bestiary", tags=["bestiary"])

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Bell, Mail, Megaphone } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { GmMessage } from "../api/types";
 
 type PlayerNotificationsProps = {
@@ -14,14 +14,19 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const unreadCount = inbox.filter((m) => !m.read_at).length + announcements.filter((m) => !m.read_at).length;
+  const unreadCount =
+    inbox.filter((m) => !m.read_at).length + announcements.filter((m) => !m.read_at).length;
 
   async function loadAll() {
     setLoading(true);
     try {
       const [inboxRes, annRes] = await Promise.all([
-        fetch(`/api/campaigns/${campaignId}/inbox`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`/api/campaigns/${campaignId}/announcements`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`/api/campaigns/${campaignId}/inbox`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`/api/campaigns/${campaignId}/announcements`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
       if (inboxRes.ok) setInbox(await inboxRes.json());
       if (annRes.ok) setAnnouncements(await annRes.json());
@@ -45,7 +50,9 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      setInbox((prev) => prev.map((m) => (m.id === msg.id ? { ...m, read_at: new Date().toISOString() } : m)));
+      setInbox((prev) =>
+        prev.map((m) => (m.id === msg.id ? { ...m, read_at: new Date().toISOString() } : m)),
+      );
     } catch {
       // silent
     }
@@ -55,7 +62,10 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
     <div className="player-notifications">
       <button
         className={`notification-bell ${unreadCount > 0 ? "has-unread" : ""}`}
-        onClick={() => { setOpen(!open); if (!open) void loadAll(); }}
+        onClick={() => {
+          setOpen(!open);
+          if (!open) void loadAll();
+        }}
         type="button"
         title={`${unreadCount} non lu(s)`}
       >
@@ -81,9 +91,15 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
                   onClick={() => markRead(m)}
                 >
                   <span className="msg-content">
-                    {m.kind === "secret_roll" ? "🎲 " : ""}{m.content}
+                    {m.kind === "secret_roll" ? "🎲 " : ""}
+                    {m.content}
                   </span>
-                  <span className="msg-time">{new Date(m.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="msg-time">
+                    {new Date(m.created_at).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -97,9 +113,18 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
           ) : (
             <ul className="msg-list">
               {announcements.slice(0, 5).map((m) => (
-                <li key={m.id} className={`msg-item announcement ${!m.read_at ? "unread" : ""}`} onClick={() => markRead(m)}>
+                <li
+                  key={m.id}
+                  className={`msg-item announcement ${!m.read_at ? "unread" : ""}`}
+                  onClick={() => markRead(m)}
+                >
                   <span className="msg-content">{m.content}</span>
-                  <span className="msg-time">{new Date(m.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="msg-time">
+                    {new Date(m.created_at).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </li>
               ))}
             </ul>

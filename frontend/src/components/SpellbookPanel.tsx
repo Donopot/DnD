@@ -7,14 +7,17 @@ type SpellbookPanelProps = {
 };
 
 const SCHOOLS = [
-  "abjuration", "conjuration", "divination", "enchantment",
-  "evocation", "illusion", "necromancy", "transmutation",
+  "abjuration",
+  "conjuration",
+  "divination",
+  "enchantment",
+  "evocation",
+  "illusion",
+  "necromancy",
+  "transmutation",
 ];
 
-const CLASSES = [
-  "bard", "cleric", "druid", "paladin", "ranger",
-  "sorcerer", "warlock", "wizard",
-];
+const CLASSES = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"];
 
 const LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -41,11 +44,16 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) setSpells(await res.json());
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { void search(); }, []);
+  useEffect(() => {
+    void search();
+  }, []);
 
   function levelLabel(l: number): string {
     if (l === 0) return "Cantrip";
@@ -65,22 +73,41 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
             placeholder="Rechercher un sort..."
             onKeyDown={(e) => e.key === "Enter" && search()}
           />
-          <button className="primary-button compact" onClick={search} type="button" disabled={loading}>
+          <button
+            className="primary-button compact"
+            onClick={search}
+            type="button"
+            disabled={loading}
+          >
             <Search size={14} />
           </button>
         </div>
 
         <div className="bestiary-filter-row">
-          <select value={school} onChange={(e) => { setSchool(e.target.value); }}>
+          <select
+            value={school}
+            onChange={(e) => {
+              setSchool(e.target.value);
+            }}
+          >
             <option value="">Toutes écoles</option>
             {SCHOOLS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
-          <select value={spellClass} onChange={(e) => { setSpellClass(e.target.value); }}>
+          <select
+            value={spellClass}
+            onChange={(e) => {
+              setSpellClass(e.target.value);
+            }}
+          >
             <option value="">Toutes classes</option>
             {CLASSES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </div>
@@ -111,13 +138,13 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
             <span className="bestiary-cr">Niv. {s.level}</span>
             <span className="bestiary-name">{s.name}</span>
             <span className="bestiary-meta">
-              {s.school}{s.ritual ? " · Rituel" : ""}{s.concentration ? " · Concentration" : ""}
+              {s.school}
+              {s.ritual ? " · Rituel" : ""}
+              {s.concentration ? " · Concentration" : ""}
             </span>
           </button>
         ))}
-        {spells.length === 0 && !loading && (
-          <p className="muted">Aucun sort trouvé.</p>
-        )}
+        {spells.length === 0 && !loading && <p className="muted">Aucun sort trouvé.</p>}
       </div>
 
       {/* ── Detail modal ─────────────────────────────────────── */}
@@ -128,7 +155,8 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
               <div>
                 <h2>{selectedSpell.name}</h2>
                 <p className="bestiary-subtitle">
-                  {selectedSpell.level === 0 ? "Cantrip" : `Niveau ${selectedSpell.level}`} · {selectedSpell.school}
+                  {selectedSpell.level === 0 ? "Cantrip" : `Niveau ${selectedSpell.level}`} ·{" "}
+                  {selectedSpell.school}
                   {selectedSpell.ritual && " · Rituel"}
                   {selectedSpell.concentration && " · Concentration"}
                 </p>
@@ -139,10 +167,18 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
             </div>
 
             <div className="bestiary-stats-grid">
-              <div><strong>Casting Time</strong> {selectedSpell.casting_time}</div>
-              <div><strong>Range</strong> {selectedSpell.range}</div>
-              <div><strong>Components</strong> {selectedSpell.components}</div>
-              <div><strong>Duration</strong> {selectedSpell.duration}</div>
+              <div>
+                <strong>Casting Time</strong> {selectedSpell.casting_time}
+              </div>
+              <div>
+                <strong>Range</strong> {selectedSpell.range}
+              </div>
+              <div>
+                <strong>Components</strong> {selectedSpell.components}
+              </div>
+              <div>
+                <strong>Duration</strong> {selectedSpell.duration}
+              </div>
             </div>
 
             <div className="bestiary-detail-section">

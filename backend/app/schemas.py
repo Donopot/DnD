@@ -1,10 +1,13 @@
+import re
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-import re
-
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel
+from pydantic import EmailStr
+from pydantic import Field
+from pydantic import field_validator
+from pydantic import model_validator
 
 
 class UserPublic(BaseModel):

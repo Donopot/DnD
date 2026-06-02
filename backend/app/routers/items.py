@@ -1,6 +1,8 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Query
 
 from app.db import get_pool
 from app.deps import get_current_user

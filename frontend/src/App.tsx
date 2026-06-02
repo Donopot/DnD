@@ -1,38 +1,74 @@
-import { FormEvent, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import { DoorOpen, ExternalLink, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Plus, Swords, UserPlus } from "lucide-react";
+import {
+  DoorOpen,
+  ExternalLink,
+  Maximize2,
+  Minimize2,
+  PanelRightClose,
+  PanelRightOpen,
+  Plus,
+  Swords,
+  UserPlus,
+} from "lucide-react";
+import { type FormEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
-import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
+import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
-import { useSceneBackground } from "./hooks/useSceneBackground";
-import { useFloatingPanels } from "./hooks/useFloatingPanels";
+import { type CampaignView, CampaignViewTabs } from "./components/CampaignViewTabs";
+import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { FloatingPanel } from "./components/FloatingPanel";
+import { GmLobby } from "./components/GmLobby";
+import { HandoutPanel } from "./components/HandoutPanel";
+import { InvitePage } from "./components/InvitePage";
+import { PlayerLobby } from "./components/PlayerLobby";
+import { PlayerView } from "./components/PlayerView";
+import { QuickActions } from "./components/QuickActions";
+import { SessionLogPanel } from "./components/SessionLogPanel";
+import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
+import { useFloatingPanels } from "./hooks/useFloatingPanels";
+import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
-import { AuthPage } from "./components/AuthPage";
-import { EditCharacterSheet } from "./components/EditCharacterSheet";
-import { QuickActions } from "./components/QuickActions";
-import { InvitePage } from "./components/InvitePage";
-import { PlayerView } from "./components/PlayerView";
-import { GmLobby } from "./components/GmLobby";
-import { PlayerLobby } from "./components/PlayerLobby";
-import { SessionLogPanel } from "./components/SessionLogPanel";
-import { HandoutPanel } from "./components/HandoutPanel";
-import { CampaignViewTabs, type CampaignView } from "./components/CampaignViewTabs";
 
 // ── Lazy-loaded heavy components (code-split for faster initial load) ────
-const CombatTracker = lazy(() => import("./components/CombatTracker").then(m => ({ default: m.CombatTracker })));
-const DiceRoller = lazy(() => import("./components/DiceRoller").then(m => ({ default: m.DiceRoller })));
-const EncounterBuilder = lazy(() => import("./components/EncounterBuilder").then(m => ({ default: m.EncounterBuilder })));
-const SessionStats = lazy(() => import("./components/SessionStats").then(m => ({ default: m.SessionStats })));
-const HomebrewPanel = lazy(() => import("./components/HomebrewPanel").then(m => ({ default: m.HomebrewPanel })));
-const RulesReference = lazy(() => import("./components/RulesReference").then(m => ({ default: m.RulesReference })));
-const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspector").then(m => ({ default: m.GmCharacterInspector })));
-const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
-const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => ({ default: m.BestiaryPanel })));
-const SpellbookPanel = lazy(() => import("./components/SpellbookPanel").then(m => ({ default: m.SpellbookPanel })));
-const DungeonGenerator = lazy(() => import("./components/DungeonGenerator").then(m => ({ default: m.DungeonGenerator })));
-const ItemCompendium = lazy(() => import("./components/ItemCompendium").then(m => ({ default: m.ItemCompendium })));
-const CharacterWizard = lazy(() => import("./components/CharacterWizard").then(m => ({ default: m.CharacterWizard })));
+const CombatTracker = lazy(() =>
+  import("./components/CombatTracker").then((m) => ({ default: m.CombatTracker })),
+);
+const DiceRoller = lazy(() =>
+  import("./components/DiceRoller").then((m) => ({ default: m.DiceRoller })),
+);
+const EncounterBuilder = lazy(() =>
+  import("./components/EncounterBuilder").then((m) => ({ default: m.EncounterBuilder })),
+);
+const SessionStats = lazy(() =>
+  import("./components/SessionStats").then((m) => ({ default: m.SessionStats })),
+);
+const HomebrewPanel = lazy(() =>
+  import("./components/HomebrewPanel").then((m) => ({ default: m.HomebrewPanel })),
+);
+const RulesReference = lazy(() =>
+  import("./components/RulesReference").then((m) => ({ default: m.RulesReference })),
+);
+const GmCharacterInspector = lazy(() =>
+  import("./components/GmCharacterInspector").then((m) => ({ default: m.GmCharacterInspector })),
+);
+const GmMessagePanel = lazy(() =>
+  import("./components/GmMessagePanel").then((m) => ({ default: m.GmMessagePanel })),
+);
+const BestiaryPanel = lazy(() =>
+  import("./components/BestiaryPanel").then((m) => ({ default: m.BestiaryPanel })),
+);
+const SpellbookPanel = lazy(() =>
+  import("./components/SpellbookPanel").then((m) => ({ default: m.SpellbookPanel })),
+);
+const DungeonGenerator = lazy(() =>
+  import("./components/DungeonGenerator").then((m) => ({ default: m.DungeonGenerator })),
+);
+const ItemCompendium = lazy(() =>
+  import("./components/ItemCompendium").then((m) => ({ default: m.ItemCompendium })),
+);
+const CharacterWizard = lazy(() =>
+  import("./components/CharacterWizard").then((m) => ({ default: m.CharacterWizard })),
+);
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -42,6 +78,7 @@ const PanelFallback = () => (
     <div className="skeleton skeleton-text" />
   </div>
 );
+
 import type {
   Asset,
   AuthResponse,
@@ -85,14 +122,17 @@ export default function App() {
   const [, setCombatants] = useState<Combatant[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
-  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
+  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
+    "offline",
+  );
   const [, setLatestInvite] = useState<Invite | null>(null);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
     return match ? match[1] : null;
   });
-  const [activeSessionLiveMode, setActiveSessionLiveMode] = useState<SessionLiveMode>("exploration");
+  const [activeSessionLiveMode, setActiveSessionLiveMode] =
+    useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
@@ -121,14 +161,19 @@ export default function App() {
   // Auto-convert message state to toast notifications
   useEffect(() => {
     if (message) {
-      showToast(message, message.includes("Erreur") || message.includes("error") ? "error" : "info");
+      showToast(
+        message,
+        message.includes("Erreur") || message.includes("error") ? "error" : "info",
+      );
       setMessage("");
     }
   }, [message, showToast]);
 
   // Listen for keyboard shortcut to toggle focus map (from CampaignMap)
   useEffect(() => {
-    function onToggleFocus() { setIsFocusMap((prev) => !prev); }
+    function onToggleFocus() {
+      setIsFocusMap((prev) => !prev);
+    }
     window.addEventListener("toggle-focus-map", onToggleFocus);
     return () => window.removeEventListener("toggle-focus-map", onToggleFocus);
   }, []);
@@ -328,7 +373,6 @@ export default function App() {
     }
   }
 
-
   async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
     setIsBusy(true);
     setMessage("");
@@ -342,9 +386,7 @@ export default function App() {
         }),
       });
 
-      setSceneTokens((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
+      setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to move token");
     } finally {
@@ -397,7 +439,8 @@ export default function App() {
         return;
       }
 
-      const effectiveEncounter = data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
+      const effectiveEncounter =
+        data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
       setSelectedEncounterId(effectiveEncounter.id);
       await loadEncounterDetail(effectiveEncounter.id);
     } catch (error) {
@@ -412,7 +455,6 @@ export default function App() {
       setMessage(error instanceof Error ? error.message : "Unable to load handouts");
     }
   }
-
 
   async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -458,9 +500,7 @@ export default function App() {
         body: JSON.stringify({ is_revealed: true }),
       });
 
-      setHandouts((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
+      setHandouts((current) => current.map((item) => (item.id === updated.id ? updated : item)));
       setMessage(`Handout "${updated.title}" partage aux joueurs.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to reveal handout");
@@ -488,7 +528,6 @@ export default function App() {
     }
   }
 
-
   async function loadAssets(campaignId: string) {
     try {
       const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
@@ -498,7 +537,6 @@ export default function App() {
       setMessage(error instanceof Error ? error.message : "Unable to load assets");
     }
   }
-
 
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -541,33 +579,36 @@ export default function App() {
     const level = Number(form.get("level") || 1);
     const hpMax = Number(form.get("hp_max") || 1);
     try {
-      const character = await request<Character>(`/api/campaigns/${selectedCampaign.id}/characters`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          ancestry: String(form.get("ancestry")),
-          class_name: String(form.get("class_name")),
-          level,
-          armor_class: Number(form.get("armor_class") || 10),
-          speed: Number(form.get("speed") || 30),
-          proficiency_bonus: Math.max(2, Math.ceil(level / 4) + 1),
-          hp_current: hpMax,
-          hp_max: hpMax,
-          attributes: {
-            str: Number(form.get("str") || 10),
-            dex: Number(form.get("dex") || 10),
-            con: Number(form.get("con") || 10),
-            int: Number(form.get("int") || 10),
-            wis: Number(form.get("wis") || 10),
-            cha: Number(form.get("cha") || 10),
-          },
-          inventory: [],
-          spells: [],
-          attacks: [],
-          resources: [],
-          notes: String(form.get("notes")),
-        }),
-      });
+      const character = await request<Character>(
+        `/api/campaigns/${selectedCampaign.id}/characters`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: String(form.get("name")),
+            ancestry: String(form.get("ancestry")),
+            class_name: String(form.get("class_name")),
+            level,
+            armor_class: Number(form.get("armor_class") || 10),
+            speed: Number(form.get("speed") || 30),
+            proficiency_bonus: Math.max(2, Math.ceil(level / 4) + 1),
+            hp_current: hpMax,
+            hp_max: hpMax,
+            attributes: {
+              str: Number(form.get("str") || 10),
+              dex: Number(form.get("dex") || 10),
+              con: Number(form.get("con") || 10),
+              int: Number(form.get("int") || 10),
+              wis: Number(form.get("wis") || 10),
+              cha: Number(form.get("cha") || 10),
+            },
+            inventory: [],
+            spells: [],
+            attacks: [],
+            resources: [],
+            notes: String(form.get("notes")),
+          }),
+        },
+      );
       setCharacters((current) => [character, ...current]);
       setSelectedCharacterId(character.id);
       event.currentTarget.reset();
@@ -612,7 +653,11 @@ export default function App() {
     );
   }
 
-  async function handleQuickRoll(formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") {
+  async function handleQuickRoll(
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+  ) {
     if (!selectedCampaign) return;
     await doRoll(formula, label, mode, "public", selectedCharacter?.id ?? "");
   }
@@ -672,7 +717,6 @@ export default function App() {
       setIsBusy(false);
     }
   }
-
 
   function logout() {
     wsRef.current?.close();
@@ -860,7 +904,12 @@ export default function App() {
         </div>
 
         <div className="gm-sidebar-actions">
-          <button className="primary-button compact" disabled={isBusy} onClick={handleCreateInvite} type="button">
+          <button
+            className="primary-button compact"
+            disabled={isBusy}
+            onClick={handleCreateInvite}
+            type="button"
+          >
             <UserPlus aria-hidden="true" size={14} />
             Inviter
           </button>
@@ -939,350 +988,521 @@ export default function App() {
 
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
-      <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
-        {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
-        {gmView === "live" && (
-        <>
-        {/* Combat Tracker */}
-        <details className="gm-panel-section" open>
-          <summary>
-            ⚔️ Combat
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("combat", "⚔️ Combat");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <CombatTracker
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
-          />
-        </details>
+        <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
+          {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
+          {gmView === "live" && (
+            <>
+              {/* Combat Tracker */}
+              <details className="gm-panel-section" open>
+                <summary>
+                  ⚔️ Combat
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("combat", "⚔️ Combat");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <CombatTracker
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+                />
+              </details>
 
-        {/* Encounter Builder */}
-        <details className="gm-panel-section">
-          <summary>
-            🧩 Générateur de rencontres
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("encounter", "🧩 Rencontres");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
-        </details>
+              {/* Encounter Builder */}
+              <details className="gm-panel-section">
+                <summary>
+                  🧩 Générateur de rencontres
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("encounter", "🧩 Rencontres");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
+              </details>
 
-        {/* Dice Roller */}
-        <details className="gm-panel-section">
-          <summary>
-            🎲 Lancer de dés
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("dice", "🎲 Lancer de dés");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <DiceRoller
-            onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
-          />
-        </details>
+              {/* Dice Roller */}
+              <details className="gm-panel-section">
+                <summary>
+                  🎲 Lancer de dés
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("dice", "🎲 Lancer de dés");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
+              </details>
 
-        {/* Quick Actions / Macros */}
-        <details className="gm-panel-section">
-          <summary>
-            ⚡ Actions rapides
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("quickactions", "⚡ Actions rapides"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <QuickActions
-            onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
-          />
-        </details>
+              {/* Quick Actions / Macros */}
+              <details className="gm-panel-section">
+                <summary>
+                  ⚡ Actions rapides
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("quickactions", "⚡ Actions rapides");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
+              </details>
 
-        {/* Messages MJ → Joueurs */}
-        <details className="gm-panel-section">
-          <summary>
-            💬 Communication
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("messages", "💬 Communication"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <GmMessagePanel
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            members={members}
-          />
-        </details>
-        </>
-        )}
+              {/* Messages MJ → Joueurs */}
+              <details className="gm-panel-section">
+                <summary>
+                  💬 Communication
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("messages", "💬 Communication");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <GmMessagePanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  members={members}
+                />
+              </details>
+            </>
+          )}
 
-        {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
-        {gmView === "journal" && (
-        <>
-        {/* Session Log */}
-        <details className="gm-panel-section">
-          <summary>
-            📋 Journal
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("sessionlog", "📋 Journal"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <SessionLogPanel
-            characters={characters}
-            selectedCharacter={selectedCharacter}
-            rolls={rolls}
-            logEntries={logEntries}
-            isBusy={isBusy}
-            token={token}
-            onRoll={handleRoll}
-            onAddNote={handleLogNote}
-            onRefresh={(category?) => {
-              if (selectedCampaign) {
-                void (async () => {
-                  try {
-                    const url = category
-                      ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
-                      : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
-                    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                    if (response.ok) setLogEntries(await response.json());
-                  } catch { /* ignore */ }
-                })();
-              }
-            }}
-          />
-        </details>
+          {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
+          {gmView === "journal" && (
+            <>
+              {/* Session Log */}
+              <details className="gm-panel-section">
+                <summary>
+                  📋 Journal
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("sessionlog", "📋 Journal");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <SessionLogPanel
+                  characters={characters}
+                  selectedCharacter={selectedCharacter}
+                  rolls={rolls}
+                  logEntries={logEntries}
+                  isBusy={isBusy}
+                  token={token}
+                  onRoll={handleRoll}
+                  onAddNote={handleLogNote}
+                  onRefresh={(category?) => {
+                    if (selectedCampaign) {
+                      void (async () => {
+                        try {
+                          const url = category
+                            ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
+                            : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
+                          const response = await fetch(url, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          });
+                          if (response.ok) setLogEntries(await response.json());
+                        } catch {
+                          /* ignore */
+                        }
+                      })();
+                    }
+                  }}
+                />
+              </details>
 
-        {/* Session Stats */}
-        <details className="gm-panel-section">
-          <summary>
-            📊 Statistiques
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("stats", "📊 Statistiques"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <SessionStats
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-          />
-        </details>
-        </>
-        )}
+              {/* Session Stats */}
+              <details className="gm-panel-section">
+                <summary>
+                  📊 Statistiques
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("stats", "📊 Statistiques");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
+              </details>
+            </>
+          )}
 
-        {/* ── PREPARATION — Donjons, Documents ───────────────── */}
-        {gmView === "preparation" && (
-        <>
-        {/* Dungeon Generator */}
-        <details className="gm-panel-section">
-          <summary>
-            🗺️ Générateur de donjons
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("dungeon", "🗺️ Donjons"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <DungeonGenerator token={token} />
-        </details>
+          {/* ── PREPARATION — Donjons, Documents ───────────────── */}
+          {gmView === "preparation" && (
+            <>
+              {/* Dungeon Generator */}
+              <details className="gm-panel-section">
+                <summary>
+                  🗺️ Générateur de donjons
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("dungeon", "🗺️ Donjons");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <DungeonGenerator token={token} />
+              </details>
 
-        {/* Handouts */}
-        <details className="gm-panel-section">
-          <summary>
-            📄 Documents
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("handouts", "📄 Documents"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <HandoutPanel
-            handouts={handouts}
-            scenes={scenes}
-            isBusy={isBusy}
-            onCreateHandout={handleCreateHandout}
-            onRevealHandout={(h) => void handleRevealHandout(h)}
-            onDeleteHandout={(h) => void handleDeleteHandout(h)}
-          />
-        </details>
-        </>
-        )}
+              {/* Handouts */}
+              <details className="gm-panel-section">
+                <summary>
+                  📄 Documents
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("handouts", "📄 Documents");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <HandoutPanel
+                  handouts={handouts}
+                  scenes={scenes}
+                  isBusy={isBusy}
+                  onCreateHandout={handleCreateHandout}
+                  onRevealHandout={(h) => void handleRevealHandout(h)}
+                  onDeleteHandout={(h) => void handleDeleteHandout(h)}
+                />
+              </details>
+            </>
+          )}
 
-        {/* ── LIBRARY — Bestiaire, Sorts, Équipement ──────────── */}
-        {gmView === "library" && (
-        <>
-        {/* Bestiary */}
-        <details className="gm-panel-section">
-          <summary>
-            💀 Bestiaire
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("bestiary", "💀 Bestiaire");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <BestiaryPanel token={token} />
-        </details>
+          {/* ── LIBRARY — Bestiaire, Sorts, Équipement ──────────── */}
+          {gmView === "library" && (
+            <>
+              {/* Bestiary */}
+              <details className="gm-panel-section">
+                <summary>
+                  💀 Bestiaire
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("bestiary", "💀 Bestiaire");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <BestiaryPanel token={token} />
+              </details>
 
-        {/* Spellbook */}
-        <details className="gm-panel-section">
-          <summary>
-            ✨ Grimoire
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("spellbook", "✨ Grimoire");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <SpellbookPanel token={token} />
-        </details>
+              {/* Spellbook */}
+              <details className="gm-panel-section">
+                <summary>
+                  ✨ Grimoire
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("spellbook", "✨ Grimoire");
+                    }}
+                    title="Détacher en panneau flottant"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <SpellbookPanel token={token} />
+              </details>
 
-        {/* Item Compendium */}
-        <details className="gm-panel-section">
-          <summary>
-            🎒 Équipement
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("items", "🎒 Équipement"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <ItemCompendium token={token} />
-        </details>
+              {/* Item Compendium */}
+              <details className="gm-panel-section">
+                <summary>
+                  🎒 Équipement
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("items", "🎒 Équipement");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <ItemCompendium token={token} />
+              </details>
 
-        {/* Homebrew */}
-        <details className="gm-panel-section">
-          <summary>
-            📚 Bibliothèque
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("homebrew", "📚 Bibliothèque"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <HomebrewPanel
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            scenes={scenes}
-            encounters={encounters}
-            isBusy={isBusy}
-          />
-        </details>
+              {/* Homebrew */}
+              <details className="gm-panel-section">
+                <summary>
+                  📚 Bibliothèque
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("homebrew", "📚 Bibliothèque");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <HomebrewPanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  token={token}
+                  scenes={scenes}
+                  encounters={encounters}
+                  isBusy={isBusy}
+                />
+              </details>
 
-        {/* SRD Reference */}
-        <details className="gm-panel-section">
-          <summary>
-            📖 Règles (SRD)
-            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("rules", "📖 Règles SRD"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
-          </summary>
-          <RulesReference />
-        </details>
-        </>
-        )}
+              {/* SRD Reference */}
+              <details className="gm-panel-section">
+                <summary>
+                  📖 Règles (SRD)
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("rules", "📖 Règles SRD");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <RulesReference />
+              </details>
+            </>
+          )}
 
-        {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
-        {gmView === "campaign" && (
-        <>
-        <details className="gm-panel-section" open>
-          <summary>📋 Infos campagne</summary>
-          {selectedCampaign && (
-            <div className="campaign-overview">
-              <p className="muted">{selectedCampaign.description || "Aucune description."}</p>
-              <div className="action-row">
-                <button className="primary-button compact" disabled={isBusy} onClick={handleCreateInvite} type="button">
-                  <UserPlus aria-hidden="true" size={14} /> Inviter un joueur
-                </button>
-              </div>
-              <h4>Membres ({members.length})</h4>
-              <div className="member-list">
-                {members.map((m) => (
-                  <div className="member-row" key={m.user_id}>
-                    <span>{m.display_name}</span>
-                    <small>{m.role}</small>
+          {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
+          {gmView === "campaign" && (
+            <>
+              <details className="gm-panel-section" open>
+                <summary>📋 Infos campagne</summary>
+                {selectedCampaign && (
+                  <div className="campaign-overview">
+                    <p className="muted">{selectedCampaign.description || "Aucune description."}</p>
+                    <div className="action-row">
+                      <button
+                        className="primary-button compact"
+                        disabled={isBusy}
+                        onClick={handleCreateInvite}
+                        type="button"
+                      >
+                        <UserPlus aria-hidden="true" size={14} /> Inviter un joueur
+                      </button>
+                    </div>
+                    <h4>Membres ({members.length})</h4>
+                    <div className="member-list">
+                      {members.map((m) => (
+                        <div className="member-row" key={m.user_id}>
+                          <span>{m.display_name}</span>
+                          <small>{m.role}</small>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </details>
+            </>
+          )}
+
+          {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
+          {gmView === "characters" && (
+            <>
+              <details className="gm-panel-section" open>
+                <summary>👤 Personnages</summary>
+                <div className="character-section">
+                  <button
+                    className="primary-button compact"
+                    onClick={() => setShowCharacterWizard(true)}
+                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    type="button"
+                  >
+                    ✨ Création assistée
+                  </button>
+
+                  <form className="character-form" onSubmit={handleCreateCharacter}>
+                    <label>
+                      <input
+                        name="name"
+                        minLength={2}
+                        maxLength={120}
+                        required
+                        placeholder="Nom du personnage"
+                      />
+                    </label>
+                    <div className="mini-grid">
+                      <label>
+                        <input name="ancestry" maxLength={80} placeholder="Origine" />
+                      </label>
+                      <label>
+                        <input name="class_name" maxLength={80} placeholder="Classe" />
+                      </label>
+                    </div>
+                    <div className="mini-grid">
+                      <label>
+                        <input
+                          name="level"
+                          type="number"
+                          min={1}
+                          max={20}
+                          defaultValue={1}
+                          placeholder="Niv."
+                        />
+                      </label>
+                      <label>
+                        <input
+                          name="hp_max"
+                          type="number"
+                          min={1}
+                          defaultValue={10}
+                          placeholder="PV"
+                        />
+                      </label>
+                      <label>
+                        <input
+                          name="armor_class"
+                          type="number"
+                          min={1}
+                          max={40}
+                          defaultValue={10}
+                          placeholder="CA"
+                        />
+                      </label>
+                      <label>
+                        <input
+                          name="speed"
+                          type="number"
+                          min={0}
+                          max={200}
+                          defaultValue={30}
+                          placeholder="Vit."
+                        />
+                      </label>
+                    </div>
+                    <button className="primary-button compact" disabled={isBusy} type="submit">
+                      <Plus aria-hidden="true" size={12} /> Ajouter
+                    </button>
+                  </form>
+
+                  <div className="character-list">
+                    {characters.map((ch) => (
+                      <div
+                        className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
+                        key={ch.id}
+                      >
+                        <button
+                          className="character-row-btn"
+                          onClick={() => setSelectedCharacterId(ch.id)}
+                          type="button"
+                        >
+                          <span>
+                            <strong>{ch.name}</strong>
+                            <small>
+                              Niv.{ch.level} {ch.class_name}
+                            </small>
+                          </span>
+                          <em>
+                            {ch.hp_current}/{ch.hp_max} PV
+                          </em>
+                        </button>
+                        <button
+                          className="character-inspect-btn"
+                          onClick={() => setInspectedCharacterId(ch.id)}
+                          title="Gérer (PV, XP, équipement, conditions)"
+                          type="button"
+                        >
+                          🔍
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedCharacter && (
+                    <EditCharacterSheet
+                      character={selectedCharacter}
+                      token={token}
+                      isBusy={isBusy}
+                      onSave={(updated) =>
+                        setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
+                      }
+                    />
+                  )}
+                </div>
+              </details>
+            </>
+          )}
+
+          {/* ── SETTINGS ─────────────────────────────────────────── */}
+          {gmView === "settings" && (
+            <div className="empty-state compact-empty">
+              <p>Paramètres à venir : permissions, layout, thème.</p>
             </div>
           )}
-        </details>
-        </>
-        )}
-
-        {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
-        {gmView === "characters" && (
-        <>
-        <details className="gm-panel-section" open>
-          <summary>👤 Personnages</summary>
-          <div className="character-section">
-            <button
-              className="primary-button compact"
-              onClick={() => setShowCharacterWizard(true)}
-              style={{ width: "100%", marginBottom: "0.5rem" }}
-              type="button"
-            >
-              ✨ Création assistée
-            </button>
-
-            <form className="character-form" onSubmit={handleCreateCharacter}>
-              <label><input name="name" minLength={2} maxLength={120} required placeholder="Nom du personnage" /></label>
-              <div className="mini-grid">
-                <label><input name="ancestry" maxLength={80} placeholder="Origine" /></label>
-                <label><input name="class_name" maxLength={80} placeholder="Classe" /></label>
-              </div>
-              <div className="mini-grid">
-                <label><input name="level" type="number" min={1} max={20} defaultValue={1} placeholder="Niv." /></label>
-                <label><input name="hp_max" type="number" min={1} defaultValue={10} placeholder="PV" /></label>
-                <label><input name="armor_class" type="number" min={1} max={40} defaultValue={10} placeholder="CA" /></label>
-                <label><input name="speed" type="number" min={0} max={200} defaultValue={30} placeholder="Vit." /></label>
-              </div>
-              <button className="primary-button compact" disabled={isBusy} type="submit">
-                <Plus aria-hidden="true" size={12} /> Ajouter
-              </button>
-            </form>
-
-            <div className="character-list">
-              {characters.map((ch) => (
-                <div className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`} key={ch.id}>
-                  <button className="character-row-btn" onClick={() => setSelectedCharacterId(ch.id)} type="button">
-                    <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
-                    <em>{ch.hp_current}/{ch.hp_max} PV</em>
-                  </button>
-                  <button className="character-inspect-btn" onClick={() => setInspectedCharacterId(ch.id)} title="Gérer (PV, XP, équipement, conditions)" type="button">🔍</button>
-                </div>
-              ))}
-            </div>
-
-            {selectedCharacter && (
-              <EditCharacterSheet
-                character={selectedCharacter}
-                token={token}
-                isBusy={isBusy}
-                onSave={(updated) => setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))}
-              />
-            )}
-          </div>
-        </details>
-        </>
-        )}
-
-        {/* ── SETTINGS ─────────────────────────────────────────── */}
-        {gmView === "settings" && (
-          <div className="empty-state compact-empty">
-            <p>Paramètres à venir : permissions, layout, thème.</p>
-          </div>
-        )}
-      </aside>
+        </aside>
       </Suspense>
 
       {/* ── Floating Panels ──────────────────────────────────── */}
@@ -1304,49 +1524,61 @@ export default function App() {
             />
           )}
           {panel.id === "dice" && (
-            <DiceRoller
-              onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
-            />
+            <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
           {panel.id === "encounter" && (
-            <EncounterBuilder
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-            />
+            <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
-          {panel.id === "bestiary" && (
-            <BestiaryPanel token={token} />
-          )}
-          {panel.id === "spellbook" && (
-            <SpellbookPanel token={token} />
-          )}
+          {panel.id === "bestiary" && <BestiaryPanel token={token} />}
+          {panel.id === "spellbook" && <SpellbookPanel token={token} />}
           {panel.id === "quickactions" && (
             <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
           {panel.id === "messages" && (
-            <GmMessagePanel campaignId={selectedCampaign?.id ?? ""} token={token} members={members} />
+            <GmMessagePanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              members={members}
+            />
           )}
           {panel.id === "sessionlog" && (
-            <SessionLogPanel characters={characters} selectedCharacter={selectedCharacter} rolls={rolls} logEntries={logEntries} isBusy={isBusy} token={token} onRoll={handleRoll} onAddNote={handleLogNote} onRefresh={() => {}} />
+            <SessionLogPanel
+              characters={characters}
+              selectedCharacter={selectedCharacter}
+              rolls={rolls}
+              logEntries={logEntries}
+              isBusy={isBusy}
+              token={token}
+              onRoll={handleRoll}
+              onAddNote={handleLogNote}
+              onRefresh={() => {}}
+            />
           )}
           {panel.id === "stats" && (
             <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
-          {panel.id === "dungeon" && (
-            <DungeonGenerator token={token} />
-          )}
+          {panel.id === "dungeon" && <DungeonGenerator token={token} />}
           {panel.id === "handouts" && (
-            <HandoutPanel handouts={handouts} scenes={scenes} isBusy={isBusy} onCreateHandout={handleCreateHandout} onRevealHandout={(h) => void handleRevealHandout(h)} onDeleteHandout={(h) => void handleDeleteHandout(h)} />
+            <HandoutPanel
+              handouts={handouts}
+              scenes={scenes}
+              isBusy={isBusy}
+              onCreateHandout={handleCreateHandout}
+              onRevealHandout={(h) => void handleRevealHandout(h)}
+              onDeleteHandout={(h) => void handleDeleteHandout(h)}
+            />
           )}
-          {panel.id === "items" && (
-            <ItemCompendium token={token} />
-          )}
+          {panel.id === "items" && <ItemCompendium token={token} />}
           {panel.id === "homebrew" && (
-            <HomebrewPanel campaignId={selectedCampaign?.id ?? ""} token={token} scenes={scenes} encounters={encounters} isBusy={isBusy} />
+            <HomebrewPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              scenes={scenes}
+              encounters={encounters}
+              isBusy={isBusy}
+            />
           )}
-          {panel.id === "rules" && (
-            <RulesReference />
-          )}
+          {panel.id === "rules" && <RulesReference />}
         </FloatingPanel>
       ))}
 
@@ -1355,7 +1587,9 @@ export default function App() {
         {toasts.map((t) => (
           <div key={t.id} className={`toast-item${t.type === "error" ? " error" : ""}`}>
             <span>{t.message}</span>
-            <button onClick={() => dismissToast(t.id)} type="button">✕</button>
+            <button onClick={() => dismissToast(t.id)} type="button">
+              ✕
+            </button>
           </div>
         ))}
       </div>
@@ -1363,13 +1597,19 @@ export default function App() {
       {/* ── Character Wizard Modal ───────────────────────────── */}
       {showCharacterWizard && (
         <div className="modal-overlay" onClick={() => setShowCharacterWizard(false)}>
-          <div className="bestiary-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
+          <div
+            className="bestiary-detail-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "500px" }}
+          >
             <CharacterWizard
               token={token}
               campaignId={selectedCampaign?.id ?? ""}
               onCreated={() => {
                 setShowCharacterWizard(false);
-                if (selectedCampaign) { void loadCharacters(selectedCampaign.id); }
+                if (selectedCampaign) {
+                  void loadCharacters(selectedCampaign.id);
+                }
               }}
             />
           </div>
@@ -1377,20 +1617,21 @@ export default function App() {
       )}
 
       {/* ── Character Inspector Modal ─────────────────────────── */}
-      {inspectedCharacterId && (() => {
-        const char = characters.find((c) => c.id === inspectedCharacterId);
-        if (!char) return null;
-        return (
-          <GmCharacterInspector
-            character={char}
-            token={token}
-            onClose={() => setInspectedCharacterId("")}
-            onCharacterUpdated={(updated) =>
-              setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
-            }
-          />
-        );
-      })()}
+      {inspectedCharacterId &&
+        (() => {
+          const char = characters.find((c) => c.id === inspectedCharacterId);
+          if (!char) return null;
+          return (
+            <GmCharacterInspector
+              character={char}
+              token={token}
+              onClose={() => setInspectedCharacterId("")}
+              onCharacterUpdated={(updated) =>
+                setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
+              }
+            />
+          );
+        })()}
     </main>
   );
 }

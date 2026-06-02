@@ -1,23 +1,27 @@
 import json
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Query
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
+from fastapi import status
+from jwt import PyJWTError
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user
+from app.deps import require_campaign_role
 from app.dice import roll_with_mode
 from app.realtime import manager
-from app.schemas import (
-    GameLogEntryPublic,
-    GameLogNoteRequest,
-    LogExportRequest,
-    RollCreateRequest,
-    RollPublic,
-    SessionMarkerRequest,
-)
+from app.schemas import GameLogEntryPublic
+from app.schemas import GameLogNoteRequest
+from app.schemas import RollCreateRequest
+from app.schemas import RollPublic
+from app.schemas import SessionMarkerRequest
 from app.security import decode_access_token
-from app.utils import decode_json, jsonb
-from jwt import PyJWTError
+from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["session"])
 ws_router = APIRouter(tags=["realtime"])
@@ -67,43 +71,42 @@ async def create_roll(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            roll = await connection.fetchrow(
-                """
+    async with get_pool().acquire() as connection, connection.transaction():
+        roll = await connection.fetchrow(
+            """
                 insert into dice_rolls (
                     campaign_id, user_id, character_id, visibility, label, formula, mode, total, detail
                 )
                 values ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
                 returning *
                 """,
-                campaign_id,
-                current_user["id"],
-                payload.character_id,
-                payload.visibility,
-                payload.label.strip(),
-                payload.formula.strip(),
-                payload.mode,
-                result.total,
-                json.dumps(result.detail),
-            )
-            message = f"{current_user['display_name']} lance {payload.formula.strip()} = {result.total}"
-            if payload.label.strip():
-                message = f"{payload.label.strip()} - {message}"
-            await connection.execute(
-                """
+            campaign_id,
+            current_user["id"],
+            payload.character_id,
+            payload.visibility,
+            payload.label.strip(),
+            payload.formula.strip(),
+            payload.mode,
+            result.total,
+            json.dumps(result.detail),
+        )
+        message = f"{current_user['display_name']} lance {payload.formula.strip()} = {result.total}"
+        if payload.label.strip():
+            message = f"{payload.label.strip()} - {message}"
+        await connection.execute(
+            """
                 insert into game_log_entries (
                     campaign_id, user_id, character_id, entry_type, visibility, message, payload
                 )
                 values ($1, $2, $3, 'roll', $4, $5, $6::jsonb)
                 """,
-                campaign_id,
-                current_user["id"],
-                payload.character_id,
-                payload.visibility,
-                message,
-                json.dumps({"roll_id": str(roll["id"]), "total": result.total, "detail": result.detail}),
-            )
+            campaign_id,
+            current_user["id"],
+            payload.character_id,
+            payload.visibility,
+            message,
+            json.dumps({"roll_id": str(roll["id"]), "total": result.total, "detail": result.detail}),
+        )
 
     created_roll = roll_public(roll)
     await manager.broadcast(

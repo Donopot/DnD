@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { Eye, EyeOff, Undo2 } from "lucide-react";
+import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from "react";
 
 const TOKEN_KEY = "dnd_access_token";
 
@@ -14,7 +14,14 @@ type FogLayerProps = {
   panMode?: boolean;
 };
 
-export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, panMode = false }: FogLayerProps) {
+export function FogLayer({
+  sceneId,
+  sceneWidth,
+  sceneHeight,
+  isGM,
+  zoom = 1,
+  panMode = false,
+}: FogLayerProps) {
   const token = localStorage.getItem(TOKEN_KEY) ?? "";
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zones, setZones] = useState<FogZone[]>([]);
@@ -37,10 +44,14 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
         const data = await res.json();
         setZones(data.fog_zones || []);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
-  useEffect(() => { void loadZones(); }, [sceneId]);
+  useEffect(() => {
+    void loadZones();
+  }, [sceneId]);
 
   // Save zones to API
   async function saveZones(newZones: FogZone[]) {
@@ -53,7 +64,9 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
         },
         body: JSON.stringify({ fog_zones: newZones }),
       });
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Draw fog on canvas
@@ -103,7 +116,9 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
     }
   }
 
-  useEffect(() => { draw(); }, [zones, currentRect, showFog, isGM, sceneWidth, sceneHeight]);
+  useEffect(() => {
+    draw();
+  }, [zones, currentRect, showFog, isGM, sceneWidth, sceneHeight]);
 
   // Mouse handlers for GM reveal tool
   function handleMouseDown(e: ReactMouseEvent<HTMLCanvasElement>) {
@@ -189,10 +204,20 @@ export function FogLayer({ sceneId, sceneWidth, sceneHeight, isGM, zoom = 1, pan
           </button>
           {zones.length > 0 && (
             <>
-              <button className="ghost-button compact" onClick={handleUndo} type="button" title="Annuler dernière zone">
+              <button
+                className="ghost-button compact"
+                onClick={handleUndo}
+                type="button"
+                title="Annuler dernière zone"
+              >
                 <Undo2 size={14} />
               </button>
-              <button className="ghost-button compact" onClick={handleClearAll} type="button" title="Reset tout le brouillard">
+              <button
+                className="ghost-button compact"
+                onClick={handleClearAll}
+                type="button"
+                title="Reset tout le brouillard"
+              >
                 Reset
               </button>
             </>

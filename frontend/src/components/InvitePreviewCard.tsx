@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Castle, Swords, UserPlus } from "lucide-react";
+import { useState } from "react";
 
 type InvitePreviewData = {
   campaign_name: string;
@@ -82,9 +82,7 @@ export function InvitePreviewCard({ inviteToken, authToken, onJoined }: InvitePr
       <p>
         Rôle: <strong>{preview.role === "player" ? "Joueur" : preview.role}</strong>
       </p>
-      {preview.remaining_uses !== null && (
-        <p>Places restantes: {preview.remaining_uses}</p>
-      )}
+      {preview.remaining_uses !== null && <p>Places restantes: {preview.remaining_uses}</p>}
       {error && <p className="error-text">{error}</p>}
       <button className="primary-button" disabled={isBusy} onClick={handleJoin} type="button">
         <UserPlus size={16} />

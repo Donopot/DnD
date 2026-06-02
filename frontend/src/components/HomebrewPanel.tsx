@@ -1,13 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
-import {
-  Download,
-  FlaskConical,
-  Plus,
-  Swords,
-  Trash2,
-  Upload,
-} from "lucide-react";
-import type { HomebrewCreature, HomebrewItem, Scene, Encounter } from "../api/types";
+import { Download, FlaskConical, Plus, Swords, Trash2, Upload } from "lucide-react";
+import { type FormEvent, useEffect, useState } from "react";
+import type { Encounter, HomebrewCreature, HomebrewItem, Scene } from "../api/types";
 
 type HomebrewPanelProps = {
   campaignId: string;
@@ -45,21 +38,33 @@ type ItemForm = {
 };
 
 const EMPTY_CREATURE: CreatureForm = {
-  name: "", description: "", armor_class: 10, hp_max: 10, speed: 30,
-  str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
-  size: "medium", challenge_rating: 0, type: "monster",
-  attacks: "", spells: "",
+  name: "",
+  description: "",
+  armor_class: 10,
+  hp_max: 10,
+  speed: 30,
+  str: 10,
+  dex: 10,
+  con: 10,
+  int: 10,
+  wis: 10,
+  cha: 10,
+  size: "medium",
+  challenge_rating: 0,
+  type: "monster",
+  attacks: "",
+  spells: "",
 };
 
 const EMPTY_ITEM: ItemForm = {
-  name: "", description: "", item_type: "misc", rarity: "common", properties: "",
+  name: "",
+  description: "",
+  item_type: "misc",
+  rarity: "common",
+  properties: "",
 };
 
-async function api<T>(
-  path: string,
-  token: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function api<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`/api${path}`, {
     ...options,
     headers: {
@@ -107,34 +112,37 @@ export function HomebrewPanel({
     }
   }
 
-  useEffect(() => { void load(); }, [campaignId]);
+  useEffect(() => {
+    void load();
+  }, [campaignId]);
 
   // Creature CRUD
   async function createCreature(e: FormEvent) {
     e.preventDefault();
     try {
-      const c = await api<HomebrewCreature>(
-        `/campaigns/${campaignId}/homebrew/creatures`, token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: creatureForm.name,
-            description: creatureForm.description,
-            armor_class: creatureForm.armor_class,
-            hp_max: creatureForm.hp_max,
-            speed: creatureForm.speed,
-            attributes: {
-              str: creatureForm.str, dex: creatureForm.dex, con: creatureForm.con,
-              int: creatureForm.int, wis: creatureForm.wis, cha: creatureForm.cha,
-            },
-            attacks: creatureForm.attacks ? JSON.parse(creatureForm.attacks) : [],
-            spells: creatureForm.spells ? JSON.parse(creatureForm.spells) : [],
-            size: creatureForm.size,
-            challenge_rating: creatureForm.challenge_rating,
-            type: creatureForm.type,
-          }),
-        },
-      );
+      const c = await api<HomebrewCreature>(`/campaigns/${campaignId}/homebrew/creatures`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          name: creatureForm.name,
+          description: creatureForm.description,
+          armor_class: creatureForm.armor_class,
+          hp_max: creatureForm.hp_max,
+          speed: creatureForm.speed,
+          attributes: {
+            str: creatureForm.str,
+            dex: creatureForm.dex,
+            con: creatureForm.con,
+            int: creatureForm.int,
+            wis: creatureForm.wis,
+            cha: creatureForm.cha,
+          },
+          attacks: creatureForm.attacks ? JSON.parse(creatureForm.attacks) : [],
+          spells: creatureForm.spells ? JSON.parse(creatureForm.spells) : [],
+          size: creatureForm.size,
+          challenge_rating: creatureForm.challenge_rating,
+          type: creatureForm.type,
+        }),
+      });
       setCreatures((prev) => [c, ...prev]);
       setCreatureForm(EMPTY_CREATURE);
       setMessage(`${c.name} creee.`);
@@ -159,19 +167,16 @@ export function HomebrewPanel({
   async function createItem(e: FormEvent) {
     e.preventDefault();
     try {
-      const item = await api<HomebrewItem>(
-        `/campaigns/${campaignId}/homebrew/items`, token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: itemForm.name,
-            description: itemForm.description,
-            item_type: itemForm.item_type,
-            rarity: itemForm.rarity,
-            properties: itemForm.properties ? JSON.parse(itemForm.properties) : {},
-          }),
-        },
-      );
+      const item = await api<HomebrewItem>(`/campaigns/${campaignId}/homebrew/items`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          name: itemForm.name,
+          description: itemForm.description,
+          item_type: itemForm.item_type,
+          rarity: itemForm.rarity,
+          properties: itemForm.properties ? JSON.parse(itemForm.properties) : {},
+        }),
+      });
       setItems((prev) => [item, ...prev]);
       setItemForm(EMPTY_ITEM);
       setMessage(`${item.name} cree.`);
@@ -209,7 +214,10 @@ export function HomebrewPanel({
     try {
       await api(`/homebrew/creatures/${creature.id}/to-combatant`, token, {
         method: "POST",
-        body: JSON.stringify({ encounter_id: encounterId, initiative: Math.floor(Math.random() * 20) + 1 }),
+        body: JSON.stringify({
+          encounter_id: encounterId,
+          initiative: Math.floor(Math.random() * 20) + 1,
+        }),
       });
       setMessage(`${creature.name} ajoutee au combat.`);
     } catch (e) {
@@ -224,8 +232,10 @@ export function HomebrewPanel({
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = `homebrew-${campaignId}.json`;
-      a.click(); URL.revokeObjectURL(url);
+      a.href = url;
+      a.download = `homebrew-${campaignId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Erreur export");
     }
@@ -279,9 +289,15 @@ export function HomebrewPanel({
         <form onSubmit={importHomebrew} style={{ display: "inline" }}>
           <label className="import-label">
             <Upload size={14} /> Import
-            <input type="file" name="file" accept=".json" onChange={(e) => {
-              if (e.target.files?.[0]) e.currentTarget.form?.requestSubmit();
-            }} hidden />
+            <input
+              type="file"
+              name="file"
+              accept=".json"
+              onChange={(e) => {
+                if (e.target.files?.[0]) e.currentTarget.form?.requestSubmit();
+              }}
+              hidden
+            />
           </label>
         </form>
       </div>
@@ -304,9 +320,13 @@ export function HomebrewPanel({
                   >
                     <span>
                       <strong>{c.name}</strong>
-                      <small>FP {c.challenge_rating} · {c.size} · {c.type}</small>
+                      <small>
+                        FP {c.challenge_rating} · {c.size} · {c.type}
+                      </small>
                     </span>
-                    <em>CA {c.armor_class} · {c.hp_max} PV</em>
+                    <em>
+                      CA {c.armor_class} · {c.hp_max} PV
+                    </em>
                   </button>
                 ))
               )}
@@ -335,23 +355,45 @@ export function HomebrewPanel({
                   <div className="homebrew-detail-actions">
                     <label className="mini-select-label">
                       Scene :
-                      <select onChange={(e) => e.target.value && addToScene(selectedCreature, e.target.value)} defaultValue="">
-                        <option value="" disabled>Ajouter a...</option>
+                      <select
+                        onChange={(e) =>
+                          e.target.value && addToScene(selectedCreature, e.target.value)
+                        }
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          Ajouter a...
+                        </option>
                         {scenes.map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
                         ))}
                       </select>
                     </label>
                     <label className="mini-select-label">
                       Combat :
-                      <select onChange={(e) => e.target.value && addToCombat(selectedCreature, e.target.value)} defaultValue="">
-                        <option value="" disabled>Ajouter a...</option>
+                      <select
+                        onChange={(e) =>
+                          e.target.value && addToCombat(selectedCreature, e.target.value)
+                        }
+                        defaultValue=""
+                      >
+                        <option value="" disabled>
+                          Ajouter a...
+                        </option>
                         {encounters.map((enc) => (
-                          <option key={enc.id} value={enc.id}>{enc.name}</option>
+                          <option key={enc.id} value={enc.id}>
+                            {enc.name}
+                          </option>
                         ))}
                       </select>
                     </label>
-                    <button className="ghost-button danger" onClick={() => deleteCreature(selectedCreature.id)} type="button">
+                    <button
+                      className="ghost-button danger"
+                      onClick={() => deleteCreature(selectedCreature.id)}
+                      type="button"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -365,27 +407,114 @@ export function HomebrewPanel({
             <div className="homebrew-create">
               <h4>Nouvelle creature</h4>
               <form onSubmit={createCreature} className="form-stack">
-                <label>Nom * <input value={creatureForm.name} onChange={(e) => setCreatureForm((f) => ({ ...f, name: e.target.value }))} minLength={2} required /></label>
-                <label>Type <input value={creatureForm.type} onChange={(e) => setCreatureForm((f) => ({ ...f, type: e.target.value }))} placeholder="monster, humanoid..." /></label>
+                <label>
+                  Nom *{" "}
+                  <input
+                    value={creatureForm.name}
+                    onChange={(e) => setCreatureForm((f) => ({ ...f, name: e.target.value }))}
+                    minLength={2}
+                    required
+                  />
+                </label>
+                <label>
+                  Type{" "}
+                  <input
+                    value={creatureForm.type}
+                    onChange={(e) => setCreatureForm((f) => ({ ...f, type: e.target.value }))}
+                    placeholder="monster, humanoid..."
+                  />
+                </label>
                 <div className="mini-grid">
-                  <label>CA <input type="number" min={1} max={40} value={creatureForm.armor_class} onChange={(e) => setCreatureForm((f) => ({ ...f, armor_class: +e.target.value || 10 }))} /></label>
-                  <label>PV <input type="number" min={1} value={creatureForm.hp_max} onChange={(e) => setCreatureForm((f) => ({ ...f, hp_max: +e.target.value || 1 }))} /></label>
-                  <label>VIT <input type="number" value={creatureForm.speed} onChange={(e) => setCreatureForm((f) => ({ ...f, speed: +e.target.value || 30 }))} /></label>
-                  <label>FP <input type="number" min={0} max={30} step={0.5} value={creatureForm.challenge_rating} onChange={(e) => setCreatureForm((f) => ({ ...f, challenge_rating: +e.target.value || 0 }))} /></label>
+                  <label>
+                    CA{" "}
+                    <input
+                      type="number"
+                      min={1}
+                      max={40}
+                      value={creatureForm.armor_class}
+                      onChange={(e) =>
+                        setCreatureForm((f) => ({ ...f, armor_class: +e.target.value || 10 }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    PV{" "}
+                    <input
+                      type="number"
+                      min={1}
+                      value={creatureForm.hp_max}
+                      onChange={(e) =>
+                        setCreatureForm((f) => ({ ...f, hp_max: +e.target.value || 1 }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    VIT{" "}
+                    <input
+                      type="number"
+                      value={creatureForm.speed}
+                      onChange={(e) =>
+                        setCreatureForm((f) => ({ ...f, speed: +e.target.value || 30 }))
+                      }
+                    />
+                  </label>
+                  <label>
+                    FP{" "}
+                    <input
+                      type="number"
+                      min={0}
+                      max={30}
+                      step={0.5}
+                      value={creatureForm.challenge_rating}
+                      onChange={(e) =>
+                        setCreatureForm((f) => ({ ...f, challenge_rating: +e.target.value || 0 }))
+                      }
+                    />
+                  </label>
                 </div>
-                <label>Taille
-                  <select value={creatureForm.size} onChange={(e) => setCreatureForm((f) => ({ ...f, size: e.target.value }))}>
-                    <option value="tiny">TP</option><option value="small">P</option><option value="medium">M</option>
-                    <option value="large">G</option><option value="huge">TG</option><option value="gargantuan">Gig</option>
+                <label>
+                  Taille
+                  <select
+                    value={creatureForm.size}
+                    onChange={(e) => setCreatureForm((f) => ({ ...f, size: e.target.value }))}
+                  >
+                    <option value="tiny">TP</option>
+                    <option value="small">P</option>
+                    <option value="medium">M</option>
+                    <option value="large">G</option>
+                    <option value="huge">TG</option>
+                    <option value="gargantuan">Gig</option>
                   </select>
                 </label>
                 <div className="ability-grid">
                   {abilities.map((a) => (
-                    <label key={a}>{a.toUpperCase()}<input type="number" min={1} max={30} value={creatureForm[a]} onChange={(e) => setCreatureForm((f) => ({ ...f, [a]: +e.target.value || 10 }))} /></label>
+                    <label key={a}>
+                      {a.toUpperCase()}
+                      <input
+                        type="number"
+                        min={1}
+                        max={30}
+                        value={creatureForm[a]}
+                        onChange={(e) =>
+                          setCreatureForm((f) => ({ ...f, [a]: +e.target.value || 10 }))
+                        }
+                      />
+                    </label>
                   ))}
                 </div>
-                <label>Description <textarea rows={2} value={creatureForm.description} onChange={(e) => setCreatureForm((f) => ({ ...f, description: e.target.value }))} /></label>
-                <button className="primary-button" disabled={isBusy} type="submit"><Plus size={14} /> Creer</button>
+                <label>
+                  Description{" "}
+                  <textarea
+                    rows={2}
+                    value={creatureForm.description}
+                    onChange={(e) =>
+                      setCreatureForm((f) => ({ ...f, description: e.target.value }))
+                    }
+                  />
+                </label>
+                <button className="primary-button" disabled={isBusy} type="submit">
+                  <Plus size={14} /> Creer
+                </button>
               </form>
             </div>
           </div>
@@ -408,7 +537,9 @@ export function HomebrewPanel({
                   >
                     <span>
                       <strong>{item.name}</strong>
-                      <small>{item.item_type} · {item.rarity}</small>
+                      <small>
+                        {item.item_type} · {item.rarity}
+                      </small>
                     </span>
                   </button>
                 ))
@@ -426,10 +557,16 @@ export function HomebrewPanel({
                     <span>{selectedItem.rarity}</span>
                   </div>
                   {Object.keys(selectedItem.properties).length > 0 && (
-                    <pre className="handout-content">{JSON.stringify(selectedItem.properties, null, 2)}</pre>
+                    <pre className="handout-content">
+                      {JSON.stringify(selectedItem.properties, null, 2)}
+                    </pre>
                   )}
                   <div className="homebrew-detail-actions">
-                    <button className="ghost-button danger" onClick={() => deleteItem(selectedItem.id)} type="button">
+                    <button
+                      className="ghost-button danger"
+                      onClick={() => deleteItem(selectedItem.id)}
+                      type="button"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -443,16 +580,47 @@ export function HomebrewPanel({
             <div className="homebrew-create">
               <h4>Nouvel objet</h4>
               <form onSubmit={createItem} className="form-stack">
-                <label>Nom * <input value={itemForm.name} onChange={(e) => setItemForm((f) => ({ ...f, name: e.target.value }))} minLength={2} required /></label>
-                <label>Type <input value={itemForm.item_type} onChange={(e) => setItemForm((f) => ({ ...f, item_type: e.target.value }))} placeholder="weapon, armor, potion..." /></label>
-                <label>Rarete
-                  <select value={itemForm.rarity} onChange={(e) => setItemForm((f) => ({ ...f, rarity: e.target.value }))}>
-                    <option value="common">Commun</option><option value="uncommon">Inhabituel</option>
-                    <option value="rare">Rare</option><option value="very_rare">Tres rare</option><option value="legendary">Legendaire</option>
+                <label>
+                  Nom *{" "}
+                  <input
+                    value={itemForm.name}
+                    onChange={(e) => setItemForm((f) => ({ ...f, name: e.target.value }))}
+                    minLength={2}
+                    required
+                  />
+                </label>
+                <label>
+                  Type{" "}
+                  <input
+                    value={itemForm.item_type}
+                    onChange={(e) => setItemForm((f) => ({ ...f, item_type: e.target.value }))}
+                    placeholder="weapon, armor, potion..."
+                  />
+                </label>
+                <label>
+                  Rarete
+                  <select
+                    value={itemForm.rarity}
+                    onChange={(e) => setItemForm((f) => ({ ...f, rarity: e.target.value }))}
+                  >
+                    <option value="common">Commun</option>
+                    <option value="uncommon">Inhabituel</option>
+                    <option value="rare">Rare</option>
+                    <option value="very_rare">Tres rare</option>
+                    <option value="legendary">Legendaire</option>
                   </select>
                 </label>
-                <label>Description <textarea rows={2} value={itemForm.description} onChange={(e) => setItemForm((f) => ({ ...f, description: e.target.value }))} /></label>
-                <button className="primary-button" disabled={isBusy} type="submit"><Plus size={14} /> Creer</button>
+                <label>
+                  Description{" "}
+                  <textarea
+                    rows={2}
+                    value={itemForm.description}
+                    onChange={(e) => setItemForm((f) => ({ ...f, description: e.target.value }))}
+                  />
+                </label>
+                <button className="primary-button" disabled={isBusy} type="submit">
+                  <Plus size={14} /> Creer
+                </button>
               </form>
             </div>
           </div>
@@ -462,7 +630,9 @@ export function HomebrewPanel({
       {message && (
         <div className="homebrew-toast">
           <span>{message}</span>
-          <button onClick={() => setMessage("")} type="button">✕</button>
+          <button onClick={() => setMessage("")} type="button">
+            ✕
+          </button>
         </div>
       )}
     </div>

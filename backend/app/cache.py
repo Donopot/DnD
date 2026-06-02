@@ -2,7 +2,7 @@
 Redis cache layer for frequently-read VTT resources.
 
 - Scenes (list + single): 30s TTL
-- Fog of war: 30s TTL  
+- Fog of war: 30s TTL
 - Handouts (list): 30s TTL
 - SRD rules: 300s TTL (rarely changes)
 
@@ -14,6 +14,7 @@ all cache operations silently return None / no-op (graceful degradation).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from typing import Any
@@ -82,10 +83,8 @@ async def cache_set(key: str, value: Any, ttl: int = TTL) -> None:
     client = _client()
     if client is None:
         return
-    try:
+    with contextlib.suppress(Exception):
         await client.set(key, json.dumps(value, default=str), ex=ttl)
-    except Exception:
-        pass
 
 
 async def cache_invalidate(pattern: str) -> None:

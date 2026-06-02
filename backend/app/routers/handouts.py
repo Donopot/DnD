@@ -1,18 +1,21 @@
-from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Query
+from fastapi import status
 
-from app.cache import cache_get, cache_invalidate, cache_set
+from app.cache import cache_get
+from app.cache import cache_invalidate
+from app.cache import cache_set
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user
+from app.deps import require_campaign_role
 from app.realtime import manager
-from app.schemas import (
-    HandoutCreateRequest,
-    HandoutPublic,
-    HandoutUpdateRequest,
-)
-from app.utils import decode_json
+from app.schemas import HandoutCreateRequest
+from app.schemas import HandoutPublic
+from app.schemas import HandoutUpdateRequest
 
 router = APIRouter(prefix="/api", tags=["handouts"])
 

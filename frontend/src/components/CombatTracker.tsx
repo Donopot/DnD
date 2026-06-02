@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Play, SkipBack, SkipForward, Swords, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Combatant, Encounter } from "../api/types";
 
 type CombatTrackerProps = {
@@ -25,10 +25,14 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
     try {
       const res = await fetch(`/api/campaigns/${campaignId}/encounters`, { headers });
       if (res.ok) setEncounters(await res.json());
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
-  useEffect(() => { void loadEncounters(); }, [campaignId]);
+  useEffect(() => {
+    void loadEncounters();
+  }, [campaignId]);
 
   // Load encounter detail
   async function loadEncounterDetail(encounterId: string) {
@@ -40,7 +44,9 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
         setActiveEncounter(data);
         setCombatants(data.combatants || []);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setBusy(false);
   }
 
@@ -72,31 +78,45 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
     const detail = await apiPost<{ combatants: Combatant[] }>(`/encounters/${eid}/start`);
     if (detail) {
       setCombatants(detail.combatants);
-      setActiveEncounter((prev) => prev ? { ...prev, status: "active", round_number: 1, turn_index: 0 } : prev);
+      setActiveEncounter((prev) =>
+        prev ? { ...prev, status: "active", round_number: 1, turn_index: 0 } : prev,
+      );
     }
   }
 
   async function handleNextTurn() {
     if (!activeEncounter) return;
-    const detail = await apiPost<{ combatants: Combatant[]; turn_index: number; round_number: number }>(`/encounters/${activeEncounter.id}/next-turn`);
+    const detail = await apiPost<{
+      combatants: Combatant[];
+      turn_index: number;
+      round_number: number;
+    }>(`/encounters/${activeEncounter.id}/next-turn`);
     if (detail) {
       setCombatants(detail.combatants);
-      setActiveEncounter((prev) => prev ? { ...prev, turn_index: detail.turn_index, round_number: detail.round_number } : prev);
+      setActiveEncounter((prev) =>
+        prev ? { ...prev, turn_index: detail.turn_index, round_number: detail.round_number } : prev,
+      );
     }
   }
 
   async function handlePrevTurn() {
     if (!activeEncounter) return;
-    const detail = await apiPost<{ combatants: Combatant[]; turn_index: number; round_number: number }>(`/encounters/${activeEncounter.id}/prev-turn`);
+    const detail = await apiPost<{
+      combatants: Combatant[];
+      turn_index: number;
+      round_number: number;
+    }>(`/encounters/${activeEncounter.id}/prev-turn`);
     if (detail) {
       setCombatants(detail.combatants);
-      setActiveEncounter((prev) => prev ? { ...prev, turn_index: detail.turn_index, round_number: detail.round_number } : prev);
+      setActiveEncounter((prev) =>
+        prev ? { ...prev, turn_index: detail.turn_index, round_number: detail.round_number } : prev,
+      );
     }
   }
 
   async function handleEnd(eid: string) {
     await apiPost(`/encounters/${eid}/end`);
-    setActiveEncounter((prev) => prev ? { ...prev, status: "ended" } : prev);
+    setActiveEncounter((prev) => (prev ? { ...prev, status: "ended" } : prev));
   }
 
   async function handleQuickDamage(cb: Combatant, amount: number) {
@@ -127,7 +147,8 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
   // Compute active combatant ID
   const activeDefeated = combatants.filter((c) => !c.is_defeated);
   const activeIndex = activeEncounter?.turn_index ?? 0;
-  const activeCombatantId = activeDefeated[activeIndex % Math.max(1, activeDefeated.length)]?.id ?? null;
+  const activeCombatantId =
+    activeDefeated[activeIndex % Math.max(1, activeDefeated.length)]?.id ?? null;
 
   // Sort combatants by initiative desc
   const sorted = [...combatants].sort((a, b) => b.initiative - a.initiative);
@@ -141,7 +162,10 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
           value={activeEncounter?.id ?? ""}
           onChange={(e) => {
             if (e.target.value) loadEncounterDetail(e.target.value);
-            else { setActiveEncounter(null); setCombatants([]); }
+            else {
+              setActiveEncounter(null);
+              setCombatants([]);
+            }
           }}
         >
           <option value="">— Sélectionner un combat —</option>
@@ -166,23 +190,48 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
             <div className="combat-actions">
               {activeEncounter.status === "draft" && (
                 <>
-                  <button onClick={() => handleRollInitiative(activeEncounter.id)} disabled={busy} className="combat-btn" type="button">
+                  <button
+                    onClick={() => handleRollInitiative(activeEncounter.id)}
+                    disabled={busy}
+                    className="combat-btn"
+                    type="button"
+                  >
                     <Zap size={12} /> Initiative
                   </button>
-                  <button onClick={() => handleStart(activeEncounter.id)} disabled={busy || combatants.length === 0} className="combat-btn primary" type="button">
+                  <button
+                    onClick={() => handleStart(activeEncounter.id)}
+                    disabled={busy || combatants.length === 0}
+                    className="combat-btn primary"
+                    type="button"
+                  >
                     <Play size={12} /> Démarrer
                   </button>
                 </>
               )}
               {activeEncounter.status === "active" && (
                 <>
-                  <button onClick={handlePrevTurn} disabled={busy} className="combat-btn" type="button">
+                  <button
+                    onClick={handlePrevTurn}
+                    disabled={busy}
+                    className="combat-btn"
+                    type="button"
+                  >
                     <SkipBack size={12} />
                   </button>
-                  <button onClick={handleNextTurn} disabled={busy} className="combat-btn primary" type="button">
+                  <button
+                    onClick={handleNextTurn}
+                    disabled={busy}
+                    className="combat-btn primary"
+                    type="button"
+                  >
                     <SkipForward size={12} /> Tour suivant
                   </button>
-                  <button onClick={() => handleEnd(activeEncounter.id)} disabled={busy} className="combat-btn danger" type="button">
+                  <button
+                    onClick={() => handleEnd(activeEncounter.id)}
+                    disabled={busy}
+                    className="combat-btn danger"
+                    type="button"
+                  >
                     Terminer
                   </button>
                 </>
@@ -194,11 +243,17 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
           <div className="combat-list">
             {sorted.map((cb) => {
               const isActive = cb.id === activeCombatantId && activeEncounter.status === "active";
-              const hpPct = (cb.hp_max ?? 0) > 0 ? Math.round(((cb.hp_current ?? 0) / (cb.hp_max ?? 1)) * 100) : 100;
+              const hpPct =
+                (cb.hp_max ?? 0) > 0
+                  ? Math.round(((cb.hp_current ?? 0) / (cb.hp_max ?? 1)) * 100)
+                  : 100;
               const conds = (cb.conditions ?? []) as string[];
 
               return (
-                <div key={cb.id} className={`combatant-row ${isActive ? "active" : ""} ${cb.is_defeated ? "defeated" : ""}`}>
+                <div
+                  key={cb.id}
+                  className={`combatant-row ${isActive ? "active" : ""} ${cb.is_defeated ? "defeated" : ""}`}
+                >
                   {/* Initiative number */}
                   <span className="combatant-init">{cb.initiative}</span>
 
@@ -227,10 +282,36 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
                   {/* Quick damage buttons */}
                   {activeEncounter.status === "active" && (
                     <div className="combatant-dmg-btns">
-                      <button onClick={() => handleQuickDamage(cb, -1)} disabled={busy} className="dmg-btn sm" type="button">-1</button>
-                      <button onClick={() => handleQuickDamage(cb, -5)} disabled={busy} className="dmg-btn" type="button">-5</button>
-                      <button onClick={() => handleQuickDamage(cb, 5)} disabled={busy} className="heal-btn" type="button">+5</button>
-                      <button onClick={() => handleToggleDefeated(cb)} disabled={busy} className={`dmg-btn ${cb.is_defeated ? "revive" : ""}`} type="button">
+                      <button
+                        onClick={() => handleQuickDamage(cb, -1)}
+                        disabled={busy}
+                        className="dmg-btn sm"
+                        type="button"
+                      >
+                        -1
+                      </button>
+                      <button
+                        onClick={() => handleQuickDamage(cb, -5)}
+                        disabled={busy}
+                        className="dmg-btn"
+                        type="button"
+                      >
+                        -5
+                      </button>
+                      <button
+                        onClick={() => handleQuickDamage(cb, 5)}
+                        disabled={busy}
+                        className="heal-btn"
+                        type="button"
+                      >
+                        +5
+                      </button>
+                      <button
+                        onClick={() => handleToggleDefeated(cb)}
+                        disabled={busy}
+                        className={`dmg-btn ${cb.is_defeated ? "revive" : ""}`}
+                        type="button"
+                      >
                         {cb.is_defeated ? "💀 Revivre" : "💀"}
                       </button>
                     </div>
@@ -240,7 +321,9 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
                   {conds.length > 0 && (
                     <div className="combatant-conditions">
                       {conds.map((c, i) => (
-                        <span key={i} className="cond-tag">{String(c)}</span>
+                        <span key={i} className="cond-tag">
+                          {String(c)}
+                        </span>
                       ))}
                     </div>
                   )}

@@ -1,8 +1,11 @@
 from uuid import UUID
 
 from asyncpg import Record
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 
 from app.db import get_pool
 from app.security import decode_access_token

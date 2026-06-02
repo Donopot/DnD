@@ -5,10 +5,7 @@ import type { Scene } from "../api/types";
  * Loads a scene background image as a blob URL.
  * Used by both GM (App.tsx) and Player (PlayerView.tsx) views.
  */
-export function useSceneBackground(
-  scene: Scene | null | undefined,
-  token: string,
-): string {
+export function useSceneBackground(scene: Scene | null | undefined, token: string): string {
   const [objectUrl, setObjectUrl] = useState("");
 
   useEffect(() => {

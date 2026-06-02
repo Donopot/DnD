@@ -1,5 +1,6 @@
 """Tests for Phase 21: Communication MJ↔Joueur."""
 
+from datetime import UTC
 from uuid import UUID
 
 import pytest
@@ -16,8 +17,9 @@ class TestGmMessageSchemas:
         assert msg.content == "Hello player!"
 
     def test_message_create_empty_content_rejected(self):
-        from app.schemas import GmMessageCreate
         from pydantic import ValidationError
+
+        from app.schemas import GmMessageCreate
         with pytest.raises(ValidationError):
             GmMessageCreate(recipient_id=FIXED, content="")
 
@@ -27,8 +29,9 @@ class TestGmMessageSchemas:
         assert ann.content == "Boss fight tonight!"
 
     def test_announcement_create_too_long_rejected(self):
-        from app.schemas import GmAnnouncementCreate
         from pydantic import ValidationError
+
+        from app.schemas import GmAnnouncementCreate
         with pytest.raises(ValidationError):
             GmAnnouncementCreate(content="x" * 2000)
 
@@ -44,7 +47,8 @@ class TestGmMessageSchemas:
         assert roll.label == "Jet secret"
 
     def test_message_public_shape(self):
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         from app.schemas import GmMessagePublic
         msg = GmMessagePublic(
             id=FIXED,
@@ -53,7 +57,7 @@ class TestGmMessageSchemas:
             recipient_id=FIXED,
             content="Hello",
             kind="message",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         assert msg.kind == "message"
         assert msg.read_at is None

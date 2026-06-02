@@ -1,20 +1,26 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC
+from datetime import datetime
+from datetime import timedelta
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role, require_gm_account
+from app.deps import get_current_user
+from app.deps import require_campaign_role
+from app.deps import require_gm_account
 from app.limiter import shared_limiter
-from app.schemas import (
-    CampaignCreateRequest,
-    CampaignMemberPublic,
-    CampaignPublic,
-    InviteCreateRequest,
-    InvitePreview,
-    InvitePublic,
-)
+from app.schemas import CampaignCreateRequest
+from app.schemas import CampaignMemberPublic
+from app.schemas import CampaignPublic
+from app.schemas import InviteCreateRequest
+from app.schemas import InvitePreview
+from app.schemas import InvitePublic
 
 router = APIRouter(prefix="/api", tags=["campaigns"])
 
@@ -62,26 +68,25 @@ async def create_campaign(
     current_user=Depends(get_current_user),
     _gm=Depends(require_gm_account),
 ) -> CampaignPublic:
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            campaign = await connection.fetchrow(
-                """
+    async with get_pool().acquire() as connection, connection.transaction():
+        campaign = await connection.fetchrow(
+            """
                 insert into campaigns (owner_user_id, name, description)
                 values ($1, $2, $3)
                 returning id, owner_user_id, name, description, created_at, updated_at
                 """,
-                current_user["id"],
-                payload.name.strip(),
-                payload.description.strip(),
-            )
-            await connection.execute(
-                """
+            current_user["id"],
+            payload.name.strip(),
+            payload.description.strip(),
+        )
+        await connection.execute(
+            """
                 insert into campaign_members (campaign_id, user_id, role)
                 values ($1, $2, 'gm')
                 """,
-                campaign["id"],
-                current_user["id"],
-            )
+            campaign["id"],
+            current_user["id"],
+        )
 
     row = await get_pool().fetchrow(
         """
@@ -150,7 +155,7 @@ async def create_invite(
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
     expires_at = None
     if payload.expires_in_days is not None:
-        expires_at = datetime.now(timezone.utc) + timedelta(days=payload.expires_in_days)
+        expires_at = datetime.now(UTC) + timedelta(days=payload.expires_in_days)
 
     row = await get_pool().fetchrow(
         """
@@ -192,7 +197,7 @@ async def preview_invite(request: Request, token: str) -> InvitePreview:
     )
     if row is None or row["revoked_at"] is not None:
         raise HTTPException(status_code=404, detail="Invite not found")
-    if row["expires_at"] is not None and row["expires_at"] < datetime.now(timezone.utc):
+    if row["expires_at"] is not None and row["expires_at"] < datetime.now(UTC):
         raise HTTPException(status_code=410, detail="Invite expired")
     remaining_uses = None
     if row["max_uses"] is not None:
@@ -211,42 +216,41 @@ async def preview_invite(request: Request, token: str) -> InvitePreview:
 
 @router.post("/invites/{token}/join", response_model=CampaignPublic)
 async def join_invite(token: str, current_user=Depends(get_current_user)) -> CampaignPublic:
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            invite = await connection.fetchrow(
-                """
+    async with get_pool().acquire() as connection, connection.transaction():
+        invite = await connection.fetchrow(
+            """
                 select *
                 from campaign_invites
                 where token = $1
                 for update
                 """,
-                token,
-            )
-            if invite is None or invite["revoked_at"] is not None:
-                raise HTTPException(status_code=404, detail="Invite not found")
-            if invite["expires_at"] is not None and invite["expires_at"] < datetime.now(timezone.utc):
-                raise HTTPException(status_code=410, detail="Invite expired")
-            if invite["max_uses"] is not None and invite["use_count"] >= invite["max_uses"]:
-                raise HTTPException(status_code=410, detail="Invite exhausted")
+            token,
+        )
+        if invite is None or invite["revoked_at"] is not None:
+            raise HTTPException(status_code=404, detail="Invite not found")
+        if invite["expires_at"] is not None and invite["expires_at"] < datetime.now(UTC):
+            raise HTTPException(status_code=410, detail="Invite expired")
+        if invite["max_uses"] is not None and invite["use_count"] >= invite["max_uses"]:
+            raise HTTPException(status_code=410, detail="Invite exhausted")
 
-            await connection.execute(
-                """
+        await connection.execute(
+            """
                 insert into campaign_members (campaign_id, user_id, role)
                 values ($1, $2, $3)
                 on conflict (campaign_id, user_id) do nothing
                 """,
-                invite["campaign_id"],
-                current_user["id"],
-                invite["role"],
-            )
-            await connection.execute(
-                """
+            invite["campaign_id"],
+            current_user["id"],
+            invite["role"],
+        )
+        await connection.execute(
+            """
                 update campaign_invites
                 set use_count = use_count + 1
                 where token = $1
                 """,
-                token,
-            )
+            token,
+        )
 
     row = await get_pool().fetchrow(
         """

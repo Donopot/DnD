@@ -10,7 +10,7 @@ import {
   Swords,
   Upload,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import type {
   Campaign,
   Character,
@@ -22,11 +22,11 @@ import type {
   Scene,
   SceneToken,
 } from "../api/types";
+import { useSceneBackground } from "../hooks/useSceneBackground";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { PlayerNotifications } from "./PlayerNotifications";
-import { useSceneBackground } from "../hooks/useSceneBackground";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -108,7 +108,9 @@ export function PlayerView({
   onLogout,
 }: PlayerViewProps) {
   const wsRef = useRef<WebSocket | null>(null);
-  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
+  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
+    "offline",
+  );
 
   const [summary, setSummary] = useState<PlayerSummary | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -166,9 +168,7 @@ export function PlayerView({
     if (!token || !cid) return;
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${cid}`,
-    );
+    const socket = new WebSocket(`${protocol}://${window.location.host}/ws/campaigns/${cid}`);
     wsRef.current = socket;
     setRealtimeStatus("connecting");
 
@@ -211,7 +211,9 @@ export function PlayerView({
         playerRequest<PlayerSummary>(`/campaigns/${cid}/player/summary`, token),
         playerRequest<Character[]>(`/campaigns/${cid}/player/characters`, token),
         playerRequest<Handout[]>(`/campaigns/${cid}/player/handouts`, token),
-        playerRequest<Encounter[]>(`/campaigns/${cid}/encounters`, token).catch(() => [] as Encounter[]),
+        playerRequest<Encounter[]>(`/campaigns/${cid}/encounters`, token).catch(
+          () => [] as Encounter[],
+        ),
         playerRequest<Roll[]>(`/campaigns/${cid}/rolls?limit=50`, token).catch(() => [] as Roll[]),
       ]);
       setSummary(sum);
@@ -234,19 +236,27 @@ export function PlayerView({
         token,
       ).catch(() => [] as GameLogEntry[]);
       setLogEntries(entries.filter((e) => e.visibility === "public"));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   async function loadHandouts() {
     try {
       setHandouts(await playerRequest<Handout[]>(`/campaigns/${cid}/player/handouts`, token));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   async function loadCombatState() {
     try {
-      setEncounters(await playerRequest<Encounter[]>(`/campaigns/${cid}/encounters`, token).catch(() => []));
-    } catch { /* ignore */ }
+      setEncounters(
+        await playerRequest<Encounter[]>(`/campaigns/${cid}/encounters`, token).catch(() => []),
+      );
+    } catch {
+      /* ignore */
+    }
   }
 
   useEffect(() => {
@@ -258,21 +268,30 @@ export function PlayerView({
   // ─── Map data loading ──────────────────────────────────────────────────
   async function loadPlayerMapData() {
     try {
-      const scenes = await playerRequest<Scene[]>(`/campaigns/${cid}/player/scenes`, token).catch(() => [] as Scene[]);
+      const scenes = await playerRequest<Scene[]>(`/campaigns/${cid}/player/scenes`, token).catch(
+        () => [] as Scene[],
+      );
       setPlayerScenes(scenes);
       const active = scenes.find((s: Scene) => s.is_active) ?? scenes[0] ?? null;
       if (active) {
         setPlayerScene(active);
         await loadPlayerTokens(active.id);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   async function loadPlayerTokens(sceneId: string) {
     try {
-      const tokens = await playerRequest<SceneToken[]>(`/player/scenes/${sceneId}/tokens`, token).catch(() => [] as SceneToken[]);
+      const tokens = await playerRequest<SceneToken[]>(
+        `/player/scenes/${sceneId}/tokens`,
+        token,
+      ).catch(() => [] as SceneToken[]);
       setPlayerTokens(tokens);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // ─── Load encounter detail ─────────────────────────────────────────────
@@ -320,44 +339,50 @@ export function PlayerView({
     const pb = Math.max(2, Math.ceil(charForm.level / 4) + 1);
 
     try {
-      const character = await playerRequest<Character>(
-        `/campaigns/${cid}/characters`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: charForm.name,
-            ancestry: charForm.ancestry,
-            class_name: charForm.class_name,
-            level: charForm.level,
-            armor_class: charForm.armor_class,
-            speed: charForm.speed,
-            proficiency_bonus: pb,
-            hp_current: charForm.hp_max,
-            hp_max: charForm.hp_max,
-            attributes: {
-              str: charForm.str,
-              dex: charForm.dex,
-              con: charForm.con,
-              int: charForm.int,
-              wis: charForm.wis,
-              cha: charForm.cha,
-            },
-            inventory: [],
-            spells: [],
-            attacks: [],
-            resources: [],
-            notes: "",
-          }),
-        },
-      );
+      const character = await playerRequest<Character>(`/campaigns/${cid}/characters`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          name: charForm.name,
+          ancestry: charForm.ancestry,
+          class_name: charForm.class_name,
+          level: charForm.level,
+          armor_class: charForm.armor_class,
+          speed: charForm.speed,
+          proficiency_bonus: pb,
+          hp_current: charForm.hp_max,
+          hp_max: charForm.hp_max,
+          attributes: {
+            str: charForm.str,
+            dex: charForm.dex,
+            con: charForm.con,
+            int: charForm.int,
+            wis: charForm.wis,
+            cha: charForm.cha,
+          },
+          inventory: [],
+          spells: [],
+          attacks: [],
+          resources: [],
+          notes: "",
+        }),
+      });
 
       setCharacters((current) => [character, ...current]);
       setSelectedCharacter(character);
       setCharForm({
-        name: "", ancestry: "", class_name: "", level: 1,
-        hp_max: 10, armor_class: 10, speed: 30,
-        str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+        name: "",
+        ancestry: "",
+        class_name: "",
+        level: 1,
+        hp_max: 10,
+        armor_class: 10,
+        speed: 30,
+        str: 10,
+        dex: 10,
+        con: 10,
+        int: 10,
+        wis: 10,
+        cha: 10,
       });
       setMessage(`${character.name} créé !`);
     } catch (error) {
@@ -370,7 +395,9 @@ export function PlayerView({
   // ─── Character import/export ───────────────────────────────────────────
   function handleExportCharacter() {
     if (!selectedCharacter) return;
-    const blob = new Blob([JSON.stringify(selectedCharacter, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(selectedCharacter, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -392,32 +419,35 @@ export function PlayerView({
         const imported = JSON.parse(text) as Character;
         // Create a new character from the imported data
         const pb = Math.max(2, Math.ceil(imported.level / 4) + 1);
-        const character = await playerRequest<Character>(
-          `/campaigns/${cid}/characters`,
-          token,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              name: imported.name || "Perso importé",
-              ancestry: imported.ancestry || "",
-              class_name: imported.class_name || "",
-              level: imported.level || 1,
-              armor_class: imported.armor_class || 10,
-              speed: imported.speed || 30,
-              proficiency_bonus: pb,
-              hp_current: imported.hp_max || imported.hp_current || 1,
-              hp_max: imported.hp_max || 10,
-              attributes: imported.attributes || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
-              skills: imported.skills || {},
-              saving_throws: imported.saving_throws || {},
-              attacks: imported.attacks || [],
-              inventory: imported.inventory || [],
-              spells: imported.spells || [],
-              resources: imported.resources || [],
-              notes: imported.notes || "",
-            }),
-          },
-        );
+        const character = await playerRequest<Character>(`/campaigns/${cid}/characters`, token, {
+          method: "POST",
+          body: JSON.stringify({
+            name: imported.name || "Perso importé",
+            ancestry: imported.ancestry || "",
+            class_name: imported.class_name || "",
+            level: imported.level || 1,
+            armor_class: imported.armor_class || 10,
+            speed: imported.speed || 30,
+            proficiency_bonus: pb,
+            hp_current: imported.hp_max || imported.hp_current || 1,
+            hp_max: imported.hp_max || 10,
+            attributes: imported.attributes || {
+              str: 10,
+              dex: 10,
+              con: 10,
+              int: 10,
+              wis: 10,
+              cha: 10,
+            },
+            skills: imported.skills || {},
+            saving_throws: imported.saving_throws || {},
+            attacks: imported.attacks || [],
+            inventory: imported.inventory || [],
+            spells: imported.spells || [],
+            resources: imported.resources || [],
+            notes: imported.notes || "",
+          }),
+        });
         setCharacters((current) => [character, ...current]);
         setSelectedCharacter(character);
         setMessage(`${character.name} importé !`);
@@ -436,20 +466,16 @@ export function PlayerView({
     setMessage("");
 
     try {
-      const roll = await playerRequest<Roll>(
-        `/campaigns/${cid}/rolls`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            formula: diceFormula,
-            label: diceLabel || diceFormula,
-            mode: diceMode,
-            visibility: "public",
-            character_id: selectedCharacter?.id ?? null,
-          }),
-        },
-      );
+      const roll = await playerRequest<Roll>(`/campaigns/${cid}/rolls`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          formula: diceFormula,
+          label: diceLabel || diceFormula,
+          mode: diceMode,
+          visibility: "public",
+          character_id: selectedCharacter?.id ?? null,
+        }),
+      });
       setRolls((current) => [roll, ...current].slice(0, 50));
       setDiceResult(roll);
       setMessage(`Résultat: ${roll.total}`);
@@ -467,20 +493,16 @@ export function PlayerView({
     setMessage("");
 
     try {
-      const roll = await playerRequest<Roll>(
-        `/campaigns/${cid}/rolls`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            formula,
-            label,
-            mode,
-            visibility: "public",
-            character_id: selectedCharacter?.id ?? null,
-          }),
-        },
-      );
+      const roll = await playerRequest<Roll>(`/campaigns/${cid}/rolls`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          formula,
+          label,
+          mode,
+          visibility: "public",
+          character_id: selectedCharacter?.id ?? null,
+        }),
+      });
       setRolls((current) => [roll, ...current].slice(0, 50));
       setDiceResult(roll);
       setMessage(`Résultat: ${roll.total}`);
@@ -495,20 +517,16 @@ export function PlayerView({
   async function quickD20(modifier: number, label: string) {
     if (!cid) return;
     try {
-      const roll = await playerRequest<Roll>(
-        `/campaigns/${cid}/rolls`,
-        token,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            formula: `1d20${modifier >= 0 ? "+" : ""}${modifier}`,
-            label: label,
-            mode: "normal",
-            visibility: "public",
-            character_id: selectedCharacter?.id ?? null,
-          }),
-        },
-      );
+      const roll = await playerRequest<Roll>(`/campaigns/${cid}/rolls`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          formula: `1d20${modifier >= 0 ? "+" : ""}${modifier}`,
+          label: label,
+          mode: "normal",
+          visibility: "public",
+          character_id: selectedCharacter?.id ?? null,
+        }),
+      });
       setRolls((current) => [roll, ...current].slice(0, 50));
       setDiceResult(roll);
       setMessage(`${label}: ${roll.total}`);
@@ -539,7 +557,7 @@ export function PlayerView({
       cha: ["Intimidation", "Persuasion", "Représentation", "Tromperie"],
     };
 
-    const skills = selectedCharacter.skills as Record<string, unknown> || {};
+    const skills = (selectedCharacter.skills as Record<string, unknown>) || {};
     const result: { name: string; mod: number }[] = [];
 
     for (const [attr, names] of Object.entries(skillNames)) {
@@ -619,11 +637,7 @@ export function PlayerView({
         <span className="player-status">
           <Shield aria-hidden="true" /> {userDisplayName} (joueur)
         </span>
-        <PlayerNotifications
-          campaignId={campaign.id}
-          token={token}
-          userId={userId}
-        />
+        <PlayerNotifications campaignId={campaign.id} token={token} userId={userId} />
         <button className="ghost-button" onClick={onLogout} type="button">
           Quitter
         </button>
@@ -667,10 +681,19 @@ export function PlayerView({
           {/* Import / Export */}
           {characters.length > 0 && (
             <div className="player-char-io">
-              <button className="ghost-button compact" onClick={handleExportCharacter} type="button" disabled={!selectedCharacter}>
+              <button
+                className="ghost-button compact"
+                onClick={handleExportCharacter}
+                type="button"
+                disabled={!selectedCharacter}
+              >
                 <Download size={14} /> Exporter
               </button>
-              <button className="ghost-button compact" onClick={handleImportCharacter} type="button">
+              <button
+                className="ghost-button compact"
+                onClick={handleImportCharacter}
+                type="button"
+              >
                 <Upload size={14} /> Importer
               </button>
             </div>
@@ -685,9 +708,7 @@ export function PlayerView({
               token={token}
               isBusy={isBusy}
               onSave={(updated) => {
-                setCharacters((current) =>
-                  current.map((c) => (c.id === updated.id ? updated : c)),
-                );
+                setCharacters((current) => current.map((c) => (c.id === updated.id ? updated : c)));
               }}
             />
             {/* Quick attribute rolls */}
@@ -701,7 +722,8 @@ export function PlayerView({
                     onClick={() => void quickD20(qr.mod, qr.label)}
                     type="button"
                   >
-                    {qr.label} {qr.mod >= 0 ? "+" : ""}{qr.mod}
+                    {qr.label} {qr.mod >= 0 ? "+" : ""}
+                    {qr.mod}
                   </button>
                 ))}
               </div>
@@ -718,7 +740,8 @@ export function PlayerView({
                       onClick={() => void quickD20(sk.mod, sk.name)}
                       type="button"
                     >
-                      {sk.name} {sk.mod >= 0 ? "+" : ""}{sk.mod}
+                      {sk.name} {sk.mod >= 0 ? "+" : ""}
+                      {sk.mod}
                     </button>
                   ))}
                 </div>
@@ -737,9 +760,7 @@ export function PlayerView({
               Nom *
               <input
                 value={charForm.name}
-                onChange={(e) =>
-                  setCharForm((f) => ({ ...f, name: e.target.value }))
-                }
+                onChange={(e) => setCharForm((f) => ({ ...f, name: e.target.value }))}
                 minLength={2}
                 maxLength={120}
                 required
@@ -749,9 +770,7 @@ export function PlayerView({
               Origine
               <input
                 value={charForm.ancestry}
-                onChange={(e) =>
-                  setCharForm((f) => ({ ...f, ancestry: e.target.value }))
-                }
+                onChange={(e) => setCharForm((f) => ({ ...f, ancestry: e.target.value }))}
                 maxLength={80}
                 placeholder="Humain, elfe..."
               />
@@ -760,9 +779,7 @@ export function PlayerView({
               Classe
               <input
                 value={charForm.class_name}
-                onChange={(e) =>
-                  setCharForm((f) => ({ ...f, class_name: e.target.value }))
-                }
+                onChange={(e) => setCharForm((f) => ({ ...f, class_name: e.target.value }))}
                 maxLength={80}
                 placeholder="Guerrier, mage..."
               />
@@ -860,17 +877,55 @@ export function PlayerView({
 
           {/* Quick d20 buttons */}
           <div className="quick-dice-row">
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Initiative", "normal")} type="button">🎯 Initiative</button>
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Attaque", "normal")} type="button">⚔️ Attaque</button>
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Avantage", "advantage")} type="button">⬆ Avantage</button>
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Désavantage", "disadvantage")} type="button">⬇ Désav.</button>
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Sauvegarde", "normal")} type="button">🛡️ Sauvegarde</button>
-            <button className="quick-dice-btn" onClick={() => handleQuickRoll("1d20", "Compétence", "normal")} type="button">🔍 Compétence</button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Initiative", "normal")}
+              type="button"
+            >
+              🎯 Initiative
+            </button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Attaque", "normal")}
+              type="button"
+            >
+              ⚔️ Attaque
+            </button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Avantage", "advantage")}
+              type="button"
+            >
+              ⬆ Avantage
+            </button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Désavantage", "disadvantage")}
+              type="button"
+            >
+              ⬇ Désav.
+            </button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Sauvegarde", "normal")}
+              type="button"
+            >
+              🛡️ Sauvegarde
+            </button>
+            <button
+              className="quick-dice-btn"
+              onClick={() => handleQuickRoll("1d20", "Compétence", "normal")}
+              type="button"
+            >
+              🔍 Compétence
+            </button>
           </div>
 
           <form onSubmit={handleRoll} className="form-stack">
             <label>
-              {selectedCharacter ? `Joueur: ${selectedCharacter.name}` : "Aucun personnage sélectionné"}
+              {selectedCharacter
+                ? `Joueur: ${selectedCharacter.name}`
+                : "Aucun personnage sélectionné"}
             </label>
             <label>
               Formule
@@ -922,7 +977,10 @@ export function PlayerView({
               <Dice1 size={32} aria-hidden="true" />
               <div>
                 <strong>{diceResult.total}</strong>
-                <small>{diceResult.formula} — {diceResult.label || "Jet"}{diceResult.mode !== "normal" ? ` (${diceResult.mode})` : ""}</small>
+                <small>
+                  {diceResult.formula} — {diceResult.label || "Jet"}
+                  {diceResult.mode !== "normal" ? ` (${diceResult.mode})` : ""}
+                </small>
               </div>
             </div>
           )}
@@ -942,7 +1000,9 @@ export function PlayerView({
                   <span className="roll-label">
                     {roll.label || ""}
                     {roll.mode !== "normal" ? ` (${roll.mode})` : ""}
-                    {roll.character_id ? " · " + (characters.find((c) => c.id === roll.character_id)?.name ?? "PJ") : ""}
+                    {roll.character_id
+                      ? " · " + (characters.find((c) => c.id === roll.character_id)?.name ?? "PJ")
+                      : ""}
                   </span>
                 </div>
               ))}
@@ -967,7 +1027,10 @@ export function PlayerView({
       ) : (
         <div className="handout-list">
           {handouts.map((handout) => (
-            <article className={`handout-card ${handout.is_revealed ? "revealed" : ""}`} key={handout.id}>
+            <article
+              className={`handout-card ${handout.is_revealed ? "revealed" : ""}`}
+              key={handout.id}
+            >
               <div className="handout-card-header">
                 <h4>{handout.title}</h4>
                 <span className={`handout-visibility-badge ${handout.visibility}`}>
@@ -977,9 +1040,7 @@ export function PlayerView({
               {handout.content && (
                 <MarkdownRenderer content={handout.content} className="handout-content" />
               )}
-              {!handout.content && (
-                <p className="muted">Aucun contenu textuel.</p>
-              )}
+              {!handout.content && <p className="muted">Aucun contenu textuel.</p>}
             </article>
           ))}
         </div>
@@ -1010,7 +1071,13 @@ export function PlayerView({
               >
                 <span>
                   <strong>{enc.name}</strong>
-                  <small>{enc.status === "active" ? "⚔️ En cours" : enc.status === "ended" ? "✓ Terminé" : "✏ Préparation"}</small>
+                  <small>
+                    {enc.status === "active"
+                      ? "⚔️ En cours"
+                      : enc.status === "ended"
+                        ? "✓ Terminé"
+                        : "✏ Préparation"}
+                  </small>
                 </span>
                 {enc.status === "active" && <em>Round {enc.round_number}</em>}
               </button>
@@ -1066,7 +1133,11 @@ export function PlayerView({
             rows={3}
             maxLength={2000}
           />
-          <button className="primary-button compact" disabled={isBusy || !noteText.trim()} type="submit">
+          <button
+            className="primary-button compact"
+            disabled={isBusy || !noteText.trim()}
+            type="submit"
+          >
             Envoyer
           </button>
         </form>
@@ -1075,7 +1146,11 @@ export function PlayerView({
         <div className="player-session-log">
           <div className="section-heading">
             <h3>Journal de session</h3>
-            <button className="ghost-button compact" onClick={() => void loadSessionLog()} type="button">
+            <button
+              className="ghost-button compact"
+              onClick={() => void loadSessionLog()}
+              type="button"
+            >
               <RefreshCw size={14} />
             </button>
           </div>
@@ -1085,7 +1160,9 @@ export function PlayerView({
             <div className="log-list-compact">
               {logEntries.map((entry) => (
                 <div className="log-row-compact" key={entry.id}>
-                  <span className="log-entry-type">{entry.entry_type === "roll" ? "🎲" : entry.entry_type === "note" ? "📝" : "📋"}</span>
+                  <span className="log-entry-type">
+                    {entry.entry_type === "roll" ? "🎲" : entry.entry_type === "note" ? "📝" : "📋"}
+                  </span>
                   <span className="log-entry-msg">{entry.message}</span>
                   {entry.character_id && (
                     <span className="log-entry-char">
@@ -1128,13 +1205,15 @@ export function PlayerView({
         <aside className="player-panels">
           {/* Tab bar */}
           <nav className="player-tab-bar" role="tablist" aria-label="Sections joueur">
-            {([
-              ["characters", "👤", "Persos"],
-              ["dice", "🎲", "Dés"],
-              ["handouts", "📄", "Docs"],
-              ["combat", "⚔️", "Combat"],
-              ["journal", "📝", "Journal"],
-            ] as const).map(([id, icon, label]) => (
+            {(
+              [
+                ["characters", "👤", "Persos"],
+                ["dice", "🎲", "Dés"],
+                ["handouts", "📄", "Docs"],
+                ["combat", "⚔️", "Combat"],
+                ["journal", "📝", "Journal"],
+              ] as const
+            ).map(([id, icon, label]) => (
               <button
                 key={id}
                 className={`player-tab-btn${activeTab === id ? " active" : ""}`}

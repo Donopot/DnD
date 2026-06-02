@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
 import { Crown, Eye, EyeOff, LogIn, Shield, Swords, UserPlus } from "lucide-react";
+import { type FormEvent, useState } from "react";
 
 type AuthMode = "login" | "register";
 type AccountType = "gm" | "player";
@@ -26,9 +26,7 @@ type AuthPageProps = {
 
 export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPageProps) {
   const [mode, setMode] = useState<AuthMode>("register");
-  const [accountType, setAccountType] = useState<AccountType>(
-    inviteToken ? "player" : "gm",
-  );
+  const [accountType, setAccountType] = useState<AccountType>(inviteToken ? "player" : "gm");
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,9 +44,10 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
 
   const strength = passwordStrength(password);
   const passwordsMatch = mode === "login" || password === confirmPassword;
-  const loginValid = mode === "login" ? (password.length > 0) : true;
+  const loginValid = mode === "login" ? password.length > 0 : true;
   const canSubmit =
-    (mode === "login" && loginValid) || (passwordsMatch && strength.score >= 3 && password.length >= 8);
+    (mode === "login" && loginValid) ||
+    (passwordsMatch && strength.score >= 3 && password.length >= 8);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,7 +59,9 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
       display_name: mode === "register" ? String(form.get("display_name")) : undefined,
       confirm_password: mode === "register" ? String(form.get("confirm_password")) : undefined,
       account_type: accountType,
-      invite_token: (form.get("invite_token")?.toString() || inviteToken || undefined) as string | undefined,
+      invite_token: (form.get("invite_token")?.toString() || inviteToken || undefined) as
+        | string
+        | undefined,
       website: String(form.get("website") ?? ""),
     });
   }
@@ -147,7 +148,13 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
           {mode === "register" && (
             <label>
               Nom affiché
-              <input name="display_name" minLength={2} maxLength={80} required autoComplete="name" />
+              <input
+                name="display_name"
+                minLength={2}
+                maxLength={80}
+                required
+                autoComplete="name"
+              />
             </label>
           )}
 
@@ -228,12 +235,7 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
           )}
 
           {/* Honeypot — CSS-only, invisible to humans, attractive to bots */}
-          <input
-            type="text"
-            name="website"
-            autoComplete="off"
-            className="honeypot"
-          />
+          <input type="text" name="website" autoComplete="off" className="honeypot" />
 
           {/* Hidden fields for account_type and optional invite_token */}
           <input type="hidden" name="account_type" value={accountType} />
@@ -241,11 +243,7 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
 
           {message && <p className="message-text">{message}</p>}
 
-          <button
-            className="primary-button"
-            disabled={isBusy || !canSubmit}
-            type="submit"
-          >
+          <button className="primary-button" disabled={isBusy || !canSubmit} type="submit">
             <Shield aria-hidden="true" size={16} />
             {isBusy
               ? "Patientez..."

@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
 import { Castle, DoorOpen, UserPlus } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { InvitePreviewCard } from "./InvitePreviewCard";
 import { PersonalCharactersSection } from "./PersonalCharactersSection";
 
@@ -61,8 +61,8 @@ export function PlayerLobby({
           <Castle size={64} />
           <h2>Bienvenue, {userDisplayName} !</h2>
           <p className="muted">
-            Tu n'as pas encore rejoint de campagne. Entre le code d'invitation
-            que ton MJ t'a envoyé pour commencer l'aventure.
+            Tu n'as pas encore rejoint de campagne. Entre le code d'invitation que ton MJ t'a envoyé
+            pour commencer l'aventure.
           </p>
         </div>
 
@@ -96,10 +96,7 @@ export function PlayerLobby({
         </div>
 
         {/* ── Personal Characters ───────────────────────────── */}
-        <PersonalCharactersSection
-          token={token}
-          campaignId={activeCampaignId}
-        />
+        <PersonalCharactersSection token={token} campaignId={activeCampaignId} />
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}

@@ -1,13 +1,24 @@
-from datetime import datetime, timezone
+from datetime import UTC
+from datetime import datetime
 
-from asyncpg import ForeignKeyViolationError, UniqueViolationError
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from asyncpg import ForeignKeyViolationError
+from asyncpg import UniqueViolationError
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
 
 from app.db import get_pool
 from app.deps import get_current_user
 from app.limiter import shared_limiter
-from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserPublic
-from app.security import create_access_token, hash_password, verify_password
+from app.schemas import AuthResponse
+from app.schemas import LoginRequest
+from app.schemas import RegisterRequest
+from app.schemas import UserPublic
+from app.security import create_access_token
+from app.security import hash_password
+from app.security import verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -26,7 +37,7 @@ def user_public(row) -> UserPublic:
 
 async def _validate_player_invite(connection, invite_token: str | None):
     """If the user registers as a player, validate the invite token and return campaign info.
-    
+
     Must be called within an active transaction on `connection` to hold the FOR UPDATE lock."""
     if invite_token is None:
         raise HTTPException(
@@ -46,7 +57,7 @@ async def _validate_player_invite(connection, invite_token: str | None):
 
     if row is None or row["revoked_at"] is not None:
         raise HTTPException(status_code=404, detail="Invitation introuvable ou révoquée")
-    if row["expires_at"] is not None and row["expires_at"] < datetime.now(timezone.utc):
+    if row["expires_at"] is not None and row["expires_at"] < datetime.now(UTC):
         raise HTTPException(status_code=410, detail="Invitation expirée")
     if row["max_uses"] is not None and row["use_count"] >= row["max_uses"]:
         raise HTTPException(status_code=410, detail="Invitation épuisée")
@@ -65,50 +76,49 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
     campaign_id = None
     invite_role = None
 
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            if payload.account_type == "player":
-                campaign_id, invite_role = await _validate_player_invite(connection, payload.invite_token)
+    async with get_pool().acquire() as connection, connection.transaction():
+        if payload.account_type == "player":
+            campaign_id, invite_role = await _validate_player_invite(connection, payload.invite_token)
 
-            try:
-                row = await connection.fetchrow(
-                    """
+        try:
+            row = await connection.fetchrow(
+                """
                     insert into users (email, display_name, password_hash, account_type)
                     values ($1, $2, $3, $4)
                     returning id, email, display_name, account_type, created_at
                     """,
-                    payload.email.lower(),
-                    payload.display_name.strip(),
-                    hash_password(payload.password),
-                    payload.account_type,
-                )
-            except UniqueViolationError as exc:
-                raise HTTPException(status_code=409, detail="Cet email est déjà utilisé") from exc
-            except ForeignKeyViolationError:
-                raise HTTPException(status_code=410, detail="La campagne n'existe plus ou a été supprimée")
-            except Exception:
-                raise HTTPException(status_code=500, detail="Erreur interne lors de l'inscription")
+                payload.email.lower(),
+                payload.display_name.strip(),
+                hash_password(payload.password),
+                payload.account_type,
+            )
+        except UniqueViolationError as exc:
+            raise HTTPException(status_code=409, detail="Cet email est déjà utilisé") from exc
+        except ForeignKeyViolationError:
+            raise HTTPException(status_code=410, detail="La campagne n'existe plus ou a été supprimée")
+        except Exception:
+            raise HTTPException(status_code=500, detail="Erreur interne lors de l'inscription")
 
-            # Auto-join campaign for player registration
-            if campaign_id is not None:
-                await connection.execute(
-                    """
+        # Auto-join campaign for player registration
+        if campaign_id is not None:
+            await connection.execute(
+                """
                     insert into campaign_members (campaign_id, user_id, role)
                     values ($1, $2, $3)
                     on conflict (campaign_id, user_id) do nothing
                     """,
-                    campaign_id,
-                    row["id"],
-                    invite_role,
-                )
-                await connection.execute(
-                    """
+                campaign_id,
+                row["id"],
+                invite_role,
+            )
+            await connection.execute(
+                """
                     update campaign_invites
                     set use_count = use_count + 1
                     where token = $1
                     """,
-                    payload.invite_token,
-                )
+                payload.invite_token,
+            )
 
     return AuthResponse(access_token=create_access_token(row["id"]), user=user_public(row))
 

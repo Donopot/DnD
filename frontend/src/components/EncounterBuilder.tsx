@@ -1,23 +1,134 @@
-import { FormEvent, useMemo, useState } from "react";
 import { Dice1, Plus, Swords } from "lucide-react";
+import { type FormEvent, useMemo, useState } from "react";
 
 // D&D 5e XP thresholds per character level
 const XP_THRESHOLDS: Record<string, Record<number, number>> = {
-  easy:   { 1: 25, 2: 50, 3: 75, 4: 125, 5: 250, 6: 300, 7: 350, 8: 450, 9: 550, 10: 600, 11: 800, 12: 1000, 13: 1100, 14: 1250, 15: 1400, 16: 1600, 17: 2000, 18: 2100, 19: 2400, 20: 2800 },
-  medium:{ 1: 50, 2: 100, 3: 150, 4: 250, 5: 500, 6: 600, 7: 750, 8: 900, 9: 1100, 10: 1200, 11: 1600, 12: 2000, 13: 2200, 14: 2500, 15: 2800, 16: 3200, 17: 3900, 18: 4200, 19: 4900, 20: 5700 },
-  hard:   { 1: 75, 2: 150, 3: 225, 4: 375, 5: 750, 6: 900, 7: 1100, 8: 1400, 9: 1600, 10: 1900, 11: 2400, 12: 3000, 13: 3400, 14: 3800, 15: 4300, 16: 4800, 17: 5900, 18: 6300, 19: 7300, 20: 8500 },
-  deadly: { 1: 100, 2: 200, 3: 400, 4: 500, 5: 1100, 6: 1400, 7: 1700, 8: 2100, 9: 2400, 10: 2800, 11: 3600, 12: 4500, 13: 5100, 14: 5700, 15: 6400, 16: 7200, 17: 8800, 18: 9500, 19: 10900, 20: 12700 },
+  easy: {
+    1: 25,
+    2: 50,
+    3: 75,
+    4: 125,
+    5: 250,
+    6: 300,
+    7: 350,
+    8: 450,
+    9: 550,
+    10: 600,
+    11: 800,
+    12: 1000,
+    13: 1100,
+    14: 1250,
+    15: 1400,
+    16: 1600,
+    17: 2000,
+    18: 2100,
+    19: 2400,
+    20: 2800,
+  },
+  medium: {
+    1: 50,
+    2: 100,
+    3: 150,
+    4: 250,
+    5: 500,
+    6: 600,
+    7: 750,
+    8: 900,
+    9: 1100,
+    10: 1200,
+    11: 1600,
+    12: 2000,
+    13: 2200,
+    14: 2500,
+    15: 2800,
+    16: 3200,
+    17: 3900,
+    18: 4200,
+    19: 4900,
+    20: 5700,
+  },
+  hard: {
+    1: 75,
+    2: 150,
+    3: 225,
+    4: 375,
+    5: 750,
+    6: 900,
+    7: 1100,
+    8: 1400,
+    9: 1600,
+    10: 1900,
+    11: 2400,
+    12: 3000,
+    13: 3400,
+    14: 3800,
+    15: 4300,
+    16: 4800,
+    17: 5900,
+    18: 6300,
+    19: 7300,
+    20: 8500,
+  },
+  deadly: {
+    1: 100,
+    2: 200,
+    3: 400,
+    4: 500,
+    5: 1100,
+    6: 1400,
+    7: 1700,
+    8: 2100,
+    9: 2400,
+    10: 2800,
+    11: 3600,
+    12: 4500,
+    13: 5100,
+    14: 5700,
+    15: 6400,
+    16: 7200,
+    17: 8800,
+    18: 9500,
+    19: 10900,
+    20: 12700,
+  },
 };
 
 // CR → XP conversion
 const CR_XP: Record<string, number> = {
-  "0": 10, "1/8": 25, "1/4": 50, "1/2": 100,
-  "1": 200, "2": 450, "3": 700, "4": 1100, "5": 1800,
-  "6": 2300, "7": 2900, "8": 3900, "9": 5000, "10": 5900,
-  "11": 7200, "12": 8400, "13": 10000, "14": 11500, "15": 13000,
-  "16": 15000, "17": 18000, "18": 20000, "19": 22000, "20": 25000,
-  "21": 33000, "22": 41000, "23": 50000, "24": 62000, "25": 75000,
-  "26": 90000, "27": 105000, "28": 120000, "29": 135000, "30": 155000,
+  "0": 10,
+  "1/8": 25,
+  "1/4": 50,
+  "1/2": 100,
+  "1": 200,
+  "2": 450,
+  "3": 700,
+  "4": 1100,
+  "5": 1800,
+  "6": 2300,
+  "7": 2900,
+  "8": 3900,
+  "9": 5000,
+  "10": 5900,
+  "11": 7200,
+  "12": 8400,
+  "13": 10000,
+  "14": 11500,
+  "15": 13000,
+  "16": 15000,
+  "17": 18000,
+  "18": 20000,
+  "19": 22000,
+  "20": 25000,
+  "21": 33000,
+  "22": 41000,
+  "23": 50000,
+  "24": 62000,
+  "25": 75000,
+  "26": 90000,
+  "27": 105000,
+  "28": 120000,
+  "29": 135000,
+  "30": 155000,
 };
 
 // Random encounter templates by environment
@@ -144,7 +255,10 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
   function addMonster(e: FormEvent) {
     e.preventDefault();
     if (!monsterName.trim()) return;
-    setMonsters((prev) => [...prev, { name: monsterName.trim(), cr: monsterCr, count: monsterCount }]);
+    setMonsters((prev) => [
+      ...prev,
+      { name: monsterName.trim(), cr: monsterCr, count: monsterCount },
+    ]);
     setMonsterName("");
     setMonsterCr("1");
     setMonsterCount(1);
@@ -168,8 +282,12 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
   function generateRandom() {
     const templates = RANDOM_ENCOUNTERS[environment] || RANDOM_ENCOUNTERS.forest;
     // Pick 1-3 random templates, filtered by party level
-    const viable = templates.filter((t) => (CR_XP[t.cr] || 0) <= (XP_THRESHOLDS.deadly[Math.min(20, partyLevel)] || 9999));
-    const picked = [...viable].sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 3) + 1);
+    const viable = templates.filter(
+      (t) => (CR_XP[t.cr] || 0) <= (XP_THRESHOLDS.deadly[Math.min(20, partyLevel)] || 9999),
+    );
+    const picked = [...viable]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.floor(Math.random() * 3) + 1);
     const newMonsters: MonsterEntry[] = picked.map((t) => ({
       name: t.name,
       cr: t.cr,
@@ -211,7 +329,9 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
         }
       }
 
-      setMessage(`Combat "${encounter.name}" créé avec ${monsters.reduce((s, m) => s + m.count, 0)} combattants !`);
+      setMessage(
+        `Combat "${encounter.name}" créé avec ${monsters.reduce((s, m) => s + m.count, 0)} combattants !`,
+      );
       setMonsters([]);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Erreur");
@@ -240,28 +360,63 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
       <div className="eb-config">
         <label>
           Niveau moyen:
-          <input type="number" value={partyLevel} onChange={(e) => setPartyLevel(Number(e.target.value))} min={1} max={20} />
+          <input
+            type="number"
+            value={partyLevel}
+            onChange={(e) => setPartyLevel(Number(e.target.value))}
+            min={1}
+            max={20}
+          />
         </label>
         <label>
           Joueurs:
-          <input type="number" value={partySize} onChange={(e) => setPartySize(Number(e.target.value))} min={1} max={10} />
+          <input
+            type="number"
+            value={partySize}
+            onChange={(e) => setPartySize(Number(e.target.value))}
+            min={1}
+            max={10}
+          />
         </label>
       </div>
 
       {/* Add monster form */}
       <form onSubmit={addMonster} className="eb-add-form">
-        <input type="text" value={monsterName} onChange={(e) => setMonsterName(e.target.value)} placeholder="Nom du monstre" required />
+        <input
+          type="text"
+          value={monsterName}
+          onChange={(e) => setMonsterName(e.target.value)}
+          placeholder="Nom du monstre"
+          required
+        />
         <select value={monsterCr} onChange={(e) => setMonsterCr(e.target.value)}>
-          {Object.keys(CR_XP).map((cr) => <option key={cr} value={cr}>CR {cr}</option>)}
+          {Object.keys(CR_XP).map((cr) => (
+            <option key={cr} value={cr}>
+              CR {cr}
+            </option>
+          ))}
         </select>
-        <input type="number" value={monsterCount} onChange={(e) => setMonsterCount(Number(e.target.value))} min={1} max={20} style={{ width: 50 }} />
-        <button type="submit" disabled={busy} className="primary-button compact"><Plus size={12} /></button>
+        <input
+          type="number"
+          value={monsterCount}
+          onChange={(e) => setMonsterCount(Number(e.target.value))}
+          min={1}
+          max={20}
+          style={{ width: 50 }}
+        />
+        <button type="submit" disabled={busy} className="primary-button compact">
+          <Plus size={12} />
+        </button>
       </form>
 
       {/* Random encounter */}
       <div className="eb-random">
         <select value={environment} onChange={(e) => setEnvironment(e.target.value)}>
-          {Object.keys(RANDOM_ENCOUNTERS).map((env) => <option key={env} value={env}>{env}</option>)}
+          {Object.keys(RANDOM_ENCOUNTERS).map((env) => (
+            <option key={env} value={env}>
+              {env}
+            </option>
+          ))}
         </select>
         <button onClick={generateRandom} disabled={busy} className="combat-btn" type="button">
           <Dice1 size={12} /> Aléatoire
@@ -276,7 +431,14 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
               <span className="eb-monster-name">{m.name}</span>
               <span className="eb-monster-cr">CR {m.cr}</span>
               <span className="eb-monster-count">×{m.count}</span>
-              <button onClick={() => removeMonster(i)} className="inv-remove" type="button" title="Retirer">✕</button>
+              <button
+                onClick={() => removeMonster(i)}
+                className="inv-remove"
+                type="button"
+                title="Retirer"
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>
@@ -286,7 +448,13 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
       {monsters.length > 0 && (
         <div className="eb-difficulty">
           <div className="eb-diff-bar">
-            <span className="eb-diff-fill" style={{ width: `${Math.min(100, (difficulty.xp / Math.max(1, difficulty.threshold)) * 100)}%`, background: diffColors[difficulty.rating] }} />
+            <span
+              className="eb-diff-fill"
+              style={{
+                width: `${Math.min(100, (difficulty.xp / Math.max(1, difficulty.threshold)) * 100)}%`,
+                background: diffColors[difficulty.rating],
+              }}
+            />
           </div>
           <div className="eb-diff-info">
             <span style={{ color: diffColors[difficulty.rating], fontWeight: 700 }}>

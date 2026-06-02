@@ -4,32 +4,189 @@ import { useState } from "react";
 // ─── Race data (simplified SRD) ────────────────────────────────────────────
 
 const RACES: { name: string; asi: Record<string, number>; traits: string[] }[] = [
-  { name: "Humain", asi: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 }, traits: ["Langue supplémentaire"] },
-  { name: "Elfe (haut)", asi: { dex: 2, int: 1 }, traits: ["Vision dans le noir 60 ft.", "Perception", "Transe", "Langues: Commun, Elfique"] },
-  { name: "Elfe (sylvestre)", asi: { dex: 2, wis: 1 }, traits: ["Vision dans le noir 60 ft.", "Perception", "Transe", "Masque de la nature"] },
-  { name: "Nain (collines)", asi: { con: 2, wis: 1 }, traits: ["Vision dans le noir 60 ft.", "Résistance au poison", "Armes naines"] },
-  { name: "Nain (montagnes)", asi: { str: 2, con: 2 }, traits: ["Vision dans le noir 60 ft.", "Résistance au poison", "Armures intermédiaires"] },
-  { name: "Halfelin", asi: { dex: 2, cha: 1 }, traits: ["Chanceux", "Brave", "Agilité halfeline", "Petite taille"] },
-  { name: "Demi-elfe", asi: { cha: 2, dex: 1, con: 1 }, traits: ["Vision dans le noir 60 ft.", "Ascendance féérique", "2 compétences"] },
-  { name: "Demi-orc", asi: { str: 2, con: 1 }, traits: ["Vision dans le noir 60 ft.", "Endurance implacable", "Attaques sauvages"] },
-  { name: "Gnome (forêts)", asi: { int: 2, dex: 1 }, traits: ["Vision dans le noir 60 ft.", "Ruse gnome (magie)"] },
-  { name: "Tieffelin", asi: { cha: 2, int: 1 }, traits: ["Vision dans le noir 60 ft.", "Résistance au feu", "Thaumaturgie"] },
-  { name: "Drakéide", asi: { str: 2, cha: 1 }, traits: ["Souffle draconique", "Résistance aux dégâts (selon ascendance)"] },
+  {
+    name: "Humain",
+    asi: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
+    traits: ["Langue supplémentaire"],
+  },
+  {
+    name: "Elfe (haut)",
+    asi: { dex: 2, int: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Perception", "Transe", "Langues: Commun, Elfique"],
+  },
+  {
+    name: "Elfe (sylvestre)",
+    asi: { dex: 2, wis: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Perception", "Transe", "Masque de la nature"],
+  },
+  {
+    name: "Nain (collines)",
+    asi: { con: 2, wis: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Résistance au poison", "Armes naines"],
+  },
+  {
+    name: "Nain (montagnes)",
+    asi: { str: 2, con: 2 },
+    traits: ["Vision dans le noir 60 ft.", "Résistance au poison", "Armures intermédiaires"],
+  },
+  {
+    name: "Halfelin",
+    asi: { dex: 2, cha: 1 },
+    traits: ["Chanceux", "Brave", "Agilité halfeline", "Petite taille"],
+  },
+  {
+    name: "Demi-elfe",
+    asi: { cha: 2, dex: 1, con: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Ascendance féérique", "2 compétences"],
+  },
+  {
+    name: "Demi-orc",
+    asi: { str: 2, con: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Endurance implacable", "Attaques sauvages"],
+  },
+  {
+    name: "Gnome (forêts)",
+    asi: { int: 2, dex: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Ruse gnome (magie)"],
+  },
+  {
+    name: "Tieffelin",
+    asi: { cha: 2, int: 1 },
+    traits: ["Vision dans le noir 60 ft.", "Résistance au feu", "Thaumaturgie"],
+  },
+  {
+    name: "Drakéide",
+    asi: { str: 2, cha: 1 },
+    traits: ["Souffle draconique", "Résistance aux dégâts (selon ascendance)"],
+  },
 ];
 
 const CLASSES: { name: string; hd: number; primary: string; skills: string[] }[] = [
-  { name: "Barbare", hd: 12, primary: "Force", skills: ["Athlétisme", "Intimidation", "Nature", "Perception", "Survie"] },
-  { name: "Barde", hd: 8, primary: "Charisme", skills: ["Acrobaties", "Discrétion", "Escamotage", "Histoire", "Intuition", "Investigation", "Médecine", "Nature", "Perception", "Perspicacité", "Persuasion", "Religion", "Représentation"] },
-  { name: "Clerc", hd: 8, primary: "Sagesse", skills: ["Histoire", "Intuition", "Médecine", "Persuasion", "Religion"] },
-  { name: "Druide", hd: 8, primary: "Sagesse", skills: ["Arcane", "Dressage", "Intuition", "Médecine", "Nature", "Perception", "Religion", "Survie"] },
-  { name: "Ensorceleur", hd: 6, primary: "Charisme", skills: ["Arcane", "Intimidation", "Perspicacité", "Persuasion", "Religion"] },
-  { name: "Guerrier", hd: 10, primary: "Force ou Dextérité", skills: ["Acrobaties", "Athlétisme", "Discrétion", "Dressage", "Histoire", "Intimidation", "Perception", "Survie"] },
-  { name: "Magicien", hd: 6, primary: "Intelligence", skills: ["Arcane", "Histoire", "Intuition", "Investigation", "Médecine", "Religion"] },
-  { name: "Moine", hd: 8, primary: "Dextérité", skills: ["Acrobaties", "Athlétisme", "Discrétion", "Histoire", "Intuition", "Religion"] },
-  { name: "Paladin", hd: 10, primary: "Force et Charisme", skills: ["Athlétisme", "Intimidation", "Médecine", "Persuasion", "Religion"] },
-  { name: "Rôdeur", hd: 10, primary: "Dextérité et Sagesse", skills: ["Athlétisme", "Discrétion", "Dressage", "Intuition", "Investigation", "Nature", "Perception", "Survie"] },
-  { name: "Roublard", hd: 8, primary: "Dextérité", skills: ["Acrobaties", "Athlétisme", "Discrétion", "Escamotage", "Intimidation", "Intuition", "Investigation", "Perception", "Perspicacité", "Persuasion", "Représentation"] },
-  { name: "Sorcier", hd: 8, primary: "Charisme", skills: ["Arcane", "Histoire", "Intimidation", "Investigation", "Nature", "Religion"] },
+  {
+    name: "Barbare",
+    hd: 12,
+    primary: "Force",
+    skills: ["Athlétisme", "Intimidation", "Nature", "Perception", "Survie"],
+  },
+  {
+    name: "Barde",
+    hd: 8,
+    primary: "Charisme",
+    skills: [
+      "Acrobaties",
+      "Discrétion",
+      "Escamotage",
+      "Histoire",
+      "Intuition",
+      "Investigation",
+      "Médecine",
+      "Nature",
+      "Perception",
+      "Perspicacité",
+      "Persuasion",
+      "Religion",
+      "Représentation",
+    ],
+  },
+  {
+    name: "Clerc",
+    hd: 8,
+    primary: "Sagesse",
+    skills: ["Histoire", "Intuition", "Médecine", "Persuasion", "Religion"],
+  },
+  {
+    name: "Druide",
+    hd: 8,
+    primary: "Sagesse",
+    skills: [
+      "Arcane",
+      "Dressage",
+      "Intuition",
+      "Médecine",
+      "Nature",
+      "Perception",
+      "Religion",
+      "Survie",
+    ],
+  },
+  {
+    name: "Ensorceleur",
+    hd: 6,
+    primary: "Charisme",
+    skills: ["Arcane", "Intimidation", "Perspicacité", "Persuasion", "Religion"],
+  },
+  {
+    name: "Guerrier",
+    hd: 10,
+    primary: "Force ou Dextérité",
+    skills: [
+      "Acrobaties",
+      "Athlétisme",
+      "Discrétion",
+      "Dressage",
+      "Histoire",
+      "Intimidation",
+      "Perception",
+      "Survie",
+    ],
+  },
+  {
+    name: "Magicien",
+    hd: 6,
+    primary: "Intelligence",
+    skills: ["Arcane", "Histoire", "Intuition", "Investigation", "Médecine", "Religion"],
+  },
+  {
+    name: "Moine",
+    hd: 8,
+    primary: "Dextérité",
+    skills: ["Acrobaties", "Athlétisme", "Discrétion", "Histoire", "Intuition", "Religion"],
+  },
+  {
+    name: "Paladin",
+    hd: 10,
+    primary: "Force et Charisme",
+    skills: ["Athlétisme", "Intimidation", "Médecine", "Persuasion", "Religion"],
+  },
+  {
+    name: "Rôdeur",
+    hd: 10,
+    primary: "Dextérité et Sagesse",
+    skills: [
+      "Athlétisme",
+      "Discrétion",
+      "Dressage",
+      "Intuition",
+      "Investigation",
+      "Nature",
+      "Perception",
+      "Survie",
+    ],
+  },
+  {
+    name: "Roublard",
+    hd: 8,
+    primary: "Dextérité",
+    skills: [
+      "Acrobaties",
+      "Athlétisme",
+      "Discrétion",
+      "Escamotage",
+      "Intimidation",
+      "Intuition",
+      "Investigation",
+      "Perception",
+      "Perspicacité",
+      "Persuasion",
+      "Représentation",
+    ],
+  },
+  {
+    name: "Sorcier",
+    hd: 8,
+    primary: "Charisme",
+    skills: ["Arcane", "Histoire", "Intimidation", "Investigation", "Nature", "Religion"],
+  },
 ];
 
 const ABILITIES = ["str", "dex", "con", "int", "wis", "cha"] as const;
@@ -87,8 +244,12 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
     setForm((f) => ({
       ...f,
       stats: {
-        str: rolls[0], dex: rolls[1], con: rolls[2],
-        int: rolls[3], wis: rolls[4], cha: rolls[5],
+        str: rolls[0],
+        dex: rolls[1],
+        con: rolls[2],
+        int: rolls[3],
+        wis: rolls[4],
+        cha: rolls[5],
       },
     }));
   }
@@ -130,7 +291,9 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
       if (res.ok) {
         onCreated();
       }
-    } catch { /* ignore */ } finally {
+    } catch {
+      /* ignore */
+    } finally {
       setBusy(false);
     }
   }
@@ -176,7 +339,9 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
               >
                 <strong>{race.name}</strong>
                 <small>
-                  {Object.entries(race.asi).map(([ab, b]) => `${ab.toUpperCase()} +${b}`).join(", ")}
+                  {Object.entries(race.asi)
+                    .map(([ab, b]) => `${ab.toUpperCase()} +${b}`)
+                    .join(", ")}
                 </small>
               </button>
             ))}
@@ -197,7 +362,9 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
                 type="button"
               >
                 <strong>{cls.name}</strong>
-                <small>DV d{cls.hd} · {cls.primary}</small>
+                <small>
+                  DV d{cls.hd} · {cls.primary}
+                </small>
               </button>
             ))}
           </div>
@@ -237,10 +404,18 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
         <div className="wizard-body">
           <h4>Récapitulatif</h4>
           <div className="wizard-review">
-            <div className="wizard-review-row"><strong>Nom</strong> {form.name || "—"}</div>
-            <div className="wizard-review-row"><strong>Race</strong> {form.race || "—"}</div>
-            <div className="wizard-review-row"><strong>Classe</strong> {form.class_name || "—"}</div>
-            <div className="wizard-review-row"><strong>Niveau</strong> {form.level}</div>
+            <div className="wizard-review-row">
+              <strong>Nom</strong> {form.name || "—"}
+            </div>
+            <div className="wizard-review-row">
+              <strong>Race</strong> {form.race || "—"}
+            </div>
+            <div className="wizard-review-row">
+              <strong>Classe</strong> {form.class_name || "—"}
+            </div>
+            <div className="wizard-review-row">
+              <strong>Niveau</strong> {form.level}
+            </div>
             <div className="wizard-stats-preview">
               {ABILITIES.map((ab) => (
                 <span key={ab} className="wizard-stat-badge">

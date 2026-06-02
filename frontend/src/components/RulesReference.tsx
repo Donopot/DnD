@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
 import { BookOpen, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const RULES = {
   conditions: {
@@ -106,10 +106,7 @@ export function RulesReference() {
     const q = query.toLowerCase();
     const result: Partial<typeof RULES> = {};
     for (const [key, section] of Object.entries(RULES)) {
-      if (
-        section.title.toLowerCase().includes(q) ||
-        section.content.toLowerCase().includes(q)
-      ) {
+      if (section.title.toLowerCase().includes(q) || section.content.toLowerCase().includes(q)) {
         result[key as SectionKey] = section;
       }
     }
@@ -162,7 +159,11 @@ export function RulesReference() {
                   {section.content.split("\n").map((line, i) => {
                     const boldLine = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
                     return (
-                      <p key={i} className="rules-line" dangerouslySetInnerHTML={{ __html: boldLine }} />
+                      <p
+                        key={i}
+                        className="rules-line"
+                        dangerouslySetInnerHTML={{ __html: boldLine }}
+                      />
                     );
                   })}
                 </div>

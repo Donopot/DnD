@@ -1,23 +1,28 @@
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import status
 from pydantic import BaseModel
 
-from app.cache import cache_get, cache_invalidate, cache_set
+from app.cache import cache_get
+from app.cache import cache_invalidate
+from app.cache import cache_set
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
+from app.deps import get_current_user
+from app.deps import require_campaign_role
 from app.realtime import manager
-from app.schemas import (
-    SceneCreateRequest,
-    ScenePublic,
-    SceneSettingsUpdateRequest,
-    TokenCreateRequest,
-    TokenMoveRequest,
-    TokenPublic,
-    TokenUpdateRequest,
-)
-from app.utils import decode_json, jsonb
+from app.schemas import SceneCreateRequest
+from app.schemas import ScenePublic
+from app.schemas import SceneSettingsUpdateRequest
+from app.schemas import TokenCreateRequest
+from app.schemas import TokenMoveRequest
+from app.schemas import TokenPublic
+from app.schemas import TokenUpdateRequest
+from app.utils import decode_json
+from app.utils import jsonb
 
 router = APIRouter(prefix="/api", tags=["vtt"])
 
@@ -151,37 +156,36 @@ async def create_scene(
 ) -> ScenePublic:
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
 
-    async with get_pool().acquire() as connection:
-        async with connection.transaction():
-            scene_count = await connection.fetchval(
-                "select count(*) from campaign_scenes where campaign_id = $1",
+    async with get_pool().acquire() as connection, connection.transaction():
+        scene_count = await connection.fetchval(
+            "select count(*) from campaign_scenes where campaign_id = $1",
+            campaign_id,
+        )
+        is_active = payload.is_active or scene_count == 0
+
+        if is_active:
+            await connection.execute(
+                "update campaign_scenes set is_active = false where campaign_id = $1",
                 campaign_id,
             )
-            is_active = payload.is_active or scene_count == 0
 
-            if is_active:
-                await connection.execute(
-                    "update campaign_scenes set is_active = false where campaign_id = $1",
-                    campaign_id,
-                )
-
-            row = await connection.fetchrow(
-                """
+        row = await connection.fetchrow(
+            """
                 insert into campaign_scenes (
                     campaign_id, name, description, grid_size, width, height, background_url, is_active
                 )
                 values ($1, $2, $3, $4, $5, $6, $7, $8)
                 returning *
                 """,
-                campaign_id,
-                payload.name.strip(),
-                payload.description.strip(),
-                payload.grid_size,
-                payload.width,
-                payload.height,
-                payload.background_url,
-                is_active,
-            )
+            campaign_id,
+            payload.name.strip(),
+            payload.description.strip(),
+            payload.grid_size,
+            payload.width,
+            payload.height,
+            payload.background_url,
+            is_active,
+        )
 
     scene = scene_public(row)
     await cache_invalidate(f"scenes:{campaign_id}*")
@@ -434,7 +438,7 @@ async def update_fog(
     scene = await get_scene_or_404(scene_id)
     await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm"})
 
-    row = await get_pool().fetchrow(
+    await get_pool().fetchrow(
         """
         update campaign_scenes
         set fog_zones = $2::jsonb, updated_at = now()

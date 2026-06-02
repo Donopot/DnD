@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Plus, Trash2, Zap } from "lucide-react";
+import { useState } from "react";
 
 type Macro = {
   id: string;
@@ -83,10 +83,29 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
       {editing && (
         <div className="qa-editor">
           <div className="qa-add-row">
-            <input type="text" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Nom" className="qa-input" />
-            <input type="text" value={newFormula} onChange={(e) => setNewFormula(e.target.value)} placeholder="Formule" className="qa-input-sm" />
-            <input type="color" value={newColor} onChange={(e) => setNewColor(e.target.value)} className="qa-color" />
-            <button onClick={addMacro} className="combat-btn primary" type="button"><Plus size={12} /></button>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Nom"
+              className="qa-input"
+            />
+            <input
+              type="text"
+              value={newFormula}
+              onChange={(e) => setNewFormula(e.target.value)}
+              placeholder="Formule"
+              className="qa-input-sm"
+            />
+            <input
+              type="color"
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+              className="qa-color"
+            />
+            <button onClick={addMacro} className="combat-btn primary" type="button">
+              <Plus size={12} />
+            </button>
           </div>
           <div className="qa-macro-list">
             {macros.map((m) => (
@@ -94,11 +113,15 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
                 <span style={{ color: m.color }}>●</span>
                 <span>{m.label}</span>
                 <span className="muted">{m.formula}</span>
-                <button onClick={() => removeMacro(m.id)} className="inv-remove" type="button"><Trash2 size={10} /></button>
+                <button onClick={() => removeMacro(m.id)} className="inv-remove" type="button">
+                  <Trash2 size={10} />
+                </button>
               </div>
             ))}
           </div>
-          <button onClick={resetToDefaults} className="ghost-button compact" type="button">Reset par défaut</button>
+          <button onClick={resetToDefaults} className="ghost-button compact" type="button">
+            Reset par défaut
+          </button>
         </div>
       )}
 

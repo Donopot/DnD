@@ -1,6 +1,6 @@
+import { Edit3, Plus, Send, Shield, Sparkles, User } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Shield, Plus, Send, Edit3, User, Sparkles } from "lucide-react";
-import { Character } from "../api/types";
+import type { Character } from "../api/types";
 
 type PersonalCharactersSectionProps = {
   token: string;
@@ -93,14 +93,12 @@ export function PersonalCharactersSection({
                 // We store submission state locally
                 ...({ _submitted: true } as Partial<Character>),
               }
-            : c
-        )
+            : c,
+        ),
       );
       setSubmitMessage("✅ Personnage soumis au MJ !");
     } catch (err: unknown) {
-      setSubmitMessage(
-        `❌ ${err instanceof Error ? err.message : "Erreur soumission"}`
-      );
+      setSubmitMessage(`❌ ${err instanceof Error ? err.message : "Erreur soumission"}`);
     } finally {
       setSubmittingId(null);
     }
@@ -112,7 +110,7 @@ export function PersonalCharactersSection({
   }
 
   const personalChars = characters.filter(
-    (c) => !c.campaign_id || (c as Character & { _submitted?: boolean })._submitted === undefined
+    (c) => !c.campaign_id || (c as Character & { _submitted?: boolean })._submitted === undefined,
   );
 
   return (
@@ -122,7 +120,9 @@ export function PersonalCharactersSection({
           <User size={18} />
           Mes Personnages
         </h3>
-        <span className="char-count">{personalChars.length} perso{personalChars.length !== 1 ? "s" : ""}</span>
+        <span className="char-count">
+          {personalChars.length} perso{personalChars.length !== 1 ? "s" : ""}
+        </span>
       </div>
 
       {/* ── Quick Create ─────────────────────────────────────── */}
@@ -152,9 +152,7 @@ export function PersonalCharactersSection({
       {loading ? (
         <p className="muted">Chargement...</p>
       ) : personalChars.length === 0 ? (
-        <p className="muted">
-          Aucun personnage pour l'instant. Crée ton premier héros ci-dessus !
-        </p>
+        <p className="muted">Aucun personnage pour l'instant. Crée ton premier héros ci-dessus !</p>
       ) : (
         <ul className="personal-chars-list">
           {personalChars.map((ch) => (
@@ -168,8 +166,7 @@ export function PersonalCharactersSection({
                     {ch.name}
                     {ch.class_name && (
                       <span className="char-sub">
-                        {ch.class_name}{" "}
-                        {ch.level > 0 && `Niv. ${ch.level}`}
+                        {ch.class_name} {ch.level > 0 && `Niv. ${ch.level}`}
                       </span>
                     )}
                   </strong>
@@ -191,11 +188,7 @@ export function PersonalCharactersSection({
               </div>
               <div className="char-card-actions">
                 {onOpenEditor && (
-                  <button
-                    className="icon-button"
-                    title="Éditer"
-                    onClick={() => onOpenEditor(ch)}
-                  >
+                  <button className="icon-button" title="Éditer" onClick={() => onOpenEditor(ch)}>
                     <Edit3 size={14} />
                   </button>
                 )}

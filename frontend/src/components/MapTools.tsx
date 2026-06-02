@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Circle, Crosshair, Ruler, Square, Triangle } from "lucide-react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 type Ping = { id: number; x: number; y: number; ts: number };
 type RulerLine = { x1: number; y1: number; x2: number; y2: number; userId: string };
@@ -90,18 +96,30 @@ export function MapTools({
           const id = ++aoeId.current;
           setAoeShapes((prev) => [
             ...prev.slice(-5),
-            { id, shape: msg.shape, x: msg.x, y: msg.y, size: msg.size, angle: msg.angle ?? 0, userId: msg.user_id },
+            {
+              id,
+              shape: msg.shape,
+              x: msg.x,
+              y: msg.y,
+              size: msg.size,
+              angle: msg.angle ?? 0,
+              userId: msg.user_id,
+            },
           ]);
           setTimeout(() => setAoeShapes((prev) => prev.filter((s) => s.id !== id)), 6000);
         } else if (msg.type === "token_moved") {
           // Update token position in DOM via data-token-id attribute
-          const tokenEl = document.querySelector(`[data-token-id="${msg.token_id}"]`) as HTMLElement | null;
+          const tokenEl = document.querySelector(
+            `[data-token-id="${msg.token_id}"]`,
+          ) as HTMLElement | null;
           if (tokenEl) {
             tokenEl.style.left = `${msg.x}px`;
             tokenEl.style.top = `${msg.y}px`;
           }
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     ws.addEventListener("message", handleMessage);
@@ -110,11 +128,14 @@ export function MapTools({
 
   // ── Coordinate helpers ──────────────────────────────────────────────────
 
-  const getMapCoords = useCallback((e: ReactPointerEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 0, y: 0 };
-    return { x: (e.clientX - rect.left) / zoom, y: (e.clientY - rect.top) / zoom };
-  }, [canvasRef, zoom]);
+  const getMapCoords = useCallback(
+    (e: ReactPointerEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return { x: 0, y: 0 };
+      return { x: (e.clientX - rect.left) / zoom, y: (e.clientY - rect.top) / zoom };
+    },
+    [canvasRef, zoom],
+  );
 
   function sendWS(msg: object) {
     const ws = wsRef.current;
@@ -212,35 +233,88 @@ export function MapTools({
     switch (s.shape) {
       case "sphere":
         return (
-          <div key={s.id} className="aoe-shape aoe-sphere"
-            style={{ left: s.x - sizePx / 2, top: s.y - sizePx / 2, width: sizePx, height: sizePx, position: "absolute", zIndex: 48 }}>
+          <div
+            key={s.id}
+            className="aoe-shape aoe-sphere"
+            style={{
+              left: s.x - sizePx / 2,
+              top: s.y - sizePx / 2,
+              width: sizePx,
+              height: sizePx,
+              position: "absolute",
+              zIndex: 48,
+            }}
+          >
             <span className="aoe-label">{s.size} ft</span>
           </div>
         );
       case "cube":
         return (
-          <div key={s.id} className="aoe-shape aoe-cube"
-            style={{ left: s.x - sizePx / 2, top: s.y - sizePx / 2, width: sizePx, height: sizePx, position: "absolute", zIndex: 48 }}>
+          <div
+            key={s.id}
+            className="aoe-shape aoe-cube"
+            style={{
+              left: s.x - sizePx / 2,
+              top: s.y - sizePx / 2,
+              width: sizePx,
+              height: sizePx,
+              position: "absolute",
+              zIndex: 48,
+            }}
+          >
             <span className="aoe-label">{s.size} ft</span>
           </div>
         );
       case "cone":
         return (
-          <div key={s.id} className="aoe-shape aoe-cone"
-            style={{ left: s.x, top: s.y, position: "absolute", zIndex: 48 }}>
-            <svg width={sizePx} height={sizePx / 2} viewBox={`0 0 ${sizePx} ${sizePx / 2}`}
-              style={{ transform: `rotate(${s.angle}deg)`, transformOrigin: "0 50%", position: "absolute", left: 0, top: -(sizePx / 4) }}>
-              <polygon points={`0,${sizePx / 4} ${sizePx},0 ${sizePx},${sizePx / 2}`}
-                fill="rgba(197,179,88,0.12)" stroke="rgba(197,179,88,0.5)" strokeWidth={1} />
+          <div
+            key={s.id}
+            className="aoe-shape aoe-cone"
+            style={{ left: s.x, top: s.y, position: "absolute", zIndex: 48 }}
+          >
+            <svg
+              width={sizePx}
+              height={sizePx / 2}
+              viewBox={`0 0 ${sizePx} ${sizePx / 2}`}
+              style={{
+                transform: `rotate(${s.angle}deg)`,
+                transformOrigin: "0 50%",
+                position: "absolute",
+                left: 0,
+                top: -(sizePx / 4),
+              }}
+            >
+              <polygon
+                points={`0,${sizePx / 4} ${sizePx},0 ${sizePx},${sizePx / 2}`}
+                fill="rgba(197,179,88,0.12)"
+                stroke="rgba(197,179,88,0.5)"
+                strokeWidth={1}
+              />
             </svg>
-            <span className="aoe-label" style={{ left: sizePx / 2 - 15, top: -(sizePx / 4) - 18 }}>{s.size} ft</span>
+            <span className="aoe-label" style={{ left: sizePx / 2 - 15, top: -(sizePx / 4) - 18 }}>
+              {s.size} ft
+            </span>
           </div>
         );
       case "line":
         return (
-          <div key={s.id} className="aoe-shape aoe-line"
-            style={{ left: s.x, top: s.y - (gridSize / 2), width: sizePx, height: gridSize, position: "absolute", zIndex: 48, transform: `rotate(${s.angle}deg)`, transformOrigin: "0 50%" }}>
-            <span className="aoe-label" style={{ left: sizePx / 2 - 15, top: -14 }}>{s.size} ft</span>
+          <div
+            key={s.id}
+            className="aoe-shape aoe-line"
+            style={{
+              left: s.x,
+              top: s.y - gridSize / 2,
+              width: sizePx,
+              height: gridSize,
+              position: "absolute",
+              zIndex: 48,
+              transform: `rotate(${s.angle}deg)`,
+              transformOrigin: "0 50%",
+            }}
+          >
+            <span className="aoe-label" style={{ left: sizePx / 2 - 15, top: -14 }}>
+              {s.size} ft
+            </span>
           </div>
         );
     }
@@ -250,14 +324,20 @@ export function MapTools({
     <>
       {/* ── Toolbar ──────────────────────────────────────────────────────── */}
       <div className="map-tools-bar">
-        <button className={`map-tool-btn ${tool === "ping" ? "active" : ""}`}
+        <button
+          className={`map-tool-btn ${tool === "ping" ? "active" : ""}`}
           onClick={() => setTool(tool === "ping" ? "none" : "ping")}
-          title="Ping (clic sur la carte)" type="button">
+          title="Ping (clic sur la carte)"
+          type="button"
+        >
           <Crosshair size={14} />
         </button>
-        <button className={`map-tool-btn ${tool === "ruler" ? "active" : ""}`}
+        <button
+          className={`map-tool-btn ${tool === "ruler" ? "active" : ""}`}
           onClick={() => setTool(tool === "ruler" ? "none" : "ruler")}
-          title="Mesure (clic début → clic fin)" type="button">
+          title="Mesure (clic début → clic fin)"
+          type="button"
+        >
           <Ruler size={14} />
         </button>
 
@@ -268,14 +348,17 @@ export function MapTools({
             {AOE_TOOLS.map((shape) => {
               const Icon = AOE_ICONS[shape];
               return (
-                <button key={shape}
+                <button
+                  key={shape}
                   className={`map-tool-btn ${tool === "aoe" && aoeShape === shape ? "active" : ""}`}
                   onClick={() => {
                     setTool(tool === "aoe" && aoeShape === shape ? "none" : "aoe");
                     setAoeShape(shape);
                     setAoeSize(AOE_SIZES[shape][0]);
                   }}
-                  title={AOE_LABELS[shape]} type="button">
+                  title={AOE_LABELS[shape]}
+                  type="button"
+                >
                   <Icon size={14} />
                 </button>
               );
@@ -286,31 +369,47 @@ export function MapTools({
         {/* ── AoE size selector ────────────────────────────────────────── */}
         {tool === "aoe" && isGM && (
           <div className="aoe-size-selector">
-            <button onClick={() => cycleAoeSize(-1)} type="button" className="aoe-size-btn">◀</button>
+            <button onClick={() => cycleAoeSize(-1)} type="button" className="aoe-size-btn">
+              ◀
+            </button>
             <span className="aoe-size-label">{aoeSize} ft</span>
-            <button onClick={() => cycleAoeSize(1)} type="button" className="aoe-size-btn">▶</button>
+            <button onClick={() => cycleAoeSize(1)} type="button" className="aoe-size-btn">
+              ▶
+            </button>
           </div>
         )}
       </div>
 
       {/* ── Pointer overlay ──────────────────────────────────────────────── */}
       {(tool !== "none" || dragToken) && (
-        <div className="map-tools-overlay" style={{ cursor }}
+        <div
+          className="map-tools-overlay"
+          style={{ cursor }}
           onPointerDown={
-            tool === "ruler" ? handleRulerStart
-            : tool === "aoe" ? handleAoePlace
-            : tool === "ping" ? handlePing
-            : undefined
+            tool === "ruler"
+              ? handleRulerStart
+              : tool === "aoe"
+                ? handleAoePlace
+                : tool === "ping"
+                  ? handlePing
+                  : undefined
           }
-          onPointerMove={tool === "ruler" ? handleRulerMove : dragToken ? handleTokenDragMove : undefined}
-          onPointerUp={tool === "ruler" ? handleRulerEnd : dragToken ? handleTokenDragEnd : undefined}
+          onPointerMove={
+            tool === "ruler" ? handleRulerMove : dragToken ? handleTokenDragMove : undefined
+          }
+          onPointerUp={
+            tool === "ruler" ? handleRulerEnd : dragToken ? handleTokenDragEnd : undefined
+          }
         />
       )}
 
       {/* ── Pings ───────────────────────────────────────────────────────── */}
       {pings.map((p) => (
-        <div key={p.id} className="map-ping-dot"
-          style={{ left: p.x, top: p.y, position: "absolute", zIndex: 50 }} />
+        <div
+          key={p.id}
+          className="map-ping-dot"
+          style={{ left: p.x, top: p.y, position: "absolute", zIndex: 50 }}
+        />
       ))}
 
       {/* ── Rulers ──────────────────────────────────────────────────────── */}
@@ -321,9 +420,19 @@ export function MapTools({
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
         const length = Math.sqrt(dx * dx + dy * dy);
         return (
-          <div key={i} className="map-ruler" style={{ left: r.x1, top: r.y1, position: "absolute", zIndex: 49 }}>
-            <div className="ruler-line" style={{ width: length, transform: `rotate(${angle}deg)`, transformOrigin: "0 0" }} />
-            <span className="ruler-label" style={{ left: r.x1 + dx / 2 - 20, top: r.y1 + dy / 2 - 10, position: "absolute" }}>
+          <div
+            key={i}
+            className="map-ruler"
+            style={{ left: r.x1, top: r.y1, position: "absolute", zIndex: 49 }}
+          >
+            <div
+              className="ruler-line"
+              style={{ width: length, transform: `rotate(${angle}deg)`, transformOrigin: "0 0" }}
+            />
+            <span
+              className="ruler-label"
+              style={{ left: r.x1 + dx / 2 - 20, top: r.y1 + dy / 2 - 10, position: "absolute" }}
+            >
               {dist} ft
             </span>
           </div>
@@ -332,12 +441,18 @@ export function MapTools({
 
       {/* ── Active ruler preview ────────────────────────────────────────── */}
       {rulerStart && rulerEnd && (
-        <div className="map-ruler preview" style={{ left: rulerStart.x, top: rulerStart.y, position: "absolute", zIndex: 49 }}>
-          <div className="ruler-line" style={{
-            width: Math.sqrt((rulerEnd.x - rulerStart.x) ** 2 + (rulerEnd.y - rulerStart.y) ** 2),
-            transform: `rotate(${Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) * (180 / Math.PI)}deg)`,
-            transformOrigin: "0 0",
-          }} />
+        <div
+          className="map-ruler preview"
+          style={{ left: rulerStart.x, top: rulerStart.y, position: "absolute", zIndex: 49 }}
+        >
+          <div
+            className="ruler-line"
+            style={{
+              width: Math.sqrt((rulerEnd.x - rulerStart.x) ** 2 + (rulerEnd.y - rulerStart.y) ** 2),
+              transform: `rotate(${Math.atan2(rulerEnd.y - rulerStart.y, rulerEnd.x - rulerStart.x) * (180 / Math.PI)}deg)`,
+              transformOrigin: "0 0",
+            }}
+          />
         </div>
       )}
 

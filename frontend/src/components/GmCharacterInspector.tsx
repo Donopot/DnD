@@ -1,19 +1,26 @@
-import { FormEvent, useState } from "react";
-import {
-  Heart,
-  Plus,
-  Shield,
-  Swords,
-  Trash2,
-  Zap,
-} from "lucide-react";
+import { Heart, Plus, Shield, Swords, Trash2, Zap } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import type { Character } from "../api/types";
 
 const CONDITIONS_LIST = [
-  "À terre", "Aveuglé", "Charmé", "Empoisonné", "Étourdi",
-  "Inconscient", "Neutralisé", "Paralysé", "Pétrifié", "Terrifié",
-  "Agrippé", "Restreint", "Assourdi", "Fatigué", "Épuisé",
-  "En feu", "Béni", "Maudit",
+  "À terre",
+  "Aveuglé",
+  "Charmé",
+  "Empoisonné",
+  "Étourdi",
+  "Inconscient",
+  "Neutralisé",
+  "Paralysé",
+  "Pétrifié",
+  "Terrifié",
+  "Agrippé",
+  "Restreint",
+  "Assourdi",
+  "Fatigué",
+  "Épuisé",
+  "En feu",
+  "Béni",
+  "Maudit",
 ] as const;
 
 type GmCharacterInspectorProps = {
@@ -42,7 +49,7 @@ export function GmCharacterInspector({
 
   // ── Conditions checkboxes ─────────────────────────────────────────────────
   const [activeConditions, setActiveConditions] = useState<Set<string>>(
-    () => new Set((character.conditions as Array<{ name: string }>)?.map((c) => c.name) ?? [])
+    () => new Set((character.conditions as Array<{ name: string }>)?.map((c) => c.name) ?? []),
   );
 
   // ── Inventory item form ───────────────────────────────────────────────────
@@ -132,7 +139,12 @@ export function GmCharacterInspector({
   const conds = (character.conditions as Array<{ name: string }>) ?? [];
 
   return (
-    <div className="gm-char-inspector backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      className="gm-char-inspector backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="gm-char-inspector modal">
         {/* Header */}
         <div className="inspect-header">
@@ -140,7 +152,9 @@ export function GmCharacterInspector({
           <span className="muted">
             {character.class_name} {character.ancestry} — Niv. {character.level}
           </span>
-          <button className="close-btn" onClick={onClose} type="button">✕</button>
+          <button className="close-btn" onClick={onClose} type="button">
+            ✕
+          </button>
         </div>
 
         <div className="inspect-body">
@@ -149,9 +163,14 @@ export function GmCharacterInspector({
             <div className="stat-card">
               <Heart size={14} />
               <span className="stat-label">PV</span>
-              <span className="stat-value">{character.hp_current} / {character.hp_max}</span>
+              <span className="stat-value">
+                {character.hp_current} / {character.hp_max}
+              </span>
               <span className="stat-bar">
-                <span className="stat-fill" style={{ width: `${(character.hp_current / character.hp_max) * 100}%` }} />
+                <span
+                  className="stat-fill"
+                  style={{ width: `${(character.hp_current / character.hp_max) * 100}%` }}
+                />
               </span>
             </div>
             <div className="stat-card">
@@ -175,7 +194,12 @@ export function GmCharacterInspector({
           <section className="inspect-section">
             <h4>❤️ Points de vie</h4>
             <div className="hp-actions">
-              <form onSubmit={(e) => { e.preventDefault(); handleHpAdjust(hpAmount, hpNote); }}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleHpAdjust(hpAmount, hpNote);
+                }}
+              >
                 <div className="inspect-row">
                   <input
                     type="number"
@@ -191,16 +215,44 @@ export function GmCharacterInspector({
                     className="note-input"
                     placeholder="Note (optionnel)"
                   />
-                  <button className="primary-button compact" disabled={busy || hpAmount === 0} type="submit">
+                  <button
+                    className="primary-button compact"
+                    disabled={busy || hpAmount === 0}
+                    type="submit"
+                  >
                     Appliquer
                   </button>
                 </div>
               </form>
               <div className="hp-quick">
-                <button onClick={() => handleHpAdjust(5, "Soin +5 PV")} className="quick-btn heal" type="button">+5</button>
-                <button onClick={() => handleHpAdjust(-5, "Dégâts 5")} className="quick-btn damage" type="button">-5</button>
-                <button onClick={() => handleHpAdjust(10, "Soin +10 PV")} className="quick-btn heal" type="button">+10</button>
-                <button onClick={() => handleHpAdjust(-10, "Dégâts 10")} className="quick-btn damage" type="button">-10</button>
+                <button
+                  onClick={() => handleHpAdjust(5, "Soin +5 PV")}
+                  className="quick-btn heal"
+                  type="button"
+                >
+                  +5
+                </button>
+                <button
+                  onClick={() => handleHpAdjust(-5, "Dégâts 5")}
+                  className="quick-btn damage"
+                  type="button"
+                >
+                  -5
+                </button>
+                <button
+                  onClick={() => handleHpAdjust(10, "Soin +10 PV")}
+                  className="quick-btn heal"
+                  type="button"
+                >
+                  +10
+                </button>
+                <button
+                  onClick={() => handleHpAdjust(-10, "Dégâts 10")}
+                  className="quick-btn damage"
+                  type="button"
+                >
+                  -10
+                </button>
               </div>
             </div>
           </section>
@@ -224,7 +276,11 @@ export function GmCharacterInspector({
                 className="note-input"
                 placeholder="Raison (ex: Gobelins)"
               />
-              <button className="primary-button compact" disabled={busy || xpAmount <= 0} type="submit">
+              <button
+                className="primary-button compact"
+                disabled={busy || xpAmount <= 0}
+                type="submit"
+              >
                 <Plus size={12} /> Ajouter
               </button>
             </form>
@@ -236,7 +292,10 @@ export function GmCharacterInspector({
             <h4>⚠️ États / Conditions</h4>
             <div className="conditions-grid">
               {CONDITIONS_LIST.map((name) => (
-                <label key={name} className={`cond-chip ${activeConditions.has(name) ? "active" : ""}`}>
+                <label
+                  key={name}
+                  className={`cond-chip ${activeConditions.has(name) ? "active" : ""}`}
+                >
                   <input
                     type="checkbox"
                     checked={activeConditions.has(name)}
@@ -246,7 +305,12 @@ export function GmCharacterInspector({
                 </label>
               ))}
             </div>
-            <button className="primary-button" onClick={saveConditions} disabled={busy} type="button">
+            <button
+              className="primary-button"
+              onClick={saveConditions}
+              disabled={busy}
+              type="button"
+            >
               Enregistrer les conditions
             </button>
             {conds.length > 0 && (
@@ -294,8 +358,12 @@ export function GmCharacterInspector({
                 {inventory.map((item, i) => (
                   <li key={i} className="inv-item">
                     <span className="inv-name">{String(item.name ?? "?")}</span>
-                    {item.quantity ? <span className="inv-qty">x{String(item.quantity)}</span> : null}
-                    {item.description ? <span className="inv-desc muted">{String(item.description)}</span> : null}
+                    {item.quantity ? (
+                      <span className="inv-qty">x{String(item.quantity)}</span>
+                    ) : null}
+                    {item.description ? (
+                      <span className="inv-desc muted">{String(item.description)}</span>
+                    ) : null}
                     <button
                       className="inv-remove"
                       onClick={() => handleRemoveItem(i)}

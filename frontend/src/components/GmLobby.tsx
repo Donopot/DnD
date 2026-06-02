@@ -1,5 +1,5 @@
-import { FormEvent } from "react";
 import { Castle, Crown, DoorOpen, Plus } from "lucide-react";
+import type { FormEvent } from "react";
 import { PersonalCharactersSection } from "./PersonalCharactersSection";
 
 type GmLobbyProps = {
@@ -44,8 +44,8 @@ export function GmLobby({
           <Crown size={64} />
           <h2>Bienvenue, {userDisplayName} !</h2>
           <p className="muted">
-            Tu n'as pas encore de campagne. Crée ta première table pour
-            commencer à préparer tes scènes, tokens et invitations.
+            Tu n'as pas encore de campagne. Crée ta première table pour commencer à préparer tes
+            scènes, tokens et invitations.
           </p>
         </div>
 

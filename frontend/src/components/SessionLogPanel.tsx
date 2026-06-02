@@ -56,12 +56,15 @@ export function SessionLogPanel({
 
   async function setCategory(entry: GameLogEntry, category: string) {
     try {
-      await fetch(`/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await fetch(
+        `/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
       onRefresh();
     } catch {
       // silently ignore
@@ -105,10 +108,17 @@ export function SessionLogPanel({
               : "Aucun jet recent"}
           </h4>
           <p>
-            {rolls.length} jet(s) · {pinnedEntries.length} epingle(s) · {sessionMarkers.length} session(s)
+            {rolls.length} jet(s) · {pinnedEntries.length} epingle(s) · {sessionMarkers.length}{" "}
+            session(s)
           </p>
         </div>
-        <button className="ghost-button compact" onClick={createSessionMarker} disabled={isBusy} type="button" title="Marquer debut de session">
+        <button
+          className="ghost-button compact"
+          onClick={createSessionMarker}
+          disabled={isBusy}
+          type="button"
+          title="Marquer debut de session"
+        >
           <Bookmark size={14} /> Session
         </button>
       </div>
@@ -195,11 +205,7 @@ export function SessionLogPanel({
               <Filter size={12} /> Categories
             </summary>
             <div className="category-filter-list">
-              <button
-                className="ghost-button compact"
-                onClick={() => onRefresh()}
-                type="button"
-              >
+              <button className="ghost-button compact" onClick={() => onRefresh()} type="button">
                 Tous
               </button>
               {CATEGORIES.map((cat) => (
@@ -231,8 +237,8 @@ export function SessionLogPanel({
                   <div className="log-row-content">
                     <span>{entry.message}</span>
                     <small>
-                      {CATEGORIES.find((c) => c.id === entry.category)?.emoji}{" "}
-                      {entry.category} · {entry.visibility}
+                      {CATEGORIES.find((c) => c.id === entry.category)?.emoji} {entry.category} ·{" "}
+                      {entry.visibility}
                       {entry.session_marker ? " · 🏁 Session" : ""}
                     </small>
                   </div>
@@ -288,7 +294,10 @@ export function SessionLogPanel({
           ) : (
             <div className="compact-log-list">
               {logEntries.slice(0, 20).map((entry) => (
-                <article className={`compact-log-row ${entry.entry_type} ${entry.pinned ? "pinned" : ""}`} key={entry.id}>
+                <article
+                  className={`compact-log-row ${entry.entry_type} ${entry.pinned ? "pinned" : ""}`}
+                  key={entry.id}
+                >
                   <div className="log-row-content">
                     <div className="log-row-header">
                       <span>{entry.message}</span>

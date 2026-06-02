@@ -1,11 +1,11 @@
+import { GripHorizontal, Maximize2, Minimize2, X } from "lucide-react";
 import {
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useRef,
   useState,
 } from "react";
-import { GripHorizontal, Minimize2, Maximize2, X } from "lucide-react";
 import type { FloatingPanelState } from "../hooks/useFloatingPanels";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -69,15 +69,12 @@ export function FloatingPanel({
   }, []);
 
   // ── Resize handlers ──────────────────────────────────────────────────
-  const onResizeStart = useCallback(
-    (e: ReactPointerEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setResizing(true);
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    },
-    [],
-  );
+  const onResizeStart = useCallback((e: ReactPointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(true);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
 
   const onResizeMove = useCallback(
     (e: ReactPointerEvent) => {
@@ -143,9 +140,7 @@ export function FloatingPanel({
       </div>
 
       {/* Content */}
-      {!panel.minimized && (
-        <div className="floating-panel-content">{children}</div>
-      )}
+      {!panel.minimized && <div className="floating-panel-content">{children}</div>}
 
       {/* Resize handle */}
       {!panel.minimized && (

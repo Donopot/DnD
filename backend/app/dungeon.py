@@ -3,7 +3,8 @@ Procedural dungeon generator using recursive Binary Space Partitioning.
 Returns a JSON structure describing rooms and corridors.
 """
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 
 
 @dataclass
@@ -117,7 +118,7 @@ def generate_dungeon(
         if r.w > MIN_ROOM_SIZE * 2 + 2 and r.h > MIN_ROOM_SIZE * 2 + 2:
             dungeon.rooms.remove(r)
             mid_x = r.x + r.w // 2
-            mid_y = r.y + r.h // 2
+            r.y + r.h // 2
             dungeon.rooms.append(Rect(r.x + 1, r.y + 1, mid_x - r.x - 2, r.h - 2))
             dungeon.rooms.append(Rect(mid_x + 1, r.y + 1, r.x + r.w - mid_x - 2, r.h - 2))
 
@@ -168,8 +169,7 @@ def generate_dungeon(
     for corridor in dungeon.corridors:
         for y in range(corridor.y, corridor.y + corridor.h):
             for x in range(corridor.x, corridor.x + corridor.w):
-                if 0 <= y < height and 0 <= x < width:
-                    if dungeon.grid[y][x] == 0:
-                        dungeon.grid[y][x] = 2
+                if 0 <= y < height and 0 <= x < width and dungeon.grid[y][x] == 0:
+                    dungeon.grid[y][x] = 2
 
     return dungeon.to_dict(seed, theme)

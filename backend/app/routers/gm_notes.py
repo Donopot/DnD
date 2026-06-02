@@ -1,10 +1,17 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Query
+from fastapi import status
 
 from app.db import get_pool
-from app.deps import get_current_user, require_campaign_role
-from app.schemas import GMNoteCreateRequest, GMNotePublic, GMNoteUpdateRequest
+from app.deps import get_current_user
+from app.deps import require_campaign_role
+from app.schemas import GMNoteCreateRequest
+from app.schemas import GMNotePublic
+from app.schemas import GMNoteUpdateRequest
 
 router = APIRouter(prefix="/api", tags=["gm-notes"])
 

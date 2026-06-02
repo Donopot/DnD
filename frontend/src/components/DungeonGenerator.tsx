@@ -40,33 +40,38 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
   const [roomCount, setRoomCount] = useState(8);
   const [seed, setSeed] = useState<number>(0);
 
-  const generate = useCallback(async (newSeed?: number) => {
-    setLoading(true);
-    try {
-      const [w, h] = SIZES[sizeIdx].slice(1) as [number, number];
-      const res = await fetch("/api/dungeon/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          width: w,
-          height: h,
-          room_count: roomCount,
-          seed: newSeed ?? (seed || undefined),
-          theme,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setDungeon(data);
-        setSeed(data.seed);
+  const generate = useCallback(
+    async (newSeed?: number) => {
+      setLoading(true);
+      try {
+        const [w, h] = SIZES[sizeIdx].slice(1) as [number, number];
+        const res = await fetch("/api/dungeon/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            width: w,
+            height: h,
+            room_count: roomCount,
+            seed: newSeed ?? (seed || undefined),
+            theme,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setDungeon(data);
+          setSeed(data.seed);
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setLoading(false);
       }
-    } catch { /* ignore */ } finally {
-      setLoading(false);
-    }
-  }, [token, sizeIdx, roomCount, theme, seed]);
+    },
+    [token, sizeIdx, roomCount, theme, seed],
+  );
 
   // Draw on canvas
   useEffect(() => {
@@ -106,11 +111,7 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
       ctx.font = `${Math.max(6, gs - 1)}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(
-        String(idx + 1),
-        (r.x + r.w / 2) * gs,
-        (r.y + r.h / 2) * gs,
-      );
+      ctx.fillText(String(idx + 1), (r.x + r.w / 2) * gs, (r.y + r.h / 2) * gs);
     }
 
     // Doors
@@ -138,7 +139,9 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
             Taille
             <select value={sizeIdx} onChange={(e) => setSizeIdx(Number(e.target.value))}>
               {SIZES.map(([label], i) => (
-                <option key={i} value={i}>{label}</option>
+                <option key={i} value={i}>
+                  {label}
+                </option>
               ))}
             </select>
           </label>
@@ -147,7 +150,9 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
             Thème
             <select value={theme} onChange={(e) => setTheme(e.target.value)}>
               {THEMES.map(([val, label]) => (
-                <option key={val} value={val}>{label}</option>
+                <option key={val} value={val}>
+                  {label}
+                </option>
               ))}
             </select>
           </label>
@@ -165,15 +170,18 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
         </div>
 
         <div className="dungeon-control-row">
-          <button className="primary-button compact" onClick={() => generate()} disabled={loading} type="button">
+          <button
+            className="primary-button compact"
+            onClick={() => generate()}
+            disabled={loading}
+            type="button"
+          >
             <Dice1 size={14} /> Générer
           </button>
           <button className="ghost-button compact" onClick={randomize} type="button">
             <RefreshCw size={14} /> Aléatoire
           </button>
-          {seed > 0 && (
-            <span className="dungeon-seed">Seed: {seed}</span>
-          )}
+          {seed > 0 && <span className="dungeon-seed">Seed: {seed}</span>}
         </div>
       </div>
 

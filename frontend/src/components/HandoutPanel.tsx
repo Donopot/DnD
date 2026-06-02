@@ -1,5 +1,5 @@
-import { type FormEvent, useState } from "react";
 import { BookOpen, Eye, EyeOff, Globe, Lock, Plus, Trash2, Users } from "lucide-react";
+import { type FormEvent, useState } from "react";
 
 import type { Handout, Scene } from "../api/types";
 
