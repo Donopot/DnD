@@ -1,4 +1,5 @@
-from typing import Any
+import logging
+import math
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -6,6 +7,7 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import status
 from pydantic import BaseModel
+from pydantic import field_validator
 
 from app.cache import cache_get
 from app.cache import cache_invalidate
@@ -25,6 +27,7 @@ from app.utils import decode_json
 from app.utils import jsonb
 
 router = APIRouter(prefix="/api", tags=["vtt"])
+logger = logging.getLogger("dnd.vtt")
 
 
 def scene_public(row) -> ScenePublic:
@@ -402,8 +405,31 @@ async def update_scene_settings(
 
 # ── Phase 16: Fog of War ─────────────────────────────────────────────
 
+class FogZone(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+
+    @field_validator("x", "y", "width", "height")
+    @classmethod
+    def validate_finite_number(cls, value: float) -> float:
+        if not math.isfinite(value):
+            logger.warning("Rejected fog zone with non-finite coordinate")
+            raise ValueError("Fog zone coordinates must be finite")
+        return value
+
+    @field_validator("width", "height")
+    @classmethod
+    def validate_positive_size(cls, value: float) -> float:
+        if value <= 0:
+            logger.warning("Rejected fog zone with non-positive size")
+            raise ValueError("Fog zone width and height must be positive")
+        return value
+
+
 class FogUpdateRequest(BaseModel):
-    fog_zones: list[dict[str, Any]]  # [{x, y, width, height}, ...]
+    fog_zones: list[FogZone]
 
 
 @router.get("/scenes/{scene_id}/fog")
@@ -446,7 +472,7 @@ async def update_fog(
         returning *
         """,
         scene_id,
-        jsonb(payload.fog_zones),
+        jsonb([zone.model_dump() for zone in payload.fog_zones]),
     )
 
     # Broadcast fog change
@@ -455,5 +481,5 @@ async def update_fog(
 
     return {
         "scene_id": str(scene_id),
-        "fog_zones": payload.fog_zones,
+        "fog_zones": [zone.model_dump() for zone in payload.fog_zones],
     }

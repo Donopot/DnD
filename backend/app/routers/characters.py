@@ -157,7 +157,7 @@ async def create_character(
     return character_public(row)
 
 
-@router.get("/characters/{character_id}", response_model=CharacterPublic)
+@router.get("/characters/{character_id:uuid}", response_model=CharacterPublic)
 async def get_character(
     character_id: UUID,
     current_user=Depends(get_current_user),

@@ -8758,6 +8758,20 @@ select {
   border-color: #1b4332;
 }
 
+.fog-save-error {
+  position: absolute;
+  top: 48px;
+  right: 8px;
+  z-index: 20;
+  padding: 4px 8px;
+  border: 1px solid rgba(220, 60, 60, 0.55);
+  border-radius: 6px;
+  background: rgba(45, 18, 18, 0.92);
+  color: #ffd6d6;
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+
 /* ── Landing Page ───────────────────────────────────────────────────────── */
 
 .landing-shell {

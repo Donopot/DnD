@@ -287,14 +287,28 @@ export default function App() {
   }, [token, selectedCampaign?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-    });
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
+    let response: Response;
+
+    try {
+      response = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...options.headers,
+        },
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new Error("Le serveur ne répond pas. Réessaie dans quelques secondes.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({ detail: "Request failed" }));

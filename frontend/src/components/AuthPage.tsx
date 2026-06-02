@@ -51,6 +51,7 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isBusy) return;
     const form = new FormData(event.currentTarget);
     await onSubmit({
       mode,

@@ -129,6 +129,10 @@ request GET /api/auth/me "" "$ACCESS_TOKEN" "$ME" || fail "auth me failed"
 
 [ "$(json_get "$ME" id)" = "$USER_ID" ] || fail "auth me mismatch"
 
+log "List personal character vault"
+MINE="$TMP_DIR/characters-mine.json"
+request GET /api/characters/mine "" "$ACCESS_TOKEN" "$MINE" || fail "personal character vault failed"
+
 log "Create campaign"
 CAMPAIGN="$TMP_DIR/campaign.json"
 request POST /api/campaigns "{\"name\":\"Smoke Campaign $RUN_ID\",\"description\":\"Backend smoke test campaign\"}" "$ACCESS_TOKEN" "$CAMPAIGN" || fail "create campaign failed"

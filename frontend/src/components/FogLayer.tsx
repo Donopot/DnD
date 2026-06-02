@@ -24,11 +24,13 @@ export function FogLayer({
 }: FogLayerProps) {
   const token = localStorage.getItem(TOKEN_KEY) ?? "";
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const saveQueueRef = useRef(Promise.resolve());
   const [zones, setZones] = useState<FogZone[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [start, setStart] = useState({ x: 0, y: 0 });
   const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
   const [showFog, setShowFog] = useState(true);
+  const [saveError, setSaveError] = useState("");
 
   // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
   const fogInteractive = isGM && showFog && !panMode;
@@ -55,18 +57,42 @@ export function FogLayer({
 
   // Save zones to API
   async function saveZones(newZones: FogZone[]) {
-    try {
-      await fetch(`/api/scenes/${sceneId}/fog`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ fog_zones: newZones }),
-      });
-    } catch {
-      /* ignore */
+    if (
+      newZones.some(
+        (zone) =>
+          !Number.isFinite(zone.x) ||
+          !Number.isFinite(zone.y) ||
+          !Number.isFinite(zone.width) ||
+          !Number.isFinite(zone.height) ||
+          zone.width <= 0 ||
+          zone.height <= 0,
+      )
+    ) {
+      setSaveError("Zone de brouillard invalide.");
+      return;
     }
+
+    saveQueueRef.current = saveQueueRef.current
+      .catch(() => undefined)
+      .then(async () => {
+        const res = await fetch(`/api/scenes/${sceneId}/fog`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ fog_zones: newZones }),
+        });
+        if (!res.ok) {
+          throw new Error(`Fog save failed (${res.status})`);
+        }
+        setSaveError("");
+      })
+      .catch(() => {
+        setSaveError("Sauvegarde du brouillard impossible.");
+      });
+
+    await saveQueueRef.current;
   }
 
   // Draw fog on canvas
@@ -224,6 +250,7 @@ export function FogLayer({
           )}
         </div>
       )}
+      {saveError && <span className="fog-save-error">{saveError}</span>}
     </div>
   );
 }

@@ -363,7 +363,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    count = await manager.connect(campaign_id, websocket)
+    count = manager.register(campaign_id, websocket)
     await websocket.send_json(
         {
             "type": "connected",

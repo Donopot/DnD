@@ -168,6 +168,14 @@ async def test_create_character_no_auth(client):
     assert resp.status_code == 401
 
 
+@pytest.mark.anyio
+async def test_list_my_characters_static_route_is_not_parsed_as_uuid(client):
+    """GET /characters/mine must reach the static vault endpoint."""
+    resp = await client.get("/api/characters/mine")
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Authentification requise"
+
+
 
 # ============================================================================
 # Routing
@@ -185,6 +193,5 @@ async def test_method_not_allowed(client):
     """PATCH /api/auth/login => 405 Method Not Allowed."""
     resp = await client.patch("/api/auth/login")
     assert resp.status_code == 405
-
 
 

@@ -8,8 +8,8 @@ class CampaignConnectionManager:
     def __init__(self) -> None:
         self._connections: dict[UUID, set[WebSocket]] = defaultdict(set)
 
-    async def connect(self, campaign_id: UUID, websocket: WebSocket) -> int:
-        await websocket.accept()
+    def register(self, campaign_id: UUID, websocket: WebSocket) -> int:
+        """Register an already accepted and authenticated campaign socket."""
         self._connections[campaign_id].add(websocket)
         return self.count(campaign_id)
 
@@ -36,4 +36,3 @@ class CampaignConnectionManager:
 
 
 manager = CampaignConnectionManager()
-
