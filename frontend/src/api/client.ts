@@ -1,6 +1,13 @@
 /** API client — parameterized fetch wrapper with AbortController timeout. */
 
-export const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const configuredApiBase = import.meta.env.VITE_API_URL ?? "";
+
+/**
+ * En production Docker/Nginx, l'API doit rester relative.
+ * Le frontend sert /api/* via nginx.conf vers dnd-backend.
+ * VITE_API_URL ne doit servir qu'en développement Vite local.
+ */
+export const API_BASE = import.meta.env.PROD ? "" : configuredApiBase;
 
 export function authHeaders(token: string): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
