@@ -74,6 +74,18 @@ export const VTT_PANELS: VttPanelDefinition[] = [
   },
 
   {
+    id: "party-summary",
+    label: "Résumé du groupe",
+    description: "PV, CA, vitesse et perception passive",
+    category: "session",
+  },
+  {
+    id: "gm-notes",
+    label: "Notes MJ",
+    description: "Notes privées de scène",
+    category: "session",
+  },
+  {
     id: "gm-notes",
     label: "Notes MJ",
     description: "Notes privées de scène",

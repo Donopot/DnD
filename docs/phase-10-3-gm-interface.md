@@ -203,3 +203,30 @@ Critere d'acceptation :
 - Ajout token ferme puis affiche reapparait ;
 - les presets restent cliquables ;
 - l'utilisation est plus intuitive en mode Avance.
+
+## Etape 10-3I - Presets persistants et layout personnalise
+
+Objectif :
+
+- garder les presets accessibles en mode Partie, Preparation et Avance ;
+- activer automatiquement le mode Avance quand un preset est choisi ;
+- ajouter un preset Personnalise ;
+- permettre de sauvegarder le layout courant ;
+- restaurer plus tard les positions, tailles, panneaux fermes, reduits et verrouilles.
+
+Comportement :
+
+- le menu Gestion panneaux reste visible dans la barre de carte ;
+- Exploration, Combat, Preparation et Personnalise sont toujours cliquables ;
+- choisir un preset active le mode Avance ;
+- Sauvegarder layout actuel enregistre l'organisation actuelle ;
+- le preset Personnalise restaure cette organisation.
+
+Critere d'acceptation :
+
+- build Docker OK ;
+- smoke tests Phase 2 a 8 OK ;
+- les presets sont disponibles depuis le mode Partie ;
+- cliquer Exploration active le mode Avance ;
+- un layout de panneaux peut etre sauvegarde ;
+- le preset Personnalise restaure le layout sauvegarde.
