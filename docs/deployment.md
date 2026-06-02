@@ -53,8 +53,9 @@ Tous les services tournent en local via Docker Compose, isolés des autres proje
 
 ```
 /home/donopot/
-├── .env                    ← secrets globaux (un niveau au-dessus du repo)
-├── dnd-saas/               ← ce repo (git clone)
+├── dnd-saas/               ← ce repo full-stack
+│   ├── .env                ← secrets locaux du produit, non commités
+│   ├── .env.example        ← modèle versionné
 ├── mon-saas/               ← SaaS documentaire (séparé, ne pas toucher)
 └── vph-saas/               ← autre projet (séparé, ne pas toucher)
 ```
@@ -70,16 +71,16 @@ cd /home/donopot
 git clone git@github.com:Donopot/DnD.git dnd-saas
 cd dnd-saas
 
-# 2. Copier et remplir le .env (dans /home/donopot, PAS dans le repo)
-cp .env.example /home/donopot/.env
-nano /home/donopot/.env
+# 2. Copier et remplir le .env local du produit
+cp .env.example .env
+nano .env
 ```
 
 Remplacer tous les `change-me-*` par des secrets uniques.
 Ne **jamais** réutiliser un secret du SaaS documentaire.
 
-> ⚠️ Le `.env` est lu depuis le répertoire parent (`/home/donopot/`), pas depuis le repo.
-> C'est pour ça qu'il n'apparaît pas dans `git status`.
+> ⚠️ Le `.env` est lu depuis `/home/donopot/dnd-saas/.env`.
+> Il ne doit jamais être commité.
 
 ### 1.4 Variables d'environnement (.env)
 
