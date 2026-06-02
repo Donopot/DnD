@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 
 import type { Scene, SceneToken } from "../api/types";
-import { showFloatingWidget } from "../hooks/useFloatingWidgets";
 
 type VisibilityInspectorPanelProps = {
   selectedScene: Scene | undefined;
   selectedToken: SceneToken | undefined;
   sceneTokens: SceneToken[];
+  /** Callback pour ouvrir un panneau en fenêtre flottante. */
+  onOpenPanel?: (panelId: string) => void;
 };
 
 type VisibilityFilter = "all" | "visible" | "hidden";
@@ -15,6 +16,7 @@ export function VisibilityInspectorPanel({
   selectedScene,
   selectedToken,
   sceneTokens,
+  onOpenPanel,
 }: VisibilityInspectorPanelProps) {
   const [filter, setFilter] = useState<VisibilityFilter>("all");
 
@@ -161,16 +163,16 @@ export function VisibilityInspectorPanel({
         <strong>Raccourcis</strong>
 
         <div className="visibility-actions">
-          <button onClick={() => showFloatingWidget("token-detail")} type="button">
+          <button onClick={() => onOpenPanel?.("token-detail")} type="button">
             Détail token
           </button>
 
-          <button onClick={() => showFloatingWidget("gm-notes")} type="button">
+          <button onClick={() => onOpenPanel?.("gm-notes")} type="button">
             Notes MJ
           </button>
 
-          <button onClick={() => showFloatingWidget("minimap")} type="button">
-            Mini-map
+          <button onClick={() => onOpenPanel?.("session-log")} type="button">
+            Journal
           </button>
 
           <button onClick={copyVisibilitySummary} type="button">
