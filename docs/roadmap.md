@@ -2,7 +2,7 @@
 
 Dernière mise à jour : 2026-06-02
 
-## ✅ Complétées — 44/44 phases
+## ✅ Complétées — 45/45 phases
 
 | # | Titre | Date |
 |---|-------|------|
@@ -10,6 +10,7 @@ Dernière mise à jour : 2026-06-02
 | 34-38 | Plan UX (Correctifs → Polish) | 2026-06-02 |
 | 39-43 | Contenu D&D enrichi | 2026-06-02 |
 | 44 | Déploiement Render | 2026-06-02 |
+| 45 | Nettoyage + Onglets + Panneaux flottants | 2026-06-02 |
 
 ### Détail Phases 39-43 — Contenu D&D enrichi
 
@@ -40,12 +41,35 @@ Dernière mise à jour : 2026-06-02
 - Configurer `VITE_API_URL` après 1er déploiement API
 - Provisionner PostgreSQL + Redis + S3 externes
 
-## Métriques finales
+## 🧹 Phase 45 — Nettoyage + Onglets + Panneaux flottants ✅
+
+| Action | Détail |
+|--------|--------|
+| 🗑️ Nettoyage | 8 composants orphelins supprimés (−828 lignes) |
+| 📑 Onglets | `CampaignViewTabs` : 7 onglets (Live, Journal, Prépa, Biblio, Campagne, Persos, Params) |
+| 🪟 Flottants | 14/15 panneaux détachables (+9 : QuickActions, Messages, Journal, Stats, Donjons, Documents, Équipement, Homebrew, Règles) |
+| 🎨 CSS | Styles onglets + ajustements panneaux |
+
+### 14 panneaux flottants
+Combat · Rencontres · Dés · Bestiaire · Grimoire · Actions rapides · Messages · Journal · Statistiques · Donjons · Documents · Équipement · Homebrew · Règles
+
+### Panneaux par onglet
+| Onglet | Panneaux |
+|--------|----------|
+| 🎯 Live | Combat, Rencontres, Dés, Actions rapides, Messages |
+| 📋 Journal | Log session, Statistiques |
+| 🗺️ Préparation | Donjons, Documents |
+| 📚 Bibliothèque | Bestiaire, Grimoire, Équipement, Homebrew, Règles |
+| 🏰 Campagne | Infos, Description, Membres |
+| 👤 Personnages | Création assistée, Fiches, Inspecteur |
+| ⚙️ Paramètres | (placeholder) |
+
+## Métriques finales (après Phase 45)
 
 - **Backend** : 106 endpoints, 17 routeurs, 22 migrations, 68+ schémas, 54 tests
-- **Frontend** : 50+ composants React, ~13 000 lignes CSS, 1800+ modules Vite
+- **Frontend** : 43 composants React, ~13 000 lignes CSS, 1778 modules Vite
+- **Build** : 495ms, 356 kB (gzip 105 kB)
 - **Contenu SRD** : 52 créatures, 25 sorts, 11 races, 12 classes, donjons procéduraux
-- **Build** : 432ms, 351 kB (gzip 105 kB)
 - **Layouts** : 5 layouts distincts (Auth, GM 3-colonnes, Player map+panels, Lobby GM, Lobby Player)
 - **Temps réel** : WebSocket 8 types de messages
 - **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE, minimap, focus mode

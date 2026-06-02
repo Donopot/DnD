@@ -1011,7 +1011,10 @@ export default function App() {
 
         {/* Quick Actions / Macros */}
         <details className="gm-panel-section">
-          <summary>⚡ Actions rapides</summary>
+          <summary>
+            ⚡ Actions rapides
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("quickactions", "⚡ Actions rapides"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <QuickActions
             onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
           />
@@ -1019,7 +1022,10 @@ export default function App() {
 
         {/* Messages MJ → Joueurs */}
         <details className="gm-panel-section">
-          <summary>💬 Communication</summary>
+          <summary>
+            💬 Communication
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("messages", "💬 Communication"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <GmMessagePanel
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
@@ -1034,7 +1040,10 @@ export default function App() {
         <>
         {/* Session Log */}
         <details className="gm-panel-section">
-          <summary>📋 Journal</summary>
+          <summary>
+            📋 Journal
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("sessionlog", "📋 Journal"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <SessionLogPanel
             characters={characters}
             selectedCharacter={selectedCharacter}
@@ -1062,7 +1071,10 @@ export default function App() {
 
         {/* Session Stats */}
         <details className="gm-panel-section">
-          <summary>📊 Statistiques</summary>
+          <summary>
+            📊 Statistiques
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("stats", "📊 Statistiques"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <SessionStats
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
@@ -1076,13 +1088,19 @@ export default function App() {
         <>
         {/* Dungeon Generator */}
         <details className="gm-panel-section">
-          <summary>🗺️ Générateur de donjons</summary>
+          <summary>
+            🗺️ Générateur de donjons
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("dungeon", "🗺️ Donjons"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <DungeonGenerator token={token} />
         </details>
 
         {/* Handouts */}
         <details className="gm-panel-section">
-          <summary>📄 Documents</summary>
+          <summary>
+            📄 Documents
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("handouts", "📄 Documents"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <HandoutPanel
             handouts={handouts}
             scenes={scenes}
@@ -1140,13 +1158,19 @@ export default function App() {
 
         {/* Item Compendium */}
         <details className="gm-panel-section">
-          <summary>🎒 Équipement</summary>
+          <summary>
+            🎒 Équipement
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("items", "🎒 Équipement"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <ItemCompendium token={token} />
         </details>
 
         {/* Homebrew */}
         <details className="gm-panel-section">
-          <summary>📚 Bibliothèque</summary>
+          <summary>
+            📚 Bibliothèque
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("homebrew", "📚 Bibliothèque"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <HomebrewPanel
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
@@ -1158,7 +1182,10 @@ export default function App() {
 
         {/* SRD Reference */}
         <details className="gm-panel-section">
-          <summary>📖 Règles (SRD)</summary>
+          <summary>
+            📖 Règles (SRD)
+            <button className="panel-detach-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); fp.open("rules", "📖 Règles SRD"); }} title="Détacher" type="button"><ExternalLink size={12} /></button>
+          </summary>
           <RulesReference />
         </details>
         </>
@@ -1292,6 +1319,33 @@ export default function App() {
           )}
           {panel.id === "spellbook" && (
             <SpellbookPanel token={token} />
+          )}
+          {panel.id === "quickactions" && (
+            <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
+          )}
+          {panel.id === "messages" && (
+            <GmMessagePanel campaignId={selectedCampaign?.id ?? ""} token={token} members={members} />
+          )}
+          {panel.id === "sessionlog" && (
+            <SessionLogPanel characters={characters} selectedCharacter={selectedCharacter} rolls={rolls} logEntries={logEntries} isBusy={isBusy} token={token} onRoll={handleRoll} onAddNote={handleLogNote} onRefresh={() => {}} />
+          )}
+          {panel.id === "stats" && (
+            <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
+          )}
+          {panel.id === "dungeon" && (
+            <DungeonGenerator token={token} />
+          )}
+          {panel.id === "handouts" && (
+            <HandoutPanel handouts={handouts} scenes={scenes} isBusy={isBusy} onCreateHandout={handleCreateHandout} onRevealHandout={(h) => void handleRevealHandout(h)} onDeleteHandout={(h) => void handleDeleteHandout(h)} />
+          )}
+          {panel.id === "items" && (
+            <ItemCompendium token={token} />
+          )}
+          {panel.id === "homebrew" && (
+            <HomebrewPanel campaignId={selectedCampaign?.id ?? ""} token={token} scenes={scenes} encounters={encounters} isBusy={isBusy} />
+          )}
+          {panel.id === "rules" && (
+            <RulesReference />
           )}
         </FloatingPanel>
       ))}
