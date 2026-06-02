@@ -1,6 +1,7 @@
 import { Grid3X3 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Character, Scene, SceneToken } from "../api/types";
+import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { FogLayer } from "./FogLayer";
 import { MapTools } from "./MapTools";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
@@ -65,6 +66,18 @@ export function CampaignMap({
   const [weather, setWeather] = useState<WeatherType>("clear");
   const [weatherIntensity, setWeatherIntensity] = useState(50);
   const [weatherEnabled, setWeatherEnabled] = useState(false);
+
+  // ── Keyboard nudge for selected token ────────────────────────
+  const selectedToken = useMemo(
+    () => sceneTokens.find((t) => t.id === selectedTokenId),
+    [sceneTokens, selectedTokenId],
+  );
+
+  useNudgeSelectedToken(selectedTokenId !== "", (dx, dy) => {
+    if (selectedToken && onMoveToken) {
+      onMoveToken(selectedToken, dx, dy);
+    }
+  });
 
   // Minimap ref
   const minimapRef = useRef<HTMLCanvasElement>(null);
