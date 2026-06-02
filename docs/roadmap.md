@@ -42,8 +42,8 @@ Dernière mise à jour : 2026-06-01
 
 ## Métriques finales
 
-- **Backend** : 103 endpoints, 12 routeurs, 19 migrations, 66 schémas, 49 tests
-- **Frontend** : 43 composants React, ~11 700 lignes CSS, 1762 modules Vite
+- **Backend** : 102 endpoints, 13 routeurs, 19 migrations, 64 schémas, 49 tests
+- **Frontend** : 43 composants React, ~11 800 lignes CSS, 1765 modules Vite
 - **Layouts** : 5 layouts distincts
 - **Temps réel** : WebSocket 8 types de messages
 - **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE

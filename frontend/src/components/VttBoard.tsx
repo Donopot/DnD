@@ -1,5 +1,4 @@
 import {
-  type ChangeEvent,
   type FormEvent,
   type MouseEvent,
   type PointerEvent,
@@ -11,7 +10,7 @@ import {
 import { Castle, Crosshair, Minus, Plus, RotateCcw, Swords } from "lucide-react";
 
 import type { Asset, Character, Scene, SceneToken } from "../api/types";
-import type { FloatingWidgetPreset, VttPanelId } from "../config/vttPanels";
+import type { FloatingWidgetPreset } from "../config/vttPanels";
 import {
   applyFloatingWidgetPreset,
   resetFloatingWidgetLayouts,
@@ -73,22 +72,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function getAbilityModifier(value: number) {
-  return Math.floor((value - 10) / 2);
-}
-
-function getPassivePerception(character: Character) {
-  return 10 + getAbilityModifier(character.attributes.wis ?? 10);
-}
-
-function getHpPercent(character: Character) {
-  if (character.hp_max <= 0) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(100, Math.round((character.hp_current / character.hp_max) * 100)));
-}
-
 export function VttBoard({
   campaignId,
   token,
@@ -122,7 +105,7 @@ export function VttBoard({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [gmNotes, setGmNotes] = useState("");
+  const [, setGmNotes] = useState("");
   const [freePanelsEnabled, setFreePanelsEnabled] = useState(false);
   const [gmInterfaceMode, setGmInterfaceMode] = useState<GmInterfaceMode>("play");
   const [viewportRatio, setViewportRatio] = useState({
@@ -166,20 +149,6 @@ export function VttBoard({
 
     setGmNotes(savedNotes);
   }, [selectedScene?.id]);
-
-  function handleGmNotesChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    const nextValue = event.target.value;
-
-    setGmNotes(nextValue);
-
-    if (!selectedScene) {
-      return;
-    }
-
-    const scene = selectedScene;
-
-    window.localStorage.setItem(`dnd-gm-scene-notes:${scene.id}`, nextValue);
-  }
 
   useEffect(() => {
     if (!sessionLiveMode) {

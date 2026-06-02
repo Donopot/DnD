@@ -4,6 +4,150 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phase 33] — Statistiques de session (2026-06-01)
+
+### Added
+- `SessionStats.tsx` : compteurs de session (jets totaux, Nat 20, Nat 1, moyenne, graphique)
+- Backend : logs de jets étendus pour analytics
+
+### Files
+- `frontend/src/components/SessionStats.tsx` — nouveau
+- `frontend/src/styles.css` — +CSS session stats
+
+---
+
+## [Phase 32] — Macros / Quick Actions (2026-06-01)
+
+### Added
+- `QuickActions.tsx` : barre d'actions rapides personnalisables
+- Types : ability check, saving throw, custom roll, attack
+- Persistance localStorage
+
+### Files
+- `frontend/src/components/QuickActions.tsx` — nouveau
+- `frontend/src/styles.css` — +CSS macros
+
+---
+
+## [Phase 31] — Dés visuels animés (2026-06-01)
+
+### Added
+- `DiceRoller.tsx` : animations CSS 3D pour d4-d20
+- Nat 20 glow vert, Nat 1 rouge
+- Mode avantage/désavantage
+- Historique des jets
+
+### Files
+- `frontend/src/components/DiceRoller.tsx` — nouveau
+- `frontend/src/styles.css` — +CSS animations dés
+
+---
+
+## [Phase 30] — Générateur de rencontres (2026-06-01)
+
+### Added
+- `EncounterBuilder.tsx` : CR calculator basé DMG 5e
+- Génération par biome (forêt, donjon, montagne, etc.)
+- Ajustement difficulté (easy/medium/hard/deadly)
+- Liste de monstres avec stats
+
+### Files
+- `frontend/src/components/EncounterBuilder.tsx` — nouveau
+- `frontend/src/styles.css` — +CSS encounter builder
+
+---
+
+## [Phase 29] — Système de combat complet (2026-06-01)
+
+### Added
+- `CombatTracker.tsx` : tracker visuel avec initiative triée, HP, conditions
+- Timer par round
+- Boutons Next Turn / Add Condition / Damage rapide
+- 3 nouveaux endpoints : `POST /combat/next-turn`, `POST /combat/add-condition`, `POST /combat/remove-condition`
+
+### Files
+- `frontend/src/components/CombatTracker.tsx` — nouveau
+- `backend/app/routers/combat.py` — +3 endpoints
+- `frontend/src/styles.css` — +300 lignes combat tracker
+
+---
+
+## [Phase 28] — 🔥 Upgrade total de la Map (2026-06-01)
+
+### Fixed
+- 6 bugs critiques : token data-token-id manquant, scene_id vide, pointerEvents tokens joueurs, pan toggle, Set() recréé, zoom/scroll non reset
+- Correction `player_controlled`/`owner_user_id` → `character_id`
+
+### Added
+- Snap-to-grid universel (ruler, AoE, drag)
+- Zoom-to-cursor
+- Grid toggle
+- Token nameplates + HP bars avec barres de vie
+- Selection ring animé
+- AoE labels
+- Fog undo
+
+### Files
+- `frontend/src/components/CampaignMap.tsx` — refonte
+- `frontend/src/components/MapTools.tsx` — snap-grid
+- `frontend/src/components/FogLayer.tsx` — undo
+- `frontend/src/styles.css` — +CSS map upgrade
+
+---
+
+## [Phase 27] — Beta privée (2026-06-01)
+
+### Added
+- README complet (déploiement, fonctionnalités, architecture)
+- Roadmap finale 33 phases
+- Instructions déploiement HP Mini
+
+### Files
+- `README.md` — refonte complète
+- `docs/roadmap.md` — final
+
+---
+
+## [Phase 26] — Sauvegardes et maintenance (2026-06-01)
+
+### Added
+- `scripts/backup-db.sh` : dump PostgreSQL + gzip, rotation 7 jours
+- Cron job 03h00 : backup automatique
+- Endpoint `/api/health` (DB + S3)
+
+### Files
+- `scripts/backup-db.sh` — nouveau
+- Cron jobs : +3 (backup 03h, audit 06h, suggestions 07h30)
+
+---
+
+## [Phase 25] — SRD règles D&D (2026-06-01)
+
+### Added
+- `RulesReference.tsx` : 12 sections (règles de base, classes, races, sorts, conditions, combat, équipement)
+- Barre de recherche
+
+### Files
+- `frontend/src/components/RulesReference.tsx` — nouveau
+- `frontend/src/styles.css` — +CSS rules reference
+
+---
+
+## [Phase 24] — Gabarits AoE (2026-06-01)
+
+### Added
+- WebSocket `map_aoe` : cone, sphere, cube, line
+- `MapTools.tsx` : 4 onglets AoE + labels dimensions
+- Passage `gridSize` depuis CampaignMap
+- CSS formes AoE
+
+### Files
+- `frontend/src/components/MapTools.tsx` — +AoE tools
+- `backend/app/ws.py` — +aoe handler
+- `frontend/src/styles.css` — +CSS AoE shapes
+
+---
+
 ## [Phase 23] — Gestion personnages par le MJ (XP, conditions, HP, inventaire) (2026-06-01)
 
 ### Added

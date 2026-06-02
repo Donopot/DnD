@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Megaphone, MessageSquare, Send, Dice1 } from "lucide-react";
-import type { GmMessage as GmMessageType, Member } from "../api/types";
+import type { GmMessage as _GmMessageType, Member } from "../api/types";
 
 type GmMessagePanelProps = {
   campaignId: string;

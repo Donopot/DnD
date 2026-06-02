@@ -2,7 +2,7 @@
 
 Virtual Tabletop Donjons & Dragons en navigateur, conçu pour fonctionner sur HP Mini.
 
-**Statut** : Beta privée — 27/27 phases complétées 🎉
+**Statut** : Beta privée — 33/33 phases complétées 🎉
 
 ## Architecture
 
@@ -45,7 +45,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 
 ## Fonctionnalités
 
-### Backend (100 endpoints, 12 routeurs, 19 migrations, 49 tests unitaires)
+### Backend (102 endpoints, 13 routeurs, 19 migrations, 49 tests unitaires)
 
 | Domaine | Endpoints |
 |---------|-----------|
@@ -62,7 +62,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 | Communication | messages privés, annonces, jets secrets MJ |
 | Santé | health check (DB + S3), rate limiting 200/min |
 
-### Frontend (39 composants React, ~11 050 lignes CSS, 1760 modules Vite)
+### Frontend (43 composants React, ~11 800 lignes CSS, 1765 modules Vite)
 
 | Composant | Rôle |
 |-----------|------|
@@ -80,6 +80,11 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 | HomebrewPanel | Gestion créatures/objets/sorts custom |
 | HandoutPanel | Gestion documents partagés |
 | RulesReference | SRD D&D 5e consultable (conditions, combat, XP, règles) |
+| CombatTracker | Tracker de combat visuel (initiative, HP, conditions, tours) |
+| DiceRoller | Dés visuels animés (d4-d20, Nat 20 glow, avantage/désavantage) |
+| EncounterBuilder | Générateur de rencontres (CR calculator, random par biome) |
+| QuickActions | Macros et barre d'actions rapides personnalisables |
+| SessionStats | Statistiques de session (jets, Nat 20, moyennes) |
 | FogLayer | Brouillard de guerre |
 | PersonalCharactersSection | Vault personnages (création, soumission) |
 | InvitePage | Page invitation avec preview |

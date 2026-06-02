@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, Minus, Play, Plus, SkipBack, SkipForward, Swords, Zap } from "lucide-react";
+import { Play, SkipBack, SkipForward, Swords, Zap } from "lucide-react";
 import type { Combatant, Encounter } from "../api/types";
 
 type CombatTrackerProps = {

@@ -1,12 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import {
-  DoorOpen,
-  Plus,
-  Swords,
-  UserPlus,
-} from "lucide-react";
+import { DoorOpen, Plus, Swords, UserPlus } from "lucide-react";
 import "./styles.css";
-import type { CampaignView } from "./components/CampaignViewTabs";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
@@ -62,16 +56,16 @@ export default function App() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [selectedAssetId, setSelectedAssetId] = useState<string>("");
+  const [, setAssetList] = useState<Asset[]>([]);
+  const [, setSelectedAssetId] = useState<string>("");
   const [sceneBackgroundObjectUrl, setSceneBackgroundObjectUrl] = useState<string>("");
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
-  const [combatants, setCombatants] = useState<Combatant[]>([]);
+  const [, setCombatants] = useState<Combatant[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">("offline");
-  const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
+  const [, setLatestInvite] = useState<Invite | null>(null);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
@@ -93,11 +87,6 @@ export default function App() {
   const selectedScene = useMemo(
     () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
     [scenes, selectedSceneId],
-  );
-
-  const selectedEncounter = useMemo(
-    () => encounters.find((encounter) => encounter.id === selectedEncounterId) ?? encounters[0],
-    [encounters, selectedEncounterId],
   );
 
   useEffect(() => {
@@ -494,7 +483,7 @@ export default function App() {
   async function loadAssets(campaignId: string) {
     try {
       const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
-      setAssets(data);
+      setAssetList(data);
       setSelectedAssetId((current) => current || data[0]?.id || "");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load assets");

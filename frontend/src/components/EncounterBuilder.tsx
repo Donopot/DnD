@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
-import { Dice1, Plus, Swords, Zap } from "lucide-react";
+import { Dice1, Plus, Swords } from "lucide-react";
 
 // D&D 5e XP thresholds per character level
 const XP_THRESHOLDS: Record<string, Record<number, number>> = {

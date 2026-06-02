@@ -99,7 +99,7 @@ main ─────────────────────────
   ├── feat/phase-9-token-ux ────► merge ──► main
   ├── feat/phase-10-handouts ───► merge ──► main
   ├── fix/review-backend ───────► merge ──► main
-  └── feat/phase-16-xxx ────────► (en cours)
+  └── fix/audit-2026-06-02 ─────► (en cours)
 ```
 
 **Règles :**

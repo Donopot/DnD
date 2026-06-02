@@ -1,6 +1,5 @@
 import { FormEvent, useState } from "react";
 import {
-  Activity,
   Heart,
   Plus,
   Shield,
@@ -51,7 +50,6 @@ export function GmCharacterInspector({
   const [itemQty, setItemQty] = useState(1);
   const [itemDesc, setItemDesc] = useState("");
 
-  const cid = character.campaign_id;
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,

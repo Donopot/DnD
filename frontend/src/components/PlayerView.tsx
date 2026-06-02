@@ -18,7 +18,6 @@ import type {
   Encounter,
   GameLogEntry,
   Handout,
-  Member,
   Roll,
   Scene,
   SceneToken,
@@ -118,7 +117,7 @@ export function PlayerView({
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounter, setSelectedEncounter] = useState<Encounter | null>(null);
   const [combatants, setCombatants] = useState<Combatant[]>([]);
-  const [activeTab, setActiveTab] = useState<TabId>("characters");
+  const [_, _setActiveTab] = useState<TabId>("characters");
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -126,7 +125,7 @@ export function PlayerView({
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
   const [playerScene, setPlayerScene] = useState<Scene | null>(null);
   const [playerTokens, setPlayerTokens] = useState<SceneToken[]>([]);
-  const [playerBgUrl, setPlayerBgUrl] = useState("");
+  const [__bgUrl, _setPlayerBgUrl] = useState("");
 
   // ─── Character creation form ───────────────────────────────────────────
   const [charForm, setCharForm] = useState<PlayerCharacterFormData>({
@@ -489,9 +488,6 @@ export function PlayerView({
   // ─── Skill modifiers ───────────────────────────────────────────────────
   const skillMods = useMemo(() => {
     if (!selectedCharacter) return [] as { name: string; mod: number }[];
-    const attrToSkill: Record<string, string> = {
-      str: "str", dex: "dex", con: "con", int: "int", wis: "wis", cha: "cha",
-    };
     const skillNames: Record<string, string[]> = {
       str: ["Athlétisme"],
       dex: ["Acrobaties", "Discrétion", "Escamotage"],
@@ -810,9 +806,6 @@ export function PlayerView({
     </section>
   );
 
-  // ── Map tab ────────────────────────────────────────────────────────────
-  const mapTab = null; // replaced by CampaignMap in main render
-
   // ── Dice tab ───────────────────────────────────────────────────────────
   const diceTab = (
     <section className="player-tab dice">
@@ -1073,7 +1066,7 @@ export function PlayerView({
             selectedScene={playerScene ?? undefined}
             selectedSceneId={playerScene?.id ?? ""}
             sceneTokens={playerTokens}
-            sceneBackgroundObjectUrl={playerBgUrl}
+            sceneBackgroundObjectUrl={""}
             characters={characters}
           />
         </section>

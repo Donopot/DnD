@@ -61,7 +61,8 @@ export function MapTools({
   const [rulers, setRulers] = useState<RulerLine[]>([]);
   const [aoeShapes, setAoeShapes] = useState<AoeShape[]>([]);
   const [dragToken, setDragToken] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [, _setDragOffset] = useState({ x: 0, y: 0 });
+  const dragOffset = { x: 0, y: 0 }; // initialized in parent CampaignMap
   const [rulerStart, setRulerStart] = useState<{ x: number; y: number } | null>(null);
   const [rulerEnd, setRulerEnd] = useState<{ x: number; y: number } | null>(null);
   const pingId = useRef(0);
@@ -172,20 +173,6 @@ export function MapTools({
   }
 
   // ── Player token drag (snap-to-grid) ───────────────────────────────────
-  // Note: handleTokenDragStart/Move/End are defined but triggered from
-  // the parent CampaignMap's pointer event overlay, not here.
-  function handleTokenDragStart(e: ReactPointerEvent, tokenId: string) {
-    if (!myTokenIds?.has(tokenId)) return;
-    e.stopPropagation();
-    const coords = getMapCoords(e);
-    const tokenEl = (e.target as HTMLElement).closest("[data-token-id]") as HTMLElement | null;
-    if (!tokenEl) return;
-    const tokenX = parseFloat(tokenEl.style.left || "0");
-    const tokenY = parseFloat(tokenEl.style.top || "0");
-    setDragToken(tokenId);
-    setDragOffset({ x: coords.x - tokenX, y: coords.y - tokenY });
-  }
-
   function handleTokenDragMove(e: ReactPointerEvent) {
     if (!dragToken) return;
     const coords = getMapCoords(e);
