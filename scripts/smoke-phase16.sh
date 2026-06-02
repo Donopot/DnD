@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-API="http://127.0.0.1:8091/api"
+API="${API:-http://127.0.0.1:8091/api}"
 EMAIL="smoke-fog-$(date +%s)@test.com"
 PASS="SmokePass123!"
 echo "=== Phase 16 Smoke: Fog of War ==="
