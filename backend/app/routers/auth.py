@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from asyncpg import UniqueViolationError
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from app.db import get_pool
 from app.deps import get_current_user
@@ -11,7 +10,18 @@ from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserPublic
 from app.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-limiter = Limiter(key_func=get_remote_address)
+
+def _client_ip(request: Request) -> str:
+    """Extract real client IP from reverse-proxy headers (Caddy/nginx)."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    real = request.headers.get("X-Real-IP")
+    if real:
+        return real.strip()
+    return request.client.host if request.client else "unknown"
+
+limiter = Limiter(key_func=_client_ip)
 
 
 def user_public(row) -> UserPublic:

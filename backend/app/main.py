@@ -5,7 +5,6 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.cache import close_cache, init_cache
 from app.config import get_settings
@@ -14,7 +13,19 @@ from app.routers import auth, campaigns, characters, session, vtt, combat, asset
 
 settings = get_settings()
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
+def _global_client_ip(request: Request) -> str:
+    """Extract real client IP from reverse-proxy headers (Caddy/nginx)."""
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    real = request.headers.get("X-Real-IP")
+    if real:
+        return real.strip()
+    return request.client.host if request.client else "unknown"
+
+
+limiter = Limiter(key_func=_global_client_ip, default_limits=["200/minute"])
 
 app = FastAPI(title="DnD SaaS API", version="0.1.0")
 app.state.limiter = limiter
