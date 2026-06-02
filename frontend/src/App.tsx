@@ -670,6 +670,7 @@ export default function App() {
 
 
   function logout() {
+    wsRef.current?.close();
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken("");
     setUser(null);
@@ -697,14 +698,13 @@ export default function App() {
           localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
           setToken(newToken);
         }}
-        onJoined={() => {
+        onJoined={async () => {
           const activeToken = localStorage.getItem(TOKEN_STORAGE_KEY) || token;
-          void loadCampaigns(activeToken).then(() => {
-            setInviteToken(null);
-            if (window.history.pushState) {
-              window.history.pushState({}, "", "/");
-            }
-          });
+          await loadCampaigns(activeToken);
+          setInviteToken(null);
+          if (window.history.pushState) {
+            window.history.pushState({}, "", "/");
+          }
         }}
       />
     );

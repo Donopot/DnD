@@ -1,27 +1,15 @@
 from datetime import datetime, timezone
 
-from asyncpg import UniqueViolationError
+from asyncpg import ForeignKeyViolationError, UniqueViolationError
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from slowapi import Limiter
 
 from app.db import get_pool
 from app.deps import get_current_user
+from app.limiter import shared_limiter
 from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserPublic
 from app.security import create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-def _client_ip(request: Request) -> str:
-    """Extract real client IP from reverse-proxy headers (Caddy/nginx)."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    real = request.headers.get("X-Real-IP")
-    if real:
-        return real.strip()
-    return request.client.host if request.client else "unknown"
-
-limiter = Limiter(key_func=_client_ip)
 
 
 def user_public(row) -> UserPublic:
@@ -67,7 +55,7 @@ async def _validate_player_invite(connection, invite_token: str | None):
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
+@shared_limiter.limit("5/minute")
 async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
     # Honeypot anti-bot — si le champ caché est rempli, rejeter silencieusement
     if payload.website:
@@ -96,6 +84,10 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
                 )
             except UniqueViolationError as exc:
                 raise HTTPException(status_code=409, detail="Cet email est déjà utilisé") from exc
+            except ForeignKeyViolationError:
+                raise HTTPException(status_code=410, detail="La campagne n'existe plus ou a été supprimée")
+            except Exception:
+                raise HTTPException(status_code=500, detail="Erreur interne lors de l'inscription")
 
             # Auto-join campaign for player registration
             if campaign_id is not None:
@@ -124,7 +116,7 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
 # ── Login ─────────────────────────────────────────────────────────────────
 
 @router.post("/login", response_model=AuthResponse)
-@limiter.limit("10/minute")
+@shared_limiter.limit("10/minute")
 async def login(request: Request, payload: LoginRequest) -> AuthResponse:
     row = await get_pool().fetchrow(
         """
@@ -147,5 +139,6 @@ async def login(request: Request, payload: LoginRequest) -> AuthResponse:
 # ── Me ────────────────────────────────────────────────────────────────────
 
 @router.get("/me", response_model=UserPublic)
+@shared_limiter.limit("60/minute")
 async def me(current_user=Depends(get_current_user)) -> UserPublic:
     return user_public(current_user)

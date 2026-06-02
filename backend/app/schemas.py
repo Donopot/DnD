@@ -18,8 +18,8 @@ class UserPublic(BaseModel):
 class RegisterRequest(BaseModel):
     email: EmailStr
     display_name: str = Field(min_length=2, max_length=80)
-    password: str = Field(min_length=8, max_length=200)
-    confirm_password: str = Field(min_length=8, max_length=200)
+    password: str = Field(min_length=8, max_length=72)
+    confirm_password: str = Field(min_length=8, max_length=72)
     account_type: str = Field(default="gm", pattern="^(gm|player)$")
     invite_token: str | None = Field(default=None, max_length=64)
     # Honeypot anti-bot — les bots remplissent ce champ caché

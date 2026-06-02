@@ -165,6 +165,7 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
                 name="password"
                 type={showPassword ? "text" : "password"}
                 minLength={8}
+                maxLength={72}
                 required
                 autoComplete={mode === "register" ? "new-password" : "current-password"}
                 value={password}

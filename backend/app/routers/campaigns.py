@@ -2,10 +2,11 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role, require_gm_account
+from app.limiter import shared_limiter
 from app.schemas import (
     CampaignCreateRequest,
     CampaignMemberPublic,
@@ -170,7 +171,8 @@ async def create_invite(
 
 
 @router.get("/invites/{token}", response_model=InvitePreview)
-async def preview_invite(token: str) -> InvitePreview:
+@shared_limiter.limit("10/minute")
+async def preview_invite(request: Request, token: str) -> InvitePreview:
     row = await get_pool().fetchrow(
         """
         select

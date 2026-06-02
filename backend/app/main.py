@@ -3,32 +3,19 @@ import boto3
 from botocore.client import Config
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.cache import close_cache, init_cache
 from app.config import get_settings
 from app.db import close_db, connect_db
+from app.limiter import shared_limiter
 from app.routers import auth, campaigns, characters, session, vtt, combat, assets, gm_notes, handouts, homebrew, player, messages
 
 settings = get_settings()
 
-
-def _global_client_ip(request: Request) -> str:
-    """Extract real client IP from reverse-proxy headers (Caddy/nginx)."""
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    real = request.headers.get("X-Real-IP")
-    if real:
-        return real.strip()
-    return request.client.host if request.client else "unknown"
-
-
-limiter = Limiter(key_func=_global_client_ip, default_limits=["200/minute"])
-
 app = FastAPI(title="DnD SaaS API", version="0.1.0")
-app.state.limiter = limiter
+app.state.limiter = shared_limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
@@ -67,7 +54,7 @@ async def shutdown() -> None:
 
 
 @app.get("/api/health")
-@limiter.exempt
+@shared_limiter.exempt
 async def health() -> dict[str, object]:
     checks: dict[str, object] = {
         "service": "dnd-backend",
@@ -98,7 +85,7 @@ async def health() -> dict[str, object]:
 
 
 @app.websocket("/ws/health")
-@limiter.exempt
+@shared_limiter.exempt
 async def websocket_health(websocket: WebSocket) -> None:
     await websocket.accept()
     try:
