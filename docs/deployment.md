@@ -185,7 +185,8 @@ Réponse attendue :
   "service": "dnd-backend",
   "status": "ok",
   "database": "ok",
-  "object_storage": "ok"
+  "object_storage": "ok",
+  "redis": "ok"
 }
 ```
 

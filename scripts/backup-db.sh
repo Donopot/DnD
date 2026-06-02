@@ -17,8 +17,9 @@ mkdir -p "$BACKUP_DIR"
 
 TIMESTAMP="$(date +%Y-%m-%d_%H%M%S)"
 BACKUP_FILE="${BACKUP_DIR}/backup_${TIMESTAMP}.sql.gz"
+PARTIAL_FILE="${BACKUP_FILE}.partial"
 
-echo "[$(date '+%H:%M:%S')] Dumping database '$DB_NAME' to $BACKUP_FILE..."
+echo "[$(date '+%H:%M:%S')] Dumping database '$DB_NAME' to $PARTIAL_FILE..."
 
 PGPASSWORD="${DND_DB_PASSWORD:-}" pg_dump \
   -h "$DB_HOST" \
@@ -27,7 +28,8 @@ PGPASSWORD="${DND_DB_PASSWORD:-}" pg_dump \
   -d "$DB_NAME" \
   --no-owner \
   --no-acl \
-  | gzip > "$BACKUP_FILE"
+  | gzip > "$PARTIAL_FILE"
+mv "$PARTIAL_FILE" "$BACKUP_FILE"
 
 BACKUP_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
 
@@ -39,6 +41,7 @@ find "$BACKUP_DIR" -name "backup_*.sql.gz" -mtime "+${RETENTION_DAYS}" -print -d
   echo "[$(date '+%H:%M:%S')] Pruned old backup: $f"
   DELETED=$((DELETED + 1))
 done
+find "$BACKUP_DIR" -name "*.partial" -mtime +1 -delete
 
 BACKUP_COUNT=$(find "$BACKUP_DIR" -name "backup_*.sql.gz" | wc -l)
 echo "[$(date '+%H:%M:%S')] Backups retained: $BACKUP_COUNT (pruning older than ${RETENTION_DAYS}d)"

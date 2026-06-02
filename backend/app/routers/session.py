@@ -507,6 +507,8 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                 )
 
     except WebSocketDisconnect:
+        pass
+    finally:
         count = manager.disconnect(campaign_id, websocket)
         await manager.broadcast(
             campaign_id,

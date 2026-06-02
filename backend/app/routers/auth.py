@@ -89,7 +89,7 @@ async def register(request: Request, payload: RegisterRequest) -> AuthResponse:
                     """,
                 payload.email.lower(),
                 payload.display_name.strip(),
-                hash_password(payload.password),
+                await hash_password(payload.password),
                 payload.account_type,
             )
         except UniqueViolationError as exc:
@@ -140,7 +140,7 @@ async def login(request: Request, payload: LoginRequest) -> AuthResponse:
     # to prevent user enumeration via timing attack
     stored_hash = row["password_hash"] if row is not None else \
         "$2b$12$" + "0" * 53  # dummy bcrypt hash that will never match
-    if row is None or not verify_password(payload.password, stored_hash):
+    if row is None or not await verify_password(payload.password, stored_hash):
         raise HTTPException(status_code=401, detail="Email ou mot de passe invalide")
 
     return AuthResponse(access_token=create_access_token(row["id"]), user=user_public(row))

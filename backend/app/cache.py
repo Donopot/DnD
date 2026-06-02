@@ -64,6 +64,17 @@ def _client() -> Any:
     return _redis
 
 
+async def cache_ping() -> bool:
+    """Return whether Redis is reachable without failing the health endpoint."""
+    client = _client()
+    if client is None:
+        return False
+    try:
+        return bool(await client.ping())
+    except Exception:
+        return False
+
+
 async def cache_get(key: str) -> Any | None:
     """Get a cached JSON value. Returns None on miss or if cache is disabled."""
     client = _client()

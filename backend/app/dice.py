@@ -1,10 +1,11 @@
-import random
 import re
+import secrets
 from dataclasses import dataclass
 from typing import Any
 
 TOKEN_PATTERN = re.compile(r"([+-]?)\s*(?:(\d*)d(\d+)|(\d+))", re.IGNORECASE)
 VALID_PATTERN = re.compile(r"^[\ddD+\-\s]+$")
+RANDOM = secrets.SystemRandom()
 
 
 @dataclass
@@ -39,7 +40,7 @@ def roll_formula(formula: str, mode: str = "normal") -> RollResult:
                 raise ValueError("Dice count must be between 1 and 50")
             if sides < 2 or sides > 1000:
                 raise ValueError("Dice sides must be between 2 and 1000")
-            rolls = [random.randint(1, sides) for _ in range(count)]
+            rolls = [RANDOM.randint(1, sides) for _ in range(count)]
             subtotal = sum(rolls) * sign
             total += subtotal
             terms.append(
@@ -87,4 +88,3 @@ def roll_with_mode(formula: str, mode: str = "normal") -> RollResult:
             "selected_total": selected.total,
         },
     )
-

@@ -110,6 +110,7 @@ request GET /api/health "" "" "$HEALTH" || fail "health failed"
 [ "$(json_get "$HEALTH" service)" = "dnd-backend" ] || fail "unexpected service"
 [ "$(json_get "$HEALTH" database)" = "ok" ] || fail "database failed"
 [ "$(json_get "$HEALTH" object_storage)" = "ok" ] || fail "object storage failed"
+[ "$(json_get "$HEALTH" redis)" = "ok" ] || fail "redis failed"
 
 log "Register smoke GM"
 REGISTER="$TMP_DIR/register.json"

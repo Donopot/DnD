@@ -62,7 +62,7 @@ async def player_campaign_summary(campaign_id: UUID, current_user=Depends(get_cu
 
     members = await get_pool().fetch(
         """
-        select u.id as user_id, u.email, u.display_name, cm.role, cm.joined_at
+        select u.id as user_id, u.display_name, cm.role, cm.joined_at
         from campaign_members cm join users u on u.id = cm.user_id
         where cm.campaign_id = $1
         order by cm.joined_at asc

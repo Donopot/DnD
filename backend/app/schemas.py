@@ -75,7 +75,6 @@ class CampaignPublic(BaseModel):
 
 class CampaignMemberPublic(BaseModel):
     user_id: UUID
-    email: EmailStr
     display_name: str
     role: str
     joined_at: datetime
@@ -127,6 +126,12 @@ class CharacterBase(BaseModel):
     resources: list[dict[str, Any]] = Field(default_factory=list)
     notes: str = Field(default="", max_length=4000)
 
+    @model_validator(mode="after")
+    def validate_hp(self) -> "CharacterBase":
+        if self.hp_current > self.hp_max:
+            raise ValueError("Current HP cannot exceed maximum HP")
+        return self
+
 
 class CharacterCreateRequest(CharacterBase):
     owner_user_id: UUID | None = None
@@ -150,6 +155,13 @@ class CharacterUpdateRequest(BaseModel):
     spells: list[dict[str, Any]] | None = None
     resources: list[dict[str, Any]] | None = None
     notes: str | None = Field(default=None, max_length=4000)
+
+    @field_validator("*")
+    @classmethod
+    def reject_null_updates(cls, value):
+        if value is None:
+            raise ValueError("Character fields cannot be null")
+        return value
 
 
 class CharacterPublic(CharacterBase):

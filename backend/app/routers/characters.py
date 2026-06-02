@@ -182,6 +182,8 @@ async def update_character(
     updates = payload.model_dump(exclude_unset=True)
     for key, value in updates.items():
         current[key] = value.strip() if isinstance(value, str) else value
+    if current["hp_current"] > current["hp_max"]:
+        raise HTTPException(status_code=422, detail="Current HP cannot exceed maximum HP")
 
     row = await get_pool().fetchrow(
         """

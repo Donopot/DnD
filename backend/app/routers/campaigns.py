@@ -133,7 +133,7 @@ async def list_members(
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
     rows = await get_pool().fetch(
         """
-        select u.id as user_id, u.email, u.display_name, cm.role, cm.joined_at
+        select u.id as user_id, u.display_name, cm.role, cm.joined_at
         from campaign_members cm
         join users u on u.id = cm.user_id
         where cm.campaign_id = $1
@@ -233,24 +233,26 @@ async def join_invite(token: str, current_user=Depends(get_current_user)) -> Cam
         if invite["max_uses"] is not None and invite["use_count"] >= invite["max_uses"]:
             raise HTTPException(status_code=410, detail="Invite exhausted")
 
-        await connection.execute(
+        inserted = await connection.fetchval(
             """
                 insert into campaign_members (campaign_id, user_id, role)
                 values ($1, $2, $3)
                 on conflict (campaign_id, user_id) do nothing
+                returning true
                 """,
             invite["campaign_id"],
             current_user["id"],
             invite["role"],
         )
-        await connection.execute(
-            """
-                update campaign_invites
-                set use_count = use_count + 1
-                where token = $1
-                """,
-            token,
-        )
+        if inserted:
+            await connection.execute(
+                """
+                    update campaign_invites
+                    set use_count = use_count + 1
+                    where token = $1
+                    """,
+                token,
+            )
 
     row = await get_pool().fetchrow(
         """
@@ -265,4 +267,3 @@ async def join_invite(token: str, current_user=Depends(get_current_user)) -> Cam
         current_user["id"],
     )
     return campaign_public(row)
-

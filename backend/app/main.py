@@ -1,14 +1,19 @@
+import asyncio
+
 import asyncpg
 import boto3
 from botocore.client import Config
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from fastapi import status
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.cache import close_cache
+from app.cache import cache_ping
 from app.cache import init_cache
 from app.config import get_settings
 from app.db import close_db
@@ -86,25 +91,54 @@ async def health() -> dict[str, object]:
         "status": "ok",
         "database": "unknown",
         "object_storage": "unknown",
+        "redis": "unknown",
     }
 
-    connection = await asyncpg.connect(settings.database_url)
+    errors: list[Exception] = []
+    connection = None
     try:
+        connection = await asyncpg.connect(settings.database_url)
         await connection.fetchval("select 1")
         checks["database"] = "ok"
+    except Exception as exc:
+        checks["database"] = "error"
+        errors.append(exc)
     finally:
-        await connection.close()
+        if connection is not None:
+            await connection.close()
 
-    minio = boto3.client(
-        "s3",
-        endpoint_url=settings.minio_endpoint,
-        aws_access_key_id=settings.minio_access_key,
-        aws_secret_access_key=settings.minio_secret_key,
-        config=Config(signature_version="s3v4"),
-        region_name="us-east-1",
-    )
-    minio.head_bucket(Bucket=settings.minio_bucket)
-    checks["object_storage"] = "ok"
+    try:
+        minio = boto3.client(
+            "s3",
+            endpoint_url=settings.minio_endpoint,
+            aws_access_key_id=settings.minio_access_key,
+            aws_secret_access_key=settings.minio_secret_key,
+            config=Config(
+                signature_version="s3v4",
+                connect_timeout=3,
+                read_timeout=3,
+                retries={"max_attempts": 1},
+            ),
+            region_name="us-east-1",
+        )
+        await asyncio.to_thread(minio.head_bucket, Bucket=settings.minio_bucket)
+        checks["object_storage"] = "ok"
+    except Exception as exc:
+        checks["object_storage"] = "error"
+        errors.append(exc)
+
+    if await cache_ping():
+        checks["redis"] = "ok"
+    else:
+        checks["redis"] = "error"
+        errors.append(RuntimeError("Redis is unavailable"))
+
+    if errors:
+        checks["status"] = "error"
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=checks,
+        )
 
     return checks
 

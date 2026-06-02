@@ -19,7 +19,6 @@ export type Campaign = {
 
 export type Member = {
   user_id: string;
-  email: string;
   display_name: string;
   role: string;
   joined_at: string;
