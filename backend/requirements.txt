@@ -3,8 +3,10 @@ bcrypt==4.3.0
 boto3==1.38.23
 email-validator==2.3.0
 fastapi==0.115.12
+httpx==0.28.1
 PyJWT==2.10.1
 pydantic-settings==2.9.1
+pytest-asyncio==1.4.0
 python-multipart==0.0.20
 slowapi==0.1.9
 redis==8.0.0
