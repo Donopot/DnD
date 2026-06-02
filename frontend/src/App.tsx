@@ -31,6 +31,7 @@ const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => 
 const SpellbookPanel = lazy(() => import("./components/SpellbookPanel").then(m => ({ default: m.SpellbookPanel })));
 const DungeonGenerator = lazy(() => import("./components/DungeonGenerator").then(m => ({ default: m.DungeonGenerator })));
 const ItemCompendium = lazy(() => import("./components/ItemCompendium").then(m => ({ default: m.ItemCompendium })));
+const CharacterWizard = lazy(() => import("./components/CharacterWizard").then(m => ({ default: m.CharacterWizard })));
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -70,6 +71,7 @@ export default function App() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
+  const [showCharacterWizard, setShowCharacterWizard] = useState(false);
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [scenes, setScenes] = useState<Scene[]>([]);
@@ -938,6 +940,16 @@ export default function App() {
         <details className="gm-panel-section" open>
           <summary>👤 Personnages</summary>
           <div className="character-section" data-campaign-tab="characters">
+            {/* Quick wizard button */}
+            <button
+              className="primary-button compact"
+              onClick={() => setShowCharacterWizard(true)}
+              style={{ width: "100%", marginBottom: "0.5rem" }}
+              type="button"
+            >
+              ✨ Création assistée
+            </button>
+
             <form className="character-form" onSubmit={handleCreateCharacter}>
               <label><input name="name" minLength={2} maxLength={120} required placeholder="Nom du personnage" /></label>
               <div className="mini-grid">
@@ -1245,6 +1257,22 @@ export default function App() {
           </div>
         ))}
       </div>
+
+      {/* ── Character Wizard Modal ───────────────────────────── */}
+      {showCharacterWizard && (
+        <div className="modal-overlay" onClick={() => setShowCharacterWizard(false)}>
+          <div className="bestiary-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "500px" }}>
+            <CharacterWizard
+              token={token}
+              campaignId={selectedCampaign?.id ?? ""}
+              onCreated={() => {
+                setShowCharacterWizard(false);
+                if (selectedCampaign) { void loadCharacters(selectedCampaign.id); }
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* ── Character Inspector Modal ─────────────────────────── */}
       {inspectedCharacterId && (() => {
