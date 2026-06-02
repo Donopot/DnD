@@ -100,6 +100,13 @@ export default function App() {
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
 
+  // Listen for keyboard shortcut to toggle focus map (from CampaignMap)
+  useEffect(() => {
+    function onToggleFocus() { setIsFocusMap((prev) => !prev); }
+    window.addEventListener("toggle-focus-map", onToggleFocus);
+    return () => window.removeEventListener("toggle-focus-map", onToggleFocus);
+  }, []);
+
   useEffect(() => {
     if (!token) {
       return;

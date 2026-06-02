@@ -60,13 +60,18 @@ export function CampaignMap({
   const [dragTokenId, setDragTokenId] = useState("");
   const [selectedTokenId, setSelectedTokenId] = useState("");
   const [showGrid, setShowGrid] = useState(true);
+  const [sceneTransitioning, setSceneTransitioning] = useState(false);
+
+  // Minimap ref
+  const minimapRef = useRef<HTMLCanvasElement>(null);
 
   // Reset zoom and center on scene when scene changes
   useEffect(() => {
+    setSceneTransitioning(true);
+    const timer = setTimeout(() => setSceneTransitioning(false), 300);
     setZoom(1);
     const el = scrollRef.current;
     if (el && selectedScene) {
-      // Center the viewport on the scene image
       const sw = selectedScene.width ?? 2800;
       const sh = selectedScene.height ?? 2100;
       el.scrollLeft = Math.max(0, (sw - el.clientWidth) / 2);
@@ -75,6 +80,7 @@ export function CampaignMap({
       el.scrollLeft = 0;
       el.scrollTop = 0;
     }
+    return () => clearTimeout(timer);
   }, [selectedSceneId]);
 
   const zoomPercent = Math.round(zoom * 100);
@@ -130,6 +136,50 @@ export function CampaignMap({
     return () => el.removeEventListener("wheel", handleWheel);
   }, []);
 
+  // ── Keyboard shortcuts ───────────────────────────────────────────────────
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Don't capture when typing in an input
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      switch (e.key) {
+        case " ":
+          e.preventDefault();
+          setPanMode((p) => !p);
+          break;
+        case "g":
+        case "G":
+          setShowGrid((g) => !g);
+          break;
+        case "f":
+        case "F":
+          // Dispatch focus-map toggle via custom event (handled by parent App)
+          window.dispatchEvent(new CustomEvent("toggle-focus-map"));
+          break;
+        case "0":
+          setZoom(1);
+          if (scrollRef.current && selectedScene) {
+            const sw = selectedScene.width ?? 2800;
+            const sh = selectedScene.height ?? 2100;
+            scrollRef.current.scrollLeft = Math.max(0, (sw - scrollRef.current.clientWidth) / 2);
+            scrollRef.current.scrollTop = Math.max(0, (sh - scrollRef.current.clientHeight) / 2);
+          }
+          break;
+        case "z":
+        case "Z":
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent("undo-token-move"));
+          }
+          break;
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedScene]);
+
   // ── Pan ─────────────────────────────────────────────────────────────────
 
   function handlePanPointerDown(event: PointerEvent) {
@@ -181,6 +231,71 @@ export function CampaignMap({
   function handleBoardPointerUp() {
     setDragTokenId("");
   }
+
+  // ── Minimap rendering ────────────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = minimapRef.current;
+    if (!canvas || !selectedScene) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const bw = selectedScene.width;
+    const bh = selectedScene.height;
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const scale = Math.min(cw / bw, ch / bh);
+
+    // Clear
+    ctx.clearRect(0, 0, cw, ch);
+
+    // Draw background (dark)
+    ctx.fillStyle = "#0f1923";
+    ctx.fillRect(0, 0, cw, ch);
+
+    // Draw scene area
+    const sx = (cw - bw * scale) / 2;
+    const sy = (ch - bh * scale) / 2;
+    ctx.fillStyle = "#1a2a24";
+    ctx.fillRect(sx, sy, bw * scale, bh * scale);
+
+    // Draw grid hint
+    ctx.strokeStyle = "#2a3a2e";
+    ctx.lineWidth = 0.5;
+    const gs = gridSize * scale;
+    for (let x = sx; x <= sx + bw * scale; x += gs) {
+      ctx.beginPath();
+      ctx.moveTo(x, sy);
+      ctx.lineTo(x, sy + bh * scale);
+      ctx.stroke();
+    }
+    for (let y = sy; y <= sy + bh * scale; y += gs) {
+      ctx.beginPath();
+      ctx.moveTo(sx, y);
+      ctx.lineTo(sx + bw * scale, y);
+      ctx.stroke();
+    }
+
+    // Draw token dots
+    for (const t of sceneTokens) {
+      ctx.fillStyle = t.color || "#c5b358";
+      ctx.beginPath();
+      ctx.arc(sx + (t.x / bw) * bw * scale, sy + (t.y / bh) * bh * scale, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw viewport rectangle
+    const el = scrollRef.current;
+    if (el) {
+      const vx = el.scrollLeft / bw * bw * scale;
+      const vy = el.scrollTop / bh * bh * scale;
+      const vw = (el.clientWidth / zoom) / bw * bw * scale;
+      const vh = (el.clientHeight / zoom) / bh * bh * scale;
+      ctx.strokeStyle = "#c5b358";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(sx + vx, sy + vy, vw, vh);
+    }
+  }, [selectedScene, sceneTokens, zoom, sceneBackgroundObjectUrl]);
 
   // ── Render ──────────────────────────────────────────────────────────────
 
@@ -262,7 +377,7 @@ export function CampaignMap({
         >
           <div
             ref={boardRef}
-            className={`campaign-map-board ${sceneBackgroundObjectUrl ? "with-background" : ""} ${dragTokenId ? "is-dragging" : ""} ${showGrid ? "show-grid" : ""}`}
+            className={`campaign-map-board ${sceneBackgroundObjectUrl ? "with-background" : ""} ${dragTokenId ? "is-dragging" : ""} ${showGrid ? "show-grid" : ""} ${sceneTransitioning ? "scene-transitioning" : ""}`}
             onPointerMove={isGM ? handleBoardPointerMove : undefined}
             onPointerUp={isGM ? handleBoardPointerUp : undefined}
             onPointerCancel={isGM ? () => setDragTokenId("") : undefined}
@@ -298,11 +413,15 @@ export function CampaignMap({
               const hpPercent = token.metadata?.hp_max
                 ? Math.round(((token.metadata?.hp_current as number) ?? 0) / (token.metadata.hp_max as number) * 100)
                 : null;
+
               const isPlayerToken = myTokenIds.has(token.id);
+              const isBloodied = hpPercent !== null && hpPercent <= 50 && hpPercent > 0;
+              const isDefeated = hpPercent !== null && hpPercent <= 0;
+              const isConcentrating = (token.metadata as Record<string, unknown> | null)?.conditions && Array.isArray((token.metadata as Record<string, unknown>)?.conditions) && ((token.metadata as Record<string, unknown>)?.conditions as string[]).includes("concentrating");
 
               return (
                 <div
-                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""}`}
+                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
                   onClick={() => isGM ? setSelectedTokenId(token.id) : undefined}
@@ -354,6 +473,14 @@ export function CampaignMap({
           </div>
         </div>
       </div>
+
+      {/* ── Minimap ─────────────────────────────────────────── */}
+      <canvas
+        ref={minimapRef}
+        className="campaign-map-minimap"
+        width={160}
+        height={120}
+      />
     </div>
   );
 }

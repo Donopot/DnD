@@ -9365,6 +9365,7 @@ select {
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  position: relative;
 }
 
 .campaign-map-empty {
@@ -11331,6 +11332,64 @@ select {
 
 .campaign-map-grid-toggle:hover { color: #c0c0a0; border-color: #5a6a5e; }
 .campaign-map-grid-toggle.active { color: #c5b358; border-color: #c5b358; }
+
+/* Minimap */
+.campaign-map-minimap {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid #3a4a3e;
+  border-radius: 4px;
+  background: #0f1923;
+  z-index: 10;
+  opacity: 0.85;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.campaign-map-minimap:hover {
+  opacity: 1;
+}
+
+/* Scene transition */
+.campaign-map-board {
+  transition: opacity 0.3s ease;
+}
+
+.campaign-map-board.scene-transitioning {
+  opacity: 0.5;
+}
+
+/* Snap highlight during drag */
+.campaign-map-board.is-dragging {
+  cursor: grabbing;
+}
+
+/* Token state indicators */
+.campaign-map-token.token-bloodied {
+  box-shadow: 0 0 8px rgba(220, 60, 60, 0.6), 0 2px 6px rgba(0,0,0,0.4);
+  border-color: rgba(220, 60, 60, 0.5);
+}
+
+.campaign-map-token.token-defeated {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+  border-color: rgba(100, 100, 100, 0.5);
+}
+
+.campaign-map-token.token-concentrating {
+  box-shadow: 0 0 10px rgba(197, 179, 88, 0.7), 0 2px 6px rgba(0,0,0,0.4);
+  border-color: rgba(197, 179, 88, 0.6);
+}
+
+/* Token snap visual (highlight target grid cell) */
+.token-snap-highlight {
+  position: absolute;
+  border: 2px dashed rgba(197, 179, 88, 0.5);
+  background: rgba(197, 179, 88, 0.1);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 5;
+}
 
 .campaign-map-board.show-grid {
   background-image:
