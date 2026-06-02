@@ -1,0 +1,46 @@
+# Render Blueprint — D&D Virtual Tabletop
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # ── Backend API (FastAPI + WebSocket) ──
+  - type: web
+    name: dnd-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    rootDir: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: BACKEND_CORS_ORIGINS
+        fromGroup: dnd-shared
+      - key: BACKEND_SECRET_KEY
+        fromGroup: dnd-shared
+      - key: DATABASE_URL
+        fromGroup: dnd-shared
+      - key: REDIS_URL
+        fromGroup: dnd-shared
+      - key: MINIO_ENDPOINT
+        fromGroup: dnd-shared
+      - key: MINIO_BUCKET
+        fromGroup: dnd-shared
+      - key: MINIO_ACCESS_KEY
+        fromGroup: dnd-shared
+      - key: MINIO_SECRET_KEY
+        fromGroup: dnd-shared
+    autoDeploy: true
+    plan: free
+
+  # ── Frontend SPA (React / Vite) ──
+  - type: static
+    name: dnd-frontend
+    rootDir: frontend/
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromGroup: dnd-shared
+    autoDeploy: true
+    plan: free

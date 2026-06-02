@@ -59,7 +59,7 @@ import type {
   User,
 } from "./api/types";
 
-const API_BASE = "";
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
 export default function App() {
