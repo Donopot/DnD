@@ -12962,3 +12962,66 @@ select {
   padding: 0.5rem 0.75rem;
   border-top: 1px solid #2a3a2e;
 }
+
+/* ── Campaign View Tabs ─────────────────────────────────── */
+.campaign-view-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid #2a3a2e;
+  flex-wrap: wrap;
+}
+
+.campaign-view-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #889988;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.campaign-view-tabs button strong {
+  font-size: 0.8rem;
+  color: #c0c0a0;
+}
+
+.campaign-view-tabs button small {
+  font-size: 0.65rem;
+  color: #667766;
+}
+
+.campaign-view-tabs button:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: #3a4a3e;
+}
+
+.campaign-view-tabs button.active {
+  background: rgba(90,160,110,0.15);
+  border-color: #5aa06e;
+  color: #c0e0c0;
+}
+
+.campaign-view-tabs button.active strong {
+  color: #c0e0c0;
+}
+
+.campaign-view-tabs button.active small {
+  color: #88a888;
+}
+
+/* ── Campaign overview in panels ────────────────────────── */
+.campaign-overview {
+  padding: 0.5rem;
+}
+
+.campaign-overview .action-row {
+  margin: 0.5rem 0;
+}

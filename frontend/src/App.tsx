@@ -17,6 +17,7 @@ import { GmLobby } from "./components/GmLobby";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { HandoutPanel } from "./components/HandoutPanel";
+import { CampaignViewTabs, type CampaignView } from "./components/CampaignViewTabs";
 
 // ── Lazy-loaded heavy components (code-split for faster initial load) ────
 const CombatTracker = lazy(() => import("./components/CombatTracker").then(m => ({ default: m.CombatTracker })));
@@ -95,6 +96,7 @@ export default function App() {
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
+  const [gmView, setGmView] = useState<CampaignView>("live");
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
@@ -915,6 +917,8 @@ export default function App() {
           </button>
         </div>
 
+        <CampaignViewTabs activeView={gmView} onChange={setGmView} />
+
         <CampaignMap
           isGM={true}
           wsRef={wsRef}
@@ -936,74 +940,9 @@ export default function App() {
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
       <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
-        {/* Characters panel */}
-        <details className="gm-panel-section" open>
-          <summary>👤 Personnages</summary>
-          <div className="character-section" data-campaign-tab="characters">
-            {/* Quick wizard button */}
-            <button
-              className="primary-button compact"
-              onClick={() => setShowCharacterWizard(true)}
-              style={{ width: "100%", marginBottom: "0.5rem" }}
-              type="button"
-            >
-              ✨ Création assistée
-            </button>
-
-            <form className="character-form" onSubmit={handleCreateCharacter}>
-              <label><input name="name" minLength={2} maxLength={120} required placeholder="Nom du personnage" /></label>
-              <div className="mini-grid">
-                <label><input name="ancestry" maxLength={80} placeholder="Origine" /></label>
-                <label><input name="class_name" maxLength={80} placeholder="Classe" /></label>
-              </div>
-              <div className="mini-grid">
-                <label><input name="level" type="number" min={1} max={20} defaultValue={1} placeholder="Niv." /></label>
-                <label><input name="hp_max" type="number" min={1} defaultValue={10} placeholder="PV" /></label>
-                <label><input name="armor_class" type="number" min={1} max={40} defaultValue={10} placeholder="CA" /></label>
-                <label><input name="speed" type="number" min={0} max={200} defaultValue={30} placeholder="Vit." /></label>
-              </div>
-              <button className="primary-button compact" disabled={isBusy} type="submit">
-                <Plus aria-hidden="true" size={12} /> Ajouter
-              </button>
-            </form>
-
-            <div className="character-list">
-              {characters.map((ch) => (
-                <div
-                  className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
-                  key={ch.id}
-                >
-                  <button
-                    className="character-row-btn"
-                    onClick={() => setSelectedCharacterId(ch.id)}
-                    type="button"
-                  >
-                    <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
-                    <em>{ch.hp_current}/{ch.hp_max} PV</em>
-                  </button>
-                  <button
-                    className="character-inspect-btn"
-                    onClick={() => setInspectedCharacterId(ch.id)}
-                    title="Gérer (PV, XP, équipement, conditions)"
-                    type="button"
-                  >
-                    🔍
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {selectedCharacter && (
-              <EditCharacterSheet
-                character={selectedCharacter}
-                token={token}
-                isBusy={isBusy}
-                onSave={(updated) => setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))}
-              />
-            )}
-          </div>
-        </details>
-
+        {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
+        {gmView === "live" && (
+        <>
         {/* Combat Tracker */}
         <details className="gm-panel-section" open>
           <summary>
@@ -1048,12 +987,6 @@ export default function App() {
           <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
         </details>
 
-        {/* Dungeon Generator */}
-        <details className="gm-panel-section">
-          <summary>🗺️ Générateur de donjons</summary>
-          <DungeonGenerator token={token} />
-        </details>
-
         {/* Dice Roller */}
         <details className="gm-panel-section">
           <summary>
@@ -1084,15 +1017,21 @@ export default function App() {
           />
         </details>
 
-        {/* Session Stats */}
+        {/* Messages MJ → Joueurs */}
         <details className="gm-panel-section">
-          <summary>📊 Statistiques</summary>
-          <SessionStats
+          <summary>💬 Communication</summary>
+          <GmMessagePanel
             campaignId={selectedCampaign?.id ?? ""}
             token={token}
+            members={members}
           />
         </details>
+        </>
+        )}
 
+        {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
+        {gmView === "journal" && (
+        <>
         {/* Session Log */}
         <details className="gm-panel-section">
           <summary>📋 Journal</summary>
@@ -1121,6 +1060,26 @@ export default function App() {
           />
         </details>
 
+        {/* Session Stats */}
+        <details className="gm-panel-section">
+          <summary>📊 Statistiques</summary>
+          <SessionStats
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
+          />
+        </details>
+        </>
+        )}
+
+        {/* ── PREPARATION — Donjons, Documents ───────────────── */}
+        {gmView === "preparation" && (
+        <>
+        {/* Dungeon Generator */}
+        <details className="gm-panel-section">
+          <summary>🗺️ Générateur de donjons</summary>
+          <DungeonGenerator token={token} />
+        </details>
+
         {/* Handouts */}
         <details className="gm-panel-section">
           <summary>📄 Documents</summary>
@@ -1133,33 +1092,30 @@ export default function App() {
             onDeleteHandout={(h) => void handleDeleteHandout(h)}
           />
         </details>
+        </>
+        )}
 
-        {/* Homebrew */}
+        {/* ── LIBRARY — Bestiaire, Sorts, Équipement ──────────── */}
+        {gmView === "library" && (
+        <>
+        {/* Bestiary */}
         <details className="gm-panel-section">
-          <summary>📚 Bibliothèque</summary>
-          <HomebrewPanel
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            scenes={scenes}
-            encounters={encounters}
-            isBusy={isBusy}
-          />
-        </details>
-
-        {/* Messages MJ → Joueurs */}
-        <details className="gm-panel-section">
-          <summary>💬 Communication</summary>
-          <GmMessagePanel
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            members={members}
-          />
-        </details>
-
-        {/* SRD Reference */}
-        <details className="gm-panel-section">
-          <summary>📖 Règles (SRD)</summary>
-          <RulesReference />
+          <summary>
+            💀 Bestiaire
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("bestiary", "💀 Bestiaire");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
+          <BestiaryPanel token={token} />
         </details>
 
         {/* Spellbook */}
@@ -1182,31 +1138,123 @@ export default function App() {
           <SpellbookPanel token={token} />
         </details>
 
-        {/* Bestiary */}
-        <details className="gm-panel-section">
-          <summary>
-            💀 Bestiaire
-            <button
-              className="panel-detach-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                fp.open("bestiary", "💀 Bestiaire");
-              }}
-              title="Détacher en panneau flottant"
-              type="button"
-            >
-              <ExternalLink size={12} />
-            </button>
-          </summary>
-          <BestiaryPanel token={token} />
-        </details>
-
         {/* Item Compendium */}
         <details className="gm-panel-section">
           <summary>🎒 Équipement</summary>
           <ItemCompendium token={token} />
         </details>
+
+        {/* Homebrew */}
+        <details className="gm-panel-section">
+          <summary>📚 Bibliothèque</summary>
+          <HomebrewPanel
+            campaignId={selectedCampaign?.id ?? ""}
+            token={token}
+            scenes={scenes}
+            encounters={encounters}
+            isBusy={isBusy}
+          />
+        </details>
+
+        {/* SRD Reference */}
+        <details className="gm-panel-section">
+          <summary>📖 Règles (SRD)</summary>
+          <RulesReference />
+        </details>
+        </>
+        )}
+
+        {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
+        {gmView === "campaign" && (
+        <>
+        <details className="gm-panel-section" open>
+          <summary>📋 Infos campagne</summary>
+          {selectedCampaign && (
+            <div className="campaign-overview">
+              <p className="muted">{selectedCampaign.description || "Aucune description."}</p>
+              <div className="action-row">
+                <button className="primary-button compact" disabled={isBusy} onClick={handleCreateInvite} type="button">
+                  <UserPlus aria-hidden="true" size={14} /> Inviter un joueur
+                </button>
+              </div>
+              <h4>Membres ({members.length})</h4>
+              <div className="member-list">
+                {members.map((m) => (
+                  <div className="member-row" key={m.user_id}>
+                    <span>{m.display_name}</span>
+                    <small>{m.role}</small>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </details>
+        </>
+        )}
+
+        {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
+        {gmView === "characters" && (
+        <>
+        <details className="gm-panel-section" open>
+          <summary>👤 Personnages</summary>
+          <div className="character-section">
+            <button
+              className="primary-button compact"
+              onClick={() => setShowCharacterWizard(true)}
+              style={{ width: "100%", marginBottom: "0.5rem" }}
+              type="button"
+            >
+              ✨ Création assistée
+            </button>
+
+            <form className="character-form" onSubmit={handleCreateCharacter}>
+              <label><input name="name" minLength={2} maxLength={120} required placeholder="Nom du personnage" /></label>
+              <div className="mini-grid">
+                <label><input name="ancestry" maxLength={80} placeholder="Origine" /></label>
+                <label><input name="class_name" maxLength={80} placeholder="Classe" /></label>
+              </div>
+              <div className="mini-grid">
+                <label><input name="level" type="number" min={1} max={20} defaultValue={1} placeholder="Niv." /></label>
+                <label><input name="hp_max" type="number" min={1} defaultValue={10} placeholder="PV" /></label>
+                <label><input name="armor_class" type="number" min={1} max={40} defaultValue={10} placeholder="CA" /></label>
+                <label><input name="speed" type="number" min={0} max={200} defaultValue={30} placeholder="Vit." /></label>
+              </div>
+              <button className="primary-button compact" disabled={isBusy} type="submit">
+                <Plus aria-hidden="true" size={12} /> Ajouter
+              </button>
+            </form>
+
+            <div className="character-list">
+              {characters.map((ch) => (
+                <div className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`} key={ch.id}>
+                  <button className="character-row-btn" onClick={() => setSelectedCharacterId(ch.id)} type="button">
+                    <span><strong>{ch.name}</strong><small>Niv.{ch.level} {ch.class_name}</small></span>
+                    <em>{ch.hp_current}/{ch.hp_max} PV</em>
+                  </button>
+                  <button className="character-inspect-btn" onClick={() => setInspectedCharacterId(ch.id)} title="Gérer (PV, XP, équipement, conditions)" type="button">🔍</button>
+                </div>
+              ))}
+            </div>
+
+            {selectedCharacter && (
+              <EditCharacterSheet
+                character={selectedCharacter}
+                token={token}
+                isBusy={isBusy}
+                onSave={(updated) => setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))}
+              />
+            )}
+          </div>
+        </details>
+        </>
+        )}
+
+        {/* ── SETTINGS ─────────────────────────────────────────── */}
+        {gmView === "settings" && (
+          <div className="empty-state compact-empty">
+            <p>Paramètres à venir : permissions, layout, thème.</p>
+          </div>
+        )}
       </aside>
       </Suspense>
 
