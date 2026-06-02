@@ -761,3 +761,29 @@ class ItemPublic(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── NPC Generator ──────────────────────────────────────────────────────────
+
+class NpcAppearance(BaseModel):
+    taille: str
+    carrure: str
+    cheveux: str
+    yeux: str
+    peau: str
+    signe_distinctif: str
+
+
+class NpcPublic(BaseModel):
+    race: str
+    genre: str
+    nom: str
+    age: int
+    apparence: NpcAppearance
+    occupation: str
+    personnalite: str
+    ideal: str
+    lien: str
+    defaut: str
+    manierisme: str
+    secret: str

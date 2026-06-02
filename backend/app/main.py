@@ -26,6 +26,7 @@ from app.routers import handouts
 from app.routers import homebrew
 from app.routers import items
 from app.routers import messages
+from app.routers import npc_generator
 from app.routers import player
 from app.routers import session
 from app.routers import spells
@@ -61,6 +62,7 @@ app.include_router(handouts.router)
 app.include_router(homebrew.router)
 app.include_router(player.router)
 app.include_router(messages.router)
+app.include_router(npc_generator.router)
 app.include_router(session.ws_router)
 
 

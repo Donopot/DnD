@@ -3,6 +3,7 @@ import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } 
 import type { Character, Scene, SceneToken } from "../api/types";
 import { FogLayer } from "./FogLayer";
 import { MapTools } from "./MapTools";
+import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,9 @@ export function CampaignMap({
   const [selectedTokenId, setSelectedTokenId] = useState("");
   const [showGrid, setShowGrid] = useState(true);
   const [sceneTransitioning, setSceneTransitioning] = useState(false);
+  const [weather, setWeather] = useState<WeatherType>("clear");
+  const [weatherIntensity, setWeatherIntensity] = useState(50);
+  const [weatherEnabled, setWeatherEnabled] = useState(false);
 
   // Minimap ref
   const minimapRef = useRef<HTMLCanvasElement>(null);
@@ -415,6 +419,17 @@ export function CampaignMap({
               panMode={panMode}
             />
 
+            {/* Weather effects */}
+            {selectedScene && (
+              <WeatherLayer
+                type={weather}
+                intensity={weatherIntensity}
+                width={selectedScene.width}
+                height={selectedScene.height}
+                enabled={weatherEnabled}
+              />
+            )}
+
             {/* Tokens */}
             {sceneTokens.map((token) => {
               const hpPercent = token.metadata?.hp_max
@@ -434,6 +449,36 @@ export function CampaignMap({
                 ((token.metadata as Record<string, unknown>)?.conditions as string[]).includes(
                   "concentrating",
                 );
+
+              /* Conditions visuelles sur les tokens */
+              const conditions: string[] =
+                (token.metadata as Record<string, unknown> | null)?.conditions &&
+                Array.isArray((token.metadata as Record<string, unknown>)?.conditions)
+                  ? ((token.metadata as Record<string, unknown>)?.conditions as string[])
+                  : [];
+
+              const CONDITION_EMOJI: Record<string, string> = {
+                blinded: "👁️‍🗨️",
+                charmed: "💫",
+                deafened: "🔇",
+                frightened: "😱",
+                grappled: "🤝",
+                incapacitated: "💤",
+                invisible: "👻",
+                paralyzed: "🧊",
+                petrified: "🪨",
+                poisoned: "☠️",
+                prone: "⬇️",
+                restrained: "⛓️",
+                stunned: "⚡",
+                unconscious: "💀",
+                concentrating: "🔮",
+                exhausted: "😩",
+                bloodied: "🩸",
+                hidden: "🙈",
+                dodging: "🏃",
+                readied: "⏳",
+              };
 
               return (
                 <div
@@ -464,6 +509,22 @@ export function CampaignMap({
                         className="token-hp-fill"
                         style={{ width: `${Math.max(0, Math.min(100, hpPercent))}%` }}
                       />
+                    </div>
+                  )}
+
+                  {/* Condition badges */}
+                  {conditions.length > 0 && (
+                    <div className="token-conditions">
+                      {conditions.slice(0, 4).map((c) => (
+                        <span key={c} className="token-condition-badge" title={c}>
+                          {CONDITION_EMOJI[c] || "❓"}
+                        </span>
+                      ))}
+                      {conditions.length > 4 && (
+                        <span className="token-condition-badge token-condition-more">
+                          +{conditions.length - 4}
+                        </span>
+                      )}
                     </div>
                   )}
 

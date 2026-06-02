@@ -80,3 +80,19 @@ Combat · Rencontres · Dés · Bestiaire · Grimoire · Actions rapides · Mess
 - **Outils Joueur** : onglets, dés rapides, ping/ruler, notifications combat, markdown handouts
 - **UX** : thème dark/light, skeletons, toasts, resize handles, focus map, raccourcis clavier
 - **Maintenance** : 3 cron jobs (backup 03h, audit 06h, suggestions 07h30)
+
+## 🆕 Phases 46-49 — Immersion & Social (2026-06-02)
+
+| # | Titre | Statut |
+|---|-------|--------|
+| 46 | 🎧 Ambiance audio (9 playlists, contrôle volume, synthé brown noise) | ✅ |
+| 47 | (réservé — brouillard de guerre dynamique) | 🔜 |
+| 48 | 🌦️ Météo & Atmosphère (pluie, neige, brouillard, nuit — canvas animé) | ✅ |
+| 49 | 🧙 Générateur de PNJ (noms, apparence, personnalité, secrets — tables FR) | ✅ |
+
+## 🆕 Phases 53-60 — Outils MJ & Social (2026-06-02)
+
+| # | Titre | Statut |
+|---|-------|--------|
+| 53 | 💬 Chat de campagne (IC/OOC/whispers, dés rapides, WebSocket) | ✅ |
+| 59 | 🏷️ États visuels sur tokens (20 conditions, badges emoji, max 4 affichés) | ✅ |

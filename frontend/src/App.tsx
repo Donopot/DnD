@@ -69,6 +69,15 @@ const ItemCompendium = lazy(() =>
 const CharacterWizard = lazy(() =>
   import("./components/CharacterWizard").then((m) => ({ default: m.CharacterWizard })),
 );
+const NpcGenerator = lazy(() =>
+  import("./components/NpcGenerator").then((m) => ({ default: m.default })),
+);
+const ChatPanel = lazy(() =>
+  import("./components/ChatPanel").then((m) => ({ default: m.default })),
+);
+const AmbiancePanel = lazy(() =>
+  import("./components/AmbiancePanel").then((m) => ({ default: m.AmbiancePanel })),
+);
 
 const PanelFallback = () => (
   <div className="panel-loading">

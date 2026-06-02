@@ -346,9 +346,10 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
         user_id = decode_access_token(token)
         row = await get_pool().fetchrow(
             """
-            select role
-            from campaign_members
-            where campaign_id = $1 and user_id = $2
+            select cm.role, u.display_name
+            from campaign_members cm
+            join users u on u.id = cm.user_id
+            where cm.campaign_id = $1 and cm.user_id = $2
             """,
             campaign_id,
             user_id,
@@ -357,6 +358,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
         role = row["role"]
+        display_name = row["display_name"]
     except (PyJWTError, HTTPException):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -440,7 +442,40 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     },
                 )
 
-            elif msg_type == "ruler":
+            elif msg_type == "chat_message":
+                # Broadcast chat message to all clients in campaign
+                content = str(message.get("content", ""))[:2000]
+                mode = message.get("mode", "ic")  # ic, ooc, whisper
+                target = message.get("target")    # display_name for whispers
+
+                if not content.strip():
+                    continue
+
+                chat_payload = {
+                    "type": "chat_message",
+                    "content": content,
+                    "mode": mode,
+                    "sender_id": str(user_id),
+                    "sender_name": display_name,
+                    "sender_role": role,
+                    "ts": message.get("ts", 0),
+                }
+                if target:
+                    chat_payload["target"] = target
+
+                # Also persist to messages table
+                with __import__("contextlib").suppress(Exception):
+                    await get_pool().execute(
+                        """insert into gm_messages
+                           (campaign_id, sender_id, content, kind, created_at)
+                           values ($1, $2, $3, $4, now())""",
+                        campaign_id,
+                        user_id,
+                        content,
+                        "chat",
+                    )
+
+                await manager.broadcast(campaign_id, chat_payload)
                 # Broadcast ruler measurement (visual only, GM and other players see it)
                 await manager.broadcast(
                     campaign_id,
