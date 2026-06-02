@@ -4,6 +4,48 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phases 34–38] — Plan UX : Interface complète (2026-06-02)
+
+### Phase 34 — Correctifs critiques
+- **1.1** Hook `useSceneBackground()` partagé — le fond de carte est maintenant chargé côté joueur
+- **1.2** Auto-centrage de la carte au changement de scène
+- **1.3** Mode focus map — bouton Maximize/Minimize dans la topbar GM (raccourci `F`)
+- **1.4** Resize handles CSS sur sidebar (160–340px) et panneaux (240–500px)
+
+### Phase 35 — Panneaux flottants
+- **2.1** Hook `useFloatingPanels()` + composant `FloatingPanel` (drag, resize, minimize, persist localStorage)
+- **2.2-2.4** Boutons détacher sur Combat, Dés, Rencontres → panneaux flottants draggables
+- **2.5** Toggle masquer/afficher tous les panneaux dans la topbar GM
+
+### Phase 36 — Interface joueur refondue
+- **3.1** Barre d'onglets (👤🎲📄⚔️📝) remplaçant le scroll monolithique
+- **3.2** Boutons d20 rapides (Initiative, Attaque, Avantage, Sauvegarde, Compétence)
+- **3.3** MapTools déjà accessible aux joueurs (ping + règle) — confirmé
+- **3.4** Notifications combat en overlay (toast animé 3s)
+
+### Phase 37 — Carte immersive
+- **4.1** Minimap canvas 160×120 (tokens, viewport rect, grid) en bas à droite
+- **4.2** Raccourcis clavier : Space=pan, G=grid, F=fullscreen, 0=reset zoom, Ctrl+Z=undo
+- **4.3** Snap highlight visuel pendant le drag de token
+- **4.4** États visuels tokens : bloodied (glow rouge), defeated (gris), concentrating (glow or)
+- **4.5** Transition entre scènes : fondu 300ms
+
+### Phase 38 — Polish & DX
+- **5.1** Rendu Markdown des handouts (`marked`) — plus de `<pre>` brut
+- **5.2** Thème dark/light avec toggle ☀️/🌙 (CSS variables, localStorage)
+- **5.4** Skeleton loaders animés (shimmer) pour les composants lazy
+- **5.5** Toast system (`useToast`) remplaçant MessageDock — auto-dismiss 4s, stack
+
+### Added
+- 8 nouveaux fichiers : `useSceneBackground`, `useFloatingPanels`, `useTheme`, `useToast`, `FloatingPanel`, `MarkdownRenderer`
+- CSS: +770 lignes (floating panels, tab bar, minimap, tokens, skeletons, toasts, markdown)
+
+### Metrics
+- TSC: 0 erreur, Build: 474ms/348 kB, Tests: 54/54
+- 5 phases, ~14h estimées → réalisées en 1 session
+
+---
+
 ## [Audit UX + Plan d'amélioration] — Revue exhaustive frontend (2026-06-01)
 
 ### Added
