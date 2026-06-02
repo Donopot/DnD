@@ -2,7 +2,7 @@
 set -euo pipefail
 API="http://127.0.0.1:8091/api"
 EMAIL="smoke-fog-$(date +%s)@test.com"
-PASS="test1234"
+PASS="SmokePass123!"
 echo "=== Phase 16 Smoke: Fog of War ==="
 
 REG=$(curl -fsS -X POST "$API/auth/register" -H "Content-Type: application/json" -d "{\"email\":\"$EMAIL\",\"display_name\":\"FogTester\",\"password\":\"$PASS\",\"confirm_password\":\"$PASS\"}")
