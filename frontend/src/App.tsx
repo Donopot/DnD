@@ -1135,6 +1135,55 @@ export default function App() {
               </details>
               )}
 
+              {/* ChatPanel */}
+              {liveModePanelIds.has("chat") && (
+              <details className="gm-panel-section">
+                <summary>
+                  💭 Chat en direct
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("chat", "💭 Chat");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <ChatPanel
+                  campaignId={selectedCampaign?.id ?? ""}
+                  wsRef={wsRef}
+                  userId={user?.id}
+                  displayName={user?.display_name}
+                />
+              </details>
+              )}
+
+              {/* AmbiancePanel */}
+              {liveModePanelIds.has("ambiance") && (
+              <details className="gm-panel-section">
+                <summary>
+                  🎵 Ambiance
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("ambiance", "🎵 Ambiance");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <AmbiancePanel isGM={true} />
+              </details>
+              )}
+
               {/* GmNotesPanel */}
               {liveModePanelIds.has("gm-notes") && (
               <details className="gm-panel-section">
@@ -1500,6 +1549,28 @@ export default function App() {
                 <RulesReference />
               </details>
               )}
+
+              {/* NpcGenerator */}
+              {liveModePanelIds.has("npc-generator") && (
+              <details className="gm-panel-section">
+                <summary>
+                  🧑 Générateur PNJ
+                  <button
+                    className="panel-detach-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fp.open("npc-generator", "🧑 Générateur PNJ");
+                    }}
+                    title="Détacher"
+                    type="button"
+                  >
+                    <ExternalLink size={12} />
+                  </button>
+                </summary>
+                <NpcGenerator />
+              </details>
+              )}
             </>
           )}
 
@@ -1820,6 +1891,16 @@ export default function App() {
               selectedCharacter={selectedCharacter}
             />
           )}
+          {panel.id === "chat" && (
+            <ChatPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              wsRef={wsRef}
+              userId={user?.id}
+              displayName={user?.display_name}
+            />
+          )}
+          {panel.id === "ambiance" && <AmbiancePanel isGM={true} />}
+          {panel.id === "npc-generator" && <NpcGenerator />}
         </FloatingPanel>
       ))}
 

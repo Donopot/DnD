@@ -134,7 +134,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "🎵",
     category: "live",
     description: "Musique et sons d'ambiance",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -143,7 +143,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "💭",
     category: "live",
     description: "Chat IC/OOC avec les joueurs",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
 
@@ -257,7 +257,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "🧑",
     category: "library",
     description: "Créer des PNJ aléatoires",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
 
@@ -316,28 +316,7 @@ export function getGmPanelLabel(panelId: string): string {
   return GM_PANELS.find((p) => p.id === panelId)?.label ?? panelId;
 }
 
-/** Retourne les panneaux actifs d'une catégorie. */
-export function getActivePanelsByCategory(category: GmPanelCategory): GmPanelDefinition[] {
-  return GM_PANELS.filter((p) => p.category === category && p.status === "active");
-}
-
 /** Retourne tous les panneaux détachables. */
 export function getDetachablePanels(): GmPanelDefinition[] {
   return GM_PANELS.filter((p) => p.detachable);
 }
-
-// ── Mapping legacy → standard (pour transition PANEL-2) ──────────────
-
-/**
- * Mapping des anciens IDs (utilisés dans App.tsx) vers les nouveaux IDs standard.
- * Sera supprimé après PANEL-2 (normalisation).
- */
-export const LEGACY_ID_MAP: Record<string, GmPanelId> = {
-  quickactions: "quick-actions",
-  sessionlog: "session-log",
-  dice: "dice-roller",
-  encounter: "encounter-builder",
-  messages: "gm-messages",
-  dungeon: "dungeon-generator",
-  stats: "session-stats",
-};
