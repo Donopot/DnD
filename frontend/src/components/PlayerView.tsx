@@ -172,19 +172,22 @@ export function PlayerView({
     socket.onopen = () => {
       socket.send(JSON.stringify({ type: "auth", token }));
       setRealtimeStatus("online");
-      socket.send(JSON.stringify({ type: "ping" }));
     };
 
     socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-      if (payload.type === "session_changed") {
-        void loadSessionLog();
-        if (payload.resource === "handout") {
-          void loadHandouts();
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === "session_changed") {
+          void loadSessionLog();
+          if (payload.resource === "handout") {
+            void loadHandouts();
+          }
+          if (payload.resource === "encounter") {
+            void loadCombatState();
+          }
         }
-        if (payload.resource === "encounter") {
-          void loadCombatState();
-        }
+      } catch {
+        /* ignore malformed messages */
       }
     };
 
