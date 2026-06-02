@@ -1,0 +1,44 @@
+# ruff.toml — Python linter & formatter config
+target-version = "py312"
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes (unused imports, undefined names)
+    "I",   # isort (import ordering)
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear (common bugs)
+    "SIM", # simplify code
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade (modern syntax)
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "S101",   # assert (allowed in tests)
+    "S104",   # possible binding to all interfaces
+    "S105",   # hardcoded password string (tests/seeds)
+    "S106",   # hardcoded password func arg (tests)
+    "S311",   # non-cryptographic random (allowed for dice/game)
+    "S608",   # hardcoded SQL expression (test fixtures)
+    "B008",   # FastAPI Depends() in defaults — standard pattern
+    "RUF001", # ambiguous unicode characters
+]
+exclude = [
+    ".venv",
+    "__pycache__",
+    "alembic/versions/",
+    "scripts/seed_*.py",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[lint.pycodestyle]
+max-line-length = 120
+
+[lint.isort]
+known-first-party = ["app"]
+force-single-line = true

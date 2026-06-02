@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Backend: lint + tests ──
+  backend:
+    name: Backend (Python)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          pip install ruff pytest pytest-asyncio
+
+      - name: Ruff lint
+        run: |
+          source .venv/bin/activate
+          ruff check .
+
+      - name: Python compile
+        run: |
+          source .venv/bin/activate
+          python -m compileall -q app/
+
+      - name: Pytest
+        run: |
+          source .venv/bin/activate
+          python -m pytest --tb=short -q
+
+  # ── Frontend: tsc + build ──
+  frontend:
+    name: Frontend (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Vite build
+        run: npm run build
+
+  # ── Orphan components audit ──
+  orphans:
+    name: Orphan Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run orphan audit
+        run: |
+          python3 scripts/audit-orphans.py
+          # Extract orphan count; fail if > 0
+          COUNT=$(python3 scripts/audit-orphans.py 2>/dev/null | grep "→" | grep -oP '\d+')
+          if [ -n "$COUNT" ] && [ "$COUNT" -gt 0 ]; then
+            echo "❌ $COUNT orphan component(s) found"
+            python3 scripts/audit-orphans.py | grep "\["
+            exit 1
+          fi
+          echo "✅ No orphan components"
+
+  # ── Security scan ──
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for secrets
+        run: |
+          echo "=== Checking for hardcoded secrets ==="
+          if git grep -nPi "(api_key|secret|password|token)\s*=\s*['\"][^'\"$]{6,}['\"]" \
+               -- ':!*.example' ':!*test*' ':!.github/' ':!docs/' 2>/dev/null; then
+            echo "❌ Hardcoded secrets found — remove before merging"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets"
+
+      - name: Scan for dangerous patterns
+        run: |
+          if git grep -nPE "os\.system\(|shell\s*=\s*True|pickle\.loads?\(|eval\(|exec\(" \
+               -- '*.py' ':!*test*' 2>/dev/null; then
+            echo "❌ Dangerous patterns found"
+            exit 1
+          fi
+          echo "✅ No dangerous patterns"
+
+  # ── Docker Compose config check ──
+  compose:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose config
+        run: |
+          cp .env.example .env
+          docker compose config --quiet 2>&1 || {
+            echo "❌ docker-compose.yml is invalid"
+            exit 1
+          }
+          echo "✅ docker-compose.yml valid"

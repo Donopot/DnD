@@ -21,3 +21,6 @@ Thumbs.db
 
 frontend/tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# Linter caches
+.ruff_cache/
