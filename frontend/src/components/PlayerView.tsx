@@ -24,6 +24,7 @@ import type {
 } from "../api/types";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 import { PlayerNotifications } from "./PlayerNotifications";
 import { useSceneBackground } from "../hooks/useSceneBackground";
 
@@ -974,7 +975,7 @@ export function PlayerView({
                 </span>
               </div>
               {handout.content && (
-                <pre className="handout-content">{handout.content}</pre>
+                <MarkdownRenderer content={handout.content} className="handout-content" />
               )}
               {!handout.content && (
                 <p className="muted">Aucun contenu textuel.</p>

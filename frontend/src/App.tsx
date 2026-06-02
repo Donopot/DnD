@@ -6,6 +6,8 @@ import { CampaignMap } from "./components/CampaignMap";
 import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { FloatingPanel } from "./components/FloatingPanel";
+import { useTheme } from "./hooks/useTheme";
+import { useToast } from "./hooks/useToast";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { QuickActions } from "./components/QuickActions";
@@ -14,7 +16,6 @@ import { PlayerView } from "./components/PlayerView";
 import { GmLobby } from "./components/GmLobby";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { SessionLogPanel } from "./components/SessionLogPanel";
-import { MessageDock } from "./components/common";
 import { HandoutPanel } from "./components/HandoutPanel";
 
 // ── Lazy-loaded heavy components (code-split for faster initial load) ────
@@ -27,7 +28,14 @@ const RulesReference = lazy(() => import("./components/RulesReference").then(m =
 const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspector").then(m => ({ default: m.GmCharacterInspector })));
 const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
 
-const PanelFallback = () => <div className="panel-loading">⚡ Chargement…</div>;
+const PanelFallback = () => (
+  <div className="panel-loading">
+    <div className="skeleton skeleton-title" />
+    <div className="skeleton skeleton-text" />
+    <div className="skeleton skeleton-text short" />
+    <div className="skeleton skeleton-text" />
+  </div>
+);
 import type {
   Asset,
   AuthResponse,
@@ -82,6 +90,8 @@ export default function App() {
   const [isFocusMap, setIsFocusMap] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const fp = useFloatingPanels();
+  const { theme, toggle: toggleTheme } = useTheme();
+  const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
 
   const selectedCampaign = useMemo(
@@ -99,6 +109,14 @@ export default function App() {
   );
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
+
+  // Auto-convert message state to toast notifications
+  useEffect(() => {
+    if (message) {
+      showToast(message, message.includes("Erreur") || message.includes("error") ? "error" : "info");
+      setMessage("");
+    }
+  }, [message, showToast]);
 
   // Listen for keyboard shortcut to toggle focus map (from CampaignMap)
   useEffect(() => {
@@ -881,6 +899,14 @@ export default function App() {
           >
             {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
           </button>
+          <button
+            className="focus-map-btn"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+            type="button"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
         </div>
 
         <CampaignMap
@@ -1151,7 +1177,15 @@ export default function App() {
         </FloatingPanel>
       ))}
 
-      <MessageDock message={message} />
+      {/* ── Toast notifications ──────────────────────────────── */}
+      <div className="toast-container">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast-item${t.type === "error" ? " error" : ""}`}>
+            <span>{t.message}</span>
+            <button onClick={() => dismissToast(t.id)} type="button">✕</button>
+          </div>
+        ))}
+      </div>
 
       {/* ── Character Inspector Modal ─────────────────────────── */}
       {inspectedCharacterId && (() => {
