@@ -10,7 +10,7 @@ from app.cache import close_cache, init_cache
 from app.config import get_settings
 from app.db import close_db, connect_db
 from app.limiter import shared_limiter
-from app.routers import auth, bestiary, campaigns, characters, session, vtt, combat, assets, gm_notes, handouts, homebrew, player, messages
+from app.routers import auth, bestiary, campaigns, characters, session, spells, vtt, combat, assets, gm_notes, handouts, homebrew, player, messages
 
 settings = get_settings()
 
@@ -28,6 +28,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(bestiary.router)
+app.include_router(spells.router)
 app.include_router(campaigns.router)
 app.include_router(characters.router)
 app.include_router(session.router)

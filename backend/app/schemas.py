@@ -703,3 +703,25 @@ class BestiarySearchParams(BaseModel):
     size: str | None = None
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
+
+
+# ── Spells ────────────────────────────────────────────────────────────────
+
+class SpellPublic(BaseModel):
+    id: UUID
+    name: str
+    level: int
+    school: str
+    casting_time: str
+    range: str
+    components: str
+    duration: str
+    description: str
+    higher_level: str | None = None
+    classes: list[str] = []
+    ritual: bool
+    concentration: bool
+    source: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

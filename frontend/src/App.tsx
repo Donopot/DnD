@@ -28,6 +28,7 @@ const RulesReference = lazy(() => import("./components/RulesReference").then(m =
 const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspector").then(m => ({ default: m.GmCharacterInspector })));
 const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
 const BestiaryPanel = lazy(() => import("./components/BestiaryPanel").then(m => ({ default: m.BestiaryPanel })));
+const SpellbookPanel = lazy(() => import("./components/SpellbookPanel").then(m => ({ default: m.SpellbookPanel })));
 
 const PanelFallback = () => (
   <div className="panel-loading">
@@ -1144,6 +1145,26 @@ export default function App() {
           <RulesReference />
         </details>
 
+        {/* Spellbook */}
+        <details className="gm-panel-section">
+          <summary>
+            ✨ Grimoire
+            <button
+              className="panel-detach-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fp.open("spellbook", "✨ Grimoire");
+              }}
+              title="Détacher en panneau flottant"
+              type="button"
+            >
+              <ExternalLink size={12} />
+            </button>
+          </summary>
+          <SpellbookPanel token={token} />
+        </details>
+
         {/* Bestiary */}
         <details className="gm-panel-section">
           <summary>
@@ -1197,6 +1218,9 @@ export default function App() {
           )}
           {panel.id === "bestiary" && (
             <BestiaryPanel token={token} />
+          )}
+          {panel.id === "spellbook" && (
+            <SpellbookPanel token={token} />
           )}
         </FloatingPanel>
       ))}
