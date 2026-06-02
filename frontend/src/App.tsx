@@ -1038,7 +1038,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("encounter", "🧩 Rencontres");
+                      fp.open("encounter-builder", "🧩 Rencontres");
                     }}
                     title="Détacher en panneau flottant"
                     type="button"
@@ -1058,7 +1058,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("dice", "🎲 Lancer de dés");
+                      fp.open("dice-roller", "🎲 Lancer de dés");
                     }}
                     title="Détacher en panneau flottant"
                     type="button"
@@ -1078,7 +1078,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("quickactions", "⚡ Actions rapides");
+                      fp.open("quick-actions", "⚡ Actions rapides");
                     }}
                     title="Détacher"
                     type="button"
@@ -1098,7 +1098,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("messages", "💬 Communication");
+                      fp.open("gm-messages", "💬 Communication");
                     }}
                     title="Détacher"
                     type="button"
@@ -1127,7 +1127,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("sessionlog", "📋 Journal");
+                      fp.open("session-log", "📋 Journal");
                     }}
                     title="Détacher"
                     type="button"
@@ -1173,7 +1173,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("stats", "📊 Statistiques");
+                      fp.open("session-stats", "📊 Statistiques");
                     }}
                     title="Détacher"
                     type="button"
@@ -1198,7 +1198,7 @@ export default function App() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      fp.open("dungeon", "🗺️ Donjons");
+                      fp.open("dungeon-generator", "🗺️ Donjons");
                     }}
                     title="Détacher"
                     type="button"
@@ -1537,25 +1537,25 @@ export default function App() {
               onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
             />
           )}
-          {panel.id === "dice" && (
+          {panel.id === "dice-roller" && (
             <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
-          {panel.id === "encounter" && (
+          {panel.id === "encounter-builder" && (
             <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
           {panel.id === "bestiary" && <BestiaryPanel token={token} />}
           {panel.id === "spellbook" && <SpellbookPanel token={token} />}
-          {panel.id === "quickactions" && (
+          {panel.id === "quick-actions" && (
             <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
-          {panel.id === "messages" && (
+          {panel.id === "gm-messages" && (
             <GmMessagePanel
               campaignId={selectedCampaign?.id ?? ""}
               token={token}
               members={members}
             />
           )}
-          {panel.id === "sessionlog" && (
+          {panel.id === "session-log" && (
             <SessionLogPanel
               characters={characters}
               selectedCharacter={selectedCharacter}
@@ -1568,10 +1568,10 @@ export default function App() {
               onRefresh={() => {}}
             />
           )}
-          {panel.id === "stats" && (
+          {panel.id === "session-stats" && (
             <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
-          {panel.id === "dungeon" && <DungeonGenerator token={token} />}
+          {panel.id === "dungeon-generator" && <DungeonGenerator token={token} />}
           {panel.id === "handouts" && (
             <HandoutPanel
               handouts={handouts}
