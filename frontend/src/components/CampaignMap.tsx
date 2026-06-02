@@ -4,11 +4,17 @@ import type { Character, Scene, SceneToken } from "../api/types";
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { FogLayer } from "./FogLayer";
 import { MapTools } from "./MapTools";
+import { TokenContextMenu } from "./TokenContextMenu";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
 type TokenDragHandler = (token: SceneToken, dx: number, dy: number) => void;
+type TokenActionHandler = (
+  action: "center" | "duplicate" | "delete" | "hide" | "reveal" | "lock" | "unlock" | "add-combat" | "front" | "back" | "damage" | "heal",
+  token: SceneToken,
+  value?: number,
+) => void;
 
 type CampaignMapProps = {
   campaignId: string;
@@ -25,6 +31,7 @@ type CampaignMapProps = {
   onSelectScene?: (sceneId: string) => void;
   onLoadSceneTokens?: (sceneId: string) => void;
   onMoveToken?: TokenDragHandler;
+  onTokenAction?: TokenActionHandler;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────
@@ -51,6 +58,7 @@ export function CampaignMap({
   onSelectScene,
   onLoadSceneTokens,
   onMoveToken,
+  onTokenAction,
 }: CampaignMapProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -61,11 +69,19 @@ export function CampaignMap({
   const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
   const [dragTokenId, setDragTokenId] = useState("");
   const [selectedTokenId, setSelectedTokenId] = useState("");
+  const [selectedTokenIds, setSelectedTokenIds] = useState<Set<string>>(new Set());
   const [showGrid, setShowGrid] = useState(true);
   const [sceneTransitioning, setSceneTransitioning] = useState(false);
   const [weather, setWeather] = useState<WeatherType>("clear");
   const [weatherIntensity, setWeatherIntensity] = useState(50);
   const [weatherEnabled, setWeatherEnabled] = useState(false);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    token: SceneToken;
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Minimap ref
   const minimapRef = useRef<HTMLCanvasElement>(null);
@@ -91,14 +107,23 @@ export function CampaignMap({
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
 
-  // ── Keyboard nudge for selected token (grid-aware) ───────────
+  // ── Keyboard nudge for selected tokens (grid-aware) ─────────
   const selectedToken = useMemo(
     () => sceneTokens.find((t) => t.id === selectedTokenId),
     [sceneTokens, selectedTokenId],
   );
+  const selectedTokens = useMemo(
+    () => sceneTokens.filter((t) => selectedTokenIds.has(t.id)),
+    [sceneTokens, selectedTokenIds],
+  );
 
-  useNudgeSelectedToken(selectedTokenId !== "", (dx, dy) => {
-    if (selectedToken && onMoveToken) {
+  useNudgeSelectedToken(selectedTokenIds.size > 0, (dx, dy) => {
+    if (!onMoveToken) return;
+    for (const t of selectedTokens) {
+      onMoveToken(t, dx, dy);
+    }
+    // Also move the primary selected token if not already in set
+    if (selectedToken && !selectedTokenIds.has(selectedToken.id) && selectedTokenIds.size === 0) {
       onMoveToken(selectedToken, dx, dy);
     }
   }, { gridSize, enabled: isGM });
@@ -231,8 +256,31 @@ export function CampaignMap({
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     if (!isGM || !onMoveToken) return;
     event.stopPropagation();
+
+    // Shift+click = toggle multi-select without starting drag
+    if (event.shiftKey) {
+      setSelectedTokenIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(token.id)) {
+          next.delete(token.id);
+          // If we removed the primary, pick a new primary
+          if (selectedTokenId === token.id) {
+            const remaining = [...next];
+            setSelectedTokenId(remaining[0] ?? "");
+          }
+        } else {
+          next.add(token.id);
+          setSelectedTokenId(token.id); // Last added = primary
+        }
+        return next;
+      });
+      return;
+    }
+
+    // Plain click = single select + drag
     setDragTokenId(token.id);
     setSelectedTokenId(token.id);
+    setSelectedTokenIds(new Set([token.id]));
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
   }
 
@@ -495,20 +543,66 @@ export function CampaignMap({
 
               return (
                 <div
-                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
+                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}`}
-                  onClick={() => (isGM ? setSelectedTokenId(token.id) : undefined)}
+                  aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " — groupe" : ""}`}
+                  onClick={(e) => {
+                    if (!isGM) return;
+                    if (e.shiftKey) {
+                      setSelectedTokenIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(token.id)) {
+                          next.delete(token.id);
+                          if (selectedTokenId === token.id) {
+                            const remaining = [...next];
+                            setSelectedTokenId(remaining[0] ?? "");
+                          }
+                        } else {
+                          next.add(token.id);
+                          setSelectedTokenId(token.id);
+                        }
+                        return next;
+                      });
+                    } else {
+                      setSelectedTokenId(token.id);
+                      setSelectedTokenIds(new Set([token.id]));
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if ((e.key === "Enter" || e.key === " ") && isGM) {
                       e.preventDefault();
-                      setSelectedTokenId(token.id);
+                      if (e.shiftKey) {
+                        setSelectedTokenIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(token.id)) {
+                            next.delete(token.id);
+                          } else {
+                            next.add(token.id);
+                            setSelectedTokenId(token.id);
+                          }
+                          return next;
+                        });
+                      } else {
+                        setSelectedTokenId(token.id);
+                        setSelectedTokenIds(new Set([token.id]));
+                      }
                     }
                   }}
                   onPointerDown={(e) => handleTokenPointerDown(e, token)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = boardRef.current?.getBoundingClientRect();
+                    if (!rect) return;
+                    setContextMenu({
+                      token,
+                      x: (e.clientX - rect.left) / zoom,
+                      y: (e.clientY - rect.top) / zoom,
+                    });
+                  }}
                   style={{
                     left: token.x,
                     top: token.y,
@@ -550,7 +644,9 @@ export function CampaignMap({
                   )}
 
                   {/* Selection ring */}
-                  {selectedTokenId === token.id && <div className="token-ring" />}
+                  {(selectedTokenId === token.id || selectedTokenIds.has(token.id)) && (
+                    <div className={`token-ring${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " token-ring-group" : ""}`} />
+                  )}
                 </div>
               );
             })}
@@ -566,6 +662,28 @@ export function CampaignMap({
               myTokenIds={myTokenIds}
               snapToGrid={snapToGrid}
             />
+
+            {/* Context menu */}
+            {contextMenu && onTokenAction && (
+              <TokenContextMenu
+                token={contextMenu.token}
+                x={contextMenu.x}
+                y={contextMenu.y}
+                onClose={() => setContextMenu(null)}
+                onAction={(action, token, value) => {
+                  // Center is handled locally
+                  if (action === "center") {
+                    if (scrollRef.current) {
+                      scrollRef.current.scrollLeft = token.x - scrollRef.current.clientWidth / 2 / zoom;
+                      scrollRef.current.scrollTop = token.y - scrollRef.current.clientHeight / 2 / zoom;
+                    }
+                  } else {
+                    onTokenAction(action, token, value);
+                  }
+                  setContextMenu(null);
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

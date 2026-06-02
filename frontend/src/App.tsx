@@ -91,6 +91,10 @@ const TokenPanel = lazy(() =>
   import("./components/TokenPanel").then((m) => ({ default: m.TokenPanel })),
 );
 
+// Regular import (small component, used immediately)
+import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
+import { PanelDock } from "./components/PanelDock";
+
 const PanelFallback = () => (
   <div className="panel-loading">
     <div className="skeleton skeleton-title" />
@@ -158,6 +162,7 @@ export default function App() {
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [gmView, setGmView] = useState<CampaignView>("live");
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -201,6 +206,20 @@ export default function App() {
     }
     window.addEventListener("toggle-focus-map", onToggleFocus);
     return () => window.removeEventListener("toggle-focus-map", onToggleFocus);
+  }, []);
+
+  // Listen for "?" to show keyboard shortcuts
+  useEffect(() => {
+    function handleGlobalKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "?" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKey);
+    return () => window.removeEventListener("keydown", handleGlobalKey);
   }, []);
 
   const activeSessionLiveModeDetail = useMemo(
@@ -419,6 +438,88 @@ export default function App() {
       setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to move token");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function handleTokenAction(
+    action: string,
+    tokenToAct: SceneToken,
+    value?: number,
+  ) {
+    setIsBusy(true);
+    setMessage("");
+
+    try {
+      switch (action) {
+        case "duplicate": {
+          // Create a new token with same properties
+          if (!selectedScene) break;
+          const dup = await request<SceneToken>(
+            `/api/scenes/${selectedScene.id}/tokens`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                name: `${tokenToAct.name} (copie)`,
+                x: tokenToAct.x + 50,
+                y: tokenToAct.y + 50,
+                color: tokenToAct.color,
+                size: tokenToAct.size,
+                character_id: tokenToAct.character_id,
+              }),
+            },
+          );
+          setSceneTokens((current) => [...current, dup]);
+          break;
+        }
+        case "delete": {
+          await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
+          setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
+          break;
+        }
+        case "hide":
+        case "reveal": {
+          const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ is_hidden: action === "hide" }),
+          });
+          setSceneTokens((current) =>
+            current.map((t) => (t.id === updated.id ? updated : t)),
+          );
+          break;
+        }
+        case "add-combat": {
+          setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
+          break;
+        }
+        case "front":
+        case "back": {
+          setMessage("Z-index : fonctionnalité à venir.");
+          break;
+        }
+        case "damage":
+        case "heal": {
+          const amount = value ?? 0;
+          const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
+          const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
+          const newHp = action === "damage"
+            ? Math.max(0, hpCurrent - amount)
+            : Math.min(hpMax, hpCurrent + amount);
+          const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              metadata: { ...tokenToAct.metadata, hp_current: newHp },
+            }),
+          });
+          setSceneTokens((current) =>
+            current.map((t) => (t.id === updated.id ? updated : t)),
+          );
+          break;
+        }
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : `Unable to ${action} token`);
     } finally {
       setIsBusy(false);
     }
@@ -1015,6 +1116,7 @@ export default function App() {
           onSelectScene={setSelectedSceneId}
           onLoadSceneTokens={(id) => void loadSceneTokens(id)}
           onMoveToken={(t, dx, dy) => void handleMoveToken(t, dx, dy)}
+          onTokenAction={(action, t, v) => void handleTokenAction(action, t, v)}
         />
       </section>
 
@@ -2002,6 +2104,12 @@ export default function App() {
         </FloatingPanel>
       ))}
 
+      {/* ── Panel Dock (minimized panels) ──────────────────────── */}
+      <PanelDock
+        panels={fp.panels}
+        onRestore={(id) => fp.minimize(id)}
+      />
+
       {/* ── Toast notifications ──────────────────────────────── */}
       <div className="toast-container">
         {toasts.map((t) => (
@@ -2037,6 +2145,11 @@ export default function App() {
             />
           </div>
         </div>
+      )}
+
+      {/* ── Keyboard Shortcuts Overlay ─────────────────────────── */}
+      {showShortcuts && (
+        <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />
       )}
 
       {/* ── Character Inspector Modal ─────────────────────────── */}

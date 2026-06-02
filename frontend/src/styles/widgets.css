@@ -327,5 +327,152 @@ select {
   }
 }
 
+/* ── Keyboard Shortcuts Overlay ──────────────────────────────────────────── */
+.keyboard-shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  outline: none;
+}
+
+.keyboard-shortcuts-panel {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 24px 28px;
+  max-width: 480px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.shortcuts-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.shortcuts-close {
+  background: none;
+  border: none;
+  color: var(--text-weak);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+}
+.shortcuts-close:hover { color: var(--text-strong); }
+
+.shortcuts-category {
+  margin-bottom: 16px;
+}
+
+.shortcuts-category h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-brand);
+  margin: 0 0 8px;
+}
+
+.shortcuts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.82rem;
+}
+
+.shortcut-item kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  white-space: nowrap;
+  min-width: 100px;
+  text-align: center;
+}
+
+.shortcut-item span {
+  color: var(--text-secondary);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.shortcuts-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.75rem;
+  color: var(--text-weak);
+  text-align: center;
+}
+
+.shortcuts-footer kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+
+/* ── Panel Dock ──────────────────────────────────────────────────────────── */
+.panel-dock {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.panel-dock-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.panel-dock-item:hover {
+  background: var(--accent-dim);
+  color: var(--text-strong);
+}
+
 /* End Phase 10-3E final GM play cleanup */
 

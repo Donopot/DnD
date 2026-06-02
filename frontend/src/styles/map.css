@@ -734,3 +734,137 @@
   pointer-events: none;
 }
 
+/* ── Group-selected token ring ───────────────────────────────────────────── */
+.token-ring-group {
+  border-color: var(--accent-secondary);
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+/* ── Token context menu ──────────────────────────────────────────────────── */
+.token-context-menu {
+  position: absolute;
+  z-index: 100;
+  min-width: 180px;
+  max-width: 220px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  overflow: hidden;
+}
+
+.token-context-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.token-context-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.token-context-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 2px 0;
+}
+
+.token-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  background: none;
+  border: none;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.token-context-menu button:hover {
+  background: var(--bg-hover);
+  color: var(--text-strong);
+}
+
+.token-context-danger {
+  color: var(--danger) !important;
+}
+.token-context-danger:hover {
+  background: var(--danger-dim) !important;
+}
+
+/* Damage sub-menu */
+.token-context-damage {
+  padding: 4px 8px;
+}
+
+.damage-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.damage-row button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  cursor: pointer;
+  padding: 0;
+}
+
+.damage-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+}
+
+.damage-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.damage-preset {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+.damage-preset:hover { background: var(--danger-dim); }
+.damage-preset.heal { color: var(--success); }
+.damage-preset.heal:hover { background: var(--success-dim); }
+
+.damage-apply {
+  width: 100%;
+  padding: 4px;
+  font-size: 0.78rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  cursor: pointer;
+  text-align: center;
+}
+.damage-apply:hover { background: var(--accent-dim); }
+
