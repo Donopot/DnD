@@ -1,6 +1,6 @@
 /** API client — parameterized fetch wrapper with AbortController timeout. */
 
-export const API_BASE = "";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export function authHeaders(token: string): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
