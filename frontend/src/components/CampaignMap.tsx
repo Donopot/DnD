@@ -67,18 +67,6 @@ export function CampaignMap({
   const [weatherIntensity, setWeatherIntensity] = useState(50);
   const [weatherEnabled, setWeatherEnabled] = useState(false);
 
-  // ── Keyboard nudge for selected token ────────────────────────
-  const selectedToken = useMemo(
-    () => sceneTokens.find((t) => t.id === selectedTokenId),
-    [sceneTokens, selectedTokenId],
-  );
-
-  useNudgeSelectedToken(selectedTokenId !== "", (dx, dy) => {
-    if (selectedToken && onMoveToken) {
-      onMoveToken(selectedToken, dx, dy);
-    }
-  });
-
   // Minimap ref
   const minimapRef = useRef<HTMLCanvasElement>(null);
 
@@ -102,6 +90,18 @@ export function CampaignMap({
 
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
+
+  // ── Keyboard nudge for selected token (grid-aware) ───────────
+  const selectedToken = useMemo(
+    () => sceneTokens.find((t) => t.id === selectedTokenId),
+    [sceneTokens, selectedTokenId],
+  );
+
+  useNudgeSelectedToken(selectedTokenId !== "", (dx, dy) => {
+    if (selectedToken && onMoveToken) {
+      onMoveToken(selectedToken, dx, dy);
+    }
+  }, { gridSize, enabled: isGM });
 
   // Memoized myTokenIds to avoid new Set() on every render
   const myTokenIds = useMemo(() => {
@@ -498,7 +498,16 @@ export function CampaignMap({
                   className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}`}
                   onClick={() => (isGM ? setSelectedTokenId(token.id) : undefined)}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && isGM) {
+                      e.preventDefault();
+                      setSelectedTokenId(token.id);
+                    }
+                  }}
                   onPointerDown={(e) => handleTokenPointerDown(e, token)}
                   style={{
                     left: token.x,
@@ -507,7 +516,6 @@ export function CampaignMap({
                     height: token.size * gridSize,
                     background: token.color,
                   }}
-                  title={`${token.name} (${token.x}, ${token.y})`}
                 >
                   {/* Token icon (first 2 letters) */}
                   <span className="token-icon">{token.name.slice(0, 2).toUpperCase()}</span>

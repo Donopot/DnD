@@ -905,7 +905,7 @@ export default function App() {
           DnD
         </div>
 
-        <div className="gm-campaign-list">
+        <nav className="gm-campaign-list" aria-label="Mes campagnes">
           <h4>Mes tables</h4>
           {campaigns.map((c) => (
             <button
@@ -916,12 +916,14 @@ export default function App() {
                 setLatestInvite(null);
               }}
               type="button"
+              aria-label={`${c.name} — ${c.member_count} membres`}
+              aria-current={selectedCampaign?.id === c.id ? "true" : undefined}
             >
               <strong>{c.name}</strong>
               <small>{c.member_count} membres</small>
             </button>
           ))}
-        </div>
+        </nav>
 
         <div className="gm-members-list">
           <h4>Membres</h4>

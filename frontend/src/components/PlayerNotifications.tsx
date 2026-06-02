@@ -59,7 +59,7 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
   }
 
   return (
-    <div className="player-notifications">
+    <div className="player-notifications" aria-live="polite" aria-label="Notifications du MJ">
       <button
         className={`notification-bell ${unreadCount > 0 ? "has-unread" : ""}`}
         onClick={() => {
@@ -67,7 +67,8 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
           if (!open) void loadAll();
         }}
         type="button"
-        title={`${unreadCount} non lu(s)`}
+        aria-label={`Notifications — ${unreadCount} non lu(s)`}
+        aria-expanded={open}
       >
         <Bell size={18} />
         {unreadCount > 0 && <span className="badge">{unreadCount}</span>}

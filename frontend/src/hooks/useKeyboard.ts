@@ -65,15 +65,25 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
  * Déplace le token sélectionné avec les touches fléchées ou WASD.
  * Le mouvement est throttlé à ~10 moves/sec pour éviter de spammer l'API.
  *
- * Usage:
- *   useNudgeSelectedToken(selectedToken, (dx, dy) => handleMoveToken(t, dx, dy))
+ * Options :
+ *   step      — nombre de pixels par pression (par défaut 1)
+ *   gridSize  — taille de cellule (active le step = 1 cellule)
+ *   enabled   — active/désactive le hook
+ *
+ * Touches :
+ *   ↑↓←→ ou WASD : 1 cellule
+ *   Shift + ↑↓←→  : 5 cellules (déplacement rapide)
+ *
+ * Usage :
+ *   useNudgeSelectedToken(hasSelection, (dx, dy) => handleMove(t, dx, dy), { gridSize: 50 })
  */
 export function useNudgeSelectedToken(
   hasSelection: boolean,
   onNudge: (dx: number, dy: number) => void,
-  options?: { step?: number; enabled?: boolean },
+  options?: { step?: number; gridSize?: number; enabled?: boolean },
 ) {
-  const step = options?.step ?? 1;
+  const gridSize = options?.gridSize;
+  const baseStep = options?.step ?? (gridSize ?? 1);
   const enabled = options?.enabled ?? true;
   const cooldownRef = useRef(0);
 
@@ -91,6 +101,9 @@ export function useNudgeSelectedToken(
       // Throttle ~100ms (10 moves/sec)
       const now = Date.now();
       if (now - cooldownRef.current < 100) return;
+
+      // Shift = déplacement rapide (×5 cellules)
+      const step = e.shiftKey ? baseStep * 5 : baseStep;
 
       let dx = 0;
       let dy = 0;
@@ -127,5 +140,5 @@ export function useNudgeSelectedToken(
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [hasSelection, onNudge, step, enabled]);
+  }, [hasSelection, onNudge, baseStep, enabled]);
 }
