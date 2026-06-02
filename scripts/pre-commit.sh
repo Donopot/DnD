@@ -27,8 +27,8 @@ FAIL=0
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 
 step()  { echo -e "${CYAN}▶${NC} $*"; }
-ok()    { echo -e "  ${GREEN}✅${NC} $*"; ((PASS++)); }
-err()   { echo -e "  ${RED}❌${NC} $*"; ((FAIL++)); }
+ok()    { echo -e "  ${GREEN}✅${NC} $*"; PASS=$((PASS + 1)); }
+err()   { echo -e "  ${RED}❌${NC} $*"; FAIL=$((FAIL + 1)); }
 warn()  { echo -e "  ${YELLOW}⚠${NC}  $*"; }
 hr()    { echo "───────────────────────────────────────────────────"; }
 
