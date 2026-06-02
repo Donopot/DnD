@@ -7,6 +7,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.cache import close_cache, init_cache
 from app.config import get_settings
 from app.db import close_db, connect_db
 from app.routers import auth, campaigns, characters, session, vtt, combat, assets, gm_notes, handouts, homebrew, player, messages
@@ -45,10 +46,12 @@ app.include_router(session.ws_router)
 @app.on_event("startup")
 async def startup() -> None:
     await connect_db()
+    await init_cache()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
+    await close_cache()
     await close_db()
 
 

@@ -11836,3 +11836,20 @@ select {
   font-weight: 700;
   color: #c0c0a0;
 }
+
+/* ── Lazy loading fallback ──────────────────────────────────────────── */
+.panel-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #8b8b6b;
+  font-size: 0.95rem;
+  opacity: 0.7;
+  animation: panel-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes panel-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

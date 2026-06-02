@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from app.cache import cache_get, cache_invalidate, cache_set
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.realtime import manager
@@ -59,6 +60,11 @@ async def list_handouts(
 ) -> list[HandoutPublic]:
     role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
 
+    cache_key = f"handouts:{campaign_id}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return [HandoutPublic(**h) for h in cached]
+
     scene_filter = ""
     params: list = [campaign_id]
     if scene_id:
@@ -77,7 +83,9 @@ async def list_handouts(
         *params,
     )
 
-    return [handout_public(row) for row in rows]
+    result = [handout_public(row) for row in rows]
+    await cache_set(cache_key, [h.model_dump(mode="json") for h in result])
+    return result
 
 
 @router.post("/campaigns/{campaign_id}/handouts", response_model=HandoutPublic, status_code=status.HTTP_201_CREATED)
@@ -106,7 +114,9 @@ async def create_handout(
         payload.scene_id,
     )
 
-    return handout_public(row)
+    result = handout_public(row)
+    await cache_invalidate(f"handouts:{campaign_id}*")
+    return result
 
 
 @router.get("/handouts/{handout_id}", response_model=HandoutPublic)
@@ -183,6 +193,7 @@ async def update_handout(
             },
         )
 
+    await cache_invalidate(f"handouts:{existing['campaign_id']}*")
     return result
 
 
@@ -201,3 +212,4 @@ async def delete_handout(
         """,
         handout_id,
     )
+    await cache_invalidate(f"handouts:{existing['campaign_id']}*")

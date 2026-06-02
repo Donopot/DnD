@@ -1,26 +1,30 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { DoorOpen, Plus, Swords, UserPlus } from "lucide-react";
 import "./styles.css";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { CampaignMap } from "./components/CampaignMap";
 import { AuthPage } from "./components/AuthPage";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
-import { CombatTracker } from "./components/CombatTracker";
-import { DiceRoller } from "./components/DiceRoller";
-import { EncounterBuilder } from "./components/EncounterBuilder";
 import { QuickActions } from "./components/QuickActions";
-import { SessionStats } from "./components/SessionStats";
-import { GmCharacterInspector } from "./components/GmCharacterInspector";
-import { RulesReference } from "./components/RulesReference";
-import { HandoutPanel } from "./components/HandoutPanel";
-import { HomebrewPanel } from "./components/HomebrewPanel";
-import { GmMessagePanel } from "./components/GmMessagePanel";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerView } from "./components/PlayerView";
 import { GmLobby } from "./components/GmLobby";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { MessageDock } from "./components/common";
+import { HandoutPanel } from "./components/HandoutPanel";
+
+// ── Lazy-loaded heavy components (code-split for faster initial load) ────
+const CombatTracker = lazy(() => import("./components/CombatTracker").then(m => ({ default: m.CombatTracker })));
+const DiceRoller = lazy(() => import("./components/DiceRoller").then(m => ({ default: m.DiceRoller })));
+const EncounterBuilder = lazy(() => import("./components/EncounterBuilder").then(m => ({ default: m.EncounterBuilder })));
+const SessionStats = lazy(() => import("./components/SessionStats").then(m => ({ default: m.SessionStats })));
+const HomebrewPanel = lazy(() => import("./components/HomebrewPanel").then(m => ({ default: m.HomebrewPanel })));
+const RulesReference = lazy(() => import("./components/RulesReference").then(m => ({ default: m.RulesReference })));
+const GmCharacterInspector = lazy(() => import("./components/GmCharacterInspector").then(m => ({ default: m.GmCharacterInspector })));
+const GmMessagePanel = lazy(() => import("./components/GmMessagePanel").then(m => ({ default: m.GmMessagePanel })));
+
+const PanelFallback = () => <div className="panel-loading">⚡ Chargement…</div>;
 import type {
   Asset,
   AuthResponse,
@@ -903,6 +907,7 @@ export default function App() {
       </section>
 
       {/* ── Droite — Panneaux ───────────────────────────────── */}
+      <Suspense fallback={<PanelFallback />}>
       <aside className="gm-panels">
         {/* Characters panel */}
         <details className="gm-panel-section" open>
@@ -1075,6 +1080,7 @@ export default function App() {
           <RulesReference />
         </details>
       </aside>
+      </Suspense>
 
       <MessageDock message={message} />
 

@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
+from app.cache import cache_get, cache_invalidate, cache_set
 from app.db import get_pool
 from app.deps import get_current_user, require_campaign_role
 from app.realtime import manager
@@ -123,6 +124,11 @@ async def list_scenes(
 ) -> list[ScenePublic]:
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
 
+    cache_key = f"scenes:{campaign_id}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return [ScenePublic(**s) for s in cached]
+
     rows = await get_pool().fetch(
         """
         select *
@@ -132,7 +138,9 @@ async def list_scenes(
         """,
         campaign_id,
     )
-    return [scene_public(row) for row in rows]
+    result = [scene_public(row) for row in rows]
+    await cache_set(cache_key, [s.model_dump(mode="json") for s in result])
+    return result
 
 
 @router.post("/campaigns/{campaign_id}/scenes", response_model=ScenePublic, status_code=status.HTTP_201_CREATED)
@@ -176,6 +184,7 @@ async def create_scene(
             )
 
     scene = scene_public(row)
+    await cache_invalidate(f"scenes:{campaign_id}*")
     await broadcast_vtt_change(campaign_id, "scene", scene.id)
     return scene
 
@@ -185,9 +194,16 @@ async def get_scene(
     scene_id: UUID,
     current_user=Depends(get_current_user),
 ) -> ScenePublic:
+    cache_key = f"scene:{scene_id}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return ScenePublic(**cached)
+
     row = await get_scene_or_404(scene_id)
     await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
-    return scene_public(row)
+    result = scene_public(row)
+    await cache_set(cache_key, result.model_dump(mode="json"))
+    return result
 
 
 @router.get("/scenes/{scene_id}/tokens", response_model=list[TokenPublic])
@@ -246,6 +262,7 @@ async def create_token(
         jsonb(payload.metadata),
     )
     token = token_public(row)
+    await cache_invalidate(f"scene:{scene_id}*")
     await broadcast_vtt_change(scene["campaign_id"], "token", scene_id, token.id)
     return token
 
@@ -293,6 +310,7 @@ async def update_token(
         jsonb(decode_json(current["metadata"])),
     )
     token = token_public(row)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)
     return token
 
@@ -305,6 +323,7 @@ async def delete_token(
     existing = await get_token_or_404(token_id)
     await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
     await get_pool().execute("delete from scene_tokens where id = $1", token_id)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token_id)
 
 
@@ -329,6 +348,7 @@ async def move_token(
         payload.y,
     )
     token = token_public(row)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_token_move(existing["campaign_id"], existing["scene_id"], token.id, token.x, token.y)
     return token
 
@@ -371,7 +391,9 @@ async def update_scene_settings(
         current["view_pan_x"],
         current["view_pan_y"],
     )
-    return scene_public(row)
+    result = scene_public(row)
+    await cache_invalidate(f"scene:{scene_id}*")
+    return result
 
 
 # ── Phase 16: Fog of War ─────────────────────────────────────────────
@@ -385,15 +407,22 @@ async def get_fog(
     scene_id: UUID,
     current_user=Depends(get_current_user),
 ):
+    cache_key = f"fog:{scene_id}"
+    cached = await cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     scene = await get_scene_or_404(scene_id)
     await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
 
-    return {
+    result = {
         "scene_id": str(scene_id),
         "fog_zones": scene.get("fog_zones") or [],
         "scene_width": scene["width"],
         "scene_height": scene["height"],
     }
+    await cache_set(cache_key, result)
+    return result
 
 
 @router.patch("/scenes/{scene_id}/fog")
@@ -418,6 +447,7 @@ async def update_fog(
 
     # Broadcast fog change
     await broadcast_vtt_change(scene["campaign_id"], "fog", scene_id)
+    await cache_invalidate(f"fog:{scene_id}*")
 
     return {
         "scene_id": str(scene_id),
