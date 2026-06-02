@@ -2,13 +2,14 @@
 
 Dernière mise à jour : 2026-06-02
 
-## ✅ Complétées — 43/43 phases
+## ✅ Complétées — 44/44 phases
 
 | # | Titre | Date |
 |---|-------|------|
 | 1-33 | Infra → Statistiques de session | 2026-05/06 |
 | 34-38 | Plan UX (Correctifs → Polish) | 2026-06-02 |
 | 39-43 | Contenu D&D enrichi | 2026-06-02 |
+| 44 | Déploiement Render | 2026-06-02 |
 
 ### Détail Phases 39-43 — Contenu D&D enrichi
 
@@ -19,6 +20,25 @@ Dernière mise à jour : 2026-06-02
 | 41 | 🗺️ Générateur de donjons (BSP algorithm, canvas preview) | ✅ |
 | 42 | 🎒 Objets magiques & équipement (API items, ItemCompendium) | ✅ |
 | 43 | 🧙 Création personnage assistée (wizard 4 étapes) | ✅ |
+
+## 🚀 Phase 44 — Déploiement Render ✅
+
+| Fichier | Action |
+|---------|--------|
+| `render.yaml` | Blueprint Render : backend Docker + frontend static |
+| `App.tsx` | `API_BASE` dynamique via `VITE_API_URL` env var |
+| `.node-version` | Pin Node 22.11.0 |
+
+### Services Render
+- **dnd-api** (Docker) — FastAPI + WebSocket, port 8000, health `/api/health`
+- **dnd-frontend** (Static) — Vite SPA, rewrite SPA `/* → /index.html`
+- **dnd-shared** (Env Group) — 9 variables partagées (DB, Redis, S3, secrets, CORS)
+
+### Reste à faire
+- Créer le groupe `dnd-shared` sur Render
+- Connecter le blueprint au repo `Donopot/DnD`
+- Configurer `VITE_API_URL` après 1er déploiement API
+- Provisionner PostgreSQL + Redis + S3 externes
 
 ## Métriques finales
 
