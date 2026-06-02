@@ -7,6 +7,9 @@ Redis cache layer for frequently-read VTT resources.
 - SRD rules: 300s TTL (rarely changes)
 
 Invalidated on any write to the same resource group.
+
+If the redis package is not installed or Redis is unreachable,
+all cache operations silently return None / no-op (graceful degradation).
 """
 
 from __future__ import annotations
@@ -15,13 +18,18 @@ import json
 import logging
 from typing import Any
 
-import redis.asyncio as aioredis
-
-from app.config import get_settings
-
 logger = logging.getLogger("dnd.cache")
 
-_redis: aioredis.Redis | None = None
+# ── Lazy import: if redis isn't installed, cache degrades gracefully ────
+_aioredis: Any = None
+try:
+    import redis.asyncio as _aioredis
+    _HAS_REDIS = True
+except ImportError:
+    _HAS_REDIS = False
+    logger.warning("redis package not installed — cache disabled")
+
+_redis: Any = None  # aioredis.Redis | None
 
 TTL = 30  # seconds for dynamic resources
 TTL_STATIC = 300  # seconds for SRD / static references
@@ -30,8 +38,11 @@ TTL_STATIC = 300  # seconds for SRD / static references
 async def init_cache() -> None:
     """Connect to Redis. Called from app lifespan startup."""
     global _redis
+    if not _HAS_REDIS:
+        return
+    from app.config import get_settings
     settings = get_settings()
-    _redis = aioredis.from_url(settings.redis_url, decode_responses=True)
+    _redis = _aioredis.from_url(settings.redis_url, decode_responses=True)
     try:
         await _redis.ping()
         logger.info("Redis cache connected (%s)", settings.redis_url)
@@ -48,7 +59,7 @@ async def close_cache() -> None:
         _redis = None
 
 
-def _client() -> aioredis.Redis | None:
+def _client() -> Any:
     return _redis
 
 

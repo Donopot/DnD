@@ -7,4 +7,5 @@ PyJWT==2.10.1
 pydantic-settings==2.9.1
 python-multipart==0.0.20
 slowapi==0.1.9
+redis==8.0.0
 uvicorn[standard]==0.34.2
