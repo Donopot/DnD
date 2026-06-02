@@ -172,7 +172,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "🎬",
     category: "preparation",
     description: "Créer et gérer les scènes",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
   {
@@ -181,7 +181,7 @@ export const GM_PANELS: GmPanelDefinition[] = [
     emoji: "🎭",
     category: "preparation",
     description: "Ajouter et gérer les tokens de scène",
-    status: "planned",
+    status: "active",
     detachable: true,
   },
 

@@ -71,6 +71,8 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "chat",
     "ambiance",
     "npc-generator",
+    "scene",
+    "tokens",
   ],
   combat: [
     "combat",
@@ -88,6 +90,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "bestiary",
     "characters",
     "chat",
+    "tokens",
   ],
   roleplay: [
     "gm-notes",
@@ -106,6 +109,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "chat",
     "ambiance",
     "npc-generator",
+    "scene",
   ],
   "quick-prep": [
     "combat",
@@ -124,6 +128,8 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "campaign-info",
     "chat",
     "npc-generator",
+    "scene",
+    "tokens",
   ],
   minimal: [
     "combat",
