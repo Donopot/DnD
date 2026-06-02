@@ -324,10 +324,19 @@ async def update_entry_category(entry_id: UUID, category: str = Query(...), curr
 
 @ws_router.websocket("/ws/campaigns/{campaign_id}")
 async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
-    token = websocket.query_params.get("token")
-    if not token:
+    await websocket.accept()
+
+    # Wait for the first message — must be auth with token
+    try:
+        first_msg = await websocket.receive_json()
+    except WebSocketDisconnect:
+        return
+
+    if first_msg.get("type") != "auth" or not first_msg.get("token"):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
+
+    token = first_msg["token"]
 
     try:
         user_id = decode_access_token(token)

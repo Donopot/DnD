@@ -164,12 +164,13 @@ export function PlayerView({
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${cid}?token=${encodeURIComponent(token)}`,
+      `${protocol}://${window.location.host}/ws/campaigns/${cid}`,
     );
     wsRef.current = socket;
     setRealtimeStatus("connecting");
 
     socket.onopen = () => {
+      socket.send(JSON.stringify({ type: "auth", token }));
       setRealtimeStatus("online");
       socket.send(JSON.stringify({ type: "ping" }));
     };

@@ -170,32 +170,37 @@ export default function App() {
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}?token=${encodeURIComponent(token)}`,
+      `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}`,
     );
     wsRef.current = socket;
     setRealtimeStatus("connecting");
 
     socket.onopen = () => {
+      // Authenticate via first message (not URL query param — avoids token in proxy logs)
+      socket.send(JSON.stringify({ type: "auth", token }));
       setRealtimeStatus("online");
-      socket.send(JSON.stringify({ type: "ping" }));
     };
 
     socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-      if (typeof payload.presence_count === "number") {
-        setPresenceCount(payload.presence_count);
-      }
-      if (payload.type === "session_changed") {
-        void loadSessionLog(selectedCampaign.id);
-        if (payload.resource === "scene" || payload.resource === "token") {
-          void loadVttState(selectedCampaign.id);
+      try {
+        const payload = JSON.parse(event.data);
+        if (typeof payload.presence_count === "number") {
+          setPresenceCount(payload.presence_count);
         }
-        if (payload.resource === "encounter") {
-          void loadCombatState(selectedCampaign.id);
+        if (payload.type === "session_changed") {
+          void loadSessionLog(selectedCampaign.id);
+          if (payload.resource === "scene" || payload.resource === "token") {
+            void loadVttState(selectedCampaign.id);
+          }
+          if (payload.resource === "encounter") {
+            void loadCombatState(selectedCampaign.id);
+          }
+          if (payload.resource === "handout") {
+            void loadHandouts(selectedCampaign.id);
+          }
         }
-        if (payload.resource === "handout") {
-          void loadHandouts(selectedCampaign.id);
-        }
+      } catch {
+        /* ignore malformed messages */
       }
     };
 
