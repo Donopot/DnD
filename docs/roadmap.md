@@ -2,65 +2,36 @@
 
 Dernière mise à jour : 2026-06-02
 
-## ✅ Complétées — 33/33 phases 🎉
+## ✅ Complétées — 43/43 phases
 
 | # | Titre | Date |
 |---|-------|------|
-| 1 | Infra (Docker, réseau isolé) | 2026-05 |
-| 2 | Auth + Campagnes | 2026-05 |
-| 3 | Fiches personnages | 2026-05 |
-| 4 | Dés + Journal | 2026-05 |
-| 5 | WebSocket temps réel | 2026-05 |
-| 6 | Tokens + Scènes | 2026-05 |
-| 7 | Combat (initiative, tours) | 2026-05 |
-| 8 | Assets (upload cartes) | 2026-05 |
-| 9 | Homebrew (créatures, objets) | 2026-06 |
-| 10 | Handouts (documents partagés) | 2026-06 |
-| 11 | Initiative Tracker | 2026-06 |
-| 12 | Visibilité (contrôle tokens) | 2026-06 |
-| 13 | Fiche éditable | 2026-06 |
-| 14 | Interface Joueur | 2026-06 |
-| 15 | Journal structuré | 2026-06 |
-| 16 | Fog of War | 2026-06 |
-| 17 | Auth GM/Joueur distinct | 2026-06 |
-| 18 | Interactions Joueur | 2026-06 |
-| 19 | Refonte Auth & 4 Layouts | 2026-06 |
-| 20 | Refonte Totale Interfaces + Vault Persos | 2026-06 |
-| 21 | Communication MJ↔Joueur | 2026-06 |
-| 22 | Map interactive joueur | 2026-06 |
-| 23 | Gestion perso par le MJ | 2026-06 |
-| 24 | Mesures et gabarits AoE | 2026-06 |
-| 25 | SRD et règles de base | 2026-06 |
-| 26 | Sauvegardes et maintenance | 2026-06 |
-| 27 | Beta privée (polish final) | 2026-06 |
-| 28 | 🔥 Upgrade total de la Map | 2026-06 |
-| 29 | ⚔️ Système de combat complet | 2026-06 |
-| 30 | 🧩 Générateur de rencontres (CR calc + random) | 2026-06 |
-| 31 | 🎲 Lancer de dés visuels (animations CSS) | 2026-06 |
-| 32 | ⚡ Macros et barre d'actions rapides | 2026-06 |
-| 33 | 📊 Statistiques de session | 2026-06 |
+| 1-33 | Infra → Statistiques de session | 2026-05/06 |
+| 34-38 | Plan UX (Correctifs → Polish) | 2026-06-02 |
+| 39-43 | Contenu D&D enrichi | 2026-06-02 |
 
-## 🔧 En cours — Améliorations UX (audit 2026-06-01)
+### Détail Phases 39-43 — Contenu D&D enrichi
 
-> 📄 Détail complet : [`docs/frontend-improvement-plan.md`](./frontend-improvement-plan.md)
-
-| Phase | Titre | Priorité | Tâches | Estimé | Statut |
-|-------|-------|----------|--------|--------|--------|
-| 34 | 🔴 Correctifs critiques | Bloquant | Fond joueur, centrage carte, focus map, resize handles | 2h | ✅ |
-| 35 | 🟠 Panneaux flottants | Majeur | FloatingPanel system, Combat/Dés flottants, drag-and-drop | 4h | ✅ |
-| 36 | 🟠 Interface joueur refondue | Majeur | Onglets, dés améliorés, outils map joueurs, notifications | 3h | ✅ |
-| 37 | 🟡 Carte immersive | Modéré | Minimap, raccourcis, snap visuel, états tokens, transitions | 3h | ✅ |
-| 38 | 🟢 Polish & DX | Cosmetique | Markdown handouts, dark/light, CSS split, skeletons, toasts | 2h | ✅ |
-
-**✅ Terminé !**
+| # | Titre | Statut |
+|---|-------|--------|
+| 39 | 💀 Bestiaire (52 créatures SRD, API recherche, panel UI) | ✅ |
+| 40 | ✨ Grimoire (25 sorts, API filtres, SpellbookPanel) | ✅ |
+| 41 | 🗺️ Générateur de donjons (BSP algorithm, canvas preview) | ✅ |
+| 42 | 🎒 Objets magiques & équipement (API items, ItemCompendium) | ✅ |
+| 43 | 🧙 Création personnage assistée (wizard 4 étapes) | ✅ |
 
 ## Métriques finales
 
-- **Backend** : 102 endpoints, 13 routeurs, 19 migrations, 64 schémas, 49 tests
-- **Frontend** : 43 composants React, ~11 800 lignes CSS, 1765 modules Vite
-- **Layouts** : 5 layouts distincts
+- **Backend** : 106 endpoints, 17 routeurs, 22 migrations, 68+ schémas, 54 tests
+- **Frontend** : 50+ composants React, ~13 000 lignes CSS, 1800+ modules Vite
+- **Contenu SRD** : 52 créatures, 25 sorts, 11 races, 12 classes, donjons procéduraux
+- **Build** : 432ms, 351 kB (gzip 105 kB)
+- **Layouts** : 5 layouts distincts (Auth, GM 3-colonnes, Player map+panels, Lobby GM, Lobby Player)
 - **Temps réel** : WebSocket 8 types de messages
-- **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE
+- **Map** : snap-to-grid, zoom-cursor, nameplates, HP bars, grid toggle, fog undo, AoE, minimap, focus mode
+- **Panneaux** : FloatingPanel (drag/resize/minimize), 11 sections sidebar, detach, hide-all
 - **Combat** : tracker visuel, actions rapides, initiative, conditions, CR calculator
-- **Outils MJ** : générateur rencontres, dés animés, macros, stats, rules reference
+- **Outils MJ** : générateur rencontres, dés animés, macros, stats, rules reference, bestiaire, grimoire, donjons
+- **Outils Joueur** : onglets, dés rapides, ping/ruler, notifications combat, markdown handouts
+- **UX** : thème dark/light, skeletons, toasts, resize handles, focus map, raccourcis clavier
 - **Maintenance** : 3 cron jobs (backup 03h, audit 06h, suggestions 07h30)
