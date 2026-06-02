@@ -23,6 +23,7 @@ import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
 import { QuickActions } from "./components/QuickActions";
 import { SessionLogPanel } from "./components/SessionLogPanel";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { SESSION_LIVE_MODES, type SessionLiveMode } from "./config/sessionLiveModes";
 import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { useSceneBackground } from "./hooks/useSceneBackground";
@@ -212,6 +213,18 @@ export default function App() {
     void loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [selectedCampaign?.id]);
+
+  // ── Escape → close modals ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowCharacterWizard(false);
+        setInspectedCharacterId("");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   useEffect(() => {
     wsRef.current?.close();
@@ -997,6 +1010,7 @@ export default function App() {
 
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
+        <ErrorBoundary>
         <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
           {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
           {gmView === "live" && (
@@ -1512,6 +1526,7 @@ export default function App() {
             </div>
           )}
         </aside>
+        </ErrorBoundary>
       </Suspense>
 
       {/* ── Floating Panels ──────────────────────────────────── */}
@@ -1607,7 +1622,10 @@ export default function App() {
       {showCharacterWizard && (
         <div className="modal-overlay" onClick={() => setShowCharacterWizard(false)}>
           <div
-            className="bestiary-detail-modal"
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Création de personnage"
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "500px" }}
           >

@@ -95,6 +95,8 @@ export function FloatingPanel({
     <div
       ref={panelRef}
       className={`floating-panel${panel.minimized ? " minimized" : ""}${dragging ? " dragging" : ""}${resizing ? " resizing" : ""}`}
+      role="dialog"
+      aria-label={panel.title}
       style={{
         left: panel.x,
         top: panel.y,

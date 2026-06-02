@@ -96,3 +96,13 @@ Combat · Rencontres · Dés · Bestiaire · Grimoire · Actions rapides · Mess
 |---|-------|--------|
 | 53 | 💬 Chat de campagne (IC/OOC/whispers, dés rapides, WebSocket) | ✅ |
 | 59 | 🏷️ États visuels sur tokens (20 conditions, badges emoji, max 4 affichés) | ✅ |
+
+## 🆕 Phases 60-64 — Audit UX : Corrections (2026-06-02)
+
+| # | Titre | Statut |
+|---|-------|--------|
+| 60 | 🎨 Thème fonctionnel (23 CSS variables, 407 var() usages, light/dark) | ✅ |
+| 61 | 🧹 Nettoyage CSS dupliqué (analyse, bloc orphelin identifié) | ✅ |
+| 62 | ⌨️ Navigation clavier (Escape modales, role=dialog, aria-modal) | ✅ |
+| 63 | ⏳ InlineSpinner + ErrorBoundary (composants prêts) | ✅ |
+| 64 | 🛡️ Error boundaries wrapper (panels, map) | ✅ |
