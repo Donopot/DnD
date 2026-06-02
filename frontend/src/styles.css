@@ -10023,8 +10023,8 @@ select {
 .campaign-map-board {
   position: relative;
   background-image:
-    linear-gradient(rgba(74, 90, 78, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74, 90, 78, 0.15) 1px, transparent 1px);
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
   transform-origin: top left;
 }
 

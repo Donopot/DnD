@@ -256,18 +256,18 @@ export function CampaignMap({
     // Clear
     ctx.clearRect(0, 0, cw, ch);
 
-    // Draw background (dark)
-    ctx.fillStyle = "#0f1923";
+    // Draw background (dark, matching --bg-canvas)
+    ctx.fillStyle = "#0B0F17";
     ctx.fillRect(0, 0, cw, ch);
 
     // Draw scene area
     const sx = (cw - bw * scale) / 2;
     const sy = (ch - bh * scale) / 2;
-    ctx.fillStyle = "#1a2a24";
+    ctx.fillStyle = "#101816";
     ctx.fillRect(sx, sy, bw * scale, bh * scale);
 
     // Draw grid hint
-    ctx.strokeStyle = "#2a3a2e";
+    ctx.strokeStyle = "#2B3A34";
     ctx.lineWidth = 0.5;
     const gs = gridSize * scale;
     for (let x = sx; x <= sx + bw * scale; x += gs) {
