@@ -666,6 +666,26 @@
   filter: drop-shadow(0 0 3px rgba(160, 100, 255, 0.6));
 }
 
+/* ── Token manually hidden (is_hidden flag) ─────────────────────────────── */
+
+.campaign-map-token.token-hidden-from-players {
+  border-color: rgba(239, 68, 68, 0.85);
+  box-shadow:
+    0 0 0 2px rgba(239, 68, 68, 0.25),
+    0 0 10px rgba(239, 68, 68, 0.45);
+  opacity: 0.78;
+}
+
+.token-visibility-icon {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  z-index: 36;
+  font-size: 13px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
+}
+
 /* ── AoE labels ── */
 /* ── AoE labels ────────────────────────────────────────────────────────── */
 

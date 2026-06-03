@@ -869,6 +869,12 @@ export function CampaignMap({
                 : null;
 
               const isPlayerToken = ownedByPlayer(token.id);
+              const isManuallyHidden = token.is_hidden;
+
+              // ── is_hidden filter (players MUST NOT see hidden tokens) ──
+              if (!isGM && isManuallyHidden) {
+                return null;
+              }
 
               // ── Fog visibility filter (players only) ──────────
               // Tokens whose center is not in any revealed zone are hidden
@@ -883,7 +889,7 @@ export function CampaignMap({
 
               // ── GM fog indicator: token is hidden from players
               let isFogHidden = false;
-              if (isGM && fogZones.length > 0) {
+              if (isGM && fogZones.length > 0 && !isManuallyHidden) {
                 const tokenCenterX = token.x + (token.size * gridSize) / 2;
                 const tokenCenterY = token.y + (token.size * gridSize) / 2;
                 isFogHidden = !fogZones.some((zone) =>
@@ -932,7 +938,7 @@ export function CampaignMap({
 
               return (
                 <div
-                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""}`}
+                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""} ${isManuallyHidden ? "token-hidden-from-players" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
                   role="button"
@@ -987,9 +993,16 @@ export function CampaignMap({
                   <span className="token-icon">{token.name.slice(0, 2).toUpperCase()}</span>
 
                   {/* Fog-hidden indicator (GM only) */}
-                  {isFogHidden && (
-                    <span className="token-fog-icon" title="Caché aux joueurs (brouillard)">
+                  {isFogHidden && !isManuallyHidden && (
+                    <span className="token-fog-icon" title="Caché par le brouillard">
                       👁️‍🗨️
+                    </span>
+                  )}
+
+                  {/* Manually hidden indicator (GM only) */}
+                  {isManuallyHidden && (
+                    <span className="token-visibility-icon" title="Caché manuellement aux joueurs">
+                      🙈
                     </span>
                   )}
 
