@@ -83,7 +83,7 @@ export function VisibilityInspectorPanel({
         </article>
 
         <article>
-          <span>Visible joueurs</span>
+          <span>Non cachés manuellement</span>
           <strong>{playerVisiblePercent}%</strong>
         </article>
 
