@@ -1,4 +1,4 @@
-import { Crosshair, Grid3X3 } from "lucide-react";
+import { Eraser, Eye, EyeOff, Grid3X3, Crosshair, Undo2 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scene, SceneToken } from "../api/types";
 
@@ -121,6 +121,16 @@ export function CampaignMap({
   // Fog of war zones (for token visibility filtering)
   const [fogZones, setFogZones] = useState<FogZone[]>([]);
 
+  // Fog tool state (lifted from FogLayer)
+  const [showFog, setShowFog] = useState(true);
+  const [fogDrawMode, setFogDrawMode] = useState(false);
+  const [fogCircleMode, setFogCircleMode] = useState(false);
+  const [fogEraseMode, setFogEraseMode] = useState(false);
+  const [fogDrawing, setFogDrawing] = useState(false);
+  const [fogStart, setFogStart] = useState({ x: 0, y: 0 });
+  const [fogCurrentRect, setFogCurrentRect] = useState<FogZone | null>(null);
+  const [fogSaveError, setFogSaveError] = useState("");
+
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
     token: SceneToken;
@@ -164,6 +174,45 @@ export function CampaignMap({
       .then((d) => setFogZones(d.fog_zones || []))
       .catch(() => {});
   }, [selectedScene?.id]);
+
+  // ── Save fog zones to API ────────────────────────────────────────────────
+  const saveFogZones = useCallback(
+    async (newZones: FogZone[]) => {
+      if (
+        newZones.some(
+          (zone) =>
+            !Number.isFinite(zone.x) ||
+            !Number.isFinite(zone.y) ||
+            !Number.isFinite(zone.width) ||
+            !Number.isFinite(zone.height) ||
+            zone.width <= 0 ||
+            zone.height <= 0,
+        )
+      ) {
+        setFogSaveError("Zone de brouillard invalide.");
+        return;
+      }
+
+      setFogZones(newZones);
+
+      const t = localStorage.getItem("dnd_access_token") ?? "";
+      try {
+        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${t}`,
+          },
+          body: JSON.stringify({ fog_zones: newZones }),
+        });
+        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
+        setFogSaveError("");
+      } catch {
+        setFogSaveError("Sauvegarde du brouillard impossible.");
+      }
+    },
+    [selectedSceneId],
+  );
 
   // ── Fog zone WebSocket refresh ───────────────────────────────────────────
   useEffect(() => {
@@ -619,6 +668,85 @@ export function CampaignMap({
         >
           {panMode ? "✋ Pan ON" : "✋ Pan"}
         </button>
+
+        {/* Fog controls */}
+        {isGM && (
+          <>
+            <button
+              type="button"
+              className={`campaign-map-grid-toggle ${showFog ? "active" : ""}`}
+              onClick={() => {
+                setShowFog((s) => {
+                  if (s) {
+                    setFogDrawMode(false);
+                    setFogEraseMode(false);
+                  }
+                  return !s;
+                });
+              }}
+              title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
+            >
+              {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showFog ? "Fog ON" : "Fog OFF"}
+            </button>
+            {showFog && (
+              <button
+                type="button"
+                className={`campaign-map-grid-toggle ${fogDrawMode && !fogEraseMode ? "active" : ""}`}
+                onClick={() => {
+                  setFogDrawMode((m) => !m);
+                  if (!fogDrawMode) setFogEraseMode(false);
+                }}
+                title="Dessiner le brouillard"
+              >
+                Draw
+              </button>
+            )}
+            {showFog && (
+              <button
+                type="button"
+                className={`campaign-map-grid-toggle ${fogCircleMode ? "active" : ""}`}
+                onClick={() => setFogCircleMode((m) => !m)}
+                title={fogCircleMode ? "Mode rectangle" : "Mode cercle"}
+              >
+                {fogCircleMode ? "◯" : "▭"}
+              </button>
+            )}
+            {showFog && (
+              <button
+                type="button"
+                className={`campaign-map-grid-toggle ${fogEraseMode ? "active" : ""}`}
+                onClick={() => {
+                  setFogEraseMode((m) => !m);
+                  if (!fogEraseMode) setFogDrawMode(false);
+                }}
+                title="Gomme (clic sur une zone pour l'effacer)"
+              >
+                <Eraser size={14} />
+              </button>
+            )}
+            {fogZones.length > 0 && (
+              <>
+                <button
+                  type="button"
+                  className="campaign-map-grid-toggle"
+                  onClick={() => saveFogZones(fogZones.slice(0, -1))}
+                  title="Annuler dernière zone"
+                >
+                  <Undo2 size={14} />
+                </button>
+                <button
+                  type="button"
+                  className="campaign-map-grid-toggle"
+                  onClick={() => saveFogZones([])}
+                  title="Reset tout le brouillard"
+                >
+                  Reset
+                </button>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* ── Map viewport ─────────────────────────────────────── */}
@@ -689,6 +817,20 @@ export function CampaignMap({
               canEditFog={permissions.canEditFog}
               zoom={zoom}
               panMode={panMode}
+              fogZones={fogZones}
+              onZonesChange={saveFogZones}
+              showFog={showFog}
+              drawMode={fogDrawMode}
+              circleMode={fogCircleMode}
+              eraseMode={fogEraseMode}
+              drawing={fogDrawing}
+              setDrawing={setFogDrawing}
+              start={fogStart}
+              setStart={setFogStart}
+              currentRect={fogCurrentRect}
+              setCurrentRect={setFogCurrentRect}
+              saveError={fogSaveError}
+              setSaveError={setFogSaveError}
             />
 
             {/* Weather effects */}
