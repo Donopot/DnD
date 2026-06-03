@@ -175,6 +175,25 @@ async def create_invite(
     return InvitePublic(**dict(row))
 
 
+@router.get("/campaigns/{campaign_id}/invites", response_model=list[InvitePublic])
+async def list_invites(
+    campaign_id: UUID,
+    current_user=Depends(get_current_user),
+) -> list[InvitePublic]:
+    """List all active invites for a campaign (GM/co-GM only)."""
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+    rows = await get_pool().fetch(
+        """
+        select token, campaign_id, role, expires_at, max_uses, use_count, created_at
+        from campaign_invites
+        where campaign_id = $1 and (revoked_at is null)
+        order by created_at desc
+        """,
+        campaign_id,
+    )
+    return [InvitePublic(**dict(row)) for row in rows]
+
+
 @router.get("/invites/{token}", response_model=InvitePreview)
 @shared_limiter.limit("10/minute")
 async def preview_invite(request: Request, token: str) -> InvitePreview:
