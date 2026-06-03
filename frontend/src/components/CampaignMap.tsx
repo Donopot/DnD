@@ -129,6 +129,7 @@ export function CampaignMap({
   const fogSaveTimerRef = useRef<number | null>(null);
   const ignoreNextFogWsRef = useRef(false);
   const pendingFogZonesRef = useRef<FogZone[] | null>(null);
+  const previousFogZonesRef = useRef<FogZone[] | null>(null);
 
   // Fog tool state (lifted from FogLayer)
   const [showFog, setShowFog] = useState(true);
@@ -201,9 +202,14 @@ export function CampaignMap({
 
         if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
 
+        previousFogZonesRef.current = null;
         ignoreNextFogWsRef.current = true;
         setFogSaveError("");
       } catch {
+        if (previousFogZonesRef.current) {
+          setFogZones(previousFogZonesRef.current);
+        }
+        pendingFogZonesRef.current = null;
         setFogSaveError("Sauvegarde du brouillard impossible.");
       }
     },
@@ -228,6 +234,7 @@ export function CampaignMap({
         return;
       }
 
+      previousFogZonesRef.current = fogZonesRef.current;
       setFogZones(newZones);
       pendingFogZonesRef.current = newZones;
 
