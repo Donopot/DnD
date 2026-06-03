@@ -283,62 +283,89 @@ export default function App() {
     }
 
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}`,
-    );
-    wsRef.current = socket;
-    setRealtimeStatus("connecting");
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT = 3;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-    socket.onopen = () => {
-      // Authenticate via first message (not URL query param — avoids token in proxy logs)
-      socket.send(JSON.stringify({ type: "auth", token }));
-      setRealtimeStatus("online");
-    };
+    function connect() {
+      const socket = new WebSocket(
+        `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}`,
+      );
+      wsRef.current = socket;
+      setRealtimeStatus("connecting");
 
-    socket.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (typeof payload.presence_count === "number") {
-          setPresenceCount(payload.presence_count);
-        }
-        if (payload.type === "session_changed") {
-          void loadSessionLog(selectedCampaign.id);
-          if (payload.resource === "scene" || payload.resource === "token") {
-            void loadVttState(selectedCampaign.id);
-          }
-          if (payload.resource === "encounter") {
-            void loadCombatState(selectedCampaign.id);
-          }
-          if (payload.resource === "handout") {
-            void loadHandouts(selectedCampaign.id);
-          }
-        }
-        if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
-          setSceneTokens((current) =>
-            current.map((sceneToken) =>
-              sceneToken.id === payload.token_id
-                ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
-                : sceneToken,
-            ),
-          );
-        }
-      } catch {
-        /* ignore malformed messages */
-      }
-    };
+      socket.onopen = () => {
+        // Authenticate via first message (not URL query param — avoids token in proxy logs)
+        const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+        socket.send(JSON.stringify({ type: "auth", token: activeToken }));
+        setRealtimeStatus("online");
+        reconnectAttempts = 0;
+      };
 
-    socket.onclose = () => {
-      if (wsRef.current === socket) {
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === "error" && payload.detail) {
+            setMessage(`WebSocket: ${payload.detail}`);
+            return;
+          }
+          if (typeof payload.presence_count === "number") {
+            setPresenceCount(payload.presence_count);
+          }
+          if (payload.type === "session_changed") {
+            void loadSessionLog(selectedCampaign.id);
+            if (payload.resource === "scene" || payload.resource === "token") {
+              void loadVttState(selectedCampaign.id);
+            }
+            if (payload.resource === "encounter") {
+              void loadCombatState(selectedCampaign.id);
+            }
+            if (payload.resource === "handout") {
+              void loadHandouts(selectedCampaign.id);
+            }
+          }
+          if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
+            setSceneTokens((current) =>
+              current.map((sceneToken) =>
+                sceneToken.id === payload.token_id
+                  ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
+                  : sceneToken,
+              ),
+            );
+          }
+        } catch {
+          /* ignore malformed messages */
+        }
+      };
+
+      socket.onclose = (event) => {
+        if (wsRef.current !== socket) return;
         setRealtimeStatus("offline");
-      }
-    };
+        // Don't reconnect on auth failures (code 1008) or normal closes
+        if (event.code === 1008) {
+          setMessage("WebSocket authentication failed — try reloading the page.");
+          return;
+        }
+        if (reconnectAttempts < MAX_RECONNECT) {
+          reconnectAttempts++;
+          const delay = Math.min(1000 * 2 ** reconnectAttempts, 8000);
+          reconnectTimer = setTimeout(connect, delay);
+          setMessage(`Connection lost — reconnecting (attempt ${reconnectAttempts}/${MAX_RECONNECT})…`);
+        } else {
+          setMessage("Connection lost — could not reconnect. Reload the page to retry.");
+        }
+      };
 
-    socket.onerror = () => {
-      setRealtimeStatus("offline");
-    };
+      socket.onerror = () => {
+        // onclose will fire after this — handle reconnection there
+      };
+    }
+
+    connect();
 
     return () => {
-      socket.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      wsRef.current?.close();
     };
   }, [token, selectedCampaign?.id, selectedScene?.id]);
 
@@ -348,38 +375,36 @@ export default function App() {
   }
 
   async function bootstrap(activeToken: string) {
+    // Auth check — use apiRequest for timeout/AbortController
     try {
-      const response = await fetch("/api/auth/me", {
+      const userData = await apiRequest<User>("/api/auth/me", activeToken, {
         headers: { Authorization: `Bearer ${activeToken}` },
       });
-      if (!response.ok) {
-        throw new Error("Session expired");
-      }
-      setUser((await response.json()) as User);
+      setUser(userData);
     } catch {
       logout();
       return;
     }
 
+    // Campaign loading — separate from auth, don't logout on failure
     try {
       await loadCampaigns(activeToken);
     } catch (error) {
       setCampaigns([]);
+      setSelectedCampaignId("");
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
     }
   }
 
   async function loadCampaigns(activeToken = token) {
-    const response = await fetch("/api/campaigns", {
+    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken, {
       headers: { Authorization: `Bearer ${activeToken}` },
     });
-    if (!response.ok) {
-      throw new Error("Unable to load campaigns");
-    }
-    const data = (await response.json()) as Campaign[];
     setCampaigns(data);
     if (data.length > 0) {
       setSelectedCampaignId((current) => current || data[0].id);
+    } else {
+      setSelectedCampaignId("");
     }
   }
 
