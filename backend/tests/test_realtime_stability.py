@@ -58,6 +58,7 @@ def test_fog_zone_accepts_finite_positive_dimensions():
         "y": 20.0,
         "width": 100.0,
         "height": 80.0,
+        "shape": "rect",
     }
 
 

@@ -2,7 +2,7 @@ import { Grid3X3 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Character, Scene, SceneToken } from "../api/types";
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
-import { FogLayer } from "./FogLayer";
+import { FogLayer, type FogZone } from "./FogLayer";
 import { MapTools } from "./MapTools";
 import { TokenContextMenu } from "./TokenContextMenu";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
@@ -11,7 +11,19 @@ import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
 type TokenDragHandler = (token: SceneToken, dx: number, dy: number) => void;
 type TokenActionHandler = (
-  action: "center" | "duplicate" | "delete" | "hide" | "reveal" | "lock" | "unlock" | "add-combat" | "front" | "back" | "damage" | "heal",
+  action:
+    | "center"
+    | "duplicate"
+    | "delete"
+    | "hide"
+    | "reveal"
+    | "lock"
+    | "unlock"
+    | "add-combat"
+    | "front"
+    | "back"
+    | "damage"
+    | "heal",
   token: SceneToken,
   value?: number,
 ) => void;
@@ -72,9 +84,12 @@ export function CampaignMap({
   const [selectedTokenIds, setSelectedTokenIds] = useState<Set<string>>(new Set());
   const [showGrid, setShowGrid] = useState(true);
   const [sceneTransitioning, setSceneTransitioning] = useState(false);
-  const [weather, setWeather] = useState<WeatherType>("clear");
-  const [weatherIntensity, setWeatherIntensity] = useState(50);
-  const [weatherEnabled, setWeatherEnabled] = useState(false);
+  const [weather, _setWeather] = useState<WeatherType>("clear");
+  const [weatherIntensity, _setWeatherIntensity] = useState(50);
+  const [weatherEnabled, _setWeatherEnabled] = useState(false);
+
+  // Fog of war zones (for token visibility filtering)
+  const [fogZones, setFogZones] = useState<FogZone[]>([]);
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -104,6 +119,51 @@ export function CampaignMap({
     return () => clearTimeout(timer);
   }, [selectedSceneId]);
 
+  // ── Fog zone loading ─────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!selectedScene?.id) {
+      setFogZones([]);
+      return;
+    }
+    const t = localStorage.getItem("dnd_access_token") || "";
+    fetch(`/api/scenes/${selectedScene.id}/fog`, {
+      headers: { Authorization: `Bearer ${t}` },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => setFogZones(d.fog_zones || []))
+      .catch(() => {});
+  }, [selectedScene?.id]);
+
+  // ── Fog zone WebSocket refresh ───────────────────────────────────────────
+  useEffect(() => {
+    const ws = wsRef.current;
+    if (!ws) return;
+
+    const handler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (
+          data.type === "session_changed" &&
+          data.resource === "fog" &&
+          data.scene_id === selectedSceneId
+        ) {
+          const t = localStorage.getItem("dnd_access_token") || "";
+          fetch(`/api/scenes/${selectedSceneId}/fog`, {
+            headers: { Authorization: `Bearer ${t}` },
+          })
+            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+            .then((d) => setFogZones(d.fog_zones || []))
+            .catch(() => {});
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    ws.addEventListener("message", handler);
+    return () => ws.removeEventListener("message", handler);
+  }, [wsRef, selectedSceneId]);
+
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
 
@@ -117,17 +177,21 @@ export function CampaignMap({
     [sceneTokens, selectedTokenIds],
   );
 
-  useNudgeSelectedToken(selectedTokenId !== "" || selectedTokenIds.size > 0, (dx, dy) => {
-    if (!onMoveToken) return;
-    // Move all multi-selected tokens
-    for (const t of selectedTokens) {
-      onMoveToken(t, dx, dy);
-    }
-    // Also move the primary selected token if not already in the multi-set
-    if (selectedToken && !selectedTokenIds.has(selectedToken.id)) {
-      onMoveToken(selectedToken, dx, dy);
-    }
-  }, { gridSize, enabled: isGM });
+  useNudgeSelectedToken(
+    selectedTokenId !== "" || selectedTokenIds.size > 0,
+    (dx, dy) => {
+      if (!onMoveToken) return;
+      // Move all multi-selected tokens
+      for (const t of selectedTokens) {
+        onMoveToken(t, dx, dy);
+      }
+      // Also move the primary selected token if not already in the multi-set
+      if (selectedToken && !selectedTokenIds.has(selectedToken.id)) {
+        onMoveToken(selectedToken, dx, dy);
+      }
+    },
+    { gridSize, enabled: isGM },
+  );
 
   // Memoized myTokenIds to avoid new Set() on every render
   const myTokenIds = useMemo(() => {
@@ -177,7 +241,7 @@ export function CampaignMap({
     if (!el) return;
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+  }, [handleWheel]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────────────────
   useEffect(() => {
@@ -347,10 +411,37 @@ export function CampaignMap({
 
     // Draw token dots
     for (const t of sceneTokens) {
+      // Skip tokens hidden by fog (players only)
+      if (!isGM && fogZones.length > 0) {
+        const tc = t.x + (t.size * gridSize) / 2;
+        const ty = t.y + (t.size * gridSize) / 2;
+        const revealed = fogZones.some(
+          (z) => tc >= z.x && tc <= z.x + z.width && ty >= z.y && ty <= z.y + z.height,
+        );
+        if (!revealed) continue;
+      }
       ctx.fillStyle = t.color || "#c5b358";
       ctx.beginPath();
       ctx.arc(sx + (t.x / bw) * bw * scale, sy + (t.y / bh) * bh * scale, 2, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // Draw fog revealed zones on minimap
+    if (fogZones.length > 0) {
+      ctx.fillStyle = "rgba(214, 168, 79, 0.35)";
+      for (const zone of fogZones) {
+        const zx = sx + (zone.x / bw) * bw * scale;
+        const zy = sy + (zone.y / bh) * bh * scale;
+        const zw = (zone.width / bw) * bw * scale;
+        const zh = (zone.height / bh) * bh * scale;
+        if (zone.shape === "circle") {
+          ctx.beginPath();
+          ctx.arc(zx + zw / 2, zy + zh / 2, zw / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(zx, zy, zw, zh);
+        }
+      }
     }
 
     // Draw viewport rectangle
@@ -364,7 +455,7 @@ export function CampaignMap({
       ctx.lineWidth = 1;
       ctx.strokeRect(sx + vx, sy + vy, vw, vh);
     }
-  }, [selectedScene, sceneTokens, zoom, sceneBackgroundObjectUrl]);
+  }, [selectedScene, sceneTokens, zoom, fogZones, isGM, gridSize]);
 
   // ── Render ──────────────────────────────────────────────────────────────
 
@@ -503,6 +594,36 @@ export function CampaignMap({
                 : null;
 
               const isPlayerToken = myTokenIds.has(token.id);
+
+              // ── Fog visibility filter (players only) ──────────
+              // Tokens whose center is not in any revealed zone are hidden
+              if (!isGM && fogZones.length > 0) {
+                const tokenCenterX = token.x + (token.size * gridSize) / 2;
+                const tokenCenterY = token.y + (token.size * gridSize) / 2;
+                const isRevealed = fogZones.some(
+                  (zone) =>
+                    tokenCenterX >= zone.x &&
+                    tokenCenterX <= zone.x + zone.width &&
+                    tokenCenterY >= zone.y &&
+                    tokenCenterY <= zone.y + zone.height,
+                );
+                if (!isRevealed) return null;
+              }
+
+              // ── GM fog indicator: token is hidden from players
+              let isFogHidden = false;
+              if (isGM && fogZones.length > 0) {
+                const tokenCenterX = token.x + (token.size * gridSize) / 2;
+                const tokenCenterY = token.y + (token.size * gridSize) / 2;
+                isFogHidden = !fogZones.some(
+                  (zone) =>
+                    tokenCenterX >= zone.x &&
+                    tokenCenterX <= zone.x + zone.width &&
+                    tokenCenterY >= zone.y &&
+                    tokenCenterY <= zone.y + zone.height,
+                );
+              }
+
               const isBloodied = hpPercent !== null && hpPercent <= 50 && hpPercent > 0;
               const isDefeated = hpPercent !== null && hpPercent <= 0;
               const isConcentrating =
@@ -544,7 +665,7 @@ export function CampaignMap({
 
               return (
                 <div
-                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""}`}
+                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""}`}
                   key={token.id}
                   data-token-id={token.id}
                   role="button"
@@ -598,6 +719,13 @@ export function CampaignMap({
                   {/* Token icon (first 2 letters) */}
                   <span className="token-icon">{token.name.slice(0, 2).toUpperCase()}</span>
 
+                  {/* Fog-hidden indicator (GM only) */}
+                  {isFogHidden && (
+                    <span className="token-fog-icon" title="Caché aux joueurs (brouillard)">
+                      👁️‍🗨️
+                    </span>
+                  )}
+
                   {/* Token nameplate */}
                   <span className="token-nameplate">{token.name}</span>
 
@@ -629,7 +757,9 @@ export function CampaignMap({
 
                   {/* Selection ring */}
                   {(selectedTokenId === token.id || selectedTokenIds.has(token.id)) && (
-                    <div className={`token-ring${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " token-ring-group" : ""}`} />
+                    <div
+                      className={`token-ring${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " token-ring-group" : ""}`}
+                    />
                   )}
                 </div>
               );
@@ -658,8 +788,10 @@ export function CampaignMap({
                   // Center is handled locally
                   if (action === "center") {
                     if (scrollRef.current) {
-                      scrollRef.current.scrollLeft = token.x * zoom - scrollRef.current.clientWidth / 2;
-                      scrollRef.current.scrollTop = token.y * zoom - scrollRef.current.clientHeight / 2;
+                      scrollRef.current.scrollLeft =
+                        token.x * zoom - scrollRef.current.clientWidth / 2;
+                      scrollRef.current.scrollTop =
+                        token.y * zoom - scrollRef.current.clientHeight / 2;
                     }
                   } else {
                     onTokenAction(action, token, value);

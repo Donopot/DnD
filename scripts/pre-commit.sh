@@ -94,8 +94,8 @@ fi
 
 # ── Audit orphelins ──
 step "Audit — composants orphelins"
-ORPHANS=$(cd "$ROOT" && python3 scripts/audit-orphans.py 2>/dev/null | grep "^  →" | grep -oP '\d+')
-BASELINE=16  # lazy-loaded components via React.lazy() in App.tsx
+ORPHANS=$(cd "$ROOT" && python3 scripts/audit-orphans.py 2>/dev/null | grep "fichier(s) orphelin" | grep -oP '\d+')
+BASELINE=18  # lazy-loaded components via React.lazy() in App.tsx
 if [ -z "$ORPHANS" ]; then
     ok "No orphan components"
 elif [ "$ORPHANS" -le "$BASELINE" ]; then

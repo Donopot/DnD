@@ -257,9 +257,9 @@ async def create_token(
     row = await get_pool().fetchrow(
         """
         insert into scene_tokens (
-            scene_id, character_id, name, x, y, size, color, is_hidden, metadata
+            scene_id, character_id, name, x, y, size, color, is_hidden, vision_radius, metadata
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)
         returning *
         """,
         scene_id,
@@ -270,6 +270,7 @@ async def create_token(
         payload.size,
         payload.color.strip(),
         is_hidden,
+        payload.vision_radius,
         jsonb(metadata),
     )
     token = token_public(row)
@@ -290,9 +291,10 @@ async def update_token(
     current = dict(existing)
     updates = payload.model_dump(exclude_unset=True)
 
-    # Players cannot change is_hidden or metadata
+    # Players cannot change is_hidden, vision_radius, or metadata
     if role == "player":
         updates.pop("is_hidden", None)
+        updates.pop("vision_radius", None)
         updates.pop("metadata", None)
         # Players can only modify tokens linked to their own characters
         if existing["character_id"]:
@@ -323,7 +325,8 @@ async def update_token(
             size = $6,
             color = $7,
             is_hidden = $8,
-            metadata = $9::jsonb,
+            vision_radius = $9,
+            metadata = $10::jsonb,
             updated_at = now()
         where id = $1
         returning *
@@ -336,6 +339,7 @@ async def update_token(
         current["size"],
         current["color"],
         current["is_hidden"],
+        current.get("vision_radius", 0),
         jsonb(decode_json(current["metadata"])),
     )
     token = token_public(row)
@@ -392,6 +396,66 @@ async def move_token(
     return token
 
 
+# ── Phase 17: Token vision auto-reveal ──────────────────────────────────
+
+class CircleRevealRequest(BaseModel):
+    center_x: float
+    center_y: float
+    radius_ft: float
+
+
+@router.post("/tokens/{token_id}/reveal")
+async def reveal_around_token(
+    token_id: UUID,
+    payload: CircleRevealRequest,
+    current_user=Depends(get_current_user),
+):
+    """Add a circular revealed zone around a token position (used for auto fog reveal)."""
+    existing = await get_token_or_404(token_id)
+    await require_campaign_role(
+        existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"}
+    )
+
+    scene = await get_scene_or_404(existing["scene_id"])
+    current_zones: list = decode_json(scene.get("fog_zones")) or []
+
+    # Convert circle to a bounding square for storage
+    r = payload.radius_ft
+    square = {
+        "x": payload.center_x - r,
+        "y": payload.center_y - r,
+        "width": r * 2,
+        "height": r * 2,
+        "shape": "rect",
+    }
+
+    # Don't add duplicate zones (within 1px tolerance)
+    already = any(
+        abs(z.get("x", 0) - square["x"]) < 1
+        and abs(z.get("y", 0) - square["y"]) < 1
+        for z in current_zones
+    )
+    if not already:
+        current_zones.append(square)
+
+    await get_pool().fetchrow(
+        """
+        update campaign_scenes
+        set fog_zones = $2::jsonb, updated_at = now()
+        where id = $1
+        returning *
+        """,
+        existing["scene_id"],
+        jsonb(current_zones),
+    )
+
+    await cache_invalidate(f"fog:{existing['scene_id']}*")
+    await broadcast_vtt_change(
+        existing["campaign_id"], "fog", existing["scene_id"]
+    )
+    return {"fog_zones": current_zones}
+
+
 @router.patch("/scenes/{scene_id}/settings", response_model=ScenePublic)
 async def update_scene_settings(
     scene_id: UUID,
@@ -442,6 +506,7 @@ class FogZone(BaseModel):
     y: float
     width: float
     height: float
+    shape: str = "rect"  # "rect" or "circle"
 
     @field_validator("x", "y", "width", "height")
     @classmethod
@@ -449,6 +514,13 @@ class FogZone(BaseModel):
         if not math.isfinite(value):
             logger.warning("Rejected fog zone with non-finite coordinate")
             raise ValueError("Fog zone coordinates must be finite")
+        return value
+
+    @field_validator("shape")
+    @classmethod
+    def validate_shape(cls, value: str) -> str:
+        if value not in {"rect", "circle"}:
+            raise ValueError("Fog zone shape must be 'rect' or 'circle'")
         return value
 
     @field_validator("width", "height")

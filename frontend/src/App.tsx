@@ -15,25 +15,29 @@ import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
 import { type CampaignView, CampaignViewTabs } from "./components/CampaignViewTabs";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FloatingPanel } from "./components/FloatingPanel";
 import { GmLobby } from "./components/GmLobby";
+import { GmNotesPanel } from "./components/GmNotesPanel";
 import { HandoutPanel } from "./components/HandoutPanel";
+import { InitiativePanel } from "./components/InitiativePanel";
 import { InvitePage } from "./components/InvitePage";
+import { PartySummaryPanel } from "./components/PartySummaryPanel";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
 import { QuickActions } from "./components/QuickActions";
 import { SessionLogPanel } from "./components/SessionLogPanel";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { SESSION_LIVE_MODES, SESSION_LIVE_PANEL_SETS, type SessionLiveMode } from "./config/sessionLiveModes";
+import { TokenDetailPanel } from "./components/TokenDetailPanel";
+import { VisibilityInspectorPanel } from "./components/VisibilityInspectorPanel";
+import {
+  SESSION_LIVE_MODES,
+  SESSION_LIVE_PANEL_SETS,
+  type SessionLiveMode,
+} from "./config/sessionLiveModes";
 import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
-import { GmNotesPanel } from "./components/GmNotesPanel";
-import { InitiativePanel } from "./components/InitiativePanel";
-import { PartySummaryPanel } from "./components/PartySummaryPanel";
-import { TokenDetailPanel } from "./components/TokenDetailPanel";
-import { VisibilityInspectorPanel } from "./components/VisibilityInspectorPanel";
 
 // ── Lazy-loaded heavy components (code-split for faster initial load) ────
 const CombatTracker = lazy(() =>
@@ -104,6 +108,7 @@ const PanelFallback = () => (
   </div>
 );
 
+import { apiRequest } from "./api/client";
 import type {
   Asset,
   AuthResponse,
@@ -121,7 +126,6 @@ import type {
   SceneToken,
   User,
 } from "./api/types";
-import { apiRequest } from "./api/client";
 
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
@@ -192,10 +196,7 @@ export default function App() {
       return;
     }
 
-    showToast(
-      message,
-      message.includes("Erreur") || message.includes("error") ? "error" : "info",
-    );
+    showToast(message, message.includes("Erreur") || message.includes("error") ? "error" : "info");
     setMessage("");
   }, [message, showToast, user]);
 
@@ -222,8 +223,9 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleGlobalKey);
   }, []);
 
-  const activeSessionLiveModeDetail = useMemo(
-    () => SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
+  const _activeSessionLiveModeDetail = useMemo(
+    () =>
+      SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
     [activeSessionLiveMode],
   );
 
@@ -238,7 +240,7 @@ export default function App() {
       return;
     }
     void bootstrap(token);
-  }, [token]);
+  }, [token, bootstrap]);
 
   useEffect(() => {
     if (!selectedCampaign) {
@@ -257,7 +259,17 @@ export default function App() {
     void loadAssets(selectedCampaign.id);
     void loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
-  }, [selectedCampaign?.id]);
+  }, [
+    selectedCampaign?.id,
+    loadAssets,
+    loadVttState,
+    loadCharacters,
+    loadMembers,
+    loadSessionLog,
+    selectedCampaign,
+    loadHandouts,
+    loadCombatState,
+  ]);
 
   // ── Escape → close modals ──
   useEffect(() => {
@@ -329,7 +341,7 @@ export default function App() {
     return () => {
       socket.close();
     };
-  }, [token, selectedCampaign?.id]);
+  }, [token, selectedCampaign?.id, loadSessionLog, loadHandouts, loadVttState, loadCombatState]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return apiRequest<T>(path, token, options);
@@ -436,6 +448,27 @@ export default function App() {
       });
 
       setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+
+      // ── Auto fog reveal ──────────────────────────────────────
+      // If this token has character linkage and a vision radius, auto-reveal fog
+      const visionRadius = tokenToMove.vision_radius ?? 0;
+      if (tokenToMove.character_id && visionRadius > 0 && selectedScene) {
+        const gridSize = selectedScene.grid_size ?? 50;
+        const centerX = updated.x + (updated.size * gridSize) / 2;
+        const centerY = updated.y + (updated.size * gridSize) / 2;
+        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            center_x: centerX,
+            center_y: centerY,
+            radius_ft: visionRadius,
+          }),
+        }).catch(() => {});
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to move token");
     } finally {
@@ -443,11 +476,7 @@ export default function App() {
     }
   }
 
-  async function handleTokenAction(
-    action: string,
-    tokenToAct: SceneToken,
-    value?: number,
-  ) {
+  async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
     setIsBusy(true);
     setMessage("");
 
@@ -456,20 +485,17 @@ export default function App() {
         case "duplicate": {
           // Create a new token with same properties
           if (!selectedScene) break;
-          const dup = await request<SceneToken>(
-            `/api/scenes/${selectedScene.id}/tokens`,
-            {
-              method: "POST",
-              body: JSON.stringify({
-                name: `${tokenToAct.name} (copie)`,
-                x: tokenToAct.x + 50,
-                y: tokenToAct.y + 50,
-                color: tokenToAct.color,
-                size: tokenToAct.size,
-                character_id: tokenToAct.character_id,
-              }),
-            },
-          );
+          const dup = await request<SceneToken>(`/api/scenes/${selectedScene.id}/tokens`, {
+            method: "POST",
+            body: JSON.stringify({
+              name: `${tokenToAct.name} (copie)`,
+              x: tokenToAct.x + 50,
+              y: tokenToAct.y + 50,
+              color: tokenToAct.color,
+              size: tokenToAct.size,
+              character_id: tokenToAct.character_id,
+            }),
+          });
           setSceneTokens((current) => [...current, dup]);
           break;
         }
@@ -484,9 +510,7 @@ export default function App() {
             method: "PATCH",
             body: JSON.stringify({ is_hidden: action === "hide" }),
           });
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === updated.id ? updated : t)),
-          );
+          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
           break;
         }
         case "add-combat": {
@@ -503,18 +527,17 @@ export default function App() {
           const amount = value ?? 0;
           const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
           const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
-          const newHp = action === "damage"
-            ? Math.max(0, hpCurrent - amount)
-            : Math.min(hpMax, hpCurrent + amount);
+          const newHp =
+            action === "damage"
+              ? Math.max(0, hpCurrent - amount)
+              : Math.min(hpMax, hpCurrent + amount);
           const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
             method: "PATCH",
             body: JSON.stringify({
               metadata: { ...tokenToAct.metadata, hp_current: newHp },
             }),
           });
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === updated.id ? updated : t)),
-          );
+          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
           break;
         }
       }
@@ -803,7 +826,7 @@ export default function App() {
     setIsBusy(true);
     setMessage("");
     try {
-      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign!.id}/rolls`, {
+      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign?.id}/rolls`, {
         method: "POST",
         body: JSON.stringify({
           formula,
@@ -814,7 +837,7 @@ export default function App() {
         }),
       });
       setRolls((current) => [roll, ...current].slice(0, 100));
-      await loadSessionLog(selectedCampaign!.id);
+      await loadSessionLog(selectedCampaign?.id);
       setMessage(`Jet: ${roll.total}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to roll dice");
@@ -1123,635 +1146,636 @@ export default function App() {
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
         <ErrorBoundary>
-        <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
-          {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
-          {gmView === "live" && (
-            <>
-              {/* Combat Tracker */}
-              {liveModePanelIds.has("combat") && (
-              <details className="gm-panel-section" open>
-                <summary>
-                  ⚔️ Combat
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("combat", "⚔️ Combat");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <CombatTracker
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
-                />
-              </details>
-              )}
+          <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
+            {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
+            {gmView === "live" && (
+              <>
+                {/* Combat Tracker */}
+                {liveModePanelIds.has("combat") && (
+                  <details className="gm-panel-section" open>
+                    <summary>
+                      ⚔️ Combat
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("combat", "⚔️ Combat");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <CombatTracker
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                      onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+                    />
+                  </details>
+                )}
 
-              {/* Encounter Builder */}
-              {liveModePanelIds.has("encounter-builder") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🧩 Générateur de rencontres
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("encounter-builder", "🧩 Rencontres");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
-              </details>
-              )}
+                {/* Encounter Builder */}
+                {liveModePanelIds.has("encounter-builder") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🧩 Générateur de rencontres
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("encounter-builder", "🧩 Rencontres");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
+                  </details>
+                )}
 
-              {/* Dice Roller */}
-              {liveModePanelIds.has("dice-roller") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🎲 Lancer de dés
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("dice-roller", "🎲 Lancer de dés");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
-              </details>
-              )}
+                {/* Dice Roller */}
+                {liveModePanelIds.has("dice-roller") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🎲 Lancer de dés
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("dice-roller", "🎲 Lancer de dés");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <DiceRoller
+                      onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
+                    />
+                  </details>
+                )}
 
-              {/* Quick Actions / Macros */}
-              {liveModePanelIds.has("quick-actions") && (
-              <details className="gm-panel-section">
-                <summary>
-                  ⚡ Actions rapides
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("quick-actions", "⚡ Actions rapides");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
-              </details>
-              )}
+                {/* Quick Actions / Macros */}
+                {liveModePanelIds.has("quick-actions") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      ⚡ Actions rapides
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("quick-actions", "⚡ Actions rapides");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <QuickActions
+                      onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)}
+                    />
+                  </details>
+                )}
 
-              {/* Messages MJ → Joueurs */}
-              {liveModePanelIds.has("gm-messages") && (
-              <details className="gm-panel-section">
-                <summary>
-                  💬 Communication
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("gm-messages", "💬 Communication");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <GmMessagePanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  members={members}
-                />
-              </details>
-              )}
+                {/* Messages MJ → Joueurs */}
+                {liveModePanelIds.has("gm-messages") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      💬 Communication
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("gm-messages", "💬 Communication");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <GmMessagePanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                      members={members}
+                    />
+                  </details>
+                )}
 
-              {/* ChatPanel */}
-              {liveModePanelIds.has("chat") && (
-              <details className="gm-panel-section">
-                <summary>
-                  💭 Chat en direct
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("chat", "💭 Chat");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <ChatPanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  wsRef={wsRef}
-                  userId={user?.id}
-                  displayName={user?.display_name}
-                />
-              </details>
-              )}
+                {/* ChatPanel */}
+                {liveModePanelIds.has("chat") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      💭 Chat en direct
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("chat", "💭 Chat");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ChatPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      wsRef={wsRef}
+                      userId={user?.id}
+                      displayName={user?.display_name}
+                    />
+                  </details>
+                )}
 
-              {/* AmbiancePanel */}
-              {liveModePanelIds.has("ambiance") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🎵 Ambiance
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("ambiance", "🎵 Ambiance");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <AmbiancePanel isGM={true} />
-              </details>
-              )}
+                {/* AmbiancePanel */}
+                {liveModePanelIds.has("ambiance") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🎵 Ambiance
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("ambiance", "🎵 Ambiance");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <AmbiancePanel isGM={true} />
+                  </details>
+                )}
 
-              {/* GmNotesPanel */}
-              {liveModePanelIds.has("gm-notes") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📝 Notes MJ
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("gm-notes", "📝 Notes MJ");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <GmNotesPanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  selectedScene={selectedScene}
-                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-                />
-              </details>
-              )}
+                {/* GmNotesPanel */}
+                {liveModePanelIds.has("gm-notes") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📝 Notes MJ
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("gm-notes", "📝 Notes MJ");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <GmNotesPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      selectedScene={selectedScene}
+                      selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                    />
+                  </details>
+                )}
 
-              {/* InitiativePanel */}
-              {liveModePanelIds.has("initiative") && (
-              <details className="gm-panel-section">
-                <summary>
-                  ⏱️ Initiative
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("initiative", "⏱️ Initiative");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
-              </details>
-              )}
+                {/* InitiativePanel */}
+                {liveModePanelIds.has("initiative") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      ⏱️ Initiative
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("initiative", "⏱️ Initiative");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+                  </details>
+                )}
 
-              {/* TokenDetailPanel */}
-              {liveModePanelIds.has("token-detail") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🔍 Détail token
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("token-detail", "🔍 Détail token");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <TokenDetailPanel
-                  selectedScene={selectedScene}
-                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-                  selectedTokenCharacter={characters.find(
-                    (c) => c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
-                  )}
-                  selectedTokenPosition={
-                    (() => {
-                      const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                      return t ? { x: t.x, y: t.y } : undefined;
-                    })()
-                  }
-                  onDeselectToken={() => setSelectedTokenId("")}
-                  onNudgeSelectedToken={(dx, dy) => {
-                    const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                    if (t) void handleMoveToken(t, dx, dy);
-                  }}
-                />
-              </details>
-              )}
+                {/* TokenDetailPanel */}
+                {liveModePanelIds.has("token-detail") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🔍 Détail token
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("token-detail", "🔍 Détail token");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <TokenDetailPanel
+                      selectedScene={selectedScene}
+                      selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                      selectedTokenCharacter={characters.find(
+                        (c) =>
+                          c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
+                      )}
+                      selectedTokenPosition={(() => {
+                        const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                        return t ? { x: t.x, y: t.y } : undefined;
+                      })()}
+                      onDeselectToken={() => setSelectedTokenId("")}
+                      onNudgeSelectedToken={(dx, dy) => {
+                        const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                        if (t) void handleMoveToken(t, dx, dy);
+                      }}
+                    />
+                  </details>
+                )}
 
-              {/* VisibilityInspectorPanel */}
-              {liveModePanelIds.has("visibility-inspector") && (
-              <details className="gm-panel-section">
-                <summary>
-                  👁️ Visibilité
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("visibility-inspector", "👁️ Visibilité");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <VisibilityInspectorPanel
-                  selectedScene={selectedScene}
-                  selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-                  sceneTokens={sceneTokens}
-                  onOpenPanel={(panelId) => fp.open(panelId, "")}
-                />
-              </details>
-              )}
-            </>
-          )}
+                {/* VisibilityInspectorPanel */}
+                {liveModePanelIds.has("visibility-inspector") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      👁️ Visibilité
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("visibility-inspector", "👁️ Visibilité");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <VisibilityInspectorPanel
+                      selectedScene={selectedScene}
+                      selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
+                      sceneTokens={sceneTokens}
+                      onOpenPanel={(panelId) => fp.open(panelId, "")}
+                    />
+                  </details>
+                )}
+              </>
+            )}
 
-          {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
-          {gmView === "journal" && (
-            <>
-              {/* Session Log */}
-              {liveModePanelIds.has("session-log") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📋 Journal
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("session-log", "📋 Journal");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <SessionLogPanel
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                  rolls={rolls}
-                  logEntries={logEntries}
-                  isBusy={isBusy}
-                  token={token}
-                  onRoll={handleRoll}
-                  onAddNote={handleLogNote}
-                  onRefresh={(category?) => {
-                    if (selectedCampaign) {
-                      void (async () => {
-                        try {
-                          const url = category
-                            ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
-                            : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
-                          const response = await fetch(url, {
-                            headers: { Authorization: `Bearer ${token}` },
-                          });
-                          if (response.ok) setLogEntries(await response.json());
-                        } catch {
-                          /* ignore */
+            {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
+            {gmView === "journal" && (
+              <>
+                {/* Session Log */}
+                {liveModePanelIds.has("session-log") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📋 Journal
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("session-log", "📋 Journal");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <SessionLogPanel
+                      characters={characters}
+                      selectedCharacter={selectedCharacter}
+                      rolls={rolls}
+                      logEntries={logEntries}
+                      isBusy={isBusy}
+                      token={token}
+                      onRoll={handleRoll}
+                      onAddNote={handleLogNote}
+                      onRefresh={(category?) => {
+                        if (selectedCampaign) {
+                          void (async () => {
+                            try {
+                              const url = category
+                                ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
+                                : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
+                              const response = await fetch(url, {
+                                headers: { Authorization: `Bearer ${token}` },
+                              });
+                              if (response.ok) setLogEntries(await response.json());
+                            } catch {
+                              /* ignore */
+                            }
+                          })();
                         }
-                      })();
-                    }
-                  }}
-                />
-              </details>
-              )}
+                      }}
+                    />
+                  </details>
+                )}
 
-              {/* Session Stats */}
-              {liveModePanelIds.has("session-stats") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📊 Statistiques
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("session-stats", "📊 Statistiques");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
-              </details>
-              )}
-            </>
-          )}
+                {/* Session Stats */}
+                {liveModePanelIds.has("session-stats") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📊 Statistiques
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("session-stats", "📊 Statistiques");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
+                  </details>
+                )}
+              </>
+            )}
 
-          {/* ── PREPARATION — Donjons, Documents ───────────────── */}
-          {gmView === "preparation" && (
-            <>
-              {/* Scene Panel */}
-              {liveModePanelIds.has("scene") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🎬 Scènes
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("scene", "🎬 Scènes");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <ScenePanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  scenes={scenes}
-                  onSelectScene={(id) => setSelectedSceneId(id)}
-                  onScenesChanged={() => {
-                    if (selectedCampaign?.id) {
-                      void loadVttState(selectedCampaign.id);
-                    }
-                  }}
-                />
-              </details>
-              )}
+            {/* ── PREPARATION — Donjons, Documents ───────────────── */}
+            {gmView === "preparation" && (
+              <>
+                {/* Scene Panel */}
+                {liveModePanelIds.has("scene") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🎬 Scènes
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("scene", "🎬 Scènes");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ScenePanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                      scenes={scenes}
+                      onSelectScene={(id) => setSelectedSceneId(id)}
+                      onScenesChanged={() => {
+                        if (selectedCampaign?.id) {
+                          void loadVttState(selectedCampaign.id);
+                        }
+                      }}
+                    />
+                  </details>
+                )}
 
-              {/* Token Panel */}
-              {liveModePanelIds.has("tokens") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🎭 Tokens
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("tokens", "🎭 Tokens");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <TokenPanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  sceneId={selectedScene?.id ?? ""}
-                  tokens={sceneTokens}
-                  onTokensChanged={() => {
-                    if (selectedScene?.id) {
-                      void loadSceneTokens(selectedScene.id);
-                    }
-                  }}
-                />
-              </details>
-              )}
+                {/* Token Panel */}
+                {liveModePanelIds.has("tokens") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🎭 Tokens
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("tokens", "🎭 Tokens");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <TokenPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                      sceneId={selectedScene?.id ?? ""}
+                      tokens={sceneTokens}
+                      onTokensChanged={() => {
+                        if (selectedScene?.id) {
+                          void loadSceneTokens(selectedScene.id);
+                        }
+                      }}
+                    />
+                  </details>
+                )}
 
-              {/* Dungeon Generator */}
-              {liveModePanelIds.has("dungeon-generator") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🗺️ Générateur de donjons
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("dungeon-generator", "🗺️ Donjons");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <DungeonGenerator token={token} />
-              </details>
-              )}
+                {/* Dungeon Generator */}
+                {liveModePanelIds.has("dungeon-generator") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🗺️ Générateur de donjons
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("dungeon-generator", "🗺️ Donjons");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <DungeonGenerator token={token} />
+                  </details>
+                )}
 
-              {/* Handouts */}
-              {liveModePanelIds.has("handouts") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📄 Documents
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("handouts", "📄 Documents");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <HandoutPanel
-                  handouts={handouts}
-                  scenes={scenes}
-                  isBusy={isBusy}
-                  onCreateHandout={handleCreateHandout}
-                  onRevealHandout={(h) => void handleRevealHandout(h)}
-                  onDeleteHandout={(h) => void handleDeleteHandout(h)}
-                />
-              </details>
-              )}
-            </>
-          )}
+                {/* Handouts */}
+                {liveModePanelIds.has("handouts") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📄 Documents
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("handouts", "📄 Documents");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <HandoutPanel
+                      handouts={handouts}
+                      scenes={scenes}
+                      isBusy={isBusy}
+                      onCreateHandout={handleCreateHandout}
+                      onRevealHandout={(h) => void handleRevealHandout(h)}
+                      onDeleteHandout={(h) => void handleDeleteHandout(h)}
+                    />
+                  </details>
+                )}
+              </>
+            )}
 
-          {/* ── LIBRARY — Bestiaire, Sorts, Équipement ──────────── */}
-          {gmView === "library" && (
-            <>
-              {/* Bestiary */}
-              {liveModePanelIds.has("bestiary") && (
-              <details className="gm-panel-section">
-                <summary>
-                  💀 Bestiaire
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("bestiary", "💀 Bestiaire");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <BestiaryPanel token={token} />
-              </details>
-              )}
+            {/* ── LIBRARY — Bestiaire, Sorts, Équipement ──────────── */}
+            {gmView === "library" && (
+              <>
+                {/* Bestiary */}
+                {liveModePanelIds.has("bestiary") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      💀 Bestiaire
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("bestiary", "💀 Bestiaire");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <BestiaryPanel token={token} />
+                  </details>
+                )}
 
-              {/* Spellbook */}
-              {liveModePanelIds.has("spellbook") && (
-              <details className="gm-panel-section">
-                <summary>
-                  ✨ Grimoire
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("spellbook", "✨ Grimoire");
-                    }}
-                    title="Détacher en panneau flottant"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <SpellbookPanel token={token} />
-              </details>
-              )}
+                {/* Spellbook */}
+                {liveModePanelIds.has("spellbook") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      ✨ Grimoire
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("spellbook", "✨ Grimoire");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <SpellbookPanel token={token} />
+                  </details>
+                )}
 
-              {/* Item Compendium */}
-              {liveModePanelIds.has("items") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🎒 Équipement
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("items", "🎒 Équipement");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <ItemCompendium token={token} />
-              </details>
-              )}
+                {/* Item Compendium */}
+                {liveModePanelIds.has("items") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🎒 Équipement
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("items", "🎒 Équipement");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ItemCompendium token={token} />
+                  </details>
+                )}
 
-              {/* Homebrew */}
-              {liveModePanelIds.has("homebrew") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📚 Bibliothèque
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("homebrew", "📚 Bibliothèque");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <HomebrewPanel
-                  campaignId={selectedCampaign?.id ?? ""}
-                  token={token}
-                  scenes={scenes}
-                  encounters={encounters}
-                  isBusy={isBusy}
-                />
-              </details>
-              )}
+                {/* Homebrew */}
+                {liveModePanelIds.has("homebrew") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📚 Bibliothèque
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("homebrew", "📚 Bibliothèque");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <HomebrewPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                      scenes={scenes}
+                      encounters={encounters}
+                      isBusy={isBusy}
+                    />
+                  </details>
+                )}
 
-              {/* SRD Reference */}
-              {liveModePanelIds.has("rules") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📖 Règles (SRD)
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("rules", "📖 Règles SRD");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <RulesReference />
-              </details>
-              )}
+                {/* SRD Reference */}
+                {liveModePanelIds.has("rules") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📖 Règles (SRD)
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("rules", "📖 Règles SRD");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <RulesReference />
+                  </details>
+                )}
 
-              {/* NpcGenerator */}
-              {liveModePanelIds.has("npc-generator") && (
-              <details className="gm-panel-section">
-                <summary>
-                  🧑 Générateur PNJ
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("npc-generator", "🧑 Générateur PNJ");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <NpcGenerator />
-              </details>
-              )}
-            </>
-          )}
+                {/* NpcGenerator */}
+                {liveModePanelIds.has("npc-generator") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      🧑 Générateur PNJ
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("npc-generator", "🧑 Générateur PNJ");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <NpcGenerator />
+                  </details>
+                )}
+              </>
+            )}
 
-          {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
-          {gmView === "campaign" && (
-            <>
-              {liveModePanelIds.has("campaign-info") && (
+            {/* ── CAMPAIGN — Infos, Membres ───────────────────────── */}
+            {gmView === "campaign" && liveModePanelIds.has("campaign-info") && (
               <details className="gm-panel-section" open>
                 <summary>📋 Infos campagne</summary>
                 {selectedCampaign && (
@@ -1779,171 +1803,169 @@ export default function App() {
                   </div>
                 )}
               </details>
-              )}
-            </>
-          )}
+            )}
 
-          {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
-          {gmView === "characters" && (
-            <>
-              {liveModePanelIds.has("characters") && (
-              <details className="gm-panel-section" open>
-                <summary>👤 Personnages</summary>
-                <div className="character-section">
-                  <button
-                    className="primary-button compact"
-                    onClick={() => setShowCharacterWizard(true)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
-                    type="button"
-                  >
-                    ✨ Création assistée
-                  </button>
-
-                  <form className="character-form" onSubmit={handleCreateCharacter}>
-                    <label>
-                      <input
-                        name="name"
-                        minLength={2}
-                        maxLength={120}
-                        required
-                        placeholder="Nom du personnage"
-                      />
-                    </label>
-                    <div className="mini-grid">
-                      <label>
-                        <input name="ancestry" maxLength={80} placeholder="Origine" />
-                      </label>
-                      <label>
-                        <input name="class_name" maxLength={80} placeholder="Classe" />
-                      </label>
-                    </div>
-                    <div className="mini-grid">
-                      <label>
-                        <input
-                          name="level"
-                          type="number"
-                          min={1}
-                          max={20}
-                          defaultValue={1}
-                          placeholder="Niv."
-                        />
-                      </label>
-                      <label>
-                        <input
-                          name="hp_max"
-                          type="number"
-                          min={1}
-                          defaultValue={10}
-                          placeholder="PV"
-                        />
-                      </label>
-                      <label>
-                        <input
-                          name="armor_class"
-                          type="number"
-                          min={1}
-                          max={40}
-                          defaultValue={10}
-                          placeholder="CA"
-                        />
-                      </label>
-                      <label>
-                        <input
-                          name="speed"
-                          type="number"
-                          min={0}
-                          max={200}
-                          defaultValue={30}
-                          placeholder="Vit."
-                        />
-                      </label>
-                    </div>
-                    <button className="primary-button compact" disabled={isBusy} type="submit">
-                      <Plus aria-hidden="true" size={12} /> Ajouter
-                    </button>
-                  </form>
-
-                  <div className="character-list">
-                    {characters.map((ch) => (
-                      <div
-                        className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
-                        key={ch.id}
+            {/* ── CHARACTERS — Fiches Personnages ──────────────────── */}
+            {gmView === "characters" && (
+              <>
+                {liveModePanelIds.has("characters") && (
+                  <details className="gm-panel-section" open>
+                    <summary>👤 Personnages</summary>
+                    <div className="character-section">
+                      <button
+                        className="primary-button compact"
+                        onClick={() => setShowCharacterWizard(true)}
+                        style={{ width: "100%", marginBottom: "0.5rem" }}
+                        type="button"
                       >
-                        <button
-                          className="character-row-btn"
-                          onClick={() => setSelectedCharacterId(ch.id)}
-                          type="button"
-                        >
-                          <span>
-                            <strong>{ch.name}</strong>
-                            <small>
-                              Niv.{ch.level} {ch.class_name}
-                            </small>
-                          </span>
-                          <em>
-                            {ch.hp_current}/{ch.hp_max} PV
-                          </em>
+                        ✨ Création assistée
+                      </button>
+
+                      <form className="character-form" onSubmit={handleCreateCharacter}>
+                        <label>
+                          <input
+                            name="name"
+                            minLength={2}
+                            maxLength={120}
+                            required
+                            placeholder="Nom du personnage"
+                          />
+                        </label>
+                        <div className="mini-grid">
+                          <label>
+                            <input name="ancestry" maxLength={80} placeholder="Origine" />
+                          </label>
+                          <label>
+                            <input name="class_name" maxLength={80} placeholder="Classe" />
+                          </label>
+                        </div>
+                        <div className="mini-grid">
+                          <label>
+                            <input
+                              name="level"
+                              type="number"
+                              min={1}
+                              max={20}
+                              defaultValue={1}
+                              placeholder="Niv."
+                            />
+                          </label>
+                          <label>
+                            <input
+                              name="hp_max"
+                              type="number"
+                              min={1}
+                              defaultValue={10}
+                              placeholder="PV"
+                            />
+                          </label>
+                          <label>
+                            <input
+                              name="armor_class"
+                              type="number"
+                              min={1}
+                              max={40}
+                              defaultValue={10}
+                              placeholder="CA"
+                            />
+                          </label>
+                          <label>
+                            <input
+                              name="speed"
+                              type="number"
+                              min={0}
+                              max={200}
+                              defaultValue={30}
+                              placeholder="Vit."
+                            />
+                          </label>
+                        </div>
+                        <button className="primary-button compact" disabled={isBusy} type="submit">
+                          <Plus aria-hidden="true" size={12} /> Ajouter
                         </button>
-                        <button
-                          className="character-inspect-btn"
-                          onClick={() => setInspectedCharacterId(ch.id)}
-                          title="Gérer (PV, XP, équipement, conditions)"
-                          type="button"
-                        >
-                          🔍
-                        </button>
+                      </form>
+
+                      <div className="character-list">
+                        {characters.map((ch) => (
+                          <div
+                            className={`character-row ${selectedCharacter?.id === ch.id ? "selected" : ""}`}
+                            key={ch.id}
+                          >
+                            <button
+                              className="character-row-btn"
+                              onClick={() => setSelectedCharacterId(ch.id)}
+                              type="button"
+                            >
+                              <span>
+                                <strong>{ch.name}</strong>
+                                <small>
+                                  Niv.{ch.level} {ch.class_name}
+                                </small>
+                              </span>
+                              <em>
+                                {ch.hp_current}/{ch.hp_max} PV
+                              </em>
+                            </button>
+                            <button
+                              className="character-inspect-btn"
+                              onClick={() => setInspectedCharacterId(ch.id)}
+                              title="Gérer (PV, XP, équipement, conditions)"
+                              type="button"
+                            >
+                              🔍
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
 
-                  {selectedCharacter && (
-                    <EditCharacterSheet
-                      character={selectedCharacter}
-                      token={token}
-                      isBusy={isBusy}
-                      onSave={(updated) =>
-                        setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
-                      }
+                      {selectedCharacter && (
+                        <EditCharacterSheet
+                          character={selectedCharacter}
+                          token={token}
+                          isBusy={isBusy}
+                          onSave={(updated) =>
+                            setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
+                          }
+                        />
+                      )}
+                    </div>
+                  </details>
+                )}
+
+                {/* PartySummaryPanel */}
+                {liveModePanelIds.has("party-summary") && (
+                  <details className="gm-panel-section">
+                    <summary>
+                      📊 Résumé du groupe
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("party-summary", "📊 Résumé du groupe");
+                        }}
+                        title="Détacher"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <PartySummaryPanel
+                      characters={characters}
+                      selectedCharacter={selectedCharacter}
                     />
-                  )}
-                </div>
-              </details>
-              )}
+                  </details>
+                )}
+              </>
+            )}
 
-              {/* PartySummaryPanel */}
-              {liveModePanelIds.has("party-summary") && (
-              <details className="gm-panel-section">
-                <summary>
-                  📊 Résumé du groupe
-                  <button
-                    className="panel-detach-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      fp.open("party-summary", "📊 Résumé du groupe");
-                    }}
-                    title="Détacher"
-                    type="button"
-                  >
-                    <ExternalLink size={12} />
-                  </button>
-                </summary>
-                <PartySummaryPanel
-                  characters={characters}
-                  selectedCharacter={selectedCharacter}
-                />
-              </details>
-              )}
-            </>
-          )}
-
-          {/* ── SETTINGS ─────────────────────────────────────────── */}
-          {gmView === "settings" && (
-            <div className="empty-state compact-empty">
-              <p>Paramètres à venir : permissions, layout, thème.</p>
-            </div>
-          )}
-        </aside>
+            {/* ── SETTINGS ─────────────────────────────────────────── */}
+            {gmView === "settings" && (
+              <div className="empty-state compact-empty">
+                <p>Paramètres à venir : permissions, layout, thème.</p>
+              </div>
+            )}
+          </aside>
         </ErrorBoundary>
       </Suspense>
 
@@ -2038,12 +2060,10 @@ export default function App() {
               selectedTokenCharacter={characters.find(
                 (c) => c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
               )}
-              selectedTokenPosition={
-                (() => {
-                  const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                  return t ? { x: t.x, y: t.y } : undefined;
-                })()
-              }
+              selectedTokenPosition={(() => {
+                const t = sceneTokens.find((t) => t.id === selectedTokenId);
+                return t ? { x: t.x, y: t.y } : undefined;
+              })()}
               onDeselectToken={() => setSelectedTokenId("")}
               onNudgeSelectedToken={(dx, dy) => {
                 const t = sceneTokens.find((t) => t.id === selectedTokenId);
@@ -2060,10 +2080,7 @@ export default function App() {
             />
           )}
           {panel.id === "party-summary" && (
-            <PartySummaryPanel
-              characters={characters}
-              selectedCharacter={selectedCharacter}
-            />
+            <PartySummaryPanel characters={characters} selectedCharacter={selectedCharacter} />
           )}
           {panel.id === "chat" && (
             <ChatPanel
@@ -2105,10 +2122,7 @@ export default function App() {
       ))}
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
-      <PanelDock
-        panels={fp.panels}
-        onRestore={(id) => fp.minimize(id)}
-      />
+      <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
 
       {/* ── Toast notifications ──────────────────────────────── */}
       <div className="toast-container">
@@ -2148,9 +2162,7 @@ export default function App() {
       )}
 
       {/* ── Keyboard Shortcuts Overlay ─────────────────────────── */}
-      {showShortcuts && (
-        <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />
-      )}
+      {showShortcuts && <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />}
 
       {/* ── Character Inspector Modal ─────────────────────────── */}
       {inspectedCharacterId &&

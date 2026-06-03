@@ -123,11 +123,11 @@ export type SceneToken = {
   size: number;
   color: string;
   is_hidden: boolean;
+  vision_radius: number;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };
-
 
 export type GMNote = {
   id: string;

@@ -66,6 +66,17 @@ for fpath in all_files:
             if os.path.exists(c):
                 imported_files.add(os.path.realpath(c))
 
+    # Dynamic imports (lazy-loaded components): import("./components/X")
+    for m in re.finditer(r'import\(["\x27]([^"\x27]+)["\x27]\)', content):
+        ip = m.group(1)
+        if not ip.startswith('.'):
+            continue
+        resolved = os.path.normpath(os.path.join(os.path.dirname(fpath), ip))
+        for ext in ['', '.tsx', '.ts', '/index.tsx', '/index.ts']:
+            c = resolved + ext
+            if os.path.exists(c):
+                imported_files.add(os.path.realpath(c))
+
     # CSS imports
     for m in re.finditer(r'import\s+[\'"]([^\'"]+\.css)[\'"]', content):
         cssp = m.group(1)

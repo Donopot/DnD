@@ -3,7 +3,13 @@ import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 
 
 const TOKEN_KEY = "dnd_access_token";
 
-type FogZone = { x: number; y: number; width: number; height: number };
+export type FogZone = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  shape?: "rect" | "circle";
+};
 
 type FogLayerProps = {
   sceneId: string;
@@ -30,6 +36,7 @@ export function FogLayer({
   const [start, setStart] = useState({ x: 0, y: 0 });
   const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
   const [showFog, setShowFog] = useState(true);
+  const [circleMode, setCircleMode] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
@@ -53,7 +60,7 @@ export function FogLayer({
 
   useEffect(() => {
     void loadZones();
-  }, [sceneId]);
+  }, [loadZones]);
 
   // Save zones to API
   async function saveZones(newZones: FogZone[]) {
@@ -115,28 +122,73 @@ export function FogLayer({
       // Cut out revealed zones
       ctx.globalCompositeOperation = "destination-out";
       for (const zone of zones) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+        if (zone.shape === "circle") {
+          ctx.beginPath();
+          ctx.arc(
+            zone.x + zone.width / 2,
+            zone.y + zone.height / 2,
+            zone.width / 2,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fillStyle = "white";
+          ctx.fill();
+        } else {
+          ctx.fillStyle = "white";
+          ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+        }
       }
       ctx.globalCompositeOperation = "source-over";
 
       // Current drawing rect
       if (currentRect && isGM) {
-        ctx.strokeStyle = "#D6A84F";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 4]);
-        ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
-        ctx.setLineDash([]);
-        ctx.fillStyle = "rgba(214, 168, 79, 0.15)";
-        ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+        if (currentRect.shape === "circle") {
+          ctx.beginPath();
+          ctx.arc(
+            currentRect.x + currentRect.width / 2,
+            currentRect.y + currentRect.height / 2,
+            currentRect.width / 2,
+            0,
+            Math.PI * 2,
+          );
+          ctx.strokeStyle = "#D6A84F";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "rgba(214, 168, 79, 0.15)";
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = "#D6A84F";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+          ctx.setLineDash([]);
+          ctx.fillStyle = "rgba(214, 168, 79, 0.15)";
+          ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+        }
       }
 
       // Zone borders for GM
       if (isGM) {
         for (const zone of zones) {
-          ctx.strokeStyle = "rgba(214, 168, 79, 0.5)";
-          ctx.lineWidth = 1;
-          ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+          if (zone.shape === "circle") {
+            ctx.strokeStyle = "rgba(214, 168, 79, 0.5)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(
+              zone.x + zone.width / 2,
+              zone.y + zone.height / 2,
+              zone.width / 2,
+              0,
+              Math.PI * 2,
+            );
+            ctx.stroke();
+          } else {
+            ctx.strokeStyle = "rgba(214, 168, 79, 0.5)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+          }
         }
       }
     }
@@ -144,7 +196,7 @@ export function FogLayer({
 
   useEffect(() => {
     draw();
-  }, [zones, currentRect, showFog, isGM, sceneWidth, sceneHeight]);
+  }, [draw]);
 
   // Mouse handlers for GM reveal tool
   function handleMouseDown(e: ReactMouseEvent<HTMLCanvasElement>) {
@@ -162,19 +214,34 @@ export function FogLayer({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoom;
     const y = (e.clientY - rect.top) / zoom;
-    setCurrentRect({
-      x: Math.min(start.x, x),
-      y: Math.min(start.y, y),
-      width: Math.abs(x - start.x),
-      height: Math.abs(y - start.y),
-    });
+
+    if (circleMode) {
+      const radius = Math.max(Math.abs(x - start.x), Math.abs(y - start.y));
+      setCurrentRect({
+        x: start.x - radius,
+        y: start.y - radius,
+        width: radius * 2,
+        height: radius * 2,
+        shape: "circle",
+      });
+    } else {
+      setCurrentRect({
+        x: Math.min(start.x, x),
+        y: Math.min(start.y, y),
+        width: Math.abs(x - start.x),
+        height: Math.abs(y - start.y),
+        shape: "rect",
+      });
+    }
   }
 
   function handleMouseUp() {
     if (!drawing || !isGM) return;
     setDrawing(false);
     if (currentRect && currentRect.width > 10 && currentRect.height > 10) {
-      const newZones = [...zones, currentRect];
+      const newZone: FogZone = { ...currentRect };
+      if (circleMode) newZone.shape = "circle";
+      const newZones = [...zones, newZone];
       setZones(newZones);
       void saveZones(newZones);
     }
@@ -228,6 +295,16 @@ export function FogLayer({
             {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
             {showFog ? "Fog ON" : "Fog OFF"}
           </button>
+          {showFog && (
+            <button
+              className={`ghost-button compact ${circleMode ? "active" : ""}`}
+              onClick={() => setCircleMode((m) => !m)}
+              type="button"
+              title={circleMode ? "Mode rectangle" : "Mode cercle"}
+            >
+              {circleMode ? "◯" : "▭"}
+            </button>
+          )}
           {zones.length > 0 && (
             <>
               <button
