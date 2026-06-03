@@ -1428,6 +1428,17 @@ select {
   color: var(--brand-green);
 }
 
+.visibility-inspector-panel button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.visibility-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .visibility-token-list > div {
   display: grid;
   gap: 6px;

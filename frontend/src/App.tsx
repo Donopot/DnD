@@ -589,6 +589,22 @@ export default function App() {
     }
   }
 
+  async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
+    try {
+      const updated = await request<SceneToken>(`/api/tokens/${tokenToToggle.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
+      });
+      setSceneTokens((current) =>
+        current.map((t) => (t.id === updated.id ? updated : t)),
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Impossible de changer la visibilité",
+      );
+    }
+  }
+
   function updateEncounterFromDetail(detail: EncounterDetail) {
     setEncounters((current) => {
       const summary: Encounter = {
@@ -1491,6 +1507,8 @@ export default function App() {
                       selectedScene={selectedScene}
                       selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
                       sceneTokens={sceneTokens}
+                      isGM={true}
+                      onToggleTokenHidden={handleToggleTokenHidden}
                       onOpenPanel={(panelId) => fp.open(panelId, "")}
                     />
                   </details>
@@ -2138,6 +2156,8 @@ export default function App() {
               selectedScene={selectedScene}
               selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
               sceneTokens={sceneTokens}
+              isGM={true}
+              onToggleTokenHidden={handleToggleTokenHidden}
               onOpenPanel={(panelId) => fp.open(panelId, "")}
             />
           )}
