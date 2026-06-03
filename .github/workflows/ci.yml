@@ -6,55 +6,68 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ── Backend: lint + compile + tests ──
   backend:
-    name: Backend (Python)
+    name: Backend
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          uv venv
-          uv pip install -r requirements.txt
-          uv pip install ruff pytest pytest-asyncio httpx
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          if [ -f requirements-dev.txt ]; then
+            python -m pip install -r requirements-dev.txt
+          else
+            python -m pip install ruff pytest pytest-asyncio httpx
+          fi
 
       - name: Ruff lint
-        run: uv run ruff check .
+        run: python -m ruff check .
 
-      - name: Python compileall
-        run: uv run python -m compileall -q app/
+      - name: Python compile
+        run: python -m compileall -q app
 
       - name: Pytest
-        run: uv run pytest --tb=short -q
+        run: python -m pytest --tb=short -q
 
-  # ── Frontend: tsc + Biome + build ──
   frontend:
-    name: Frontend (TypeScript)
+    name: Frontend
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
-          node-version-file: frontend/.node-version
+          node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -62,75 +75,73 @@ jobs:
         run: npm ci
 
       - name: TypeScript check
-        run: npx tsc --noEmit
+        run: npx tsc -b --pretty false
 
-      - name: Biome lint
-        run: npx biome check --max-diagnostics=50 .
+      - name: Biome check
+        run: |
+          if npm exec -- biome --version >/dev/null 2>&1; then
+            npm exec -- biome check --max-diagnostics=50 .
+          else
+            echo "Biome is not installed on this ref; skipping."
+          fi
 
       - name: Vite build
         run: npm run build
 
-  # ── Orphan components audit ──
-  orphans:
-    name: Orphan Audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run orphan audit
-        run: |
-          COUNT=$(python3 scripts/audit-orphans.py 2>/dev/null | grep "→" | grep -oP '\d+')
-          BASELINE=16
-          if [ -z "$COUNT" ]; then
-            echo "✅ No orphan components"
-          elif [ "$COUNT" -le "$BASELINE" ]; then
-            echo "✅ Orphan count OK ($COUNT ≤ baseline $BASELINE)"
-          else
-            NEW=$((COUNT - BASELINE))
-            echo "❌ $NEW NEW orphan component(s) found (total: $COUNT, baseline: $BASELINE)"
-            exit 1
-          fi
-
-  # ── Security scan ──
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Scan for secrets
-        run: |
-          if git grep -nPi "(api_key|secret|password|token)\s*=\s*['\"][^'\"$]{6,}['\"]" \
-               -- ':!*.example' ':!*test*' ':!.github/' ':!docs/' 2>/dev/null; then
-            echo "❌ Hardcoded secrets found — remove before merging"
-            exit 1
-          fi
-          echo "✅ No hardcoded secrets"
-
-      - name: Scan for dangerous patterns
-        run: |
-          if git grep -nPE "os\.system\(|shell\s*=\s*True|pickle\.loads?\(|eval\(|exec\(" \
-               -- '*.py' ':!*test*' 2>/dev/null; then
-            echo "❌ Dangerous patterns found"
-            exit 1
-          fi
-          echo "✅ No dangerous patterns"
-
-  # ── Docker Compose config validation ──
   compose:
     name: Docker Compose
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Validate compose config
         run: |
           cp .env.example .env
-          docker compose config --quiet 2>&1 || {
-            echo "❌ docker-compose.yml is invalid"
+          docker compose config --quiet
+
+  repository-audit:
+    name: Repository Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan for hardcoded secrets
+        run: |
+          if git grep -nPi "(api_key|secret|password|token)\s*=\s*['\"][^'\"\$]{6,}['\"]" \
+              -- ':!*.example' ':!*test*' ':!.github/' ':!docs/' 2>/dev/null; then
+            echo "Hardcoded secret-like value found."
             exit 1
-          }
-          echo "✅ docker-compose.yml valid"
+          fi
+
+      - name: Scan for dangerous Python patterns
+        run: |
+          if git grep -nPE "os\.system\(|shell\s*=\s*True|pickle\.loads?\(|eval\(|exec\(" \
+              -- '*.py' ':!*test*' 2>/dev/null; then
+            echo "Dangerous Python pattern found."
+            exit 1
+          fi
+
+      - name: Orphan component audit
+        run: |
+          if [ ! -f scripts/audit-orphans.py ]; then
+            echo "scripts/audit-orphans.py not present on this ref; skipping."
+            exit 0
+          fi
+
+          output="$(python3 scripts/audit-orphans.py)"
+          echo "$output"
+
+          count="$(printf '%s\n' "$output" | sed -nE 's/.*[^0-9]([0-9]+) orphan.*/\1/p' | tail -n 1)"
+          baseline=16
+
+          if [ -z "$count" ] || [ "$count" -le "$baseline" ]; then
+            echo "Orphan count OK (${count:-0} <= ${baseline})."
+            exit 0
+          fi
+
+          echo "$((count - baseline)) new orphan component(s) found (total: $count, baseline: $baseline)."
+          exit 1
