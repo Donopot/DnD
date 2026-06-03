@@ -459,24 +459,27 @@ async def reveal_around_token(
     scene = await get_scene_or_404(existing["scene_id"])
     current_zones: list = decode_json(scene.get("fog_zones")) or []
 
-    # Convert circle to a bounding square for storage
-    r = payload.radius_ft
-    square = {
-        "x": payload.center_x - r,
-        "y": payload.center_y - r,
-        "width": r * 2,
-        "height": r * 2,
-        "shape": "rect",
+    # Convert feet to pixels using scene grid settings
+    grid_size = scene.get("grid_size", 50)
+    feet_per_square = 5
+    radius_px = (payload.radius_ft / feet_per_square) * grid_size
+
+    zone = {
+        "x": payload.center_x - radius_px,
+        "y": payload.center_y - radius_px,
+        "width": radius_px * 2,
+        "height": radius_px * 2,
+        "shape": "circle",
     }
 
-    # Don't add duplicate zones (within 1px tolerance)
+    # Don't add duplicate zones (within 2px tolerance)
     already = any(
-        abs(z.get("x", 0) - square["x"]) < 1
-        and abs(z.get("y", 0) - square["y"]) < 1
+        abs(z.get("x", 0) - zone["x"]) < 2
+        and abs(z.get("y", 0) - zone["y"]) < 2
         for z in current_zones
     )
     if not already:
-        current_zones.append(square)
+        current_zones.append(zone)
 
     await get_pool().fetchrow(
         """

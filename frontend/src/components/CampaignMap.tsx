@@ -50,6 +50,8 @@ type CampaignMapProps = {
   playerTokenIds?: Set<string>;
   isGM: boolean;
   wsRef: React.RefObject<WebSocket | null>;
+  /** Fog version counter — incremented by parent on fog WS change, triggers reload */
+  fogVersion?: number;
   onSelectScene?: (sceneId: string) => void;
   selectedTokenId?: string;
   onSelectToken?: (tokenId: string) => void;
@@ -76,6 +78,7 @@ export function CampaignMap({
   playerTokenIds,
   isGM,
   wsRef,
+  fogVersion,
   onSelectScene,
   onLoadSceneTokens,
   onMoveToken,
@@ -120,6 +123,8 @@ export function CampaignMap({
 
   // Fog of war zones (for token visibility filtering)
   const [fogZones, setFogZones] = useState<FogZone[]>([]);
+  const fogZonesRef = useRef(fogZones);
+  fogZonesRef.current = fogZones;
 
   // Fog tool state (lifted from FogLayer)
   const [showFog, setShowFog] = useState(true);
@@ -173,7 +178,7 @@ export function CampaignMap({
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => setFogZones(d.fog_zones || []))
       .catch(() => {});
-  }, [selectedScene?.id]);
+  }, [selectedScene?.id, fogVersion]);
 
   // ── Save fog zones to API ────────────────────────────────────────────────
   const saveFogZones = useCallback(
@@ -196,6 +201,7 @@ export function CampaignMap({
       setFogZones(newZones);
 
       const t = localStorage.getItem("dnd_access_token") ?? "";
+      const previousZones = fogZonesRef.current;
       try {
         const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
           method: "PATCH",
@@ -208,41 +214,14 @@ export function CampaignMap({
         if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
         setFogSaveError("");
       } catch {
+        setFogZones(previousZones);
         setFogSaveError("Sauvegarde du brouillard impossible.");
       }
     },
     [selectedSceneId],
   );
 
-  // ── Fog zone WebSocket refresh ───────────────────────────────────────────
-  useEffect(() => {
-    const ws = wsRef.current;
-    if (!ws) return;
-
-    const handler = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (
-          data.type === "session_changed" &&
-          data.resource === "fog" &&
-          data.scene_id === selectedSceneId
-        ) {
-          const t = localStorage.getItem("dnd_access_token") || "";
-          fetch(`/api/scenes/${selectedSceneId}/fog`, {
-            headers: { Authorization: `Bearer ${t}` },
-          })
-            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-            .then((d) => setFogZones(d.fog_zones || []))
-            .catch(() => {});
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-
-    ws.addEventListener("message", handler);
-    return () => ws.removeEventListener("message", handler);
-  }, [wsRef, selectedSceneId]);
+  // ── Fog zone save with rollback on failure ────────────────────────────────
 
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
@@ -678,7 +657,18 @@ export function CampaignMap({
         <button
           type="button"
           className={`campaign-map-pan-toggle ${panMode ? "active" : ""}`}
-          onClick={() => setPanMode((p) => !p)}
+          onClick={() => {
+            setPanMode((prev) => {
+              if (!prev) {
+                // Disable fog draw/erase when entering pan mode
+                setFogDrawMode(false);
+                setFogEraseMode(false);
+                setFogDrawing(false);
+                setFogCurrentRect(null);
+              }
+              return !prev;
+            });
+          }}
         >
           {panMode ? "✋ Pan ON" : "✋ Pan"}
         </button>
@@ -701,7 +691,7 @@ export function CampaignMap({
               title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
             >
               {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showFog ? "Fog ON" : "Fog OFF"}
+              {showFog ? "Afficher fog" : "Masquer fog"}
             </button>
             {showFog && (
               <button

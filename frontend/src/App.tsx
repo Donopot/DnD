@@ -174,6 +174,7 @@ export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
+  const [fogVersion, setFogVersion] = useState(0);
 
   const selectedCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
@@ -213,6 +214,7 @@ export default function App() {
     return {
       isGM: true as const,
       wsRef,
+      fogVersion,
       permissions: {
         canSelectToken: () => true,
         canMoveToken: () => true,
@@ -237,6 +239,7 @@ export default function App() {
     };
   }, [
     wsRef,
+    fogVersion,
     sceneTokens,
     characters,
     user?.id,
@@ -381,6 +384,10 @@ export default function App() {
 
           if (payload.resource === "scene" || payload.resource === "token") {
             void loadVttState(selectedCampaign.id);
+          }
+
+          if (payload.resource === "fog" && payload.scene_id === selectedScene?.id) {
+            setFogVersion((v) => v + 1);
           }
 
           if (payload.resource === "encounter") {
