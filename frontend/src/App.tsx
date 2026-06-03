@@ -273,12 +273,19 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  useEffect(() => {
+  const MAX_RECONNECT = 3;
+  const reconnectAttempts = useRef(0);
+  const reconnectTimer = useRef<number | undefined>(undefined);
+
+  function connect() {
     wsRef.current?.close();
-    setPresenceCount(0);
-    setRealtimeStatus("offline");
+    if (reconnectTimer.current) {
+      window.clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = undefined;
+    }
 
     if (!token || !selectedCampaign?.id) {
+      setRealtimeStatus("offline");
       return;
     }
 
@@ -290,7 +297,7 @@ export default function App() {
     setRealtimeStatus("connecting");
 
     socket.onopen = () => {
-      // Authenticate via first message (not URL query param — avoids token in proxy logs)
+      reconnectAttempts.current = 0;
       const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
       socket.send(JSON.stringify({ type: "auth", token: activeToken }));
       setRealtimeStatus("online");
@@ -339,18 +346,45 @@ export default function App() {
       }
     };
 
-    socket.onclose = () => {
-      if (wsRef.current === socket) {
-        setRealtimeStatus("offline");
+    socket.onclose = (event) => {
+      if (wsRef.current !== socket) return;
+      setRealtimeStatus("offline");
+
+      // Don't reconnect on auth failure (code 1008 = policy violation)
+      if (event.code === 1008) {
+        setMessage("WebSocket authentication failed — re-login required");
+        return;
+      }
+
+      // Exponential backoff: 1s, 2s, 4s, max 3 attempts
+      if (reconnectAttempts.current < MAX_RECONNECT) {
+        reconnectAttempts.current += 1;
+        const delay = Math.pow(2, reconnectAttempts.current - 1) * 1000;
+        setMessage(`WebSocket disconnected — retrying in ${delay / 1000}s…`);
+        reconnectTimer.current = window.setTimeout(() => {
+          connect();
+        }, delay);
+      } else {
+        setMessage("WebSocket disconnected — max retries reached");
       }
     };
 
     socket.onerror = () => {
+      // onclose will fire after onerror — reconnect handled there
       setRealtimeStatus("offline");
     };
+  }
+
+  useEffect(() => {
+    setPresenceCount(0);
+    connect();
 
     return () => {
-      socket.close();
+      wsRef.current?.close();
+      if (reconnectTimer.current) {
+        window.clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = undefined;
+      }
     };
   }, [token, selectedCampaign?.id, selectedScene?.id]);
 
@@ -361,13 +395,7 @@ export default function App() {
 
   async function bootstrap(activeToken: string) {
     try {
-      const response = await fetch("/api/auth/me", {
-        headers: { Authorization: `Bearer ${activeToken}` },
-      });
-      if (!response.ok) {
-        throw new Error("Session expired");
-      }
-      setUser((await response.json()) as User);
+      setUser(await request<User>("/api/auth/me"));
     } catch {
       logout();
       return;
@@ -382,13 +410,7 @@ export default function App() {
   }
 
   async function loadCampaigns(activeToken = token) {
-    const response = await fetch("/api/campaigns", {
-      headers: { Authorization: `Bearer ${activeToken}` },
-    });
-    if (!response.ok) {
-      throw new Error("Unable to load campaigns");
-    }
-    const data = (await response.json()) as Campaign[];
+    const data = await request<Campaign[]>("/api/campaigns");
     setCampaigns(data);
     if (data.length > 0) {
       setSelectedCampaignId((current) => current || data[0].id);
