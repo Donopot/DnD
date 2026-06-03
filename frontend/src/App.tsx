@@ -386,7 +386,7 @@ export default function App() {
             void loadVttState(selectedCampaign.id);
           }
 
-          if (payload.resource === "fog") {
+          if (payload.resource === "fog" && payload.scene_id === selectedScene?.id) {
             setFogVersion((v) => v + 1);
           }
 
