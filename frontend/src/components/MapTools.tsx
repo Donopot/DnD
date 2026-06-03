@@ -46,7 +46,6 @@ type MapToolsProps = {
   isGM: boolean;
   wsRef: React.RefObject<WebSocket | null>;
   selectedSceneId: string;
-  myTokenIds?: Set<string>;
   snapToGrid: (value: number) => number;
 };
 
@@ -57,7 +56,6 @@ export function MapTools({
   isGM,
   wsRef,
   selectedSceneId,
-  myTokenIds,
   snapToGrid,
 }: MapToolsProps) {
   const [tool, setTool] = useState<"none" | "ping" | "ruler" | "aoe">("none");
