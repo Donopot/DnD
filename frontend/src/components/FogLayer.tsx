@@ -1,7 +1,4 @@
-import { Eye, EyeOff, Undo2 } from "lucide-react";
-import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from "react";
-
-const TOKEN_KEY = "dnd_access_token";
+import { type MouseEvent as ReactMouseEvent, useEffect, useRef } from "react";
 
 export type FogZone = {
   x: number;
@@ -19,99 +16,56 @@ type FogLayerProps = {
   canEditFog?: boolean;
   zoom?: number;
   panMode?: boolean;
+  /** Fog zones from parent (single source of truth) */
+  fogZones: FogZone[];
+  /** Called when zones are modified (draw, erase, undo, clear) */
+  onZonesChange: (zones: FogZone[]) => void;
+  /** Tool controls lifted from parent */
+  showFog: boolean;
+  drawMode: boolean;
+  circleMode: boolean;
+  eraseMode: boolean;
+  /** Drawing preview state */
+  drawing: boolean;
+  setDrawing: (v: boolean) => void;
+  start: { x: number; y: number };
+  setStart: (v: { x: number; y: number }) => void;
+  currentRect: FogZone | null;
+  setCurrentRect: (v: FogZone | null) => void;
+  saveError: string;
+  setSaveError: (v: string) => void;
 };
 
 export function FogLayer({
-  sceneId,
+  sceneId: _sceneId,
   sceneWidth,
   sceneHeight,
   isGM,
   canEditFog,
   zoom = 1,
   panMode = false,
+  fogZones,
+  onZonesChange,
+  showFog,
+  drawMode,
+  circleMode,
+  eraseMode,
+  drawing,
+  setDrawing,
+  start,
+  setStart,
+  currentRect,
+  setCurrentRect,
+  saveError,
+  setSaveError,
 }: FogLayerProps) {
-  const token = localStorage.getItem(TOKEN_KEY) ?? "";
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const saveQueueRef = useRef(Promise.resolve());
-  const [zones, setZones] = useState<FogZone[]>([]);
-  const [drawing, setDrawing] = useState(false);
-  const [start, setStart] = useState({ x: 0, y: 0 });
-  const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
-  const [showFog, setShowFog] = useState(true);
-  const [drawMode, setDrawMode] = useState(false);
-  const [circleMode, setCircleMode] = useState(false);
-  const [saveError, setSaveError] = useState("");
 
-  // The fog canvas is visually above tokens; only capture clicks while explicitly drawing.
-  const fogInteractive = (canEditFog ?? isGM) && showFog && drawMode && !panMode;
+  // The fog canvas only captures clicks when explicitly drawing or erasing.
+  const canEdit = canEditFog ?? isGM;
+  const fogInteractive = canEdit && showFog && (drawMode || eraseMode) && !panMode;
 
-  useEffect(() => {
-    if (!sceneId) return;
-
-    let cancelled = false;
-
-    async function loadZones() {
-      try {
-        const res = await fetch(`/api/scenes/${sceneId}/fog`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok && !cancelled) {
-          const data = await res.json();
-          setZones(data.fog_zones || []);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-
-    void loadZones();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sceneId, token]);
-
-  // Save zones to API
-  async function saveZones(newZones: FogZone[]) {
-    if (
-      newZones.some(
-        (zone) =>
-          !Number.isFinite(zone.x) ||
-          !Number.isFinite(zone.y) ||
-          !Number.isFinite(zone.width) ||
-          !Number.isFinite(zone.height) ||
-          zone.width <= 0 ||
-          zone.height <= 0,
-      )
-    ) {
-      setSaveError("Zone de brouillard invalide.");
-      return;
-    }
-
-    saveQueueRef.current = saveQueueRef.current
-      .catch(() => undefined)
-      .then(async () => {
-        const res = await fetch(`/api/scenes/${sceneId}/fog`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ fog_zones: newZones }),
-        });
-        if (!res.ok) {
-          throw new Error(`Fog save failed (${res.status})`);
-        }
-        setSaveError("");
-      })
-      .catch(() => {
-        setSaveError("Sauvegarde du brouillard impossible.");
-      });
-
-    await saveQueueRef.current;
-  }
-
-  // Draw fog on canvas
+  // ── Draw fog on canvas ──────────────────────────────────────────────────
   function draw() {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -130,7 +84,7 @@ export function FogLayer({
 
       // Cut out revealed zones
       ctx.globalCompositeOperation = "destination-out";
-      for (const zone of zones) {
+      for (const zone of fogZones) {
         if (zone.shape === "circle") {
           ctx.beginPath();
           ctx.arc(
@@ -149,7 +103,7 @@ export function FogLayer({
       }
       ctx.globalCompositeOperation = "source-over";
 
-      // Current drawing rect
+      // Current drawing preview
       if (currentRect && isGM) {
         if (currentRect.shape === "circle") {
           ctx.beginPath();
@@ -180,7 +134,7 @@ export function FogLayer({
 
       // Zone borders for GM
       if (isGM) {
-        for (const zone of zones) {
+        for (const zone of fogZones) {
           if (zone.shape === "circle") {
             ctx.strokeStyle = "rgba(214, 168, 79, 0.5)";
             ctx.lineWidth = 1;
@@ -207,19 +161,57 @@ export function FogLayer({
     draw();
   }, [draw]);
 
-  // Mouse handlers for GM reveal tool
+  // ── Helper: find zone under a point (for eraser) ────────────────────────
+  function findZoneAt(mx: number, my: number): FogZone | null {
+    // Search from top (last drawn) to bottom (first drawn)
+    for (let i = fogZones.length - 1; i >= 0; i--) {
+      const zone = fogZones[i];
+      if (zone.shape === "circle") {
+        const cx = zone.x + zone.width / 2;
+        const cy = zone.y + zone.height / 2;
+        const r = zone.width / 2;
+        const dist = Math.sqrt((mx - cx) ** 2 + (my - cy) ** 2);
+        if (dist <= r) return zone;
+      } else {
+        if (
+          mx >= zone.x &&
+          mx <= zone.x + zone.width &&
+          my >= zone.y &&
+          my <= zone.y + zone.height
+        ) {
+          return zone;
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── Mouse handlers ──────────────────────────────────────────────────────
+
   function handleMouseDown(e: ReactMouseEvent<HTMLCanvasElement>) {
     if (!fogInteractive) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoom;
     const y = (e.clientY - rect.top) / zoom;
+
+    // Eraser mode: click to remove a zone
+    if (eraseMode) {
+      const hit = findZoneAt(x, y);
+      if (hit) {
+        const newZones = fogZones.filter((z) => z !== hit);
+        onZonesChange(newZones);
+      }
+      return;
+    }
+
+    // Draw mode: start drawing a new reveal zone
     setStart({ x, y });
     setDrawing(true);
     setCurrentRect({ x, y, width: 0, height: 0 });
   }
 
   function handleMouseMove(e: ReactMouseEvent<HTMLCanvasElement>) {
-    if (!drawing || !fogInteractive) return;
+    if (!drawing || !fogInteractive || eraseMode) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoom;
     const y = (e.clientY - rect.top) / zoom;
@@ -250,26 +242,16 @@ export function FogLayer({
     if (currentRect && currentRect.width > 10 && currentRect.height > 10) {
       const newZone: FogZone = { ...currentRect };
       if (circleMode) newZone.shape = "circle";
-      const newZones = [...zones, newZone];
-      setZones(newZones);
-      void saveZones(newZones);
+      const newZones = [...fogZones, newZone];
+      onZonesChange(newZones);
     }
     setCurrentRect(null);
   }
 
-  function handleUndo() {
-    if (zones.length === 0) return;
-    const newZones = zones.slice(0, -1);
-    setZones(newZones);
-    void saveZones(newZones);
-  }
+  if (!_sceneId) return null;
 
-  function handleClearAll() {
-    setZones([]);
-    void saveZones([]);
-  }
-
-  if (!sceneId) return null;
+  const cursor =
+    fogInteractive && eraseMode ? "pointer" : fogInteractive ? "crosshair" : "default";
 
   return (
     <div
@@ -287,71 +269,13 @@ export function FogLayer({
           width: "100%",
           height: "100%",
           pointerEvents: fogInteractive ? "auto" : "none",
-          cursor: fogInteractive ? "crosshair" : "default",
+          cursor,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       />
-      {isGM && (
-        <div className="fog-toolbar">
-          <button
-            className={`fog-toggle-btn ${showFog ? "active" : ""}`}
-            onClick={() => {
-              setShowFog((current) => {
-                if (current) setDrawMode(false);
-                return !current;
-              });
-            }}
-            type="button"
-            title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
-          >
-            {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
-            {showFog ? "Fog ON" : "Fog OFF"}
-          </button>
-          {showFog && (
-            <button
-              className={`ghost-button compact ${drawMode ? "active" : ""}`}
-              onClick={() => setDrawMode((m) => !m)}
-              type="button"
-              title={drawMode ? "Desactiver le dessin du brouillard" : "Dessiner le brouillard"}
-            >
-              Draw
-            </button>
-          )}
-          {showFog && (
-            <button
-              className={`ghost-button compact ${circleMode ? "active" : ""}`}
-              onClick={() => setCircleMode((m) => !m)}
-              type="button"
-              title={circleMode ? "Mode rectangle" : "Mode cercle"}
-            >
-              {circleMode ? "◯" : "▭"}
-            </button>
-          )}
-          {zones.length > 0 && (
-            <>
-              <button
-                className="ghost-button compact"
-                onClick={handleUndo}
-                type="button"
-                title="Annuler dernière zone"
-              >
-                <Undo2 size={14} />
-              </button>
-              <button
-                className="ghost-button compact"
-                onClick={handleClearAll}
-                type="button"
-                title="Reset tout le brouillard"
-              >
-                Reset
-              </button>
-            </>
-          )}
-        </div>
-      )}
       {saveError && <span className="fog-save-error">{saveError}</span>}
     </div>
   );
