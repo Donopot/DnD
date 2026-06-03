@@ -291,28 +291,40 @@ export default function App() {
 
     socket.onopen = () => {
       // Authenticate via first message (not URL query param — avoids token in proxy logs)
-      socket.send(JSON.stringify({ type: "auth", token }));
+      const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+      socket.send(JSON.stringify({ type: "auth", token: activeToken }));
       setRealtimeStatus("online");
     };
 
     socket.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
+
+        if (payload.type === "error" && payload.detail) {
+          setMessage(`WebSocket: ${payload.detail}`);
+          return;
+        }
+
         if (typeof payload.presence_count === "number") {
           setPresenceCount(payload.presence_count);
         }
+
         if (payload.type === "session_changed") {
           void loadSessionLog(selectedCampaign.id);
+
           if (payload.resource === "scene" || payload.resource === "token") {
             void loadVttState(selectedCampaign.id);
           }
+
           if (payload.resource === "encounter") {
             void loadCombatState(selectedCampaign.id);
           }
+
           if (payload.resource === "handout") {
             void loadHandouts(selectedCampaign.id);
           }
         }
+
         if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
           setSceneTokens((current) =>
             current.map((sceneToken) =>
