@@ -50,7 +50,7 @@ export function useFloatingPanels() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   }, [panels]);
 
-  const open = useCallback((id: string, title: string, x?: number, y?: number) => {
+  const open = useCallback((id: string, title: string, x?: number, y?: number, width?: number, height?: number) => {
     setPanels((prev) => {
       const existing = prev.find((p) => p.id === id);
       if (existing) {
@@ -64,13 +64,15 @@ export function useFloatingPanels() {
       // New panel — place near center of viewport
       const vw = window.innerWidth;
       const vh = window.innerHeight;
+      const w = width ?? DEFAULT_WIDTH;
+      const h = height ?? DEFAULT_HEIGHT;
       const newPanel: FloatingPanelState = {
         id,
         title,
-        x: x ?? Math.max(50, (vw - DEFAULT_WIDTH) / 2),
-        y: y ?? Math.max(50, (vh - DEFAULT_HEIGHT) / 2),
-        width: DEFAULT_WIDTH,
-        height: DEFAULT_HEIGHT,
+        x: x ?? Math.max(50, (vw - w) / 2),
+        y: y ?? Math.max(50, (vh - h) / 2),
+        width: w,
+        height: h,
         minimized: false,
         zIndex: Math.max(...prev.map((p) => p.zIndex), 1000) + 10,
       };
