@@ -3,22 +3,11 @@
 /* ── Phase 9-1 map drag, snap and zoom ── */
 /* Phase 9-1 map drag, snap and zoom */
 
-
-
-
-
-
-
 .snap-toggle.active {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
-
-
-
 
 .map-board {
   transform-origin: top left;
@@ -66,7 +55,6 @@
 
 /* End Phase 9-1 map drag, snap and zoom */
 
-
 /* ── Phase 9-2 map pan ── */
 /* Phase 9-2 map pan */
 
@@ -89,7 +77,6 @@
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .map-scroll.pan-mode {
   cursor: grab;
@@ -114,11 +101,8 @@
 
 /* End Phase 9-2 map pan */
 
-
 /* ── Phase 9-4 map keyboard shortcuts ── */
 /* Phase 9-4 map keyboard shortcuts */
-
-
 
 .keyboard-help summary::-webkit-details-marker {
   display: none;
@@ -128,10 +112,6 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-
-
-
-
 @media (max-width: 760px) {
   .keyboard-help {
     min-width: 0;
@@ -140,17 +120,8 @@
 
 /* End Phase 9-4 map keyboard shortcuts */
 
-
 /* ── Phase 9-5 map overview mini-map ── */
 /* Phase 9-5 map overview mini-map */
-
-
-
-
-
-
-
-
 
 .map-overview-token.selected {
   width: 13px;
@@ -161,7 +132,6 @@
     0 4px 10px rgba(35, 48, 40, 0.34);
 }
 
-
 @media (max-width: 760px) {
   .map-overview-map {
     height: 96px;
@@ -169,7 +139,6 @@
 }
 
 /* End Phase 9-5 map overview mini-map */
-
 
 /* ── Phase 9-6 VTT usable layout ── */
 /* Phase 9-6 VTT usable layout */
@@ -186,28 +155,9 @@
   max-width: none;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 .map-board {
   margin: 0;
 }
-
-
-
-
-
-
 
 .map-overview-token.selected {
   width: 15px;
@@ -287,14 +237,9 @@
   color: var(--brand-green);
 }
 
-
-
-
-
 .floating-widget-resize-handle:hover {
   opacity: 1;
 }
-
 
 .floating-widget.token-detail-panel,
 .floating-widget.tool-card {
@@ -303,13 +248,12 @@
 
 @media (max-width: 760px) {
   .floating-widget {
-    left: 8px !important;
-    width: calc(100vw - 16px) !important;
+    left: 8px;
+    width: calc(100vw - 16px);
   }
 }
 
 /* End Phase 10-1 free UX panels */
-
 
 /* ── Fog of War (Phase 16) ── */
 /* ── Fog of War (Phase 16) ─────────────────────────────────────────── */
@@ -370,24 +314,10 @@
   pointer-events: none;
 }
 
-
 /* ── Player: Map tab ── */
 /* ── Player: Map tab ────────────────────────────────────────────────────── */
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* Player tokens on map */
-
 
 /* ── CampaignMap: shared map component ── */
 /* ── CampaignMap: shared map component ──────────────────────────────────── */
@@ -607,7 +537,6 @@
   opacity: 0.85;
 }
 
-
 /* ── AoE shape overlay ── */
 /* ── AoE shape overlay ──────────────────────────────────────────────────── */
 
@@ -685,7 +614,6 @@
   border-bottom: 2px solid var(--accent-glow);
 }
 
-
 /* ── Token condition badges ── */
 /* ── Token condition badges ─────────────────────────────────────────── */
 
@@ -718,6 +646,23 @@
   font-weight: bold;
 }
 
+/* ── Fog-hidden token (GM indicator) ────────────────────────────────────── */
+
+.campaign-map-token.fog-hidden {
+  border-color: rgba(180, 130, 255, 0.7);
+  box-shadow: 0 0 8px rgba(160, 100, 255, 0.5);
+}
+
+.token-fog-icon {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  z-index: 6;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px rgba(160, 100, 255, 0.6));
+}
 
 /* ── AoE labels ── */
 /* ── AoE labels ────────────────────────────────────────────────────────── */
@@ -798,10 +743,10 @@
 }
 
 .token-context-danger {
-  color: var(--danger) !important;
+  color: var(--danger);
 }
 .token-context-danger:hover {
-  background: var(--danger-dim) !important;
+  background: var(--danger-dim);
 }
 
 /* Damage sub-menu */
@@ -852,9 +797,15 @@
   background: var(--bg-surface);
   cursor: pointer;
 }
-.damage-preset:hover { background: var(--danger-dim); }
-.damage-preset.heal { color: var(--success); }
-.damage-preset.heal:hover { background: var(--success-dim); }
+.damage-preset:hover {
+  background: var(--danger-dim);
+}
+.damage-preset.heal {
+  color: var(--success);
+}
+.damage-preset.heal:hover {
+  background: var(--success-dim);
+}
 
 .damage-apply {
   width: 100%;
@@ -866,5 +817,6 @@
   cursor: pointer;
   text-align: center;
 }
-.damage-apply:hover { background: var(--accent-dim); }
-
+.damage-apply:hover {
+  background: var(--accent-dim);
+}

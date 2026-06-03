@@ -3,9 +3,6 @@
 /* ── Phase 10-2C floating panel presets ── */
 /* Phase 10-2C floating panel presets */
 
-
-
-
 .vtt-panels-menu-group:first-child button {
   border-color: var(--accent-secondary);
   background: var(--accent-dim);
@@ -13,7 +10,6 @@
 }
 
 /* End Phase 10-2C floating panel presets */
-
 
 /* ── Phase 10-2D compact VTT UI and usable presets ── */
 /* Phase 10-2D compact VTT UI and usable presets */
@@ -26,7 +22,6 @@ html {
 body {
   overflow-x: hidden;
 }
-
 
 .sidebar {
   padding: 10px 8px;
@@ -52,10 +47,8 @@ body {
   font-size: 0.78rem;
 }
 
-
 .panel,
 .detail-panel,
-.vtt-board-panel,
 .token-detail-panel,
 .map-overview,
 .tool-card {
@@ -85,31 +78,10 @@ body {
   font-size: 1rem;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .vtt-panels-menu-group .preset-button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
 
 @media (min-width: 1300px) {
   .workspace-grid {
@@ -147,10 +119,8 @@ body {
 
 /* End Phase 10-2D compact VTT UI and usable presets */
 
-
 /* ── Sprint 1 Lot 1 - persistent presets and custom GM layout ── */
 /* Sprint 1 Lot 1 - persistent presets and custom GM layout */
-
 
 .vtt-panels-menu[open] {
   z-index: 7000;
@@ -174,8 +144,6 @@ body {
   backdrop-filter: blur(12px);
 }
 
-
-
 .vtt-panels-preset-grid .preset-button:last-child {
   grid-column: 1 / -1;
   border-color: var(--accent-primary);
@@ -183,16 +151,12 @@ body {
   color: var(--accent-primary);
 }
 
-
-
-
 .save-layout-button:hover:not(:disabled),
 .vtt-panels-preset-grid .preset-button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 @media (max-width: 760px) {
   .vtt-panels-menu[open] .vtt-panels-menu-content {
@@ -208,19 +172,12 @@ body {
 
 /* End Sprint 1 Lot 1 - persistent presets and custom GM layout */
 
-
 /* ── Stabilisation UI panneaux GM - reset centralisé ── */
 /* Stabilisation UI panneaux GM - reset centralisé */
-
-
-
-
 
 .vtt-panels-manager-footer .danger-lite:hover:not(:disabled) {
   border-color: var(--danger);
   background: #f7d7d0;
 }
 
-
 /* End Stabilisation UI panneaux GM - reset centralisé */
-

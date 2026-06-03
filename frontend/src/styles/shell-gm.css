@@ -10,7 +10,6 @@ body {
     linear-gradient(135deg, #f7f2e6 0%, #efe6d2 48%, #e6ddc9 100%);
 }
 
-
 .sidebar {
   position: sticky;
   top: 0;
@@ -73,8 +72,6 @@ body {
   letter-spacing: -0.04em;
 }
 
-
-
 .panel {
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
@@ -97,7 +94,6 @@ body {
   max-height: calc(100vh - 150px);
   overflow: auto;
 }
-
 
 .campaign-row.selected {
   box-shadow: inset 4px 0 0 var(--accent-primary);
@@ -124,7 +120,6 @@ body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-
 .section-heading {
   margin-bottom: 14px;
 }
@@ -133,7 +128,6 @@ body {
   letter-spacing: -0.03em;
 }
 
-.vtt-board-panel,
 .combat-command-card,
 .combat-initiative-card,
 .combat-tools-card,
@@ -144,7 +138,6 @@ body {
   border-radius: 16px;
 }
 
-
 .map-board {
   box-shadow: inset 0 0 0 1px rgba(37, 48, 40, 0.16);
 }
@@ -153,9 +146,6 @@ body {
   box-shadow: 0 8px 18px rgba(7, 11, 10, 0.25);
   border: 2px solid var(--border-subtle);
 }
-
-
-
 
 .session-side-zone::-webkit-scrollbar,
 .campaign-list::-webkit-scrollbar,
@@ -200,7 +190,9 @@ input,
 textarea,
 select {
   border-radius: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .message.docked {
@@ -283,22 +275,14 @@ select {
 
 /* End R4-6 global workspace polish */
 
-
 /* ── R4-7 session quick actions ── */
 /* R4-7 session quick actions */
-
-
-
-
-
-
 
 .quick-action-buttons .ghost-button,
 .quick-action-buttons .primary-button {
   min-height: 40px;
   padding: 8px 12px;
 }
-
 
 @media (max-width: 900px) {
   .session-quick-actions {
@@ -312,29 +296,22 @@ select {
 
 /* End R4-7 session quick actions */
 
-
 /* ── Phase 10-2B floating panels menu ── */
 /* Phase 10-2B floating panels menu */
-
 
 .vtt-panels-menu.active {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
 
-
 .vtt-panels-menu summary::-webkit-details-marker {
   display: none;
 }
-
-
 
 .vtt-panels-menu-content button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
 
 @media (max-width: 760px) {
   .vtt-panels-menu {
@@ -350,28 +327,14 @@ select {
 
 /* End Phase 10-2B floating panels menu */
 
-
 /* ── Phase 10-3C compact GM cockpit ── */
 /* Phase 10-3C compact GM cockpit */
-
-
-
-
-
-
-
-
-
-
-
 
 .gm-cockpit-actions button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 @media (max-width: 1200px) {
   .gm-cockpit {
@@ -398,7 +361,6 @@ select {
 
 /* End Phase 10-3C compact GM cockpit */
 
-
 /* ── Phase 10-3G floating panels final polish ── */
 /* Phase 10-3G floating panels final polish */
 
@@ -411,10 +373,6 @@ select {
   display: none;
 }
 
-
-
-
-
 .floating-widget.tool-card > form,
 .floating-widget.tool-card > div:not(.floating-widget-toolbar):not(.floating-widget-resize-handle) {
   padding-top: 2px;
@@ -426,11 +384,7 @@ select {
   padding-top: 0;
 }
 
-
-
-
 /* End Phase 10-3G floating panels final polish */
-
 
 /* ── Phase 10-3H intuitive GM panel manager ── */
 /* Phase 10-3H intuitive GM panel manager */
@@ -457,14 +411,6 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
-
-
 .vtt-panels-list button:not(:disabled) {
   border-color: var(--border-subtle);
   background: var(--bg-surface-secondary);
@@ -476,8 +422,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 .gm-mode-advanced .vtt-panels-menu[open] .vtt-panels-menu-content {
   top: 74px;
@@ -497,24 +441,18 @@ select {
 
 /* End Phase 10-3H intuitive GM panel manager */
 
-
 /* ── Sprint 1 Lot 2 - floating widget dock ── */
 /* Sprint 1 Lot 2 - floating widget dock */
-
 
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 @media (max-width: 760px) {
   .floating-widget-dock {
@@ -538,10 +476,8 @@ select {
 
 /* End Sprint 1 Lot 2 - floating widget dock */
 
-
 /* ── Sprint 1 - GM panel system stabilization ── */
 /* Sprint 1 - GM panel system stabilization */
-
 
 .vtt-panels-menu[open] {
   z-index: 8000;
@@ -565,20 +501,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -587,7 +515,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -598,26 +525,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -657,7 +571,6 @@ select {
 
 /* End Sprint 1 - GM panel system stabilization */
 
-
 /* ── Sprint 1 - dock includes closed panels ── */
 /* Sprint 1 - dock includes closed panels */
 
@@ -674,7 +587,6 @@ select {
 }
 
 /* End Sprint 1 - dock includes closed panels */
-
 
 /* ── Sprint 1 - robust reopen state for GM panels ── */
 /* Sprint 1 - robust reopen state for GM panels */
@@ -703,10 +615,8 @@ select {
 
 /* End Sprint 1 - robust reopen state for GM panels */
 
-
 /* ── Sprint 1 - GM panel system stabilization ── */
 /* Sprint 1 - GM panel system stabilization */
-
 
 .vtt-panels-menu[open] {
   z-index: 8000;
@@ -730,20 +640,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -752,7 +654,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -763,26 +664,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -834,7 +722,6 @@ select {
 
 /* End Sprint 1 - GM panel system stabilization */
 
-
 /* ── Sprint 1 - standardized GM panels ── */
 /* Sprint 1 - standardized GM panels */
 
@@ -861,10 +748,7 @@ select {
   display: none;
 }
 
-
-
 /* End Sprint 1 - standardized GM panels */
-
 
 /* ── Sprint 1 - GM main interface tabs ── */
 /* Sprint 1 - GM main interface tabs */
@@ -903,7 +787,6 @@ select {
   display: block;
 }
 
-
 .campaign-view-tabs {
   position: sticky;
   top: 0;
@@ -938,10 +821,8 @@ select {
 
 /* End Sprint 1 - GM main interface tabs */
 
-
 /* ── Sprint 1 - GM panel system stabilization ── */
 /* Sprint 1 - GM panel system stabilization */
-
 
 .vtt-panels-menu[open] {
   z-index: 8000;
@@ -965,20 +846,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -987,7 +860,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -998,26 +870,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -1068,7 +927,6 @@ select {
 }
 
 /* End Sprint 1 - GM panel system stabilization */
-
 
 /* ── GM workspace target tabs ── */
 /* GM workspace target tabs */
@@ -1116,9 +974,6 @@ select {
   display: grid;
 }
 
-
-
-
 @media (max-width: 1300px) {
   .gm-workspace-tabs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1133,10 +988,8 @@ select {
 
 /* End GM workspace target tabs */
 
-
 /* ── Sprint GM-2A - Session Live modes ── */
 /* Sprint GM-2A - Session Live modes */
-
 
 .detail-panel.campaign-view-live .session-live-mode-bar {
   display: grid;
@@ -1147,8 +1000,6 @@ select {
   border-radius: 12px;
   background: var(--bg-surface-secondary);
 }
-
-
 
 .session-live-mode-buttons {
   display: grid;
@@ -1199,7 +1050,6 @@ select {
 
 /* End Sprint GM-2A - Session Live modes */
 
-
 /* ── Sprint GM-2C - GM Notes panel ── */
 /* Sprint GM-2C - GM Notes panel */
 
@@ -1236,10 +1086,8 @@ select {
 
 /* End Sprint GM-2C - GM Notes panel */
 
-
 /* ── Sprint GM-2C retry - visible GM Notes panel ── */
 /* Sprint GM-2C retry - visible GM Notes panel */
-
 
 .gm-notes-panel {
   display: grid;
@@ -1268,44 +1116,26 @@ select {
   line-height: 1.45;
 }
 
-
-
-
 .gm-notes-footer button:hover:not(:disabled) {
   border-color: var(--danger);
   background: var(--danger-dim);
   color: var(--danger);
 }
 
-
 /* End Sprint GM-2C retry - visible GM Notes panel */
-
 
 /* ── Sprint GM-2D - Party summary panel ── */
 /* Sprint GM-2D - Party summary panel */
-
 
 .party-summary-panel {
   display: grid;
   gap: 10px;
 }
 
-
-
 .party-summary-row.selected {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
-
-
-
-
-
-
-
-
 
 @media (max-width: 760px) {
   .party-summary-stats {
@@ -1315,10 +1145,8 @@ select {
 
 /* End Sprint GM-2D - Party summary panel */
 
-
 /* ── Sprint GM-2E - Initiative panel ── */
 /* Sprint GM-2E - Initiative panel */
-
 
 .initiative-panel {
   display: grid;
@@ -1399,7 +1227,7 @@ select {
 .initiative-turn-button {
   width: 28px;
   min-width: 28px;
-  padding: 0 !important;
+  padding: 0;
 }
 
 .initiative-row span {
@@ -1457,29 +1285,14 @@ select {
 
 /* End Sprint GM-2E - Initiative panel */
 
-
 /* ── Sprint GM-2F - Quick actions panel ── */
 /* Sprint GM-2F - Quick actions panel */
 
-
-
-
-
-
-
-
-
-
-
-.quick-actions-panel button:hover:not(:disabled) {
+.quick-actions button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
-
-
 
 @media (max-width: 760px) {
   .quick-actions-context,
@@ -1491,10 +1304,8 @@ select {
 
 /* End Sprint GM-2F - Quick actions panel */
 
-
 /* ── Sprint GM-2G - Visibility inspector panel ── */
 /* Sprint GM-2G - Visibility inspector panel */
-
 
 .visibility-inspector-panel {
   display: grid;
@@ -1651,10 +1462,8 @@ select {
 
 /* End Sprint GM-2G - Visibility inspector panel */
 
-
 /* ── Stabilisation UI panneaux GM ── */
 /* Stabilisation UI panneaux GM */
-
 
 .vtt-panels-menu[open] {
   z-index: 8000;
@@ -1678,12 +1487,6 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
@@ -1699,8 +1502,6 @@ select {
   color: var(--brand-green);
 }
 
-
-
 .floating-widget[data-vtt-panel] {
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 24px);
@@ -1713,29 +1514,17 @@ select {
   display: none;
 }
 
-
 .floating-widget[data-vtt-panel] .floating-widget-toolbar {
   margin: -1px -1px 7px;
 }
-
-
-
-
-
-
-
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
@@ -1781,7 +1570,6 @@ select {
 
 /* End Stabilisation UI panneaux GM */
 
-
 /* ── Stabilisation UI panneaux GM - passe 2 ── */
 /* Stabilisation UI panneaux GM - passe 2 */
 
@@ -1804,17 +1592,10 @@ select {
 
 /* Menu panneaux plus lisible. */
 
-
-
-
 /* End Stabilisation UI panneaux GM - passe 2 */
-
 
 /* ── GM panel standardization fix ── */
 /* GM panel standardization fix */
-
-
-
 
 .floating-widget[data-vtt-panel] > summary,
 .floating-widget[data-vtt-panel] .map-overview-header,
@@ -1828,13 +1609,9 @@ select {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
@@ -1842,42 +1619,15 @@ select {
   color: var(--danger);
 }
 
-
 /* End GM panel standardization fix */
 
 /* Quick Actions compact stabilization */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.quick-actions-panel-compact button:hover {
+.quick-actions-compact button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
-
-
-
 
 @media (max-width: 760px) {
   .quick-actions-context-card,
@@ -1895,7 +1645,6 @@ select {
 }
 
 /* End Quick Actions compact stabilization */
-
 
 /* ── GM global interface cleanup ── */
 /* GM global interface cleanup */
@@ -1959,9 +1708,6 @@ select {
   display: none;
 }
 
-
-
-
 @media (max-width: 1300px) {
   .gm-workspace-tabs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1976,17 +1722,8 @@ select {
 
 /* End GM global interface cleanup */
 
-
 /* ── GM roadmap 0B - Standardized panel system ── */
 /* GM roadmap 0B - Standardized panel system */
-
-
-
-
-
-
-
-
 
 .floating-widget[data-vtt-panel] > summary,
 .floating-widget[data-vtt-panel] .map-overview-header,
@@ -2000,20 +1737,15 @@ select {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
   background: var(--danger-dim);
   color: var(--danger);
 }
-
 
 @media (max-width: 760px) {
   .vtt-panels-preset-grid {
@@ -2037,20 +1769,14 @@ select {
 
 /* End GM roadmap 0B - Standardized panel system */
 
-
 /* ── GM-2C - Notes MJ ── */
 /* GM-2C - Notes MJ */
-
 
 .gm-notes-panel {
   display: grid;
   gap: 10px;
   min-width: 0;
 }
-
-
-
-
 
 .gm-notes-panel textarea {
   min-height: 150px;
@@ -2071,17 +1797,11 @@ select {
   outline: 2px solid var(--border-subtle);
 }
 
-
-
-
-
 .gm-notes-footer button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 @media (max-width: 760px) {
   .gm-notes-context {
@@ -2096,22 +1816,14 @@ select {
 
 /* End GM-2C - Notes MJ */
 
-
 /* ── GM-2D - Résumé du groupe ── */
 /* GM-2D - Résumé du groupe */
-
 
 .party-summary-panel {
   display: grid;
   gap: 10px;
   min-width: 0;
 }
-
-
-
-
-
-
 
 .party-summary-row.selected {
   border-color: var(--accent-primary);
@@ -2124,24 +1836,14 @@ select {
   background: var(--danger-dim);
 }
 
-
-
-
-
-
 .party-summary-row.danger b {
   background: #f7d7d0;
   color: var(--danger);
 }
 
-
-
-
-
 .party-summary-row.danger .party-summary-health i {
   background: var(--danger);
 }
-
 
 @media (max-width: 760px) {
   .party-summary-overview {
@@ -2154,7 +1856,6 @@ select {
 }
 
 /* End GM-2D - Résumé du groupe */
-
 
 /* ── GM-2D-CSS - Common GM panel system ── */
 /* GM-2D-CSS - Common GM panel system */
@@ -2378,7 +2079,10 @@ select {
 .gm-panel-button,
 .gm-panel-actions button,
 .gm-panel-content button {
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .gm-panel-button:hover:not(:disabled),
@@ -2462,7 +2166,6 @@ select {
 
 /* End GM-2D-CSS - Common GM panel system */
 
-
 /* ── GM-2D-CSS - Compatibility cleanup ── */
 /* GM-2D-CSS - Compatibility cleanup */
 
@@ -2476,10 +2179,8 @@ select {
 
 /* End GM-2D-CSS - Compatibility cleanup */
 
-
 /* ── GM-2D-CSS-P2 - Token detail standard layout ── */
 /* GM-2D-CSS-P2 - Token detail standard layout */
-
 
 .token-detail-panel-standard {
   min-width: 0;
@@ -2543,7 +2244,9 @@ select {
 }
 
 .token-detail-nudge-grid button {
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .token-detail-nudge-grid button:hover {
@@ -2551,7 +2254,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 /* ── Handouts ── */
 /* ===== Handouts ===== */
@@ -2655,7 +2357,9 @@ select {
 }
 
 .handout-row-actions button.danger {
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .handout-row-actions button.danger:hover {
@@ -2664,7 +2368,6 @@ select {
 }
 
 /* End GM-2D-CSS-P2 - Token detail standard layout */
-
 
 /* ── GM Lobby ── */
 /* ── GM Lobby ────────────────────────────────────────────────────────────── */
@@ -2683,7 +2386,6 @@ select {
 .gm-lobby .lobby-create-section .form-stack {
   gap: 0.75rem;
 }
-
 
 /* ── GM Campaign Shell (3-column layout) ── */
 /* ── GM Campaign Shell (3-column layout) ────────────────────────────────── */
@@ -3004,7 +2706,6 @@ select {
   border-color: var(--accent);
 }
 
-
 /* ── Floating Panels ── */
 /* ====== Floating Panels ============================================= */
 
@@ -3151,7 +2852,6 @@ select {
   max-height: 30vh;
   overflow-y: auto;
 }
-
 
 /* ── Phase 21: Communication MJ↔Joueur ── */
 /* ── Phase 21: Communication MJ↔Joueur ─────────────────────────────────── */
@@ -3361,7 +3061,6 @@ select {
   margin-top: 0.1rem;
 }
 
-
 /* ── MapTools: ping, ruler, token drag ── */
 /* ── MapTools: ping, ruler, token drag ───────────────────────────────────── */
 
@@ -3487,7 +3186,6 @@ select {
   border: 1px dashed var(--accent-primary);
 }
 
-
 /* ── Character row inspect button ── */
 /* ── Character row inspect button ───────────────────────────────────────── */
 
@@ -3533,7 +3231,6 @@ select {
 .character-inspect-btn:hover {
   color: var(--accent);
 }
-
 
 /* ── Rules Reference (SRD) ── */
 /* ── Rules Reference (SRD) ──────────────────────────────────────────────── */
@@ -3630,7 +3327,6 @@ select {
   text-align: center;
   padding: 0.25rem 0;
 }
-
 
 /* ── Token upgrades: nameplates, HP bars, grid toggle ── */
 /* ── Token upgrades: nameplates, HP bars, grid toggle ─────────────────── */
@@ -3810,7 +3506,6 @@ select {
     opacity: 1;
   }
 }
-
 
 /* ── Combat Tracker ── */
 /* ── Combat Tracker ─────────────────────────────────────────────────────── */
@@ -4066,7 +3761,6 @@ select {
   color: var(--accent);
 }
 
-
 /* ── Encounter Builder ── */
 /* ── Encounter Builder ──────────────────────────────────────────────────── */
 
@@ -4187,7 +3881,6 @@ select {
   font-size: 0.7rem;
 }
 
-
 /* ── Quick Actions Bar ── */
 /* ── Quick Actions Bar ──────────────────────────────────────────────────── */
 
@@ -4293,7 +3986,6 @@ select {
   color: #8a9a8e;
 }
 
-
 /* ── Campaign View Tabs ── */
 /* ── Campaign View Tabs ─────────────────────────────────── */
 .campaign-view-tabs {
@@ -4372,7 +4064,6 @@ select {
   color: var(--text-normal);
 }
 
-
 /* ── Campaign overview in panels ── */
 /* ── Campaign overview in panels ────────────────────────── */
 .campaign-overview {
@@ -4382,4 +4073,3 @@ select {
 .campaign-overview .action-row {
   margin: 0.5rem 0;
 }
-
