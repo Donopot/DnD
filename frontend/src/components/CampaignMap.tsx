@@ -126,6 +126,11 @@ export function CampaignMap({
   const fogZonesRef = useRef(fogZones);
   fogZonesRef.current = fogZones;
 
+  const fogSaveTimerRef = useRef<number | null>(null);
+  const ignoreNextFogWsRef = useRef(false);
+  const pendingFogZonesRef = useRef<FogZone[] | null>(null);
+  const previousFogZonesRef = useRef<FogZone[] | null>(null);
+
   // Fog tool state (lifted from FogLayer)
   const [showFog, setShowFog] = useState(true);
   const [fogDrawMode, setFogDrawMode] = useState(false);
@@ -178,11 +183,42 @@ export function CampaignMap({
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => setFogZones(d.fog_zones || []))
       .catch(() => {});
-  }, [selectedScene?.id, fogVersion]);
+  }, [selectedScene?.id]);
 
-  // ── Save fog zones to API ────────────────────────────────────────────────
-  const saveFogZones = useCallback(
+  // ── Persist fog zones (raw API call) ───────────────────────────────────────
+  const persistFogZones = useCallback(
     async (newZones: FogZone[]) => {
+      const t = localStorage.getItem("dnd_access_token") ?? "";
+
+      try {
+        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${t}`,
+          },
+          body: JSON.stringify({ fog_zones: newZones }),
+        });
+
+        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
+
+        previousFogZonesRef.current = null;
+        ignoreNextFogWsRef.current = true;
+        setFogSaveError("");
+      } catch {
+        if (previousFogZonesRef.current) {
+          setFogZones(previousFogZonesRef.current);
+        }
+        pendingFogZonesRef.current = null;
+        setFogSaveError("Sauvegarde du brouillard impossible.");
+      }
+    },
+    [selectedSceneId],
+  );
+
+  // ── Debounced fog zone save ───────────────────────────────────────────────
+  const saveFogZones = useCallback(
+    (newZones: FogZone[]) => {
       if (
         newZones.some(
           (zone) =>
@@ -198,28 +234,68 @@ export function CampaignMap({
         return;
       }
 
+      previousFogZonesRef.current = fogZonesRef.current;
       setFogZones(newZones);
+      pendingFogZonesRef.current = newZones;
 
-      const t = localStorage.getItem("dnd_access_token") ?? "";
-      const previousZones = fogZonesRef.current;
-      try {
-        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${t}`,
-          },
-          body: JSON.stringify({ fog_zones: newZones }),
-        });
-        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
-        setFogSaveError("");
-      } catch {
-        setFogZones(previousZones);
-        setFogSaveError("Sauvegarde du brouillard impossible.");
+      if (fogSaveTimerRef.current) {
+        window.clearTimeout(fogSaveTimerRef.current);
       }
+
+      fogSaveTimerRef.current = window.setTimeout(() => {
+        if (pendingFogZonesRef.current) {
+          void persistFogZones(pendingFogZonesRef.current);
+        }
+        pendingFogZonesRef.current = null;
+        fogSaveTimerRef.current = null;
+      }, 350);
     },
-    [selectedSceneId],
+    [persistFogZones],
   );
+
+  // ── Cleanup fog save timer on unmount ─────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (fogSaveTimerRef.current) {
+        window.clearTimeout(fogSaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ── Fog zone WebSocket refresh (self-ignore aware) ────────────────────────
+  useEffect(() => {
+    const ws = wsRef.current;
+    if (!ws) return;
+
+    const handler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (
+          data.type === "session_changed" &&
+          data.resource === "fog" &&
+          data.scene_id === selectedSceneId
+        ) {
+          if (ignoreNextFogWsRef.current) {
+            ignoreNextFogWsRef.current = false;
+            return;
+          }
+
+          const t = localStorage.getItem("dnd_access_token") || "";
+          fetch(`/api/scenes/${selectedSceneId}/fog`, {
+            headers: { Authorization: `Bearer ${t}` },
+          })
+            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+            .then((d) => setFogZones(d.fog_zones || []))
+            .catch(() => {});
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    ws.addEventListener("message", handler);
+    return () => ws.removeEventListener("message", handler);
+  }, [wsRef, selectedSceneId]);
 
   // ── Fog zone save with rollback on failure ────────────────────────────────
 

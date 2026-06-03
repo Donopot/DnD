@@ -386,10 +386,6 @@ export default function App() {
             void loadVttState(selectedCampaign.id);
           }
 
-          if (payload.resource === "fog" && payload.scene_id === selectedScene?.id) {
-            setFogVersion((v) => v + 1);
-          }
-
           if (payload.resource === "encounter") {
             void loadCombatState(selectedCampaign.id);
           }
