@@ -390,6 +390,20 @@ export function CampaignMap({
     [gridSize],
   );
 
+  // ── Helper: check if a point is inside a fog zone (rect or circle) ──────
+  const isInFogZone = useCallback(
+    (px: number, py: number, zone: FogZone) => {
+      if (zone.shape === "circle") {
+        const cx = zone.x + zone.width / 2;
+        const cy = zone.y + zone.height / 2;
+        const r = zone.width / 2;
+        return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
+      }
+      return px >= zone.x && px <= zone.x + zone.width && py >= zone.y && py <= zone.y + zone.height;
+    },
+    [],
+  );
+
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     const canInteractWithToken = permissions.canSelectToken(token.id);
     if (!canInteractWithToken) return;
@@ -539,7 +553,7 @@ export function CampaignMap({
         const tc = t.x + (t.size * gridSize) / 2;
         const ty = t.y + (t.size * gridSize) / 2;
         const revealed = fogZones.some(
-          (z) => tc >= z.x && tc <= z.x + z.width && ty >= z.y && ty <= z.y + z.height,
+          (z) => isInFogZone(tc, ty, z),
         );
         if (!revealed) continue;
       }
@@ -578,7 +592,7 @@ export function CampaignMap({
       ctx.lineWidth = 1;
       ctx.strokeRect(sx + vx, sy + vy, vw, vh);
     }
-  }, [selectedScene, sceneTokens, zoom, fogZones, isGM, gridSize]);
+  }, [selectedScene, sceneTokens, zoom, fogZones, isGM, gridSize, isInFogZone]);
 
   // ── Render ──────────────────────────────────────────────────────────────
 
@@ -861,12 +875,8 @@ export function CampaignMap({
               if (!isGM && fogZones.length > 0) {
                 const tokenCenterX = token.x + (token.size * gridSize) / 2;
                 const tokenCenterY = token.y + (token.size * gridSize) / 2;
-                const isRevealed = fogZones.some(
-                  (zone) =>
-                    tokenCenterX >= zone.x &&
-                    tokenCenterX <= zone.x + zone.width &&
-                    tokenCenterY >= zone.y &&
-                    tokenCenterY <= zone.y + zone.height,
+                const isRevealed = fogZones.some((zone) =>
+                  isInFogZone(tokenCenterX, tokenCenterY, zone),
                 );
                 if (!isRevealed) return null;
               }
@@ -876,12 +886,8 @@ export function CampaignMap({
               if (isGM && fogZones.length > 0) {
                 const tokenCenterX = token.x + (token.size * gridSize) / 2;
                 const tokenCenterY = token.y + (token.size * gridSize) / 2;
-                isFogHidden = !fogZones.some(
-                  (zone) =>
-                    tokenCenterX >= zone.x &&
-                    tokenCenterX <= zone.x + zone.width &&
-                    tokenCenterY >= zone.y &&
-                    tokenCenterY <= zone.y + zone.height,
+                isFogHidden = !fogZones.some((zone) =>
+                  isInFogZone(tokenCenterX, tokenCenterY, zone),
                 );
               }
 
