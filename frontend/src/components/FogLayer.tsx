@@ -36,11 +36,12 @@ export function FogLayer({
   const [start, setStart] = useState({ x: 0, y: 0 });
   const [currentRect, setCurrentRect] = useState<FogZone | null>(null);
   const [showFog, setShowFog] = useState(true);
+  const [drawMode, setDrawMode] = useState(false);
   const [circleMode, setCircleMode] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
-  const fogInteractive = isGM && showFog && !panMode;
+  // The fog canvas is visually above tokens; only capture clicks while explicitly drawing.
+  const fogInteractive = isGM && showFog && drawMode && !panMode;
 
   useEffect(() => {
     if (!sceneId) return;
@@ -274,7 +275,7 @@ export function FogLayer({
       style={{
         width: sceneWidth || 1200,
         height: sceneHeight || 800,
-        pointerEvents: fogInteractive ? "auto" : "none",
+        pointerEvents: "none",
       }}
     >
       <canvas
@@ -283,6 +284,7 @@ export function FogLayer({
         style={{
           width: "100%",
           height: "100%",
+          pointerEvents: fogInteractive ? "auto" : "none",
           cursor: fogInteractive ? "crosshair" : "default",
         }}
         onMouseDown={handleMouseDown}
@@ -294,13 +296,28 @@ export function FogLayer({
         <div className="fog-toolbar">
           <button
             className={`fog-toggle-btn ${showFog ? "active" : ""}`}
-            onClick={() => setShowFog(!showFog)}
+            onClick={() => {
+              setShowFog((current) => {
+                if (current) setDrawMode(false);
+                return !current;
+              });
+            }}
             type="button"
             title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
           >
             {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
             {showFog ? "Fog ON" : "Fog OFF"}
           </button>
+          {showFog && (
+            <button
+              className={`ghost-button compact ${drawMode ? "active" : ""}`}
+              onClick={() => setDrawMode((m) => !m)}
+              type="button"
+              title={drawMode ? "Desactiver le dessin du brouillard" : "Dessiner le brouillard"}
+            >
+              Draw
+            </button>
+          )}
           {showFog && (
             <button
               className={`ghost-button compact ${circleMode ? "active" : ""}`}
