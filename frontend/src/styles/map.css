@@ -432,7 +432,8 @@
 }
 
 .campaign-map-grid-toggle,
-.campaign-map-pan-toggle {
+.campaign-map-pan-toggle,
+.campaign-map-recenter {
   padding: 0.25rem 0.5rem;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
@@ -447,7 +448,8 @@
 }
 
 .campaign-map-grid-toggle:hover,
-.campaign-map-pan-toggle:hover {
+.campaign-map-pan-toggle:hover,
+.campaign-map-recenter:hover {
   background: var(--bg-hover);
   color: var(--text-normal);
 }
