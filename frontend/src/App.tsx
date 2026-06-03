@@ -240,10 +240,10 @@ export default function App() {
       return;
     }
     void bootstrap(token);
-  }, [token, bootstrap]);
+  }, [token]);
 
   useEffect(() => {
-    if (!selectedCampaign) {
+    if (!token || !selectedCampaign) {
       setMembers([]);
       setCharacters([]);
       setRolls([]);
@@ -259,17 +259,7 @@ export default function App() {
     void loadAssets(selectedCampaign.id);
     void loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
-  }, [
-    selectedCampaign?.id,
-    loadAssets,
-    loadVttState,
-    loadCharacters,
-    loadMembers,
-    loadSessionLog,
-    selectedCampaign,
-    loadHandouts,
-    loadCombatState,
-  ]);
+  }, [token, selectedCampaign?.id]);
 
   // ── Escape → close modals ──
   useEffect(() => {
@@ -341,10 +331,11 @@ export default function App() {
     return () => {
       socket.close();
     };
-  }, [token, selectedCampaign?.id, loadSessionLog, loadHandouts, loadVttState, loadCombatState]);
+  }, [token, selectedCampaign?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    return apiRequest<T>(path, token, options);
+    const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+    return apiRequest<T>(path, activeToken, options);
   }
 
   async function bootstrap(activeToken: string) {
@@ -356,9 +347,16 @@ export default function App() {
         throw new Error("Session expired");
       }
       setUser((await response.json()) as User);
-      await loadCampaigns(activeToken);
     } catch {
       logout();
+      return;
+    }
+
+    try {
+      await loadCampaigns(activeToken);
+    } catch (error) {
+      setCampaigns([]);
+      setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
     }
   }
 

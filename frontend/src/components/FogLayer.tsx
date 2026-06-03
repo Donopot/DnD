@@ -42,25 +42,31 @@ export function FogLayer({
   // Allow fog drawing only when fog is ON, GM mode, and pan is OFF
   const fogInteractive = isGM && showFog && !panMode;
 
-  // Load zones from API
-  async function loadZones() {
-    if (!sceneId) return;
-    try {
-      const res = await fetch(`/api/scenes/${sceneId}/fog`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setZones(data.fog_zones || []);
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
   useEffect(() => {
+    if (!sceneId) return;
+
+    let cancelled = false;
+
+    async function loadZones() {
+      try {
+        const res = await fetch(`/api/scenes/${sceneId}/fog`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setZones(data.fog_zones || []);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
     void loadZones();
-  }, [loadZones]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sceneId, token]);
 
   // Save zones to API
   async function saveZones(newZones: FogZone[]) {
