@@ -45,7 +45,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 
 ## Fonctionnalités
 
-### Backend (102 endpoints, 13 routeurs, 19 migrations, 49 tests unitaires)
+### Backend (115 endpoints, 17 routeurs, 25 migrations, 97 tests unitaires)
 
 | Domaine | Endpoints |
 |---------|-----------|
@@ -62,7 +62,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 | Communication | messages privés, annonces, jets secrets MJ |
 | Santé | health check (DB + S3), rate limiting 200/min |
 
-### Frontend (43 composants React, ~11 800 lignes CSS, 1765 modules Vite)
+### Frontend (46 composants React, ~10 800 lignes CSS, 1795 modules Vite)
 
 | Composant | Rôle |
 |-----------|------|
@@ -115,6 +115,8 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 - Cron job 07h30 : suggestions d'amélioration
 
 ## Développement
+
+> 📘 **Normes toolchain** : voir [`docs/developer-toolchain.md`](docs/developer-toolchain.md) — source unique de vérité (`uv`, `npm ci`, `.node-version`).
 
 ```bash
 # Backend
