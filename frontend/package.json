@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "~6.0.2",
+    "dompurify": "^3.4.7",
     "lucide-react": "~1.17.0",
     "marked": "^18.0.4",
     "react": "~19.2.6",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@types/dompurify": "^3.0.5",
     "@types/react": "~19.2.15",
     "@types/react-dom": "~19.2.3"
   }

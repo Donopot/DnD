@@ -63,7 +63,9 @@ async def list_handouts(
 ) -> list[HandoutPublic]:
     role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
 
-    cache_key = f"handouts:{campaign_id}"
+    cache_key = f"handouts:{campaign_id}:{role}"
+    if scene_id:
+        cache_key += f":{scene_id}"
     cached = await cache_get(cache_key)
     if cached is not None:
         return [HandoutPublic(**h) for h in cached]

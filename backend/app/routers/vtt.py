@@ -201,13 +201,16 @@ async def get_scene(
     scene_id: UUID,
     current_user=Depends(get_current_user),
 ) -> ScenePublic:
+    # Always fetch the scene row first to get the campaign_id for the role check.
+    # Cached results must not be returned before verifying campaign membership.
+    row = await get_scene_or_404(scene_id)
+    await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
     cache_key = f"scene:{scene_id}"
     cached = await cache_get(cache_key)
     if cached is not None:
         return ScenePublic(**cached)
 
-    row = await get_scene_or_404(scene_id)
-    await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
     result = scene_public(row)
     await cache_set(cache_key, result.model_dump(mode="json"))
     return result
@@ -344,7 +347,8 @@ async def update_token(
         current.get("vision_radius", 0),
         jsonb(decode_json(current["metadata"])),
     )
-    token = token_public(row)
+    # GM/co-GM see full metadata; players get empty metadata
+    token = token_public(row) if role in {"gm", "co_gm"} else token_public_filtered(row)
     await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)
     return token
@@ -394,7 +398,8 @@ async def move_token(
         payload.x,
         payload.y,
     )
-    token = token_public(row)
+    # GM/co-GM see full metadata; players get empty metadata
+    token = token_public(row) if role in {"gm", "co_gm"} else token_public_filtered(row)
     await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_token_move(existing["campaign_id"], existing["scene_id"], token.id, token.x, token.y)
     return token
@@ -407,6 +412,25 @@ class CircleRevealRequest(BaseModel):
     center_y: float
     radius_ft: float
 
+    @field_validator("center_x", "center_y")
+    @classmethod
+    def validate_finite_coords(cls, value: float) -> float:
+        if not math.isfinite(value):
+            logger.warning("Rejected fog reveal with non-finite coordinate")
+            raise ValueError("Center coordinates must be finite numbers")
+        return value
+
+    @field_validator("radius_ft")
+    @classmethod
+    def validate_radius(cls, value: float) -> float:
+        if not math.isfinite(value) or value <= 0:
+            logger.warning("Rejected fog reveal with invalid radius: %s", value)
+            raise ValueError("Radius must be a positive finite number")
+        if value > 120:
+            logger.warning("Rejected fog reveal with excessive radius: %s", value)
+            raise ValueError("Radius too large (max 120 ft)")
+        return value
+
 
 @router.post("/tokens/{token_id}/reveal")
 async def reveal_around_token(
@@ -416,9 +440,21 @@ async def reveal_around_token(
 ):
     """Add a circular revealed zone around a token position (used for auto fog reveal)."""
     existing = await get_token_or_404(token_id)
-    await require_campaign_role(
+    role = await require_campaign_role(
         existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"}
     )
+
+    # Players can only reveal around tokens linked to their own characters
+    if role == "player":
+        if not existing["character_id"]:
+            raise HTTPException(status_code=403, detail="Players cannot reveal fog around NPC or unlinked tokens")
+        owned = await get_pool().fetchval(
+            "select 1 from characters where id = $1 and owner_user_id = $2",
+            existing["character_id"],
+            current_user["id"],
+        )
+        if not owned:
+            raise HTTPException(status_code=403, detail="Players can only reveal fog around their own tokens")
 
     scene = await get_scene_or_404(existing["scene_id"])
     current_zones: list = decode_json(scene.get("fog_zones")) or []
@@ -545,13 +581,14 @@ async def get_fog(
     scene_id: UUID,
     current_user=Depends(get_current_user),
 ):
+    # Always fetch the scene row first — role check must happen before cache return.
+    scene = await get_scene_or_404(scene_id)
+    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
     cache_key = f"fog:{scene_id}"
     cached = await cache_get(cache_key)
     if cached is not None:
         return cached
-
-    scene = await get_scene_or_404(scene_id)
-    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
 
     result = {
         "scene_id": str(scene_id),
