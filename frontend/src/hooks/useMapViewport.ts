@@ -28,6 +28,7 @@ export type UseMapViewportParams = {
 const STORAGE_PREFIX = "dnd_map_viewport_";
 
 function loadViewport(sceneId: string): ViewportState | null {
+  if (!sceneId) return null;
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + sceneId);
     if (!raw) return null;
@@ -46,6 +47,7 @@ function loadViewport(sceneId: string): ViewportState | null {
 }
 
 function saveViewport(sceneId: string, state: ViewportState): void {
+  if (!sceneId) return;
   try {
     localStorage.setItem(STORAGE_PREFIX + sceneId, JSON.stringify(state));
   } catch {
@@ -174,13 +176,12 @@ export function useMapViewport({
     const el = scrollRef.current;
     if (!el) return;
     const pos = getCenteredPosition(el.clientWidth, el.clientHeight);
-    setViewportStateRaw({
+    setViewportState({
       scrollLeft: pos.scrollLeft,
       scrollTop: pos.scrollTop,
       zoom: 1,
     });
-    saveViewport(sceneId, { scrollLeft: pos.scrollLeft, scrollTop: pos.scrollTop, zoom: 1 });
-  }, [getCenteredPosition, sceneId]);
+  }, [getCenteredPosition, setViewportState]);
 
   // ── Scroll by delta (for pan) ─────────────────────────────────────────
 
@@ -223,7 +224,5 @@ export function useMapViewport({
     getCenteredPosition,
     scrollBy,
     readScrollFromDOM,
-    /** true if the viewport was restored from localStorage (not fresh-centered) */
-    restoredFromPersistence: restoredRef.current,
   };
 }
