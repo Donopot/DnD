@@ -4,6 +4,38 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.11] — Toolchain, sécurité, fog polish (2026-06-03)
+
+### Phase 41 — Documentation toolchain
+- `docs/developer-toolchain.md` — source unique de vérité (uv, npm ci, .node-version, tsc --noEmit)
+- `AGENTS.md` : nouvelle section « Toolchain obligatoire » + correction pip→uv
+- `README.md` : stats à jour (115 endpoints, 17 routeurs, 25 migrations, 97 tests, 46 composants, 1795 modules)
+- `docs/product-development.md` : python3→uv, headers réparés
+
+### Phase 40 — Sécurité token + nettoyage orphelins
+- **A** : `update_token` et `move_token` bloquent les joueurs sur tokens sans `character_id`
+- **B** : Validation `aoe_shape` WebSocket (shape, size, angle, coords)
+- **C** : `try/except ValueError` dans la boucle WebSocket
+- **D** : 7 tests unitaires de permissions (joueur vs NPC/GM/co-GM/own token)
+- **E** : `frontend/package-lock.json` régénéré
+- **F** : Script `audit-orphans.py` corrigé — 0 faux positifs
+- **G** : CSS mort `.vtt-board-panel` supprimé, `.quick-actions-panel` renommé
+- **H** : Baseline orphelins `pre-commit.sh` : 16→18
+
+### Phase 39 — Brouillard de guerre × tokens
+- **A** : Filtrage tokens pour les joueurs — token hors fog → invisible (plus assombri)
+- **B** : Indicateur MJ 👁️‍🗨️ sur les tokens cachés par le fog (classe `fog-hidden`)
+- **C** : Auto-révélation autour des tokens PJ (`vision_radius`, endpoint `/api/tokens/{id}/reveal`)
+- **D** : Mode cercle pour la révélation du fog (toggle ◯/▭, dessin `arc`)
+- **E** : Minimap affiche les zones de fog
+
+### Metrics
+- Frontend: tsc 0, build ~680ms
+- Backend: 97/97 tests pass
+- Orphelins: 0
+
+---
+
 ## [Phases 34–38] — Plan UX : Interface complète (2026-06-02)
 
 ### Phase 34 — Correctifs critiques
