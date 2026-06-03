@@ -1,7 +1,8 @@
-import { Grid3X3 } from "lucide-react";
+import { Crosshair, Grid3X3 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Character, Scene, SceneToken } from "../api/types";
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
+import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer, type FogZone } from "./FogLayer";
 import { MapTools } from "./MapTools";
 import { TokenContextMenu } from "./TokenContextMenu";
@@ -50,9 +51,6 @@ type CampaignMapProps = {
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
-const MIN_ZOOM = 0.2;
-const MAX_ZOOM = 3.0;
-const ZOOM_STEP = 0.1;
 const PAN_SPEED = 1.5;
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -76,10 +74,21 @@ export function CampaignMap({
   selectedTokenId: controlledSelectedTokenId,
   onSelectToken,
 }: CampaignMapProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const [zoom, setZoom] = useState(1);
+  const {
+    scrollRef,
+    zoom,
+    zoomIn,
+    zoomOut,
+    recenter,
+    setViewportState,
+  } = useMapViewport({
+    sceneWidth: selectedScene?.width ?? 2800,
+    sceneHeight: selectedScene?.height ?? 2100,
+    sceneId: selectedSceneId,
+  });
+
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
@@ -125,21 +134,10 @@ export function CampaignMap({
     setSelectedTokenIds(controlledSelectedTokenId ? new Set([controlledSelectedTokenId]) : new Set());
   }, [controlledSelectedTokenId]);
 
-  // Reset zoom and center on scene when scene changes
+  // Scene transition animation (viewport centering handled by useMapViewport)
   useEffect(() => {
     setSceneTransitioning(true);
     const timer = setTimeout(() => setSceneTransitioning(false), 300);
-    setZoom(1);
-    const el = scrollRef.current;
-    if (el && selectedScene) {
-      const sw = selectedScene.width ?? 2800;
-      const sh = selectedScene.height ?? 2100;
-      el.scrollLeft = Math.max(0, (sw - el.clientWidth) / 2);
-      el.scrollTop = Math.max(0, (sh - el.clientHeight) / 2);
-    } else if (el) {
-      el.scrollLeft = 0;
-      el.scrollTop = 0;
-    }
     return () => clearTimeout(timer);
   }, [selectedSceneId]);
 
@@ -243,32 +241,17 @@ export function CampaignMap({
 
   // ── Zoom (toward cursor) ────────────────────────────────────────────────
 
-  function updateZoom(delta: number, cursorX?: number, cursorY?: number) {
-    const el = scrollRef.current;
-    if (!el || cursorX === undefined || cursorY === undefined) {
-      setZoom((current) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, current + delta)));
-      return;
-    }
-
-    setZoom((current) => {
-      const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, current + delta));
-      if (newZoom === current) return current;
-
-      const rect = el.getBoundingClientRect();
-      const offsetX = cursorX - rect.left;
-      const offsetY = cursorY - rect.top;
-
-      const scale = newZoom / current;
-      el.scrollLeft = (el.scrollLeft + offsetX) * scale - offsetX;
-      el.scrollTop = (el.scrollTop + offsetY) * scale - offsetY;
-
-      return newZoom;
-    });
-  }
-
   function handleWheel(event: WheelEvent) {
     event.preventDefault();
-    updateZoom(event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP, event.clientX, event.clientY);
+    const rect = scrollRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cursorX = event.clientX - rect.left;
+    const cursorY = event.clientY - rect.top;
+    if (event.deltaY < 0) {
+      zoomIn(cursorX, cursorY);
+    } else {
+      zoomOut(cursorX, cursorY);
+    }
   }
 
   useEffect(() => {
@@ -300,13 +283,7 @@ export function CampaignMap({
           window.dispatchEvent(new CustomEvent("toggle-focus-map"));
           break;
         case "0":
-          setZoom(1);
-          if (scrollRef.current && selectedScene) {
-            const sw = selectedScene.width ?? 2800;
-            const sh = selectedScene.height ?? 2100;
-            scrollRef.current.scrollLeft = Math.max(0, (sw - scrollRef.current.clientWidth) / 2);
-            scrollRef.current.scrollTop = Math.max(0, (sh - scrollRef.current.clientHeight) / 2);
-          }
+          recenter();
           break;
         case "z":
         case "Z":
@@ -325,7 +302,10 @@ export function CampaignMap({
   // ── Pan ─────────────────────────────────────────────────────────────────
 
   function handlePanPointerDown(event: PointerEvent) {
-    if (isGM && !panMode) return;
+    // Middle button (button=1) always triggers pan regardless of panMode/GM
+    const isMiddleButton = event.button === 1;
+    if (!isMiddleButton && isGM && !panMode) return;
+    if (isMiddleButton) event.preventDefault();
     setIsPanning(true);
     setPanOrigin({ x: event.clientX, y: event.clientY });
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
@@ -344,6 +324,11 @@ export function CampaignMap({
 
   function handlePanPointerUp() {
     setIsPanning(false);
+    // Persist final scroll position after pan
+    const el = scrollRef.current;
+    if (el) {
+      setViewportState({ scrollLeft: el.scrollLeft, scrollTop: el.scrollTop });
+    }
   }
 
   // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
@@ -580,11 +565,25 @@ export function CampaignMap({
         {scenes.length <= 1 && <strong>{selectedScene.name}</strong>}
 
         <div className="campaign-map-zoom">
-          <button type="button" onClick={() => updateZoom(-ZOOM_STEP)} aria-label="Zoom arrière">
+          <button
+            type="button"
+            onClick={() => {
+              const rect = scrollRef.current?.getBoundingClientRect();
+              if (rect) zoomOut(rect.width / 2, rect.height / 2);
+            }}
+            aria-label="Zoom arrière"
+          >
             −
           </button>
           <span>{zoomPercent}%</span>
-          <button type="button" onClick={() => updateZoom(ZOOM_STEP)} aria-label="Zoom avant">
+          <button
+            type="button"
+            onClick={() => {
+              const rect = scrollRef.current?.getBoundingClientRect();
+              if (rect) zoomIn(rect.width / 2, rect.height / 2);
+            }}
+            aria-label="Zoom avant"
+          >
             +
           </button>
         </div>
@@ -597,6 +596,16 @@ export function CampaignMap({
           title={showGrid ? "Masquer la grille" : "Afficher la grille"}
         >
           <Grid3X3 size={14} />
+        </button>
+
+        {/* Recenter button */}
+        <button
+          type="button"
+          className="campaign-map-recenter"
+          onClick={recenter}
+          title="Recentrer la scène"
+        >
+          <Crosshair size={14} />
         </button>
 
         {/* Pan toggle */}
@@ -617,6 +626,12 @@ export function CampaignMap({
         onPointerMove={handlePanPointerMove}
         onPointerUp={handlePanPointerUp}
         onPointerCancel={handlePanPointerUp}
+        onAuxClick={(e) => {
+          if (e.button === 1) {
+            e.preventDefault();
+            setPanMode((p) => !p);
+          }
+        }}
       >
         <div
           className="campaign-map-surface"
