@@ -153,16 +153,23 @@ Pour l'interface MJ / VTT :
 
 ---
 
+## Toolchain obligatoire
+
+**Utiliser exclusivement les commandes canoniques définies dans `docs/developer-toolchain.md`.**
+
+Règles non négociables :
+- Backend : `uv` (pas `pip`, pas `venv` manuel)
+- Frontend : `npm ci` (pas `npm install`), `.node-version` fait foi, `tsc --noEmit` (pas `tsc -b`)
+- CI : doit être cohérent avec les commandes locales (pas de variante « quick and dirty »)
+
 ## Tests à lancer
 
 Backend :
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pytest --tb=short -q
+uv sync
+uv run pytest --tb=short -q
 ```
 
 Frontend :
