@@ -1235,7 +1235,31 @@ export function PlayerView({
           <CampaignMap
             isGM={false}
             wsRef={wsRef}
-            userId={userId}
+            permissions={{
+              canSelectToken: (tokenId) =>
+                playerTokens.some(
+                  (t) => t.id === tokenId && characters.some(
+                    (c) => c.id === t.character_id && c.owner_user_id === userId
+                  )
+                ),
+              canMoveToken: (tokenId) =>
+                playerTokens.some(
+                  (t) => t.id === tokenId && characters.some(
+                    (c) => c.id === t.character_id && c.owner_user_id === userId
+                  )
+                ),
+              canEditFog: false,
+              canMultiSelect: false,
+            }}
+            playerTokenIds={
+              new Set(
+                playerTokens
+                  .filter((t) => characters.some(
+                    (c) => c.id === t.character_id && c.owner_user_id === userId
+                  ))
+                  .map((t) => t.id)
+              )
+            }
             campaignId={cid}
             token={token}
             scenes={playerScenes}
@@ -1243,7 +1267,6 @@ export function PlayerView({
             selectedSceneId={playerScene?.id ?? ""}
             sceneTokens={playerTokens}
             sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
-            characters={characters}
             onMoveToken={(sceneToken, dx, dy) => void handleMovePlayerToken(sceneToken, dx, dy)}
           />
         </section>

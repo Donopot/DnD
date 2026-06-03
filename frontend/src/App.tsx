@@ -1168,7 +1168,27 @@ export default function App() {
         <CampaignMap
           isGM={true}
           wsRef={wsRef}
-          userId={user?.id}
+          permissions={{
+            canSelectToken: () => true,
+            canMoveToken: () => true,
+            canEditFog: true,
+            canMultiSelect: true,
+          }}
+          playerTokenIds={
+            new Set(
+              sceneTokens
+                .filter((t) =>
+                  t.character_id &&
+                  characters.some(
+                    (c) =>
+                      c.id === t.character_id &&
+                      c.owner_user_id &&
+                      c.owner_user_id !== user?.id,
+                  ),
+                )
+                .map((t) => t.id),
+            )
+          }
           campaignId={selectedCampaign?.id ?? ""}
           token={token}
           scenes={scenes}
@@ -1176,7 +1196,6 @@ export default function App() {
           selectedSceneId={selectedSceneId}
           sceneTokens={sceneTokens}
           sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
-          characters={characters}
           onSelectScene={setSelectedSceneId}
           selectedTokenId={selectedTokenId}
           onSelectToken={setSelectedTokenId}

@@ -1,6 +1,13 @@
 import { Crosshair, Grid3X3 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Character, Scene, SceneToken } from "../api/types";
+import type { Scene, SceneToken } from "../api/types";
+
+export type MapPermissions = {
+  canSelectToken: (tokenId: string) => boolean;
+  canMoveToken: (tokenId: string) => boolean;
+  canEditFog: boolean;
+  canMultiSelect: boolean;
+};
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer, type FogZone } from "./FogLayer";
@@ -37,8 +44,10 @@ type CampaignMapProps = {
   selectedSceneId: string;
   sceneTokens: SceneToken[];
   sceneBackgroundObjectUrl: string;
-  characters: Character[];
-  userId?: string;
+  /** Interaction permissions — parent computes based on role + ownership */
+  permissions: MapPermissions;
+  /** Token IDs belonging to players (cosmetic indicator for GM) */
+  playerTokenIds?: Set<string>;
   isGM: boolean;
   wsRef: React.RefObject<WebSocket | null>;
   onSelectScene?: (sceneId: string) => void;
@@ -63,10 +72,10 @@ export function CampaignMap({
   selectedSceneId,
   sceneTokens,
   sceneBackgroundObjectUrl,
-  characters,
+  permissions,
+  playerTokenIds,
   isGM,
   wsRef,
-  userId,
   onSelectScene,
   onLoadSceneTokens,
   onMoveToken,
@@ -189,17 +198,8 @@ export function CampaignMap({
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
 
-  const myTokenIds = useMemo(() => {
-    if (isGM) return new Set(sceneTokens.map((t) => t.id));
-    return new Set(
-      sceneTokens
-        .filter((t) => {
-          if (!t.character_id || !userId) return false;
-          return characters.some((c) => c.id === t.character_id && c.owner_user_id === userId);
-        })
-        .map((t) => t.id),
-    );
-  }, [isGM, sceneTokens, characters, userId]);
+  // playerTokenIds only used for cosmetic indicator (GM sees player-owned tokens)
+  const ownedByPlayer = (tokenId: string) => playerTokenIds?.has(tokenId) ?? false;
 
   // ── Keyboard nudge for selected tokens (grid-aware) ─────────
   const selectedToken = useMemo(
@@ -217,14 +217,14 @@ export function CampaignMap({
       if (!onMoveToken) return;
       // Move all multi-selected tokens
       for (const t of selectedTokens) {
-        if (!isGM && !myTokenIds.has(t.id)) continue;
+        if (!permissions.canMoveToken(t.id)) continue;
         onMoveToken(t, dx, dy);
       }
       // Also move the primary selected token if not already in the multi-set
       if (
         selectedToken &&
         !selectedTokenIds.has(selectedToken.id) &&
-        (isGM || myTokenIds.has(selectedToken.id))
+        permissions.canMoveToken(selectedToken.id)
       ) {
         onMoveToken(selectedToken, dx, dy);
       }
@@ -233,9 +233,8 @@ export function CampaignMap({
       gridSize,
       enabled:
         Boolean(onMoveToken) &&
-        (isGM ||
-          selectedTokens.some((token) => myTokenIds.has(token.id)) ||
-          Boolean(selectedToken && myTokenIds.has(selectedToken.id))),
+        (selectedTokens.some((token) => permissions.canMoveToken(token.id)) ||
+          Boolean(selectedToken && permissions.canMoveToken(selectedToken.id))),
     },
   );
 
@@ -339,12 +338,12 @@ export function CampaignMap({
   );
 
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
-    const canInteractWithToken = isGM || myTokenIds.has(token.id);
+    const canInteractWithToken = permissions.canSelectToken(token.id);
     if (!canInteractWithToken) return;
     event.stopPropagation();
 
     // Shift+click = toggle multi-select without starting drag
-    if (event.shiftKey && isGM) {
+    if (event.shiftKey && permissions.canMultiSelect) {
       setSelectedTokenIds((prev) => {
         const next = new Set(prev);
         if (next.has(token.id)) {
@@ -364,9 +363,9 @@ export function CampaignMap({
     }
 
     // Plain click = single select + drag
-    const canMoveToken = isGM || myTokenIds.has(token.id);
+    const canMoveToken = permissions.canMoveToken(token.id);
     const tokenIds =
-      isGM && selectedTokenIds.has(token.id) && selectedTokenIds.size > 0
+      permissions.canMultiSelect && selectedTokenIds.has(token.id) && selectedTokenIds.size > 0
         ? [...selectedTokenIds]
         : [token.id];
 
@@ -382,7 +381,7 @@ export function CampaignMap({
     const origins: Record<string, { x: number; y: number }> = {};
     for (const id of tokenIds) {
       const sceneToken = sceneTokens.find((item) => item.id === id);
-      if (sceneToken && (isGM || myTokenIds.has(sceneToken.id))) {
+      if (sceneToken && permissions.canMoveToken(sceneToken.id)) {
         origins[id] = { x: sceneToken.x, y: sceneToken.y };
       }
     }
@@ -676,6 +675,7 @@ export function CampaignMap({
               sceneWidth={selectedScene.width}
               sceneHeight={selectedScene.height}
               isGM={isGM}
+              canEditFog={permissions.canEditFog}
               zoom={zoom}
               panMode={panMode}
             />
@@ -701,7 +701,7 @@ export function CampaignMap({
                   )
                 : null;
 
-              const isPlayerToken = myTokenIds.has(token.id);
+              const isPlayerToken = ownedByPlayer(token.id);
 
               // ── Fog visibility filter (players only) ──────────
               // Tokens whose center is not in any revealed zone are hidden
@@ -780,12 +780,12 @@ export function CampaignMap({
                   tabIndex={0}
                   aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " — groupe" : ""}`}
                   onClick={() => {
-                    if (!isGM && !myTokenIds.has(token.id)) return;
+                    if (!permissions.canSelectToken(token.id)) return;
                     selectToken(token.id);
                     setSelectedTokenIds(new Set([token.id]));
                   }}
                   onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && (isGM || myTokenIds.has(token.id))) {
+                    if ((e.key === "Enter" || e.key === " ") && permissions.canSelectToken(token.id)) {
                       e.preventDefault();
                       if (e.shiftKey) {
                         setSelectedTokenIds((prev) => {
@@ -881,7 +881,6 @@ export function CampaignMap({
               isGM={isGM}
               wsRef={wsRef}
               selectedSceneId={selectedSceneId}
-              myTokenIds={myTokenIds}
               snapToGrid={snapToGrid}
             />
 

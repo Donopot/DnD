@@ -16,6 +16,7 @@ type FogLayerProps = {
   sceneWidth: number;
   sceneHeight: number;
   isGM: boolean;
+  canEditFog?: boolean;
   zoom?: number;
   panMode?: boolean;
 };
@@ -25,6 +26,7 @@ export function FogLayer({
   sceneWidth,
   sceneHeight,
   isGM,
+  canEditFog,
   zoom = 1,
   panMode = false,
 }: FogLayerProps) {
@@ -41,7 +43,7 @@ export function FogLayer({
   const [saveError, setSaveError] = useState("");
 
   // The fog canvas is visually above tokens; only capture clicks while explicitly drawing.
-  const fogInteractive = isGM && showFog && drawMode && !panMode;
+  const fogInteractive = (canEditFog ?? isGM) && showFog && drawMode && !panMode;
 
   useEffect(() => {
     if (!sceneId) return;
