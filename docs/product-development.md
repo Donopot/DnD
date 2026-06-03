@@ -55,13 +55,14 @@ Chaque évolution frontend doit avoir :
 ## Validation minimale avant merge
 
 ```bash
-python3 -m compileall backend/app
-sh scripts/check-frontend-types.sh
+uv run python -m compileall backend/app
+cd frontend && npx tsc --noEmit
 docker compose up -d --build
 sh scripts/wait-api.sh
 curl -fsS http://127.0.0.1:8091/api/health
 sh scripts/smoke-backend.sh
-Ordre de priorité des branches
+```
+## Ordre de priorité des branches
 documentation ;
 cohérence environnement / Docker ;
 build reproductible ;
@@ -73,7 +74,8 @@ design tokens ;
 layout ;
 navigation ;
 UX carte.
-HP Mini
+
+## HP Mini
 
 Le HP Mini héberge le produit complet :
 

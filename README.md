@@ -119,10 +119,12 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 ```bash
 # Backend
 cd backend
+uv sync                                            # installer les dépendances (reproductible)
 uv run uvicorn app.main:app --reload --port 8091
 
 # Frontend
 cd frontend
+npm ci                                             # installer (package-lock.json fait foi)
 npx vite --port 8090
 
 # Tests
