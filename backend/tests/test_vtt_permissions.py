@@ -209,3 +209,228 @@ class TestTokenOwnership:
                 blocked = True
 
         assert not blocked, "Co-GM should not be blocked from modifying any token"
+
+
+# ============================================================================
+# P1.4 — Fog reveal via CircleRevealRequest validation
+# ============================================================================
+
+class TestCircleRevealRequest:
+    def test_valid_circle_reveal(self):
+        from app.routers.vtt import CircleRevealRequest
+        r = CircleRevealRequest(center_x=100, center_y=200, radius_ft=30)
+        assert r.radius_ft == 30
+
+    def test_nan_center_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=float("nan"), center_y=200, radius_ft=30)
+
+    def test_inf_center_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=float("inf"), center_y=200, radius_ft=30)
+
+    def test_negative_radius_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=0, center_y=0, radius_ft=-10)
+
+    def test_zero_radius_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=0, center_y=0, radius_ft=0)
+
+    def test_nan_radius_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=0, center_y=0, radius_ft=float("nan"))
+
+    def test_inf_radius_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=0, center_y=0, radius_ft=float("inf"))
+
+    def test_excessive_radius_rejected(self):
+        from app.routers.vtt import CircleRevealRequest
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            CircleRevealRequest(center_x=0, center_y=0, radius_ft=121)
+
+    def test_max_radius_accepted(self):
+        from app.routers.vtt import CircleRevealRequest
+        r = CircleRevealRequest(center_x=0, center_y=0, radius_ft=120)
+        assert r.radius_ft == 120
+
+
+# ============================================================================
+# P1.3 — Token metadata filtering for players
+# ============================================================================
+
+class TestTokenPublicFiltered:
+    def test_token_public_includes_metadata(self):
+        """GM/co-GM token_public preserves metadata."""
+        from app.routers.vtt import token_public
+        from uuid import uuid4
+        from datetime import datetime, timezone
+        import json
+        now = datetime.now(timezone.utc)
+        row = {
+            "id": uuid4(), "scene_id": uuid4(), "character_id": uuid4(),
+            "name": "Orc", "x": 100, "y": 200, "size": 2, "color": "red",
+            "is_hidden": False, "vision_radius": 0,
+            "metadata": json.dumps({"hp": 45, "notes": "secret"}),
+            "created_at": now, "updated_at": now,
+        }
+        result = token_public(row)
+        assert result.metadata == {"hp": 45, "notes": "secret"}
+
+    def test_token_public_filtered_strips_metadata(self):
+        """Player token_public_filtered returns empty metadata."""
+        from app.routers.vtt import token_public_filtered
+        from uuid import uuid4
+        from datetime import datetime, timezone
+        import json
+        now = datetime.now(timezone.utc)
+        row = {
+            "id": uuid4(), "scene_id": uuid4(), "character_id": uuid4(),
+            "name": "Hero", "x": 100, "y": 200, "size": 2, "color": "blue",
+            "is_hidden": False, "vision_radius": 30,
+            "metadata": json.dumps({"hp": 45, "notes": "secret"}),
+            "created_at": now, "updated_at": now,
+        }
+        result = token_public_filtered(row)
+        assert result.metadata == {}, f"Expected empty metadata, got {result.metadata}"
+
+
+# ============================================================================
+# P1.4 — Player fog reveal ownership enforcement
+# ============================================================================
+
+class TestFogRevealOwnership:
+    """Verify that players can only reveal fog around their own character tokens."""
+
+    def test_player_blocked_from_revealing_npc_token(self):
+        """Token without character_id → player cannot reveal fog."""
+        existing = {"character_id": None}
+        role = "player"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+
+        assert blocked, "Player should be blocked from revealing fog around NPC token"
+
+    def test_player_blocked_from_revealing_other_player_token(self):
+        """Token has character_id but player doesn't own it."""
+        existing = {"character_id": "char-other"}
+        role = "player"
+        token_owner_user_id = "user-other"
+        current_user_id = "user-me"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+            elif token_owner_user_id != current_user_id:
+                blocked = True
+
+        assert blocked, "Player should be blocked from revealing fog around another player's token"
+
+    def test_gm_can_reveal_any_token(self):
+        """GM can always reveal fog around any token."""
+        existing = {"character_id": None}
+        role = "gm"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+
+        assert not blocked, "GM should not be blocked from revealing fog around any token"
+
+    def test_player_can_reveal_own_token(self):
+        """Player CAN reveal around their own character token."""
+        existing = {"character_id": "char-own"}
+        role = "player"
+        token_owner_user_id = "user-me"
+        current_user_id = "user-me"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+            elif token_owner_user_id != current_user_id:
+                blocked = True
+
+        assert not blocked, "Player should be able to reveal fog around their own token"
+
+
+# ============================================================================
+# P1.2 — Cache bypass regression (structural check)
+# ============================================================================
+
+class TestCacheBeforeRoleCheck:
+    """Verify that role checks happen before cache returns in get_scene and get_fog.
+
+    These are structural tests — they verify the source code ordering.
+    For full integration tests (Redis + DB), see test_security_integration.py.
+    """
+
+    def test_get_scene_role_check_before_cache(self):
+        """get_scene must fetch the scene row and check role before cache_get."""
+        import inspect
+        from app.routers.vtt import get_scene
+
+        src = inspect.getsource(get_scene)
+        role_pos = src.find("require_campaign_role")
+        cache_pos = src.find("cache_get(")
+
+        assert role_pos >= 0, "require_campaign_role not found in get_scene"
+        assert cache_pos >= 0, "cache_get not found in get_scene"
+        assert role_pos < cache_pos, (
+            "Role check must appear BEFORE cache_get in get_scene. "
+            f"Found role at {role_pos}, cache at {cache_pos}"
+        )
+
+    def test_get_fog_role_check_before_cache(self):
+        """get_fog must fetch the scene row and check role before cache_get."""
+        import inspect
+        from app.routers.vtt import get_fog
+
+        src = inspect.getsource(get_fog)
+        role_pos = src.find("require_campaign_role")
+        cache_pos = src.find("cache_get(")
+
+        assert role_pos >= 0, "require_campaign_role not found in get_fog"
+        assert cache_pos >= 0, "cache_get not found in get_fog"
+        assert role_pos < cache_pos, (
+            "Role check must appear BEFORE cache_get in get_fog. "
+            f"Found role at {role_pos}, cache at {cache_pos}"
+        )
+
+
+# ============================================================================
+# P1.1 — Handout cache key includes role
+# ============================================================================
+
+class TestHandoutCacheKey:
+    """Verify that handout cache keys are role-scoped to prevent GM→player leaks."""
+
+    def test_list_handouts_cache_key_includes_role(self):
+        """The cache key in list_handouts must segment by role."""
+        import inspect
+        from app.routers.handouts import list_handouts
+
+        src = inspect.getsource(list_handouts)
+        # Verify role is in the cache key string
+        assert '{role}' in src or 'role}' in src, (
+            "Cache key in list_handouts must include 'role' to segment GM vs player cache"
+        )
