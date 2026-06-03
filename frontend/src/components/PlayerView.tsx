@@ -193,6 +193,15 @@ export function PlayerView({
             void loadPlayerMapData();
           }
         }
+        if (payload.type === "token_moved" && payload.scene_id === playerScene?.id) {
+          setPlayerTokens((current) =>
+            current.map((sceneToken) =>
+              sceneToken.id === payload.token_id
+                ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
+                : sceneToken,
+            ),
+          );
+        }
       } catch {
         /* ignore malformed messages */
       }
@@ -202,7 +211,7 @@ export function PlayerView({
     socket.onerror = () => setRealtimeStatus("offline");
 
     return () => socket.close();
-  }, [cid, token]);
+  }, [cid, token, playerScene?.id]);
 
   // ─── Data loading ──────────────────────────────────────────────────────
   async function loadPlayerData() {
@@ -291,6 +300,43 @@ export function PlayerView({
       setPlayerTokens(tokens);
     } catch {
       /* ignore */
+    }
+  }
+
+  async function handleMovePlayerToken(tokenToMove: SceneToken, dx: number, dy: number) {
+    try {
+      const updated = await playerRequest<SceneToken>(`/tokens/${tokenToMove.id}/move`, token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          x: Math.max(0, tokenToMove.x + dx),
+          y: Math.max(0, tokenToMove.y + dy),
+        }),
+      });
+
+      setPlayerTokens((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+
+      const visionRadius = tokenToMove.vision_radius ?? 0;
+      if (tokenToMove.character_id && visionRadius > 0 && playerScene) {
+        const gridSize = playerScene.grid_size ?? 50;
+        const centerX = updated.x + (updated.size * gridSize) / 2;
+        const centerY = updated.y + (updated.size * gridSize) / 2;
+        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            center_x: centerX,
+            center_y: centerY,
+            radius_ft: visionRadius,
+          }),
+        }).catch(() => {});
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erreur déplacement token");
     }
   }
 
@@ -1198,6 +1244,7 @@ export function PlayerView({
             sceneTokens={playerTokens}
             sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
             characters={characters}
+            onMoveToken={(sceneToken, dx, dy) => void handleMovePlayerToken(sceneToken, dx, dy)}
           />
         </section>
 

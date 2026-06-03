@@ -41,6 +41,8 @@ type CampaignMapProps = {
   isGM: boolean;
   wsRef: React.RefObject<WebSocket | null>;
   onSelectScene?: (sceneId: string) => void;
+  selectedTokenId?: string;
+  onSelectToken?: (tokenId: string) => void;
   onLoadSceneTokens?: (sceneId: string) => void;
   onMoveToken?: TokenDragHandler;
   onTokenAction?: TokenActionHandler;
@@ -71,6 +73,8 @@ export function CampaignMap({
   onLoadSceneTokens,
   onMoveToken,
   onTokenAction,
+  selectedTokenId: controlledSelectedTokenId,
+  onSelectToken,
 }: CampaignMapProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -79,8 +83,16 @@ export function CampaignMap({
   const [panMode, setPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
-  const [dragTokenId, setDragTokenId] = useState("");
-  const [selectedTokenId, setSelectedTokenId] = useState("");
+  const [dragState, setDragState] = useState<{
+    tokenIds: string[];
+    startX: number;
+    startY: number;
+    origins: Record<string, { x: number; y: number }>;
+  } | null>(null);
+  const [previewPositions, setPreviewPositions] = useState<Record<string, { x: number; y: number }>>(
+    {},
+  );
+  const [localSelectedTokenId, setLocalSelectedTokenId] = useState("");
   const [selectedTokenIds, setSelectedTokenIds] = useState<Set<string>>(new Set());
   const [showGrid, setShowGrid] = useState(true);
   const [sceneTransitioning, setSceneTransitioning] = useState(false);
@@ -100,6 +112,18 @@ export function CampaignMap({
 
   // Minimap ref
   const minimapRef = useRef<HTMLCanvasElement>(null);
+  const selectedTokenId = controlledSelectedTokenId ?? localSelectedTokenId;
+  const dragTokenId = dragState?.tokenIds[0] ?? "";
+
+  function selectToken(tokenId: string) {
+    setLocalSelectedTokenId(tokenId);
+    onSelectToken?.(tokenId);
+  }
+
+  useEffect(() => {
+    if (controlledSelectedTokenId === undefined) return;
+    setSelectedTokenIds(controlledSelectedTokenId ? new Set([controlledSelectedTokenId]) : new Set());
+  }, [controlledSelectedTokenId]);
 
   // Reset zoom and center on scene when scene changes
   useEffect(() => {
@@ -167,6 +191,18 @@ export function CampaignMap({
   const zoomPercent = Math.round(zoom * 100);
   const gridSize = selectedScene?.grid_size ?? 50;
 
+  const myTokenIds = useMemo(() => {
+    if (isGM) return new Set(sceneTokens.map((t) => t.id));
+    return new Set(
+      sceneTokens
+        .filter((t) => {
+          if (!t.character_id || !userId) return false;
+          return characters.some((c) => c.id === t.character_id && c.owner_user_id === userId);
+        })
+        .map((t) => t.id),
+    );
+  }, [isGM, sceneTokens, characters, userId]);
+
   // ── Keyboard nudge for selected tokens (grid-aware) ─────────
   const selectedToken = useMemo(
     () => sceneTokens.find((t) => t.id === selectedTokenId),
@@ -183,28 +219,27 @@ export function CampaignMap({
       if (!onMoveToken) return;
       // Move all multi-selected tokens
       for (const t of selectedTokens) {
+        if (!isGM && !myTokenIds.has(t.id)) continue;
         onMoveToken(t, dx, dy);
       }
       // Also move the primary selected token if not already in the multi-set
-      if (selectedToken && !selectedTokenIds.has(selectedToken.id)) {
+      if (
+        selectedToken &&
+        !selectedTokenIds.has(selectedToken.id) &&
+        (isGM || myTokenIds.has(selectedToken.id))
+      ) {
         onMoveToken(selectedToken, dx, dy);
       }
     },
-    { gridSize, enabled: isGM },
+    {
+      gridSize,
+      enabled:
+        Boolean(onMoveToken) &&
+        (isGM ||
+          selectedTokens.some((token) => myTokenIds.has(token.id)) ||
+          Boolean(selectedToken && myTokenIds.has(selectedToken.id))),
+    },
   );
-
-  // Memoized myTokenIds to avoid new Set() on every render
-  const myTokenIds = useMemo(() => {
-    if (isGM) return new Set(sceneTokens.map((t) => t.id));
-    return new Set(
-      sceneTokens
-        .filter((t) => {
-          if (!t.character_id || !userId) return false;
-          return characters.some((c) => c.id === t.character_id && c.owner_user_id === userId);
-        })
-        .map((t) => t.id),
-    );
-  }, [isGM, sceneTokens, characters, userId]);
 
   // ── Zoom (toward cursor) ────────────────────────────────────────────────
 
@@ -319,11 +354,12 @@ export function CampaignMap({
   );
 
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
-    if (!isGM || !onMoveToken) return;
+    const canInteractWithToken = isGM || myTokenIds.has(token.id);
+    if (!canInteractWithToken) return;
     event.stopPropagation();
 
     // Shift+click = toggle multi-select without starting drag
-    if (event.shiftKey) {
+    if (event.shiftKey && isGM) {
       setSelectedTokenIds((prev) => {
         const next = new Set(prev);
         if (next.has(token.id)) {
@@ -331,11 +367,11 @@ export function CampaignMap({
           // If we removed the primary, pick a new primary
           if (selectedTokenId === token.id) {
             const remaining = [...next];
-            setSelectedTokenId(remaining[0] ?? "");
+            selectToken(remaining[0] ?? "");
           }
         } else {
           next.add(token.id);
-          setSelectedTokenId(token.id); // Last added = primary
+          selectToken(token.id); // Last added = primary
         }
         return next;
       });
@@ -343,26 +379,76 @@ export function CampaignMap({
     }
 
     // Plain click = single select + drag
-    setDragTokenId(token.id);
-    setSelectedTokenId(token.id);
-    setSelectedTokenIds(new Set([token.id]));
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    const canMoveToken = isGM || myTokenIds.has(token.id);
+    const tokenIds =
+      isGM && selectedTokenIds.has(token.id) && selectedTokenIds.size > 0
+        ? [...selectedTokenIds]
+        : [token.id];
+
+    selectToken(token.id);
+    setSelectedTokenIds(new Set(tokenIds));
+
+    if (!canMoveToken || !onMoveToken) return;
+
+    const rect = boardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const startX = (event.clientX - rect.left) / zoom;
+    const startY = (event.clientY - rect.top) / zoom;
+    const origins: Record<string, { x: number; y: number }> = {};
+    for (const id of tokenIds) {
+      const sceneToken = sceneTokens.find((item) => item.id === id);
+      if (sceneToken && (isGM || myTokenIds.has(sceneToken.id))) {
+        origins[id] = { x: sceneToken.x, y: sceneToken.y };
+      }
+    }
+
+    if (Object.keys(origins).length === 0) return;
+    setDragState({ tokenIds: Object.keys(origins), startX, startY, origins });
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
   }
 
   function handleBoardPointerMove(event: PointerEvent) {
-    if (!dragTokenId || !onMoveToken || !gridSize) return;
-    const rawDx = event.movementX / zoom;
-    const rawDy = event.movementY / zoom;
+    if (!dragState || !gridSize) return;
+    const rect = boardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const currentX = (event.clientX - rect.left) / zoom;
+    const currentY = (event.clientY - rect.top) / zoom;
+    const rawDx = currentX - dragState.startX;
+    const rawDy = currentY - dragState.startY;
     const dx = snapToGrid(rawDx);
     const dy = snapToGrid(rawDy);
-    if (dx !== 0 || dy !== 0) {
-      const token = sceneTokens.find((t) => t.id === dragTokenId);
-      if (token) onMoveToken(token, dx, dy);
-    }
+
+    setPreviewPositions(() => {
+      const next: Record<string, { x: number; y: number }> = {};
+      for (const tokenId of dragState.tokenIds) {
+        const origin = dragState.origins[tokenId];
+        if (origin) {
+          next[tokenId] = {
+            x: Math.max(0, origin.x + dx),
+            y: Math.max(0, origin.y + dy),
+          };
+        }
+      }
+      return next;
+    });
   }
 
   function handleBoardPointerUp() {
-    setDragTokenId("");
+    if (dragState && onMoveToken) {
+      for (const tokenId of dragState.tokenIds) {
+        const origin = dragState.origins[tokenId];
+        const preview = previewPositions[tokenId];
+        const token = sceneTokens.find((item) => item.id === tokenId);
+        if (!origin || !preview || !token) continue;
+        const dx = preview.x - origin.x;
+        const dy = preview.y - origin.y;
+        if (dx !== 0 || dy !== 0) {
+          onMoveToken(token, dx, dy);
+        }
+      }
+    }
+    setDragState(null);
+    setPreviewPositions({});
   }
 
   // ── Minimap rendering ────────────────────────────────────────────────────
@@ -542,9 +628,16 @@ export function CampaignMap({
           <div
             ref={boardRef}
             className={`campaign-map-board ${sceneBackgroundObjectUrl ? "with-background" : ""} ${dragTokenId ? "is-dragging" : ""} ${showGrid ? "show-grid" : ""} ${sceneTransitioning ? "scene-transitioning" : ""}`}
-            onPointerMove={isGM ? handleBoardPointerMove : undefined}
-            onPointerUp={isGM ? handleBoardPointerUp : undefined}
-            onPointerCancel={isGM ? () => setDragTokenId("") : undefined}
+            onPointerMove={dragState ? handleBoardPointerMove : undefined}
+            onPointerUp={dragState ? handleBoardPointerUp : undefined}
+            onPointerCancel={
+              dragState
+                ? () => {
+                    setDragState(null);
+                    setPreviewPositions({});
+                  }
+                : undefined
+            }
             style={{
               width: selectedScene.width,
               height: selectedScene.height,
@@ -672,12 +765,12 @@ export function CampaignMap({
                   tabIndex={0}
                   aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " — groupe" : ""}`}
                   onClick={() => {
-                    if (!isGM) return;
-                    setSelectedTokenId(token.id);
+                    if (!isGM && !myTokenIds.has(token.id)) return;
+                    selectToken(token.id);
                     setSelectedTokenIds(new Set([token.id]));
                   }}
                   onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && isGM) {
+                    if ((e.key === "Enter" || e.key === " ") && (isGM || myTokenIds.has(token.id))) {
                       e.preventDefault();
                       if (e.shiftKey) {
                         setSelectedTokenIds((prev) => {
@@ -686,12 +779,12 @@ export function CampaignMap({
                             next.delete(token.id);
                           } else {
                             next.add(token.id);
-                            setSelectedTokenId(token.id);
+                            selectToken(token.id);
                           }
                           return next;
                         });
                       } else {
-                        setSelectedTokenId(token.id);
+                        selectToken(token.id);
                         setSelectedTokenIds(new Set([token.id]));
                       }
                     }
@@ -709,8 +802,8 @@ export function CampaignMap({
                     });
                   }}
                   style={{
-                    left: token.x,
-                    top: token.y,
+                    left: previewPositions[token.id]?.x ?? token.x,
+                    top: previewPositions[token.id]?.y ?? token.y,
                     width: token.size * gridSize,
                     height: token.size * gridSize,
                     background: token.color,

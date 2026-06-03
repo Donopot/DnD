@@ -313,6 +313,15 @@ export default function App() {
             void loadHandouts(selectedCampaign.id);
           }
         }
+        if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
+          setSceneTokens((current) =>
+            current.map((sceneToken) =>
+              sceneToken.id === payload.token_id
+                ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
+                : sceneToken,
+            ),
+          );
+        }
       } catch {
         /* ignore malformed messages */
       }
@@ -331,7 +340,7 @@ export default function App() {
     return () => {
       socket.close();
     };
-  }, [token, selectedCampaign?.id]);
+  }, [token, selectedCampaign?.id, selectedScene?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
@@ -437,7 +446,7 @@ export default function App() {
     setMessage("");
 
     try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToMove.id}`, {
+      const updated = await request<SceneToken>(`/api/tokens/${tokenToMove.id}/move`, {
         method: "PATCH",
         body: JSON.stringify({
           x: Math.max(0, tokenToMove.x + dx),
@@ -1135,6 +1144,8 @@ export default function App() {
           sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
           characters={characters}
           onSelectScene={setSelectedSceneId}
+          selectedTokenId={selectedTokenId}
+          onSelectToken={setSelectedTokenId}
           onLoadSceneTokens={(id) => void loadSceneTokens(id)}
           onMoveToken={(t, dx, dy) => void handleMoveToken(t, dx, dy)}
           onTokenAction={(action, t, v) => void handleTokenAction(action, t, v)}
