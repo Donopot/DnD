@@ -196,8 +196,21 @@ export default function App() {
     [fp.panels],
   );
 
-  const campaignMapProps = useMemo(
-    () => ({
+  const campaignMapProps = useMemo(() => {
+    const playerIds = new Set(
+      sceneTokens
+        .filter((t) =>
+          t.character_id &&
+          characters.some(
+            (c) =>
+              c.id === t.character_id &&
+              c.owner_user_id &&
+              c.owner_user_id !== user?.id,
+          ),
+        )
+        .map((t) => t.id),
+    );
+    return {
       isGM: true as const,
       wsRef,
       permissions: {
@@ -206,20 +219,7 @@ export default function App() {
         canEditFog: true,
         canMultiSelect: true,
       } as const,
-      playerTokenIds: new Set(
-        sceneTokens
-          .filter(
-            (t) =>
-              t.character_id &&
-              characters.some(
-                (c) =>
-                  c.id === t.character_id &&
-                  c.owner_user_id &&
-                  c.owner_user_id !== user?.id,
-              ),
-          )
-          .map((t) => t.id),
-      ),
+      playerTokenIds: playerIds,
       campaignId: selectedCampaign?.id ?? "",
       token,
       scenes,
@@ -234,21 +234,20 @@ export default function App() {
       onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
-    }),
-    [
-      wsRef,
-      sceneTokens,
-      characters,
-      user?.id,
-      selectedCampaign?.id,
-      token,
-      scenes,
-      selectedScene,
-      selectedSceneId,
-      sceneBackgroundObjectUrl,
-      selectedTokenId,
-    ],
-  );
+    };
+  }, [
+    wsRef,
+    sceneTokens,
+    characters,
+    user?.id,
+    selectedCampaign?.id,
+    token,
+    scenes,
+    selectedScene,
+    selectedSceneId,
+    sceneBackgroundObjectUrl,
+    selectedTokenId,
+  ]);
 
   // Auto-convert message state to toast notifications only after authentication.
   // On auth screens, keep message visible inside AuthPage.
@@ -1253,44 +1252,7 @@ export default function App() {
         <CampaignViewTabs activeView={gmView} onChange={setGmView} />
 
         {!isMapFloating && (
-          <CampaignMap
-            isGM={true}
-            wsRef={wsRef}
-            permissions={{
-              canSelectToken: () => true,
-              canMoveToken: () => true,
-              canEditFog: true,
-              canMultiSelect: true,
-            }}
-            playerTokenIds={
-              new Set(
-                sceneTokens
-                  .filter((t) =>
-                    t.character_id &&
-                    characters.some(
-                      (c) =>
-                        c.id === t.character_id &&
-                        c.owner_user_id &&
-                        c.owner_user_id !== user?.id,
-                    ),
-                  )
-                  .map((t) => t.id),
-              )
-            }
-            campaignId={selectedCampaign?.id ?? ""}
-            token={token}
-            scenes={scenes}
-            selectedScene={selectedScene}
-            selectedSceneId={selectedSceneId}
-            sceneTokens={sceneTokens}
-            sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
-            onSelectScene={setSelectedSceneId}
-            selectedTokenId={selectedTokenId}
-            onSelectToken={setSelectedTokenId}
-            onLoadSceneTokens={(id) => void loadSceneTokens(id)}
-            onMoveToken={(t, dx, dy) => void handleMoveToken(t, dx, dy)}
-            onTokenAction={(action, t, v) => void handleTokenAction(action, t, v)}
-          />
+          <CampaignMap {...campaignMapProps} />
         )}
       </section>
 
@@ -2249,44 +2211,7 @@ export default function App() {
           {panel.id === "npc-generator" && <NpcGenerator />}
           {panel.id === MAP_PANEL_ID && (
             <div className="floating-map-panel">
-              <CampaignMap
-                isGM={true}
-                wsRef={wsRef}
-                permissions={{
-                  canSelectToken: () => true,
-                  canMoveToken: () => true,
-                  canEditFog: true,
-                  canMultiSelect: true,
-                }}
-                playerTokenIds={
-                  new Set(
-                    sceneTokens
-                      .filter((t) =>
-                        t.character_id &&
-                        characters.some(
-                          (c) =>
-                            c.id === t.character_id &&
-                            c.owner_user_id &&
-                            c.owner_user_id !== user?.id,
-                        ),
-                      )
-                      .map((t) => t.id),
-                  )
-                }
-                campaignId={selectedCampaign?.id ?? ""}
-                token={token}
-                scenes={scenes}
-                selectedScene={selectedScene}
-                selectedSceneId={selectedSceneId}
-                sceneTokens={sceneTokens}
-                sceneBackgroundObjectUrl={sceneBackgroundObjectUrl}
-                onSelectScene={setSelectedSceneId}
-                selectedTokenId={selectedTokenId}
-                onSelectToken={setSelectedTokenId}
-                onLoadSceneTokens={(id) => void loadSceneTokens(id)}
-                onMoveToken={(t, dx, dy) => void handleMoveToken(t, dx, dy)}
-                onTokenAction={(action, t, v) => void handleTokenAction(action, t, v)}
-              />
+              <CampaignMap {...campaignMapProps} />
             </div>
           )}
           {panel.id === "scene" && (
