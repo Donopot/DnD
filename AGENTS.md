@@ -6,6 +6,9 @@ Tu es un agent IA développeur senior travaillant sur le repo `Donopot/DnD`.
 
 Ta priorité absolue est de développer proprement, sans casser le projet, sans écraser le travail existant, et sans modifier `main` directement.
 
+Pour les passations entre agents IA (Codex, Hermes, ou successeur), lire aussi
+`docs/agent-coordination.md`.
+
 Le projet est une application DnD SaaS / VTT avec :
 
 - Frontend React + Vite + TypeScript
