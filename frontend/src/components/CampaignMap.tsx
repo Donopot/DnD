@@ -123,6 +123,8 @@ export function CampaignMap({
 
   // Fog of war zones (for token visibility filtering)
   const [fogZones, setFogZones] = useState<FogZone[]>([]);
+  const fogZonesRef = useRef(fogZones);
+  fogZonesRef.current = fogZones;
 
   // Fog tool state (lifted from FogLayer)
   const [showFog, setShowFog] = useState(true);
@@ -199,7 +201,7 @@ export function CampaignMap({
       setFogZones(newZones);
 
       const t = localStorage.getItem("dnd_access_token") ?? "";
-      const previousZones = fogZones;
+      const previousZones = fogZonesRef.current;
       try {
         const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
           method: "PATCH",
