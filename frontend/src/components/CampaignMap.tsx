@@ -292,6 +292,10 @@ export function CampaignMap({
             window.dispatchEvent(new CustomEvent("undo-token-move"));
           }
           break;
+        case "Escape":
+          selectToken("");
+          setSelectedTokenIds(new Set());
+          break;
       }
     }
 
@@ -398,10 +402,9 @@ export function CampaignMap({
     if (!rect) return;
     const currentX = (event.clientX - rect.left) / zoom;
     const currentY = (event.clientY - rect.top) / zoom;
-    const rawDx = currentX - dragState.startX;
-    const rawDy = currentY - dragState.startY;
-    const dx = snapToGrid(rawDx);
-    const dy = snapToGrid(rawDy);
+    // Smooth preview — no snap during drag (snap applied on release)
+    const dx = currentX - dragState.startX;
+    const dy = currentY - dragState.startY;
 
     setPreviewPositions(() => {
       const next: Record<string, { x: number; y: number }> = {};
@@ -425,8 +428,9 @@ export function CampaignMap({
         const preview = previewPositions[tokenId];
         const token = sceneTokens.find((item) => item.id === tokenId);
         if (!origin || !preview || !token) continue;
-        const dx = preview.x - origin.x;
-        const dy = preview.y - origin.y;
+        // Snap final delta to grid before API call
+        const dx = snapToGrid(preview.x - origin.x);
+        const dy = snapToGrid(preview.y - origin.y);
         if (dx !== 0 || dy !== 0) {
           onMoveToken(token, dx, dy);
         }
@@ -653,6 +657,13 @@ export function CampaignMap({
                   }
                 : undefined
             }
+            onClick={(e) => {
+              // Click on empty board space deselects all tokens
+              if (e.target === boardRef.current) {
+                selectToken("");
+                setSelectedTokenIds(new Set());
+              }
+            }}
             style={{
               width: selectedScene.width,
               height: selectedScene.height,
