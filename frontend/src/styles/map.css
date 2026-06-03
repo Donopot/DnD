@@ -842,3 +842,22 @@
 .damage-apply:hover {
   background: var(--accent-dim);
 }
+
+/* ── Floating map panel ───────────────────────────────────────────────── */
+
+.floating-map-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.floating-map-panel .campaign-map-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.floating-map-panel .campaign-map-viewport {
+  min-height: 0;
+  flex: 1;
+}
