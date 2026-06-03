@@ -303,6 +303,8 @@ async def update_token(
             )
             if not owned:
                 raise HTTPException(status_code=403, detail="Players can only modify their own tokens")
+        else:
+            raise HTTPException(status_code=403, detail="Players cannot modify NPC or unlinked tokens")
         # Players cannot change character_id to one they don't own
         if "character_id" in updates and updates["character_id"] != current["character_id"]:
             await validate_character_for_scene(existing["scene_id"], updates["character_id"], current_user["id"], role)
@@ -366,7 +368,9 @@ async def move_token(
     role = await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
 
     # Players can only move tokens linked to their own characters
-    if role == "player" and existing["character_id"]:
+    if role == "player":
+        if not existing["character_id"]:
+            raise HTTPException(status_code=403, detail="Players cannot move NPC or unlinked tokens")
         owned = await get_pool().fetchval(
             "select 1 from characters where id = $1 and owner_user_id = $2",
             existing["character_id"],
