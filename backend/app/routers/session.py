@@ -419,130 +419,153 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                 await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
                 break
 
-            if msg_type == "ping":
-                await websocket.send_json({"type": "pong"})
+            try:
+                if msg_type == "ping":
+                    await websocket.send_json({"type": "pong"})
 
-            elif msg_type == "map_ping":
-                _validate_coords(message.get("x", 0), message.get("y", 0), "map_ping")
-                # Broadcast ping position to all clients in the campaign
-                await manager.broadcast(
-                    campaign_id,
-                    {
-                        "type": "map_ping",
-                        "x": message.get("x", 0),
-                        "y": message.get("y", 0),
-                        "user_id": str(user_id),
-                        "ts": message.get("ts", 0),
-                    },
-                )
-
-            elif msg_type == "player_move_token":
-                # Player can only move tokens they own (player_controlled)
-                token_id = message.get("token_id")
-                new_x = message.get("x", 0)
-                new_y = message.get("y", 0)
-                scene_id = message.get("scene_id")
-                _validate_coords(new_x, new_y, "player_move_token")
-
-                if role == "player":
-                    # Verify the token belongs to a character owned by this player
-                    token_row = await get_pool().fetchrow(
-                        "select st.id from scene_tokens st "
-                        "join characters c on c.id = st.character_id "
-                        "where st.id = $1 and st.scene_id = $2 and c.owner_user_id = $3",
-                        token_id,
-                        scene_id,
-                        user_id,
+                elif msg_type == "map_ping":
+                    _validate_coords(message.get("x", 0), message.get("y", 0), "map_ping")
+                    # Broadcast ping position to all clients in the campaign
+                    await manager.broadcast(
+                        campaign_id,
+                        {
+                            "type": "map_ping",
+                            "x": message.get("x", 0),
+                            "y": message.get("y", 0),
+                            "user_id": str(user_id),
+                            "ts": message.get("ts", 0),
+                        },
                     )
-                    if not token_row:
-                        await websocket.send_json({"type": "error", "detail": "Token non autorisé"})
+
+                elif msg_type == "player_move_token":
+                    # Player can only move tokens they own (player_controlled)
+                    token_id = message.get("token_id")
+                    new_x = message.get("x", 0)
+                    new_y = message.get("y", 0)
+                    scene_id = message.get("scene_id")
+                    _validate_coords(new_x, new_y, "player_move_token")
+
+                    if role == "player":
+                        # Verify the token belongs to a character owned by this player
+                        token_row = await get_pool().fetchrow(
+                            "select st.id from scene_tokens st "
+                            "join characters c on c.id = st.character_id "
+                            "where st.id = $1 and st.scene_id = $2 and c.owner_user_id = $3",
+                            token_id,
+                            scene_id,
+                            user_id,
+                        )
+                        if not token_row:
+                            await websocket.send_json({"type": "error", "detail": "Token non autorisé"})
+                            continue
+
+                    # Update token position in DB
+                    await get_pool().execute(
+                        "update scene_tokens set x = $1, y = $2, updated_at = now() where id = $3",
+                        new_x,
+                        new_y,
+                        token_id,
+                    )
+
+                    # Broadcast the move to all clients
+                    await manager.broadcast(
+                        campaign_id,
+                        {
+                            "type": "token_moved",
+                            "token_id": str(token_id),
+                            "x": new_x,
+                            "y": new_y,
+                            "user_id": str(user_id),
+                        },
+                    )
+
+                elif msg_type == "chat_message":
+                    # Broadcast chat message to all clients in campaign
+                    content = str(message.get("content", ""))[:2000]
+                    mode = message.get("mode", "ic")  # ic, ooc, whisper
+                    target = message.get("target")    # display_name for whispers
+
+                    if not content.strip():
                         continue
 
-                # Update token position in DB
-                await get_pool().execute(
-                    "update scene_tokens set x = $1, y = $2, updated_at = now() where id = $3",
-                    new_x,
-                    new_y,
-                    token_id,
-                )
+                    chat_payload = {
+                        "type": "chat_message",
+                        "content": content,
+                        "mode": mode,
+                        "sender_id": str(user_id),
+                        "sender_name": display_name,
+                        "sender_role": role,
+                        "ts": message.get("ts", 0),
+                    }
+                    if target:
+                        chat_payload["target"] = target
 
-                # Broadcast the move to all clients
-                await manager.broadcast(
-                    campaign_id,
-                    {
-                        "type": "token_moved",
-                        "token_id": str(token_id),
-                        "x": new_x,
-                        "y": new_y,
-                        "user_id": str(user_id),
-                    },
-                )
+                    # Also persist to messages table
+                    with __import__("contextlib").suppress(Exception):
+                        await get_pool().execute(
+                            """insert into gm_messages
+                               (campaign_id, sender_id, content, kind, created_at)
+                               values ($1, $2, $3, $4, now())""",
+                            campaign_id,
+                            user_id,
+                            content,
+                            "chat",
+                        )
 
-            elif msg_type == "chat_message":
-                # Broadcast chat message to all clients in campaign
-                content = str(message.get("content", ""))[:2000]
-                mode = message.get("mode", "ic")  # ic, ooc, whisper
-                target = message.get("target")    # display_name for whispers
+                    await manager.broadcast(campaign_id, chat_payload)
 
-                if not content.strip():
-                    continue
-
-                chat_payload = {
-                    "type": "chat_message",
-                    "content": content,
-                    "mode": mode,
-                    "sender_id": str(user_id),
-                    "sender_name": display_name,
-                    "sender_role": role,
-                    "ts": message.get("ts", 0),
-                }
-                if target:
-                    chat_payload["target"] = target
-
-                # Also persist to messages table
-                with __import__("contextlib").suppress(Exception):
-                    await get_pool().execute(
-                        """insert into gm_messages
-                           (campaign_id, sender_id, content, kind, created_at)
-                           values ($1, $2, $3, $4, now())""",
+                elif msg_type == "ruler":
+                    # Broadcast ruler measurement (visual only, GM and other players see it)
+                    _validate_coords(message.get("x1", 0), message.get("y1", 0), "ruler")
+                    _validate_coords(message.get("x2", 0), message.get("y2", 0), "ruler")
+                    await manager.broadcast(
                         campaign_id,
-                        user_id,
-                        content,
-                        "chat",
+                        {
+                            "type": "ruler",
+                            "x1": message.get("x1", 0),
+                            "y1": message.get("y1", 0),
+                            "x2": message.get("x2", 0),
+                            "y2": message.get("y2", 0),
+                            "user_id": str(user_id),
+                        },
                     )
 
-                await manager.broadcast(campaign_id, chat_payload)
+                elif msg_type == "aoe_shape":
+                    # Broadcast AoE shape (cone, sphere, cube, line) — visual only
+                    shape = message.get("shape", "sphere")
+                    if shape not in ("sphere", "cube", "cone", "line"):
+                        await websocket.send_json({"type": "error", "detail": "Invalid AoE shape"})
+                        continue
+                    x = message.get("x", 0)
+                    y = message.get("y", 0)
+                    size = message.get("size", 30)
+                    angle = message.get("angle", 0)
+                    _validate_coords(x, y, "aoe_shape")
+                    if not isinstance(size, (int, float)) or not (1 <= size <= 2000):
+                        await websocket.send_json({"type": "error", "detail": "AoE size must be 1-2000 feet"})
+                        continue
+                    if not isinstance(angle, (int, float)) or not (0 <= angle <= 360):
+                        await websocket.send_json({"type": "error", "detail": "AoE angle must be 0-360"})
+                        continue
+                    await manager.broadcast(
+                        campaign_id,
+                        {
+                            "type": "aoe_shape",
+                            "shape": shape,
+                            "x": x,
+                            "y": y,
+                            "size": size,
+                            "angle": angle,
+                            "user_id": str(user_id),
+                        },
+                    )
 
-            elif msg_type == "ruler":
-                # Broadcast ruler measurement (visual only, GM and other players see it)
-                _validate_coords(message.get("x1", 0), message.get("y1", 0), "ruler")
-                _validate_coords(message.get("x2", 0), message.get("y2", 0), "ruler")
-                await manager.broadcast(
-                    campaign_id,
-                    {
-                        "type": "ruler",
-                        "x1": message.get("x1", 0),
-                        "y1": message.get("y1", 0),
-                        "x2": message.get("x2", 0),
-                        "y2": message.get("y2", 0),
-                        "user_id": str(user_id),
-                    },
-                )
-
-            elif msg_type == "aoe_shape":
-                # Broadcast AoE shape (cone, sphere, cube, line) — visual only
-                await manager.broadcast(
-                    campaign_id,
-                    {
-                        "type": "aoe_shape",
-                        "shape": message.get("shape", "sphere"),
-                        "x": message.get("x", 0),
-                        "y": message.get("y", 0),
-                        "size": message.get("size", 30),  # in feet
-                        "angle": message.get("angle", 0),
-                        "user_id": str(user_id),
-                    },
-                )
+            except (ValueError, TypeError) as exc:
+                logger.warning("WebSocket handler error for user %s: %s", user_id, exc)
+                try:
+                    await websocket.send_json({"type": "error", "detail": str(exc)})
+                except Exception:
+                    pass  # client may have already disconnected
 
     except WebSocketDisconnect:
         pass

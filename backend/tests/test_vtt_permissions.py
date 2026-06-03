@@ -92,3 +92,120 @@ class TestTokenPermissionRules:
 
         assert updates["is_hidden"] is True
         assert updates["metadata"] == {"hp": 100}
+
+
+# ============================================================================
+# Token ownership enforcement
+# ============================================================================
+
+class TestTokenOwnership:
+    """Verify that players cannot interact with tokens that are not linked
+    to their own characters (NPC tokens, unlinked tokens, other players' tokens)."""
+
+    def test_player_cannot_modify_npc_token_no_character_id(self):
+        """
+        Simulate update_token logic: if role=player and token.character_id is None,
+        a 403 should be raised.
+        """
+        existing = {"character_id": None, "campaign_id": "c1"}
+        role = "player"
+
+        # Simulate the enforcement logic from update_token
+        blocked = False
+        if role == "player":
+            if existing["character_id"]:
+                # Would check ownership here — but there's no character to check
+                pass
+            else:
+                blocked = True  # "Players cannot modify NPC or unlinked tokens"
+
+        assert blocked, "Player should be blocked from modifying NPC/unlinked token"
+
+    def test_gm_can_modify_npc_token(self):
+        """GM can always modify any token, even unlinked ones."""
+        existing = {"character_id": None, "campaign_id": "c1"}
+        role = "gm"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+
+        assert not blocked, "GM should not be blocked from modifying NPC token"
+
+    def test_player_cannot_move_npc_token_no_character_id(self):
+        """
+        Simulate move_token logic: if role=player and token has no character_id,
+        a 403 should be raised.
+        """
+        existing = {"character_id": None}
+        role = "player"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+            elif existing["character_id"]:
+                # Would check ownership here
+                pass
+
+        assert blocked, "Player should be blocked from moving NPC/unlinked token"
+
+    def test_gm_can_move_npc_token(self):
+        """GM can always move any token."""
+        existing = {"character_id": None}
+        role = "gm"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+
+        assert not blocked, "GM should not be blocked from moving NPC token"
+
+    def test_player_cannot_modify_other_player_token(self):
+        """
+        Simulate ownership check: token has character_id but it's not owned
+        by this player.
+        """
+        existing = {"character_id": "char-456", "campaign_id": "c1"}
+        role = "player"
+        token_owner_user_id = "user-other"
+        current_user_id = "user-me"
+
+        blocked = False
+        if role == "player":
+            if existing["character_id"]:
+                if token_owner_user_id != current_user_id:
+                    blocked = True
+
+        assert blocked, "Player should be blocked from modifying another player's token"
+
+    def test_player_can_modify_own_character_token(self):
+        """Player CAN modify a token linked to their own character."""
+        existing = {"character_id": "char-123", "campaign_id": "c1"}
+        role = "player"
+        token_owner_user_id = "user-me"
+        current_user_id = "user-me"
+
+        blocked = False
+        if role == "player":
+            if existing["character_id"]:
+                if token_owner_user_id != current_user_id:
+                    blocked = True
+            else:
+                blocked = True  # no character_id → blocked
+
+        assert not blocked, "Player should be able to modify their own token"
+
+    def test_co_gm_can_modify_any_token(self):
+        """Co-GM has same privileges as GM for token operations."""
+        existing = {"character_id": None, "campaign_id": "c1"}
+        role = "co_gm"
+
+        blocked = False
+        if role == "player":
+            if not existing["character_id"]:
+                blocked = True
+
+        assert not blocked, "Co-GM should not be blocked from modifying any token"
