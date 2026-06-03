@@ -695,7 +695,7 @@ export function CampaignMap({
                 className={`campaign-map-grid-toggle ${fogDrawMode && !fogEraseMode ? "active" : ""}`}
                 onClick={() => {
                   setFogDrawMode((m) => !m);
-                  if (!fogDrawMode) setFogEraseMode(false);
+                  setFogEraseMode(false);
                 }}
                 title="Dessiner le brouillard"
               >
@@ -718,7 +718,7 @@ export function CampaignMap({
                 className={`campaign-map-grid-toggle ${fogEraseMode ? "active" : ""}`}
                 onClick={() => {
                   setFogEraseMode((m) => !m);
-                  if (!fogEraseMode) setFogDrawMode(false);
+                  setFogDrawMode(false);
                 }}
                 title="Gomme (clic sur une zone pour l'effacer)"
               >
