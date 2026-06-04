@@ -58,7 +58,6 @@ const PanelFallback = () => (
 
 import { apiRequest } from "./api/client";
 import type {
-  Asset,
   AuthResponse,
   Character,
   GameLogEntry,
@@ -94,8 +93,6 @@ export default function App() {
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
-  const [, setAssetList] = useState<Asset[]>([]);
-  const [, setSelectedAssetId] = useState<string>("");
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
@@ -246,7 +243,7 @@ export default function App() {
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
     void vtt.loadVttState(selectedCampaign.id);
-    void loadAssets(selectedCampaign.id);
+    void vtt.loadAssets(selectedCampaign.id);
     void vtt.loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [token, selectedCampaign?.id]);
@@ -598,15 +595,6 @@ export default function App() {
     }
   }
 
-  async function loadAssets(campaignId: string) {
-    try {
-      const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
-      setAssetList(data);
-      setSelectedAssetId((current) => current || data[0]?.id || "");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load assets");
-    }
-  }
 
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
