@@ -143,7 +143,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   }
 
   return (
-    <div className="gm-panel-content active-encounter-panel" data-vtt-panel>
+    <div className="gm-panel-content" data-vtt-panel>
       {/* ── Header ──────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
