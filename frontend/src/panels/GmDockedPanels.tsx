@@ -3,7 +3,7 @@ import {
   Plus,
   UserPlus,
 } from "lucide-react";
-import { type FormEvent, lazy, Suspense } from "react";
+import { type FormEvent, lazy, Suspense, useRef } from "react";
 import type {
   Campaign,
   Character,
@@ -194,6 +194,9 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
     loadSceneTokens,
     loadVttState,
   } = props;
+
+  // AbortController for session-log refresh
+  const logRefreshAbortRef = useRef<AbortController | null>(null);
 
   return (
     <>
@@ -556,15 +559,22 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   if (selectedCampaign) {
                     void (async () => {
                       try {
+                        // Abort any previous in-flight refresh
+                        logRefreshAbortRef.current?.abort();
+                        const controller = new AbortController();
+                        logRefreshAbortRef.current = controller;
+
                         const url = category
                           ? `/api/campaigns/${selectedCampaign.id}/log?limit=100&category=${category}`
                           : `/api/campaigns/${selectedCampaign.id}/log?limit=100`;
                         const response = await fetch(url, {
                           headers: { Authorization: `Bearer ${token}` },
+                          signal: controller.signal,
                         });
                         if (response.ok) setLogEntries(await response.json());
-                      } catch {
-                        /* ignore */
+                      } catch (err) {
+                        if (err instanceof DOMException && err.name === "AbortError") return;
+                        /* ignore other errors */
                       }
                     })();
                   }

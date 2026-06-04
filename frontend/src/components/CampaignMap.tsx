@@ -1,6 +1,7 @@
 import { Eraser, Eye, EyeOff, Grid3X3, Crosshair, Undo2 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scene, SceneToken } from "../api/types";
+import { useGlobalKeyboard } from "../hooks/useGlobalKeyboard";
 
 export type MapPermissions = {
   canSelectToken: (tokenId: string) => boolean;
@@ -184,24 +185,41 @@ export function CampaignMap({
   }, [selectedSceneId]);
 
   // ── Fog zone loading ─────────────────────────────────────────────────────
+  const fogAbortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     if (!selectedScene?.id) {
       setFogZones([]);
       return;
     }
+    // Abort any previous in-flight fog load
+    fogAbortRef.current?.abort();
+    const controller = new AbortController();
+    fogAbortRef.current = controller;
     const t = localStorage.getItem("dnd_access_token") || "";
     fetch(`/api/scenes/${selectedScene.id}/fog`, {
       headers: { Authorization: `Bearer ${t}` },
+      signal: controller.signal,
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => setFogZones(d.fog_zones || []))
-      .catch(() => {});
+      .catch((err) => {
+        if (err?.name === "AbortError") return; // intentionally cancelled
+      });
+    return () => controller.abort();
   }, [selectedScene?.id]);
 
   // ── Persist fog zones (raw API call) ───────────────────────────────────────
+  const fogSaveAbortRef = useRef<AbortController | null>(null);
+
   const persistFogZones = useCallback(
     async (newZones: FogZone[]) => {
       const t = localStorage.getItem("dnd_access_token") ?? "";
+
+      // Abort any previous in-flight fog save
+      fogSaveAbortRef.current?.abort();
+      const controller = new AbortController();
+      fogSaveAbortRef.current = controller;
 
       try {
         const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
@@ -211,6 +229,7 @@ export function CampaignMap({
             Authorization: `Bearer ${t}`,
           },
           body: JSON.stringify({ fog_zones: newZones }),
+          signal: controller.signal,
         });
 
         if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
@@ -218,7 +237,8 @@ export function CampaignMap({
         previousFogZonesRef.current = null;
         ignoreNextFogWsRef.current = true;
         setFogSaveError("");
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         if (previousFogZonesRef.current) {
           setFogZones(previousFogZonesRef.current);
         }
@@ -276,6 +296,8 @@ export function CampaignMap({
   }, []);
 
   // ── Fog zone WebSocket refresh (self-ignore aware) ────────────────────────
+  const fogSyncAbortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     const ws = wsRef.current;
     if (!ws) return;
@@ -293,13 +315,21 @@ export function CampaignMap({
             return;
           }
 
+          // Abort any previous in-flight sync fetch
+          fogSyncAbortRef.current?.abort();
+          const controller = new AbortController();
+          fogSyncAbortRef.current = controller;
+
           const t = localStorage.getItem("dnd_access_token") || "";
           fetch(`/api/scenes/${selectedSceneId}/fog`, {
             headers: { Authorization: `Bearer ${t}` },
+            signal: controller.signal,
           })
             .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
             .then((d) => setFogZones(d.fog_zones || []))
-            .catch(() => {});
+            .catch((err) => {
+              if (err?.name === "AbortError") return; // intentionally cancelled
+            });
         }
       } catch {
         /* ignore */
@@ -307,7 +337,10 @@ export function CampaignMap({
     };
 
     ws.addEventListener("message", handler);
-    return () => ws.removeEventListener("message", handler);
+    return () => {
+      ws.removeEventListener("message", handler);
+      fogSyncAbortRef.current?.abort();
+    };
   }, [wsRef, selectedSceneId]);
 
   // ── Fog zone save with rollback on failure ────────────────────────────────
@@ -378,127 +411,130 @@ export function CampaignMap({
   }, [handleWheel]);
 
   // ── Keyboard shortcuts ───────────────────────────────────────────────────
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      // Don't capture when typing in an input
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+  // ── Keyboard Shortcuts ────────────────────────────────────────────────────
 
-      // ── Token-specific shortcuts (only when a token is selected) ──
-      if (onTokenAction && sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
-        // Determine targets: multi-select set or single primary token
-        const targets: SceneToken[] = [];
-        if (selectedTokenIds.size > 1) {
-          for (const t of sceneTokens) {
-            if (selectedTokenIds.has(t.id)) targets.push(t);
+  useGlobalKeyboard(
+    useCallback(
+      (e: KeyboardEvent) => {
+        // Don't capture when typing in an input
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+        // ── Token-specific shortcuts (only when a token is selected) ──
+        if (onTokenAction && sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
+          // Determine targets: multi-select set or single primary token
+          const targets: SceneToken[] = [];
+          if (selectedTokenIds.size > 1) {
+            for (const t of sceneTokens) {
+              if (selectedTokenIds.has(t.id)) targets.push(t);
+            }
+          } else {
+            const token = sceneTokens.find((t) => t.id === selectedTokenId);
+            if (token) targets.push(token);
           }
-        } else {
-          const token = sceneTokens.find((t) => t.id === selectedTokenId);
-          if (token) targets.push(token);
-        }
-        if (targets.length === 0) {
-          /* fall through to general shortcuts below */
-        } else {
-          const isMulti = targets.length > 1;
+          if (targets.length === 0) {
+            /* fall through to general shortcuts below */
+          } else {
+            const isMulti = targets.length > 1;
 
-          switch (e.key) {
-            case "Delete":
-            case "Backspace":
-              e.preventDefault();
-              if (isMulti && onTokenBatchAction) {
-                onTokenBatchAction("delete", targets);
-              } else {
-                onTokenAction("delete", targets[0]);
-              }
-              // Clean up selection state to avoid phantom tokens
-              if (isMulti) {
-                setSelectedTokenIds(new Set());
-                selectToken("");
-              }
-              return;
-          }
-
-          if (e.ctrlKey || e.metaKey) {
             switch (e.key) {
-              case "d":
-              case "D":
+              case "Delete":
+              case "Backspace":
                 e.preventDefault();
                 if (isMulti && onTokenBatchAction) {
-                  onTokenBatchAction("duplicate", targets);
+                  onTokenBatchAction("delete", targets);
                 } else {
-                  onTokenAction("duplicate", targets[0]);
+                  onTokenAction("delete", targets[0]);
+                }
+                // Clean up selection state to avoid phantom tokens
+                if (isMulti) {
+                  setSelectedTokenIds(new Set());
+                  selectToken("");
                 }
                 return;
-              case "h":
-              case "H":
+            }
+
+            if (e.ctrlKey || e.metaKey) {
+              switch (e.key) {
+                case "d":
+                case "D":
+                  e.preventDefault();
+                  if (isMulti && onTokenBatchAction) {
+                    onTokenBatchAction("duplicate", targets);
+                  } else {
+                    onTokenAction("duplicate", targets[0]);
+                  }
+                  return;
+                case "h":
+                case "H":
+                  e.preventDefault();
+                  // If any selected token is visible → hide all, otherwise reveal all
+                  const shouldHide = targets.some((t) => !t.is_hidden);
+                  const toggleAction = shouldHide ? "hide" : "reveal";
+                  if (isMulti && onTokenBatchAction) {
+                    onTokenBatchAction(toggleAction, targets);
+                  } else {
+                    onTokenAction(toggleAction, targets[0]);
+                  }
+                  return;
+              }
+            }
+
+            switch (e.key) {
+              case "]":
                 e.preventDefault();
-                // If any selected token is visible → hide all, otherwise reveal all
-                const shouldHide = targets.some((t) => !t.is_hidden);
-                const toggleAction = shouldHide ? "hide" : "reveal";
                 if (isMulti && onTokenBatchAction) {
-                  onTokenBatchAction(toggleAction, targets);
+                  onTokenBatchAction("front", targets);
                 } else {
-                  onTokenAction(toggleAction, targets[0]);
+                  onTokenAction("front", targets[0]);
+                }
+                return;
+              case "[":
+                e.preventDefault();
+                if (isMulti && onTokenBatchAction) {
+                  onTokenBatchAction("back", targets);
+                } else {
+                  onTokenAction("back", targets[0]);
                 }
                 return;
             }
           }
-
-          switch (e.key) {
-            case "]":
-              e.preventDefault();
-              if (isMulti && onTokenBatchAction) {
-                onTokenBatchAction("front", targets);
-              } else {
-                onTokenAction("front", targets[0]);
-              }
-              return;
-            case "[":
-              e.preventDefault();
-              if (isMulti && onTokenBatchAction) {
-                onTokenBatchAction("back", targets);
-              } else {
-                onTokenAction("back", targets[0]);
-              }
-              return;
-          }
         }
-      }
 
-      switch (e.key) {
-        case " ":
-          e.preventDefault();
-          setPanMode((p) => !p);
-          break;
-        case "g":
-        case "G":
-          setShowGrid((g) => !g);
-          break;
-        case "f":
-        case "F":
-          // Dispatch focus-map toggle via custom event (handled by parent App)
-          window.dispatchEvent(new CustomEvent("toggle-focus-map"));
-          break;
-        case "0":
-          recenter();
-          break;
-        case "z":
-        case "Z":
-          if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case " ":
             e.preventDefault();
-            window.dispatchEvent(new CustomEvent("undo-token-move"));
-          }
-          break;
-        case "Escape":
-          selectToken("");
-          setSelectedTokenIds(new Set());
-          break;
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedScene, selectedTokenId, selectedTokenIds, sceneTokens, onTokenAction]);
+            setPanMode((p) => !p);
+            break;
+          case "g":
+          case "G":
+            setShowGrid((g) => !g);
+            break;
+          case "f":
+          case "F":
+            // Dispatch focus-map toggle via custom event (handled by parent App)
+            window.dispatchEvent(new CustomEvent("toggle-focus-map"));
+            break;
+          case "0":
+            recenter();
+            break;
+          case "z":
+          case "Z":
+            if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              window.dispatchEvent(new CustomEvent("undo-token-move"));
+            }
+            break;
+          case "Escape":
+            selectToken("");
+            setSelectedTokenIds(new Set());
+            break;
+        }
+      },
+      [selectedScene, selectedTokenId, selectedTokenIds, sceneTokens, onTokenAction],
+    ),
+    [selectedScene, selectedTokenId, selectedTokenIds, sceneTokens, onTokenAction],
+  );
 
   // ── Pan ─────────────────────────────────────────────────────────────────
 
