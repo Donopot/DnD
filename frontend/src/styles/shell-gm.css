@@ -1145,68 +1145,21 @@ select {
 
 /* End Sprint GM-2D - Party summary panel */
 
-/* ── Sprint GM-2E - Initiative panel (refactored with gm-panel-* common CSS) ── */
+/* ── Sprint GM-2E - Initiative panel (backend-integrated) ── */
 /* Sprint GM-2E - Initiative panel */
 
-.initiative-list {
-  display: grid;
-  gap: 7px;
-}
-
-.initiative-row {
-  grid-template-columns: 32px minmax(0, 1fr) 64px 44px;
+.initiative-panel .initiative-badge {
+  display: inline-flex;
   align-items: center;
-}
-
-.initiative-turn-button {
-  width: 28px;
-  min-width: 28px;
-  padding: 0;
-}
-
-.initiative-row span {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.initiative-row strong {
-  overflow: hidden;
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.initiative-row small {
-  overflow: hidden;
-  font-size: 0.62rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.initiative-row input {
-  width: 100%;
-  min-height: 30px;
-  padding: 4px 6px;
-  border: 1px solid var(--border-subtle);
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
   border-radius: 8px;
-  background: var(--bg-surface-secondary);
-  color: var(--text-normal);
-  font: inherit;
-  font-size: 0.76rem;
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  font-size: 0.78rem;
   font-weight: 900;
-  text-align: center;
-}
-
-@media (max-width: 760px) {
-  .initiative-row {
-    grid-template-columns: 30px minmax(0, 1fr);
-  }
-
-  .initiative-row input,
-  .initiative-row > button:last-child {
-    grid-column: span 1;
-  }
 }
 
 /* End Sprint GM-2E - Initiative panel */
@@ -1225,8 +1178,8 @@ select {
 /* ── Sprint GM-2G - Visibility inspector panel (refactored with gm-panel-* common CSS) ── */
 /* Sprint GM-2G - Visibility inspector panel */
 
-.visibility-token-card,
-.visibility-token-list article {
+.visibility-inspector-panel .visibility-token-card,
+.visibility-inspector-panel .visibility-token-list article {
   display: grid;
   gap: 3px;
   padding: 8px;
@@ -1235,15 +1188,15 @@ select {
   background: var(--bg-surface-secondary);
 }
 
-.visibility-token-card small,
-.visibility-token-list small {
+.visibility-inspector-panel .visibility-token-card small,
+.visibility-inspector-panel .visibility-token-list small {
   color: var(--text-weak);
   font-size: 0.62rem;
   font-weight: 850;
 }
 
-.visibility-token-card b,
-.visibility-token-list b {
+.visibility-inspector-panel .visibility-token-card b,
+.visibility-inspector-panel .visibility-token-list b {
   overflow: hidden;
   color: var(--text-normal);
   font-size: 0.8rem;
@@ -1251,21 +1204,21 @@ select {
   white-space: nowrap;
 }
 
-.visibility-token-card {
+.visibility-inspector-panel .visibility-token-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.visibility-token-card.hidden,
-.visibility-token-list article.hidden {
+.visibility-inspector-panel .visibility-token-card.hidden,
+.visibility-inspector-panel .visibility-token-list article.hidden {
   border-color: var(--danger);
   background: var(--danger-dim);
 }
 
-.visibility-token-card em,
-.visibility-token-list em {
+.visibility-inspector-panel .visibility-token-card em,
+.visibility-inspector-panel .visibility-token-list em {
   padding: 3px 6px;
   border-radius: 999px;
   background: var(--accent-dim);
@@ -1276,13 +1229,13 @@ select {
   white-space: nowrap;
 }
 
-.visibility-token-card.hidden em,
-.visibility-token-list article.hidden em {
+.visibility-inspector-panel .visibility-token-card.hidden em,
+.visibility-inspector-panel .visibility-token-list article.hidden em {
   background: #f7d7d0;
   color: var(--danger);
 }
 
-.visibility-alerts ul {
+.visibility-inspector-panel ul.visibility-alerts {
   display: grid;
   gap: 5px;
   margin: 0;
@@ -1292,38 +1245,38 @@ select {
   font-weight: 750;
 }
 
-.visibility-actions {
+.visibility-inspector-panel .visibility-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
-.visibility-toggle-btn {
+.visibility-inspector-panel .visibility-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.visibility-token-list > div {
+.visibility-inspector-panel .visibility-token-list > div {
   display: grid;
   gap: 6px;
   max-height: 220px;
   overflow: auto;
 }
 
-.visibility-token-list article {
+.visibility-inspector-panel .visibility-token-list article {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
 
-.visibility-token-list span {
+.visibility-inspector-panel .visibility-token-list span {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
 @media (max-width: 760px) {
-  .visibility-actions {
+  .visibility-inspector-panel .visibility-actions {
     grid-template-columns: 1fr;
   }
 }
@@ -3761,13 +3714,13 @@ select {
   gap: 0.4rem;
 }
 
-.qa-bar {
+.quick-actions .qa-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
 }
 
-.qa-btn {
+.quick-actions .qa-btn {
   display: flex;
   align-items: center;
   gap: 0.2rem;
@@ -3782,20 +3735,20 @@ select {
   white-space: nowrap;
 }
 
-.qa-btn:hover {
+.quick-actions .qa-btn:hover {
   filter: brightness(1.3);
   transform: translateY(-1px);
 }
 
-.qa-label {
+.quick-actions .qa-label {
   font-size: 0.7rem;
 }
-.qa-formula {
+.quick-actions .qa-formula {
   font-size: 0.58rem;
   opacity: 0.6;
 }
 
-.qa-editor {
+.quick-actions .qa-editor {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -3805,13 +3758,13 @@ select {
   border-radius: 6px;
 }
 
-.qa-add-row {
+.quick-actions .qa-add-row {
   display: flex;
   gap: 0.25rem;
   align-items: center;
 }
 
-.qa-input {
+.quick-actions .qa-input {
   flex: 1;
   padding: 0.25rem 0.3rem;
   background: #0a0e0b;
@@ -3822,7 +3775,7 @@ select {
   min-width: 0;
 }
 
-.qa-input-sm {
+.quick-actions .qa-input-sm {
   width: 70px;
   padding: 0.25rem 0.3rem;
   background: #0a0e0b;
@@ -3832,7 +3785,7 @@ select {
   font-size: 0.7rem;
 }
 
-.qa-color {
+.quick-actions .qa-color {
   width: 28px;
   height: 28px;
   padding: 0;
@@ -3842,19 +3795,47 @@ select {
   background: none;
 }
 
-.qa-macro-list {
+.quick-actions .qa-macro-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.qa-macro-item {
+.quick-actions .qa-macro-item {
   display: flex;
   align-items: center;
   gap: 0.3rem;
   padding: 0.2rem 0.3rem;
   font-size: 0.68rem;
   color: #8a9a8e;
+}
+
+/* Quick dice */
+.quick-actions .qa-dice-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.quick-actions .qa-dice-btn {
+  min-width: 38px;
+  min-height: 28px;
+  padding: 3px 6px;
+  background: rgba(30, 40, 35, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-normal);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-actions .qa-dice-btn:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  transform: translateY(-1px);
 }
 
 /* ── Campaign View Tabs ── */
@@ -4026,6 +4007,36 @@ select {
 }
 
 /* End Token Library Panel */
+
+/* ── Active Encounter Panel (GM-3D) ── */
+/* Active Encounter Panel */
+
+.active-encounter-panel .encounter-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.active-encounter-panel .encounter-notes-form textarea {
+  min-height: 60px;
+  width: 100%;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.active-encounter-panel .encounter-notes-form textarea:focus {
+  border-color: var(--brand-green);
+  outline: 2px solid var(--border-subtle);
+}
+
+/* End Active Encounter Panel */
 
 /* ── Conditions Panel (GM-3C) ── */
 /* Conditions Panel */

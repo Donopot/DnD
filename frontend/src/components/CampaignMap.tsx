@@ -35,6 +35,17 @@ type TokenActionHandler = (
   token: SceneToken,
   value?: number,
 ) => void;
+type TokenBatchActionHandler = (
+  action:
+    | "duplicate"
+    | "delete"
+    | "hide"
+    | "reveal"
+    | "front"
+    | "back",
+  tokens: SceneToken[],
+  value?: number,
+) => void;
 
 type CampaignMapProps = {
   campaignId: string;
@@ -58,6 +69,7 @@ type CampaignMapProps = {
   onLoadSceneTokens?: (sceneId: string) => void;
   onMoveToken?: TokenDragHandler;
   onTokenAction?: TokenActionHandler;
+  onTokenBatchAction?: TokenBatchActionHandler;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────
@@ -83,6 +95,7 @@ export function CampaignMap({
   onLoadSceneTokens,
   onMoveToken,
   onTokenAction,
+  onTokenBatchAction,
   selectedTokenId: controlledSelectedTokenId,
   onSelectToken,
 }: CampaignMapProps) {
@@ -372,7 +385,7 @@ export function CampaignMap({
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       // ── Token-specific shortcuts (only when a token is selected) ──
-      if (sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
+      if (onTokenAction && sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
         // Determine targets: multi-select set or single primary token
         const targets: SceneToken[] = [];
         if (selectedTokenIds.size > 1) {
@@ -392,8 +405,16 @@ export function CampaignMap({
             case "Delete":
             case "Backspace":
               e.preventDefault();
-              for (const t of targets) onTokenAction?.("delete", t);
-              if (isMulti) setSelectedTokenIds(new Set());
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("delete", targets);
+              } else {
+                onTokenAction("delete", targets[0]);
+              }
+              // Clean up selection state to avoid phantom tokens
+              if (isMulti) {
+                setSelectedTokenIds(new Set());
+                selectToken("");
+              }
               return;
           }
 
@@ -402,15 +423,23 @@ export function CampaignMap({
               case "d":
               case "D":
                 e.preventDefault();
-                for (const t of targets) onTokenAction?.("duplicate", t);
+                if (isMulti && onTokenBatchAction) {
+                  onTokenBatchAction("duplicate", targets);
+                } else {
+                  onTokenAction("duplicate", targets[0]);
+                }
                 return;
               case "h":
               case "H":
                 e.preventDefault();
-                // Toggle all to the opposite of the primary token's state
-                const primaryHidden = targets[0].is_hidden;
-                const toggleAction = primaryHidden ? "reveal" : "hide";
-                for (const t of targets) onTokenAction?.(toggleAction, t);
+                // If any selected token is visible → hide all, otherwise reveal all
+                const shouldHide = targets.some((t) => !t.is_hidden);
+                const toggleAction = shouldHide ? "hide" : "reveal";
+                if (isMulti && onTokenBatchAction) {
+                  onTokenBatchAction(toggleAction, targets);
+                } else {
+                  onTokenAction(toggleAction, targets[0]);
+                }
                 return;
             }
           }
@@ -418,11 +447,19 @@ export function CampaignMap({
           switch (e.key) {
             case "]":
               e.preventDefault();
-              for (const t of targets) onTokenAction?.("front", t);
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("front", targets);
+              } else {
+                onTokenAction("front", targets[0]);
+              }
               return;
             case "[":
               e.preventDefault();
-              for (const t of targets) onTokenAction?.("back", t);
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("back", targets);
+              } else {
+                onTokenAction("back", targets[0]);
+              }
               return;
           }
         }
@@ -1110,6 +1147,7 @@ export function CampaignMap({
                     width: token.size * gridSize,
                     height: token.size * gridSize,
                     background: token.color,
+                    zIndex: 30 + (token.z_index ?? 0),
                   }}
                 >
                   {/* Token icon (first 2 letters) */}

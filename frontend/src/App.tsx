@@ -97,6 +97,9 @@ const TokenPanel = lazy(() =>
 const TokenLibraryPanel = lazy(() =>
   import("./components/TokenLibraryPanel").then((m) => ({ default: m.TokenLibraryPanel })),
 );
+const ActiveEncounterPanel = lazy(() =>
+  import("./components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
+);
 const ConditionsPanel = lazy(() =>
   import("./components/ConditionsPanel").then((m) => ({ default: m.ConditionsPanel })),
 );
@@ -241,6 +244,8 @@ export default function App() {
       onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
+      onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
+        void handleTokenBatchAction(action, ts, v),
     };
   }, [
     wsRef,
@@ -578,73 +583,98 @@ export default function App() {
     }
   }
 
+  // Per-token action without setIsBusy/setMessage (used by batch handler)
+  async function performTokenAction(
+    action: string,
+    tokenToAct: SceneToken,
+    value?: number,
+  ): Promise<SceneToken | void> {
+    switch (action) {
+      case "duplicate": {
+        const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
+          method: "POST",
+        });
+        setSceneTokens((current) => [...current, dup]);
+        return dup;
+      }
+      case "delete": {
+        await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
+        setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
+        break;
+      }
+      case "hide":
+      case "reveal": {
+        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ is_hidden: action === "hide" }),
+        });
+        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
+        return updated;
+      }
+      case "add-combat": {
+        setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
+        break;
+      }
+      case "front": {
+        const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
+          method: "POST",
+        });
+        setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
+        return fwd;
+      }
+      case "back": {
+        const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
+          method: "POST",
+        });
+        setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
+        return bwd;
+      }
+      case "damage":
+      case "heal": {
+        const amount = value ?? 0;
+        const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
+        const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
+        const newHp =
+          action === "damage"
+            ? Math.max(0, hpCurrent - amount)
+            : Math.min(hpMax, hpCurrent + amount);
+        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            metadata: { ...tokenToAct.metadata, hp_current: newHp },
+          }),
+        });
+        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
+        return updated;
+      }
+    }
+  }
+
   async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
     setIsBusy(true);
     setMessage("");
-
     try {
-      switch (action) {
-        case "duplicate": {
-          // Use dedicated duplicate endpoint
-          const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
-            method: "POST",
-          });
-          setSceneTokens((current) => [...current, dup]);
-          break;
-        }
-        case "delete": {
-          await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
-          setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
-          break;
-        }
-        case "hide":
-        case "reveal": {
-          const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-            method: "PATCH",
-            body: JSON.stringify({ is_hidden: action === "hide" }),
-          });
-          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-          break;
-        }
-        case "add-combat": {
-          setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
-          break;
-        }
-        case "front": {
-          const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
-            method: "POST",
-          });
-          setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
-          break;
-        }
-        case "back": {
-          const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
-            method: "POST",
-          });
-          setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
-          break;
-        }
-        case "damage":
-        case "heal": {
-          const amount = value ?? 0;
-          const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
-          const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
-          const newHp =
-            action === "damage"
-              ? Math.max(0, hpCurrent - amount)
-              : Math.min(hpMax, hpCurrent + amount);
-          const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-            method: "PATCH",
-            body: JSON.stringify({
-              metadata: { ...tokenToAct.metadata, hp_current: newHp },
-            }),
-          });
-          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-          break;
-        }
-      }
+      await performTokenAction(action, tokenToAct, value);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : `Unable to ${action} token`);
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  // Sequential batch action handler for multi-select
+  async function handleTokenBatchAction(action: string, tokens: SceneToken[], value?: number) {
+    setIsBusy(true);
+    setMessage("");
+    try {
+      for (const token of tokens) {
+        await performTokenAction(action, token, value);
+      }
+      if (action === "delete") {
+        setMessage(`${tokens.length} token(s) supprimé(s).`);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : `Unable to ${action} tokens`);
     } finally {
       setIsBusy(false);
     }
@@ -1342,6 +1372,31 @@ export default function App() {
                   </details>
                 )}
 
+                {/* Active Encounter */}
+                {liveModePanelIds.has("active-encounter") && (
+                  <details className="gm-panel-section" open>
+                    <summary>
+                      ⚔️ Rencontre active
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("active-encounter", "⚔️ Rencontre active");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ActiveEncounterPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                    />
+                  </details>
+                )}
+
                 {/* Encounter Builder */}
                 {liveModePanelIds.has("encounter-builder") && (
                   <details className="gm-panel-section">
@@ -1531,7 +1586,7 @@ export default function App() {
                         <ExternalLink size={12} />
                       </button>
                     </summary>
-                    <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+                    <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
                   </details>
                 )}
 
@@ -1571,11 +1626,12 @@ export default function App() {
                         if (t) void handleMoveToken(t, dx, dy);
                       }}
                       onTokenUpdated={(updated) => {
-                        setSceneTokens((current) =>
-                          updated
+                        setSceneTokens((current) => {
+                          if (!updated) return current;
+                          return current.some((t) => t.id === updated.id)
                             ? current.map((t) => (t.id === updated.id ? updated : t))
-                            : current,
-                        );
+                            : [...current, updated];
+                        });
                       }}
                     />
                   </details>
@@ -2221,6 +2277,12 @@ export default function App() {
           {panel.id === "dice-roller" && (
             <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
+          {panel.id === "active-encounter" && (
+            <ActiveEncounterPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
+          )}
           {panel.id === "encounter-builder" && (
             <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
@@ -2283,7 +2345,7 @@ export default function App() {
             />
           )}
           {panel.id === "initiative" && (
-            <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+            <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
           {panel.id === "token-detail" && (
             <TokenDetailPanel
@@ -2303,11 +2365,12 @@ export default function App() {
                 if (t) void handleMoveToken(t, dx, dy);
               }}
               onTokenUpdated={(updated) => {
-                setSceneTokens((current) =>
-                  updated
+                setSceneTokens((current) => {
+                  if (!updated) return current;
+                  return current.some((t) => t.id === updated.id)
                     ? current.map((t) => (t.id === updated.id ? updated : t))
-                    : current,
-                );
+                    : [...current, updated];
+                });
               }}
             />
           )}

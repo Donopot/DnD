@@ -76,6 +76,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
   ],
   combat: [
     "combat",
+    "active-encounter",
     "encounter-builder",
     "dice-roller",
     "quick-actions",
@@ -141,4 +142,3 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "chat",
   ],
 };
-
