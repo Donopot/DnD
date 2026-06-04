@@ -1,6 +1,6 @@
 # DnD SaaS — Virtual Tabletop auto-hébergé
 
-VTT Donjons & Dragons en navigateur, conçu pour fonctionner sur un HP Mini.
+VTT Donjons & Dragons en navigateur, conçu pour fonctionner sur HP Mini.
 
 Le projet vise une expérience fluide pour une vraie table de jeu : préparation de campagne, session live, carte VTT, tokens, combats, notes, handouts, visibilité MJ/joueur et outils d’improvisation.
 
@@ -218,45 +218,37 @@ docker compose logs --tail=200 -f
 
 ## Documentation
 
-La documentation active est dans :
-
-```txt
-docs/
-```
-
-Point d’entrée :
-
-```txt
-docs/README.md
-```
+La documentation active est dans [`docs/`](docs/README.md).
 
 Documents principaux actuels :
 
 | Besoin | Document |
 |---|---|
-| Vision produit | `docs/product-roadmap.md` |
-| Architecture | `docs/02-architecture.md` |
-| Interface et panneaux | `docs/frontend-ui.md` |
-| Carte, tokens, fog | `docs/vtt-map-fog.md` |
-| Backend et API | `docs/backend-api.md` |
-| Sécurité et auth | `docs/security-auth.md` |
-| Déploiement | `docs/deployment-ops.md` |
-| Contenu SRD | `docs/srd-content.md` |
+| Vision produit | [`docs/product-roadmap.md`](docs/product-roadmap.md) |
+| Architecture globale | [`docs/02-architecture.md`](docs/02-architecture.md) |
+| Interface et panneaux | [`docs/frontend-ui.md`](docs/frontend-ui.md) |
+| Carte, tokens, fog | [`docs/vtt-map-fog.md`](docs/vtt-map-fog.md) |
+| Backend et API | [`docs/backend-api.md`](docs/backend-api.md) |
+| Sécurité et auth | [`docs/security-auth.md`](docs/security-auth.md) |
+| Déploiement et opérations | [`docs/deployment-ops.md`](docs/deployment-ops.md) |
+| Contenu SRD | [`docs/srd-content.md`](docs/srd-content.md) |
 
 Dossiers utiles :
 
 | Dossier | Rôle |
 |---|---|
-| `docs/work-in-progress/` | Plans de PR, audits temporaires, documents de travail |
-| `docs/archive/` | Anciennes phases et docs remplacées |
-| `docs/learning/` | Notes pédagogiques |
-| `docs/skills/` | Notes techniques réutilisables |
+| [`docs/work-in-progress/`](docs/work-in-progress/) | Plans de PR, audits temporaires, documents de travail |
+| [`docs/archive/`](docs/archive/) | Anciennes phases et docs remplacées |
+| [`docs/learning/`](docs/learning/) | Notes pédagogiques |
+| [`docs/skills/`](docs/skills/) | Notes techniques réutilisables |
 
 Règle de maintenance :
 
 ```txt
 Pas de nouveau document racine dans docs/ si le contenu peut entrer dans une doc existante.
 ```
+
+Les plans de PR doivent être intégrés à une doc permanente ou archivés après merge.
 
 ---
 
