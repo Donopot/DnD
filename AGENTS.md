@@ -153,6 +153,27 @@ Pour l'interface MJ / VTT :
 - Ne pas bloquer la carte.
 - Garder une interface utile en session réelle.
 
+### ⚠️ Anti-pattern : classe orpheline dans un panneau GM
+
+Quand un panneau GM a une classe sur son `div` racine qui n'a pas de CSS correspondant (ex: `active-encounter-panel` sans `.active-encounter-panel` dans le CSS), **ne pas supprimer la classe**. Tous les panneaux GM suivent un pattern de scoping :
+
+```tsx
+// ✅ Pattern correct — chaque panneau a une classe de scoping + gm-panel-content
+<div className="gm-panel-content mon-panel" data-vtt-panel>
+```
+
+Le CSS custom du panneau doit être scopé sous cette classe :
+
+```css
+/* ❌ Global — risque de fuite vers d'autres panneaux */
+.mon-form { ... }
+
+/* ✅ Scopé sous la classe du panneau */
+.mon-panel .mon-form { ... }
+```
+
+**Règle de review :** si tu trouves une classe de scoping sans CSS → **crée le CSS scopé**, ne supprime pas la classe. Vérifie le pattern des autres panneaux (`handout-panel`, `initiative-panel`, `token-library-panel`, etc.) avant de conclure qu'une classe est orpheline.
+
 ---
 
 ## Toolchain obligatoire
