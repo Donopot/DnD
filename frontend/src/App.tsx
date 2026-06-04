@@ -8,7 +8,7 @@ import {
   Swords,
   UserPlus,
 } from "lucide-react";
-import { type FormEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
@@ -29,6 +29,8 @@ import { useFloatingPanels } from "./hooks/useFloatingPanels";
 import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
+import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
+import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
 const GmCharacterInspector = lazy(() =>
@@ -75,6 +77,9 @@ const MAP_PANEL_ID = "campaign-map";
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
 export default function App() {
+  // Ensure localStorage schema version — clear stale data on mismatch
+  ensureStorageVersion();
+
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) ?? "");
   const [user, setUser] = useState<User | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -118,6 +123,7 @@ export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
+  const fogRevealAbortRef = useRef<AbortController | null>(null);
 
   const selectedCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
@@ -216,18 +222,17 @@ export default function App() {
   }, []);
 
   // Listen for "?" to show keyboard shortcuts
-  useEffect(() => {
-    function handleGlobalKey(e: KeyboardEvent) {
+  useGlobalKeyboard(
+    useCallback((e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.key === "?" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setShowShortcuts((prev) => !prev);
       }
-    }
-    window.addEventListener("keydown", handleGlobalKey);
-    return () => window.removeEventListener("keydown", handleGlobalKey);
-  }, []);
+    }, []),
+    [],
+  );
 
   /** Ensemble des IDs de panneaux visibles dans le mode de session actif. */
   const liveModePanelIds = useMemo(
@@ -494,6 +499,11 @@ export default function App() {
       // If this token has character linkage and a vision radius, auto-reveal fog
       const visionRadius = tokenToMove.vision_radius ?? 0;
       if (tokenToMove.character_id && visionRadius > 0 && selectedScene) {
+        // Abort any previous pending fog reveal
+        fogRevealAbortRef.current?.abort();
+        const controller = new AbortController();
+        fogRevealAbortRef.current = controller;
+
         const gridSize = selectedScene.grid_size ?? 50;
         const centerX = updated.x + (updated.size * gridSize) / 2;
         const centerY = updated.y + (updated.size * gridSize) / 2;
@@ -508,7 +518,10 @@ export default function App() {
             center_y: centerY,
             radius_ft: visionRadius,
           }),
-        }).catch(() => {});
+          signal: controller.signal,
+        }).catch((err) => {
+          if (err?.name === "AbortError") return; // cancelled by newer move
+        });
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to move token");
