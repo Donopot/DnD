@@ -1342,6 +1342,31 @@ export default function App() {
                   </details>
                 )}
 
+                {/* Active Encounter */}
+                {liveModePanelIds.has("active-encounter") && (
+                  <details className="gm-panel-section" open>
+                    <summary>
+                      ⚔️ Rencontre active
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("active-encounter", "⚔️ Rencontre active");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ActiveEncounterPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                    />
+                  </details>
+                )}
+
                 {/* Encounter Builder */}
                 {liveModePanelIds.has("encounter-builder") && (
                   <details className="gm-panel-section">

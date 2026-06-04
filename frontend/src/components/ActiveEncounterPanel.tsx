@@ -1,5 +1,5 @@
 import { Eye, EyeOff, Swords, Target, Trophy } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Combatant, Encounter } from "../api/types";
 
@@ -51,6 +51,12 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   const [notes, setNotes] = useState<EncounterNotes>(EMPTY_NOTES);
   const [editing, setEditing] = useState<string | null>(null); // field being edited
   const [draftValue, setDraftValue] = useState("");
+  const detailRequestIdRef = useRef(0);
+  const latestCampaignIdRef = useRef(campaignId);
+  const latestTokenRef = useRef(token);
+
+  latestCampaignIdRef.current = campaignId;
+  latestTokenRef.current = token;
 
   const headers = useMemo(
     () => ({
@@ -60,15 +66,24 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     [token],
   );
 
-  // ── Load encounters ──────────────────────────────────────────────────
-
-  useEffect(() => {
-    setEncounters([]);
+  const resetEncounterDetailState = useCallback(() => {
     setActiveEncounter(null);
     setCombatants([]);
     setNotes(EMPTY_NOTES);
     setEditing(null);
     setDraftValue("");
+  }, []);
+
+  const resetEncounterState = useCallback(() => {
+    setEncounters([]);
+    resetEncounterDetailState();
+  }, [resetEncounterDetailState]);
+
+  // ── Load encounters ──────────────────────────────────────────────────
+
+  useEffect(() => {
+    detailRequestIdRef.current += 1;
+    resetEncounterState();
 
     if (!campaignId) return;
 
@@ -79,56 +94,59 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
         if (cancelled) return;
         setEncounters(data);
         if (data.length === 0) {
-          setActiveEncounter(null);
-          setCombatants([]);
-          setNotes(EMPTY_NOTES);
-          setEditing(null);
-          setDraftValue("");
+          resetEncounterDetailState();
         }
       })
       .catch(() => {
         if (cancelled) return;
-        setActiveEncounter(null);
-        setCombatants([]);
-        setNotes(EMPTY_NOTES);
-        setEditing(null);
-        setDraftValue("");
+        resetEncounterDetailState();
       });
 
     return () => {
       cancelled = true;
+      detailRequestIdRef.current += 1;
     };
-  }, [campaignId, headers]);
+  }, [campaignId, headers, resetEncounterDetailState, resetEncounterState]);
 
   // ── Load active encounter detail ─────────────────────────────────────
 
-  async function loadEncounterDetail(encounterId: string) {
+  const loadEncounterDetail = useCallback(async (encounterId: string) => {
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
+    const requestCampaignId = latestCampaignIdRef.current;
+    const requestToken = latestTokenRef.current;
+
     try {
       const res = await fetch(`/api/encounters/${encounterId}`, { headers });
       if (!res.ok) return;
       const detail = await res.json();
+
+      if (
+        requestId !== detailRequestIdRef.current ||
+        requestCampaignId !== latestCampaignIdRef.current ||
+        requestToken !== latestTokenRef.current
+      ) {
+        return;
+      }
+
       setActiveEncounter(detail);
       setCombatants((detail.combatants as Combatant[]) ?? []);
-      setNotes(readNotes(campaignId, encounterId));
+      setNotes(readNotes(requestCampaignId, encounterId));
       setEditing(null);
       setDraftValue("");
     } catch {
       /* ignore */
     }
-  }
+  }, [headers]);
 
   useEffect(() => {
     if (encounters.length === 0) {
-      setActiveEncounter(null);
-      setCombatants([]);
-      setNotes(EMPTY_NOTES);
-      setEditing(null);
-      setDraftValue("");
+      resetEncounterDetailState();
       return;
     }
     const active = encounters.find((e) => e.status === "active") ?? encounters[0];
     void loadEncounterDetail(active.id);
-  }, [encounters]);
+  }, [encounters, loadEncounterDetail, resetEncounterDetailState]);
 
   // ── Persist notes ─────────────────────────────────────────────────────
 
