@@ -103,6 +103,7 @@ export default function App() {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
+  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -800,10 +801,12 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
+          inviteAcceptedTokenRef.current = newToken;
           login(newToken);
         }}
         onJoined={async () => {
-          await campaign.loadCampaigns(token);
+          await campaign.loadCampaigns(inviteAcceptedTokenRef.current ?? token);
+          inviteAcceptedTokenRef.current = null;
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");

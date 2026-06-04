@@ -31,7 +31,10 @@ export interface UseVttStateReturn {
   ) => Promise<SceneToken | void>;
 }
 
-export function useVttState(token: string): UseVttStateReturn {
+export function useVttState(
+  token: string,
+  opts?: { onError?: (msg: string) => void },
+): UseVttStateReturn {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
@@ -52,8 +55,8 @@ export function useVttState(token: string): UseVttStateReturn {
         setSceneTokens(
           await apiRequest<SceneToken[]>(`/api/scenes/${sceneId}/tokens`, token),
         );
-      } catch {
-        // silently handled by caller
+      } catch (error) {
+        opts?.onError?.(error instanceof Error ? error.message : "Unable to load scene tokens");
       }
     },
     [token],
@@ -78,8 +81,8 @@ export function useVttState(token: string): UseVttStateReturn {
           data.find((s) => s.id === selectedSceneId) ?? data[0];
         setSelectedSceneId(effectiveScene.id);
         await loadSceneTokens(effectiveScene.id);
-      } catch {
-        // silently handled by caller
+      } catch (error) {
+        opts?.onError?.(error instanceof Error ? error.message : "Unable to load VTT state");
       }
     },
     [token, selectedSceneId, loadSceneTokens],
@@ -231,8 +234,8 @@ export function useVttState(token: string): UseVttStateReturn {
           token,
         );
         updateEncounterFromDetail(detail);
-      } catch {
-        // silently handled by caller
+      } catch (error) {
+        opts?.onError?.(error instanceof Error ? error.message : "Unable to load encounter detail");
       }
     },
     [token, updateEncounterFromDetail],
@@ -257,8 +260,8 @@ export function useVttState(token: string): UseVttStateReturn {
           data.find((e) => e.id === selectedEncounterId) ?? data[0];
         setSelectedEncounterId(effectiveEncounter.id);
         await loadEncounterDetail(effectiveEncounter.id);
-      } catch {
-        // silently handled by caller
+      } catch (error) {
+        opts?.onError?.(error instanceof Error ? error.message : "Unable to load combat state");
       }
     },
     [token, selectedEncounterId, loadEncounterDetail],
@@ -273,8 +276,8 @@ export function useVttState(token: string): UseVttStateReturn {
         );
         setAssetList(data);
         setSelectedAssetId((current) => current || data[0]?.id || "");
-      } catch {
-        // silently handled by caller
+      } catch (error) {
+        opts?.onError?.(error instanceof Error ? error.message : "Unable to load assets");
       }
     },
     [token],
