@@ -11,6 +11,8 @@ type EncounterNotes = {
   loot: string;
 };
 
+const EMPTY_NOTES: EncounterNotes = { objectives: "", victoryConditions: "", loot: "" };
+
 type ActiveEncounterPanelProps = {
   campaignId: string;
   token: string;
@@ -23,12 +25,12 @@ function getNotesKey(campaignId: string, encounterId: string) {
 }
 
 function readNotes(campaignId: string, encounterId: string): EncounterNotes {
-  if (!campaignId || !encounterId) return { objectives: "", victoryConditions: "", loot: "" };
+  if (!campaignId || !encounterId) return EMPTY_NOTES;
   try {
     const raw = window.localStorage.getItem(getNotesKey(campaignId, encounterId));
-    return raw ? (JSON.parse(raw) as EncounterNotes) : { objectives: "", victoryConditions: "", loot: "" };
+    return raw ? (JSON.parse(raw) as EncounterNotes) : EMPTY_NOTES;
   } catch {
-    return { objectives: "", victoryConditions: "", loot: "" };
+    return EMPTY_NOTES;
   }
 }
 
@@ -46,8 +48,9 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
   const [combatants, setCombatants] = useState<Combatant[]>([]);
-  const [notes, setNotes] = useState<EncounterNotes>({ objectives: "", victoryConditions: "", loot: "" });
+  const [notes, setNotes] = useState<EncounterNotes>(EMPTY_NOTES);
   const [editing, setEditing] = useState<string | null>(null); // field being edited
+  const [draftValue, setDraftValue] = useState("");
 
   const headers = useMemo(
     () => ({
@@ -60,11 +63,41 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   // ── Load encounters ──────────────────────────────────────────────────
 
   useEffect(() => {
+    setEncounters([]);
+    setActiveEncounter(null);
+    setCombatants([]);
+    setNotes(EMPTY_NOTES);
+    setEditing(null);
+    setDraftValue("");
+
     if (!campaignId) return;
+
+    let cancelled = false;
     fetch(`/api/campaigns/${campaignId}/encounters`, { headers })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Encounter[]) => setEncounters(data))
-      .catch(() => {});
+      .then((data: Encounter[]) => {
+        if (cancelled) return;
+        setEncounters(data);
+        if (data.length === 0) {
+          setActiveEncounter(null);
+          setCombatants([]);
+          setNotes(EMPTY_NOTES);
+          setEditing(null);
+          setDraftValue("");
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setActiveEncounter(null);
+        setCombatants([]);
+        setNotes(EMPTY_NOTES);
+        setEditing(null);
+        setDraftValue("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [campaignId, headers]);
 
   // ── Load active encounter detail ─────────────────────────────────────
@@ -78,13 +111,21 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       setCombatants((detail.combatants as Combatant[]) ?? []);
       setNotes(readNotes(campaignId, encounterId));
       setEditing(null);
+      setDraftValue("");
     } catch {
       /* ignore */
     }
   }
 
   useEffect(() => {
-    if (encounters.length === 0) return;
+    if (encounters.length === 0) {
+      setActiveEncounter(null);
+      setCombatants([]);
+      setNotes(EMPTY_NOTES);
+      setEditing(null);
+      setDraftValue("");
+      return;
+    }
     const active = encounters.find((e) => e.status === "active") ?? encounters[0];
     void loadEncounterDetail(active.id);
   }, [encounters]);
@@ -98,9 +139,20 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     }
   }
 
-  function saveField(field: keyof EncounterNotes, value: string) {
-    persistNotes({ ...notes, [field]: value });
+  function toggleEditing(field: keyof EncounterNotes) {
+    if (editing === field) {
+      setEditing(null);
+      setDraftValue("");
+      return;
+    }
+    setEditing(field);
+    setDraftValue(notes[field]);
+  }
+
+  function saveField(field: keyof EncounterNotes) {
+    persistNotes({ ...notes, [field]: draftValue });
     setEditing(null);
+    setDraftValue("");
   }
 
   // ── Computed ──────────────────────────────────────────────────────────
@@ -237,7 +289,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
           <strong><Target size={12} /> Objectifs</strong>
           <button
             type="button"
-            onClick={() => setEditing(editing === "objectives" ? null : "objectives")}
+            onClick={() => toggleEditing("objectives")}
           >
             {editing === "objectives" ? "Annuler" : notes.objectives ? "Modifier" : "Ajouter"}
           </button>
@@ -246,13 +298,13 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
         {editing === "objectives" ? (
           <div className="encounter-notes-form">
             <textarea
-              value={notes.objectives}
-              onChange={(e) => setNotes({ ...notes, objectives: e.target.value })}
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
               placeholder="Objectifs du combat (visibles par le MJ uniquement)..."
               rows={3}
             />
             <div className="gm-panel-actions">
-              <button onClick={() => saveField("objectives", notes.objectives)} type="button">
+              <button onClick={() => saveField("objectives")} type="button">
                 Enregistrer
               </button>
             </div>
@@ -272,7 +324,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
           <strong><Trophy size={12} /> Conditions de victoire</strong>
           <button
             type="button"
-            onClick={() => setEditing(editing === "victoryConditions" ? null : "victoryConditions")}
+            onClick={() => toggleEditing("victoryConditions")}
           >
             {editing === "victoryConditions" ? "Annuler" : notes.victoryConditions ? "Modifier" : "Ajouter"}
           </button>
@@ -281,13 +333,13 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
         {editing === "victoryConditions" ? (
           <div className="encounter-notes-form">
             <textarea
-              value={notes.victoryConditions}
-              onChange={(e) => setNotes({ ...notes, victoryConditions: e.target.value })}
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
               placeholder="Conditions de victoire..."
               rows={2}
             />
             <div className="gm-panel-actions">
-              <button onClick={() => saveField("victoryConditions", notes.victoryConditions)} type="button">
+              <button onClick={() => saveField("victoryConditions")} type="button">
                 Enregistrer
               </button>
             </div>
@@ -307,7 +359,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
           <strong>🏆 Loot</strong>
           <button
             type="button"
-            onClick={() => setEditing(editing === "loot" ? null : "loot")}
+            onClick={() => toggleEditing("loot")}
           >
             {editing === "loot" ? "Annuler" : notes.loot ? "Modifier" : "Ajouter"}
           </button>
@@ -316,13 +368,13 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
         {editing === "loot" ? (
           <div className="encounter-notes-form">
             <textarea
-              value={notes.loot}
-              onChange={(e) => setNotes({ ...notes, loot: e.target.value })}
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
               placeholder="Butin, trésors, objets magiques..."
               rows={2}
             />
             <div className="gm-panel-actions">
-              <button onClick={() => saveField("loot", notes.loot)} type="button">
+              <button onClick={() => saveField("loot")} type="button">
                 Enregistrer
               </button>
             </div>
