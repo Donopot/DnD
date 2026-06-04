@@ -21,6 +21,16 @@ const DEFAULT_MACROS: Macro[] = [
   { id: "heal", label: "Soin", formula: "1d8", color: "#8b5cf6" },
 ];
 
+const QUICK_DICE = [
+  { label: "d4", formula: "1d4" },
+  { label: "d6", formula: "1d6" },
+  { label: "d8", formula: "1d8" },
+  { label: "d10", formula: "1d10" },
+  { label: "d12", formula: "1d12" },
+  { label: "d20", formula: "1d20" },
+  { label: "d100", formula: "1d100" },
+];
+
 export function QuickActions({ onRoll }: QuickActionsProps) {
   const [macros, setMacros] = useState<Macro[]>(() => {
     try {
@@ -63,22 +73,54 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
 
   return (
     <div className="gm-panel-content quick-actions" data-vtt-panel>
-      <div className="qa-bar">
-        {macros.map((m) => (
-          <button
-            key={m.id}
-            className="qa-btn"
-            style={{ borderColor: m.color || "#c5b358", color: m.color || "#c5b358" }}
-            onClick={() => onRoll(m.formula, m.label, "normal")}
-            title={`${m.label}: ${m.formula}`}
-            type="button"
-          >
-            <Zap size={10} />
-            <span className="qa-label">{m.label}</span>
-            <span className="qa-formula">{m.formula}</span>
-          </button>
-        ))}
-      </div>
+      {/* ── Quick dice ─────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>🎲 Dés rapides</strong>
+        </header>
+        <div className="qa-dice-bar">
+          {QUICK_DICE.map((d) => (
+            <button
+              key={d.label}
+              className="qa-dice-btn"
+              onClick={() => onRoll(d.formula, d.label, "normal")}
+              title={`Lancer ${d.label}`}
+              type="button"
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Macros ─────────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong><Zap size={12} /> Macros</strong>
+        </header>
+
+        <div className="qa-bar">
+          {macros.map((m) => (
+            <button
+              key={m.id}
+              className="qa-btn"
+              style={{ borderColor: m.color || "#c5b358", color: m.color || "#c5b358" }}
+              onClick={() => onRoll(m.formula, m.label, "normal")}
+              title={`${m.label}: ${m.formula}`}
+              type="button"
+            >
+              <Zap size={10} />
+              <span className="qa-label">{m.label}</span>
+              <span className="qa-formula">{m.formula}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Editor toggle ──────────────────────────────────────────── */}
+      <button onClick={() => setEditing(!editing)} className="ghost-button compact" type="button">
+        {editing ? "Fermer" : "⚙️ Éditer les macros"}
+      </button>
 
       {editing && (
         <div className="qa-editor">
@@ -124,10 +166,6 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
           </button>
         </div>
       )}
-
-      <button onClick={() => setEditing(!editing)} className="ghost-button compact" type="button">
-        {editing ? "Fermer" : "⚙️ Éditer les macros"}
-      </button>
     </div>
   );
 }

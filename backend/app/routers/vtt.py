@@ -230,7 +230,7 @@ async def list_tokens(
         select *
         from scene_tokens
         where scene_id = $1 {hidden_clause}
-        order by z_index desc, created_at asc
+        order by z_index asc, created_at asc
         """,
         scene_id,
     )
@@ -301,10 +301,11 @@ async def update_token(
     current = dict(existing)
     updates = payload.model_dump(exclude_unset=True)
 
-    # Players cannot change is_hidden, vision_radius, or metadata
+    # Players cannot change GM-controlled visibility, vision, layer order, or metadata.
     if role == "player":
         updates.pop("is_hidden", None)
         updates.pop("vision_radius", None)
+        updates.pop("z_index", None)
         updates.pop("metadata", None)
         # Players can only modify tokens linked to their own characters
         if existing["character_id"]:
@@ -652,19 +653,7 @@ async def duplicate_token(
 ) -> TokenPublic:
     """Duplicate a token in the same scene with offset position and top z-index."""
     existing = await get_token_or_404(token_id)
-    role = await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
-
-    # Players can only duplicate tokens linked to their own characters
-    if role == "player":
-        if not existing["character_id"]:
-            raise HTTPException(status_code=403, detail="Players cannot duplicate NPC or unlinked tokens")
-        owned = await get_pool().fetchval(
-            "select 1 from characters where id = $1 and owner_user_id = $2",
-            existing["character_id"],
-            current_user["id"],
-        )
-        if not owned:
-            raise HTTPException(status_code=403, detail="Players can only duplicate their own tokens")
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
 
     # Compute next z_index
     max_z = await get_pool().fetchval(
@@ -672,7 +661,6 @@ async def duplicate_token(
         existing["scene_id"],
     )
 
-    # Toggle is_hidden for the duplicate so it doesn't stay on top of the original
     row = await get_pool().fetchrow(
         """
         insert into scene_tokens (
@@ -688,7 +676,7 @@ async def duplicate_token(
         existing["y"] + 50,
         existing["size"],
         existing["color"],
-        False,
+        existing["is_hidden"],
         existing["vision_radius"],
         max_z,
         jsonb(decode_json(existing["metadata"])),
@@ -730,20 +718,28 @@ async def send_token_backward(
     token_id: UUID,
     current_user=Depends(get_current_user),
 ) -> TokenPublic:
-    """Send a token to the back (min z_index − 1)."""
+    """Send a token to the back without creating negative layer indexes."""
     existing = await get_token_or_404(token_id)
     await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
 
-    min_z = await get_pool().fetchval(
-        "select coalesce(min(z_index), 0) - 1 from scene_tokens where scene_id = $1",
-        existing["scene_id"],
-    )
+    async with get_pool().acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                """
+                update scene_tokens
+                set z_index = z_index + 1,
+                    updated_at = now()
+                where scene_id = $1
+                  and id <> $2
+                """,
+                existing["scene_id"],
+                token_id,
+            )
+            row = await conn.fetchrow(
+                "update scene_tokens set z_index = 0, updated_at = now() where id = $1 returning *",
+                token_id,
+            )
 
-    row = await get_pool().fetchrow(
-        "update scene_tokens set z_index = $2, updated_at = now() where id = $1 returning *",
-        token_id,
-        min_z,
-    )
     token = token_public(row)
     await cache_invalidate(f"scene:{existing['scene_id']}*")
     await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)

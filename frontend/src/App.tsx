@@ -97,6 +97,9 @@ const TokenPanel = lazy(() =>
 const TokenLibraryPanel = lazy(() =>
   import("./components/TokenLibraryPanel").then((m) => ({ default: m.TokenLibraryPanel })),
 );
+const ActiveEncounterPanel = lazy(() =>
+  import("./components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
+);
 const ConditionsPanel = lazy(() =>
   import("./components/ConditionsPanel").then((m) => ({ default: m.ConditionsPanel })),
 );
@@ -1342,6 +1345,31 @@ export default function App() {
                   </details>
                 )}
 
+                {/* Active Encounter */}
+                {liveModePanelIds.has("active-encounter") && (
+                  <details className="gm-panel-section" open>
+                    <summary>
+                      ⚔️ Rencontre active
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("active-encounter", "⚔️ Rencontre active");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ActiveEncounterPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                    />
+                  </details>
+                )}
+
                 {/* Encounter Builder */}
                 {liveModePanelIds.has("encounter-builder") && (
                   <details className="gm-panel-section">
@@ -1531,7 +1559,7 @@ export default function App() {
                         <ExternalLink size={12} />
                       </button>
                     </summary>
-                    <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+                    <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
                   </details>
                 )}
 
@@ -1571,11 +1599,12 @@ export default function App() {
                         if (t) void handleMoveToken(t, dx, dy);
                       }}
                       onTokenUpdated={(updated) => {
-                        setSceneTokens((current) =>
-                          updated
+                        setSceneTokens((current) => {
+                          if (!updated) return current;
+                          return current.some((t) => t.id === updated.id)
                             ? current.map((t) => (t.id === updated.id ? updated : t))
-                            : current,
-                        );
+                            : [...current, updated];
+                        });
                       }}
                     />
                   </details>
@@ -2221,6 +2250,12 @@ export default function App() {
           {panel.id === "dice-roller" && (
             <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
           )}
+          {panel.id === "active-encounter" && (
+            <ActiveEncounterPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
+          )}
           {panel.id === "encounter-builder" && (
             <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
@@ -2283,7 +2318,7 @@ export default function App() {
             />
           )}
           {panel.id === "initiative" && (
-            <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+            <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
           {panel.id === "token-detail" && (
             <TokenDetailPanel
@@ -2303,11 +2338,12 @@ export default function App() {
                 if (t) void handleMoveToken(t, dx, dy);
               }}
               onTokenUpdated={(updated) => {
-                setSceneTokens((current) =>
-                  updated
+                setSceneTokens((current) => {
+                  if (!updated) return current;
+                  return current.some((t) => t.id === updated.id)
                     ? current.map((t) => (t.id === updated.id ? updated : t))
-                    : current,
-                );
+                    : [...current, updated];
+                });
               }}
             />
           )}

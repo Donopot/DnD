@@ -49,8 +49,10 @@ Chaque entrée du registre contient :
 | `initiative`          | ⏱️ Initiative             | active   |
 | `token-detail`        | 🔍 Détail token           | active   |
 | `visibility-inspector`| 👁️ Visibilité             | active   |
-| `ambiance`            | 🎵 Ambiance               | planned  |
-| `chat`                | 💭 Chat en direct         | planned  |
+| `active-encounter`    | ⚔️ Rencontre active       | active   |
+| `conditions`          | 🏷️ États / conditions     | active   |
+| `ambiance`            | 🎵 Ambiance               | active   |
+| `chat`                | 💭 Chat en direct         | active   |
 
 #### Préparation (`preparation`)
 
@@ -58,8 +60,9 @@ Chaque entrée du registre contient :
 |-----------------------|--------------------------|----------|
 | `dungeon-generator`   | 🗺️ Générateur de donjons  | active   |
 | `handouts`            | 📄 Documents              | active   |
-| `scene`               | 🎬 Scènes                 | planned  |
-| `tokens`              | 🎭 Tokens                 | planned  |
+| `scene`               | 🎬 Scènes                 | active   |
+| `tokens`              | 🎭 Tokens                 | active   |
+| `token-library`       | 🗂️ Bibliothèque tokens    | active   |
 
 #### Journal (`journal`)
 
@@ -77,7 +80,7 @@ Chaque entrée du registre contient :
 | `items`               | 🎒 Équipement             | active   |
 | `homebrew`            | 📚 Bibliothèque           | active   |
 | `rules`               | 📖 Règles (SRD)           | active   |
-| `npc-generator`       | 🧑 Générateur PNJ         | planned  |
+| `npc-generator`       | 🧑 Générateur PNJ         | active   |
 
 #### Personnages (`characters`)
 
@@ -197,7 +200,7 @@ Tous les panneaux GM partagent un socle de classes CSS standardisées. Un nouvea
 
 **Règle :** le CSS spécifique à un panneau est autorisé uniquement pour du contenu métier réellement particulier.
 
-**Panneaux déjà refactorisés avec le socle commun :** Notes MJ, Résumé du groupe.
+**Panneaux déjà refactorisés avec le socle commun :** Notes MJ, Résumé du groupe, Initiative, Actions rapides, Visibilité, Bibliothèque tokens, Documents, États/Conditions, Rencontre active.
 
 **Validation CSS :**
 ```bash
@@ -421,7 +424,7 @@ cd backend && uv run pytest --tb=short -q
 | 5  | Toast system (remplace MessageDock)                 | 🟡 UX     |
 | 6  | Tooltips stylisés (remplace `title=""` natif)       | 🟢 Polish |
 
-**Total estimé : ~14h.** Priorité de développement : 1) Refaire les onglets GM, 2) Session Live comme cockpit principal, 3) Panneaux standardisés, 4) Notes MJ, 5) Résumé du groupe, 6) Initiative, 7) Bibliothèque tokens, 8) Inspecteur de visibilité, 9) Actions rapides, 10) États/conditions.
+**Total estimé : ~14h.** Priorité de développement : 1) Refaire les onglets GM, 2) Session Live comme cockpit principal, 3) Panneaux standardisés, 4) Notes MJ, 5) Résumé du groupe, 6) Initiative, 7) Bibliothèque tokens, 8) Inspecteur de visibilité, 9) Actions rapides, 10) États/conditions — **les items 4-10 sont terminés (GM-2C/D/E/F/G + GM-3A/B/C/D).**
 
 ---
 

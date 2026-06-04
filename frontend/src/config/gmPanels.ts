@@ -75,6 +75,15 @@ export const GM_PANELS: GmPanelDefinition[] = [
     detachable: true,
   },
   {
+    id: "active-encounter",
+    label: "Rencontre active",
+    emoji: "⚔️",
+    category: "live",
+    description: "Vue d'ensemble du combat : ennemis, objectifs, loot",
+    status: "active",
+    detachable: true,
+  },
+  {
     id: "dice-roller",
     label: "Lancer de dés",
     emoji: "🎲",

@@ -110,7 +110,7 @@ async def player_scene_tokens(scene_id: UUID, current_user=Depends(get_current_u
     role = await require_campaign_role(scene["campaign_id"], current_user["id"], {"player"})
     await _audit(scene["campaign_id"], current_user["id"], "token", scene_id, "list", True, role)
     rows = await get_pool().fetch(
-        "select * from scene_tokens where scene_id = $1 and is_hidden = false order by created_at asc",
+        "select * from scene_tokens where scene_id = $1 and is_hidden = false order by z_index asc, created_at asc",
         scene_id,
     )
     # Strip metadata for player view

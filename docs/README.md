@@ -8,6 +8,7 @@ Ce dossier contient la documentation active du projet.
 |---|---|
 | `product-roadmap.md` | Vision produit, principes UX, roadmap, règles de développement |
 | `frontend-ui.md` | Registre des panneaux, standards CSS, floating panels, checklist tests |
+| `interface-ergonomie-mj.md` | Plan UX pour rendre l'interface MJ plus ergonomique et moins restrictive |
 | `vtt-map-fog.md` | Architecture carte VTT, tokens, brouillard de guerre, viewport, permissions |
 | `backend-api.md` | Architecture backend, endpoints, base de données, WebSocket, smoke tests |
 | `security-auth.md` | Authentification JWT, sécurité, permissions, dépannage |
