@@ -30,7 +30,6 @@ import type {
   AuthResponse,
   Character,
   Handout,
-  Scene,
   SceneToken,
 } from "./api/types";
 
@@ -42,12 +41,12 @@ export default function App() {
   const authLogout = auth.logout;
 
   const campaign = useCampaignData(token);
-  const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
+  const { campaigns, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
   const vtt = useVttState(token);
   const {
     scenes, selectedSceneId, selectedScene, sceneTokens,
-    encounters, selectedEncounterId,
+    encounters,
   } = vtt;
 
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -75,6 +74,7 @@ export default function App() {
   const journal = useSessionJournal({
     token,
     onError: setMessage,
+    onMessage: setMessage,
     onBusyStart: () => { setIsBusy(true); setMessage(""); },
     onBusyEnd: () => setIsBusy(false),
   });
@@ -84,6 +84,7 @@ export default function App() {
   const handoutsHook = useHandouts({
     token,
     onError: setMessage,
+    onMessage: setMessage,
     onBusyStart: () => { setIsBusy(true); setMessage(""); },
     onBusyEnd: () => setIsBusy(false),
   });

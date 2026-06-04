@@ -3,6 +3,7 @@ import type { GameLogEntry, Roll } from "../api/types";
 import { apiRequest } from "../api/client";
 
 export interface UseSessionJournalOptions {
+  onMessage?: (msg: string) => void;
   token: string;
   onError: (msg: string) => void;
   onBusyStart: () => void;
@@ -36,7 +37,7 @@ export interface UseSessionJournalReturn {
 export function useSessionJournal(
   opts: UseSessionJournalOptions,
 ): UseSessionJournalReturn {
-  const { token, onError, onBusyStart, onBusyEnd } = opts;
+  const { token, onError, onMessage, onBusyStart, onBusyEnd } = opts;
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
 
@@ -88,7 +89,7 @@ export function useSessionJournal(
         });
         setRolls((current) => [roll, ...current].slice(0, 100));
         await loadSessionLog(campaignId);
-        onError(`Jet: ${roll.total}`);
+        onMessage?.(`Jet: ${roll.total}`);
       } catch (error) {
         onError(error instanceof Error ? error.message : "Unable to roll dice");
       } finally {
@@ -120,7 +121,7 @@ export function useSessionJournal(
           body: JSON.stringify({ message, visibility }),
         });
         await loadSessionLog(campaignId);
-        onError("Note ajoutee au journal.");
+        onMessage?.("Note ajoutee au journal.");
       } catch (error) {
         onError(error instanceof Error ? error.message : "Unable to add note");
       } finally {
