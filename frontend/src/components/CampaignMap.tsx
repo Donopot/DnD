@@ -371,6 +371,46 @@ export function CampaignMap({
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
+      // ── Token-specific shortcuts (only when a token is selected) ──
+      if (selectedTokenId && sceneTokens) {
+        const token = sceneTokens.find((t) => t.id === selectedTokenId);
+        if (token) {
+          switch (e.key) {
+            case "Delete":
+            case "Backspace":
+              e.preventDefault();
+              onTokenAction?.("delete", token);
+              return;
+          }
+
+          if (e.ctrlKey || e.metaKey) {
+            switch (e.key) {
+              case "d":
+              case "D":
+                e.preventDefault();
+                onTokenAction?.("duplicate", token);
+                return;
+              case "h":
+              case "H":
+                e.preventDefault();
+                onTokenAction?.(token.is_hidden ? "reveal" : "hide", token);
+                return;
+            }
+          }
+
+          switch (e.key) {
+            case "]":
+              e.preventDefault();
+              onTokenAction?.("front", token);
+              return;
+            case "[":
+              e.preventDefault();
+              onTokenAction?.("back", token);
+              return;
+          }
+        }
+      }
+
       switch (e.key) {
         case " ":
           e.preventDefault();
@@ -404,7 +444,7 @@ export function CampaignMap({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedScene]);
+  }, [selectedScene, selectedTokenId, sceneTokens, onTokenAction]);
 
   // ── Pan ─────────────────────────────────────────────────────────────────
 
