@@ -4026,3 +4026,88 @@ select {
 }
 
 /* End Token Library Panel */
+
+/* ── Conditions Panel (GM-3C) ── */
+/* Conditions Panel */
+
+.conditions-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+}
+
+.conditions-add-form select,
+.conditions-add-form input[type="number"] {
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.conditions-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.conditions-badge.warning {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+}
+
+.conditions-badge.critical {
+  border-color: var(--danger);
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.conditions-badge small {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.8;
+}
+
+.conditions-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.conditions-remove:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* End Conditions Panel */
