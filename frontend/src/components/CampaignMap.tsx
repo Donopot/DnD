@@ -1,6 +1,6 @@
-import { Eraser, Eye, EyeOff, Grid3X3, Crosshair, Undo2 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scene, SceneToken } from "../api/types";
+import { useFogOfWar } from "../hooks/useFogOfWar";
 import { useGlobalKeyboard } from "../hooks/useGlobalKeyboard";
 
 export type MapPermissions = {
@@ -12,7 +12,9 @@ export type MapPermissions = {
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer, type FogZone } from "./FogLayer";
+import { MapMinimap } from "./MapMinimap";
 import { MapTools } from "./MapTools";
+import { MapToolbar } from "./MapToolbar";
 import { TokenContextMenu } from "./TokenContextMenu";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
@@ -135,25 +137,28 @@ export function CampaignMap({
   const [weatherIntensity, _setWeatherIntensity] = useState(50);
   const [weatherEnabled, _setWeatherEnabled] = useState(false);
 
-  // Fog of war zones (for token visibility filtering)
-  const [fogZones, setFogZones] = useState<FogZone[]>([]);
-  const fogZonesRef = useRef(fogZones);
-  fogZonesRef.current = fogZones;
-
-  const fogSaveTimerRef = useRef<number | null>(null);
-  const ignoreNextFogWsRef = useRef(false);
-  const pendingFogZonesRef = useRef<FogZone[] | null>(null);
-  const previousFogZonesRef = useRef<FogZone[] | null>(null);
-
-  // Fog tool state (lifted from FogLayer)
-  const [showFog, setShowFog] = useState(true);
-  const [fogDrawMode, setFogDrawMode] = useState(false);
-  const [fogCircleMode, setFogCircleMode] = useState(false);
-  const [fogEraseMode, setFogEraseMode] = useState(false);
-  const [fogDrawing, setFogDrawing] = useState(false);
-  const [fogStart, setFogStart] = useState({ x: 0, y: 0 });
-  const [fogCurrentRect, setFogCurrentRect] = useState<FogZone | null>(null);
-  const [fogSaveError, setFogSaveError] = useState("");
+  // ── Fog of War (extracted hook) ──────────────────────────
+  const {
+    fogZones,
+    showFog,
+    setShowFog,
+    fogDrawMode,
+    setFogDrawMode,
+    fogCircleMode,
+    setFogCircleMode,
+    fogEraseMode,
+    setFogEraseMode,
+    fogDrawing,
+    setFogDrawing,
+    fogStart,
+    setFogStart,
+    fogCurrentRect,
+    setFogCurrentRect,
+    fogSaveError,
+    setFogSaveError,
+    saveFogZones,
+    isInFogZone,
+  } = useFogOfWar({ selectedSceneId, wsRef });
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -162,8 +167,6 @@ export function CampaignMap({
     y: number;
   } | null>(null);
 
-  // Minimap ref
-  const minimapRef = useRef<HTMLCanvasElement>(null);
   const selectedTokenId = controlledSelectedTokenId ?? localSelectedTokenId;
   const dragTokenId = dragState?.tokenIds[0] ?? "";
 
@@ -200,165 +203,6 @@ export function CampaignMap({
     const timer = setTimeout(() => setSceneTransitioning(false), 300);
     return () => clearTimeout(timer);
   }, [selectedSceneId]);
-
-  // ── Fog zone loading ─────────────────────────────────────────────────────
-  const fogAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!selectedScene?.id) {
-      setFogZones([]);
-      return;
-    }
-    // Abort any previous in-flight fog load
-    fogAbortRef.current?.abort();
-    const controller = new AbortController();
-    fogAbortRef.current = controller;
-    const t = localStorage.getItem("dnd_access_token") || "";
-    fetch(`/api/scenes/${selectedScene.id}/fog`, {
-      headers: { Authorization: `Bearer ${t}` },
-      signal: controller.signal,
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d) => setFogZones(d.fog_zones || []))
-      .catch((err) => {
-        if (err?.name === "AbortError") return; // intentionally cancelled
-      });
-    return () => controller.abort();
-  }, [selectedScene?.id]);
-
-  // ── Persist fog zones (raw API call) ───────────────────────────────────────
-  const fogSaveAbortRef = useRef<AbortController | null>(null);
-
-  const persistFogZones = useCallback(
-    async (newZones: FogZone[]) => {
-      const t = localStorage.getItem("dnd_access_token") ?? "";
-
-      // Abort any previous in-flight fog save
-      fogSaveAbortRef.current?.abort();
-      const controller = new AbortController();
-      fogSaveAbortRef.current = controller;
-
-      try {
-        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${t}`,
-          },
-          body: JSON.stringify({ fog_zones: newZones }),
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
-
-        previousFogZonesRef.current = null;
-        ignoreNextFogWsRef.current = true;
-        setFogSaveError("");
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        if (previousFogZonesRef.current) {
-          setFogZones(previousFogZonesRef.current);
-        }
-        pendingFogZonesRef.current = null;
-        setFogSaveError("Sauvegarde du brouillard impossible.");
-      }
-    },
-    [selectedSceneId],
-  );
-
-  // ── Debounced fog zone save ───────────────────────────────────────────────
-  const saveFogZones = useCallback(
-    (newZones: FogZone[]) => {
-      if (
-        newZones.some(
-          (zone) =>
-            !Number.isFinite(zone.x) ||
-            !Number.isFinite(zone.y) ||
-            !Number.isFinite(zone.width) ||
-            !Number.isFinite(zone.height) ||
-            zone.width <= 0 ||
-            zone.height <= 0,
-        )
-      ) {
-        setFogSaveError("Zone de brouillard invalide.");
-        return;
-      }
-
-      previousFogZonesRef.current = fogZonesRef.current;
-      setFogZones(newZones);
-      pendingFogZonesRef.current = newZones;
-
-      if (fogSaveTimerRef.current) {
-        window.clearTimeout(fogSaveTimerRef.current);
-      }
-
-      fogSaveTimerRef.current = window.setTimeout(() => {
-        if (pendingFogZonesRef.current) {
-          void persistFogZones(pendingFogZonesRef.current);
-        }
-        pendingFogZonesRef.current = null;
-        fogSaveTimerRef.current = null;
-      }, 350);
-    },
-    [persistFogZones],
-  );
-
-  // ── Cleanup fog save timer on unmount ─────────────────────────────────────
-  useEffect(() => {
-    return () => {
-      if (fogSaveTimerRef.current) {
-        window.clearTimeout(fogSaveTimerRef.current);
-      }
-    };
-  }, []);
-
-  // ── Fog zone WebSocket refresh (self-ignore aware) ────────────────────────
-  const fogSyncAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    const ws = wsRef.current;
-    if (!ws) return;
-
-    const handler = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (
-          data.type === "session_changed" &&
-          data.resource === "fog" &&
-          data.scene_id === selectedSceneId
-        ) {
-          if (ignoreNextFogWsRef.current) {
-            ignoreNextFogWsRef.current = false;
-            return;
-          }
-
-          // Abort any previous in-flight sync fetch
-          fogSyncAbortRef.current?.abort();
-          const controller = new AbortController();
-          fogSyncAbortRef.current = controller;
-
-          const t = localStorage.getItem("dnd_access_token") || "";
-          fetch(`/api/scenes/${selectedSceneId}/fog`, {
-            headers: { Authorization: `Bearer ${t}` },
-            signal: controller.signal,
-          })
-            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-            .then((d) => setFogZones(d.fog_zones || []))
-            .catch((err) => {
-              if (err?.name === "AbortError") return; // intentionally cancelled
-            });
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-
-    ws.addEventListener("message", handler);
-    return () => {
-      ws.removeEventListener("message", handler);
-      fogSyncAbortRef.current?.abort();
-    };
-  }, [wsRef, selectedSceneId]);
 
   // ── Fog zone save with rollback on failure ────────────────────────────────
 
@@ -593,23 +437,9 @@ export function CampaignMap({
     [gridSize],
   );
 
-  // ── Helper: check if a point is inside a fog zone (rect or circle) ──────
-  const isInFogZone = useCallback(
-    (px: number, py: number, zone: FogZone) => {
-      if (zone.shape === "circle") {
-        const cx = zone.x + zone.width / 2;
-        const cy = zone.y + zone.height / 2;
-        const r = zone.width / 2;
-        return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
-      }
-      return px >= zone.x && px <= zone.x + zone.width && py >= zone.y && py <= zone.y + zone.height;
-    },
-    [],
-  );
-
+  // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     const canInteractWithToken = permissions.canSelectToken(token.id);
-    if (!canInteractWithToken) return;
 
     if (event.button === 1) {
       return;
@@ -714,98 +544,6 @@ export function CampaignMap({
     setPreviewPositions({});
   }
 
-  // ── Minimap rendering ────────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = minimapRef.current;
-    if (!canvas || !selectedScene) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const bw = selectedScene.width;
-    const bh = selectedScene.height;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    const scale = Math.min(cw / bw, ch / bh);
-
-    // Clear
-    ctx.clearRect(0, 0, cw, ch);
-
-    // Draw background (dark, matching --bg-canvas)
-    ctx.fillStyle = "#0B0F17";
-    ctx.fillRect(0, 0, cw, ch);
-
-    // Draw scene area
-    const sx = (cw - bw * scale) / 2;
-    const sy = (ch - bh * scale) / 2;
-    ctx.fillStyle = "#101816";
-    ctx.fillRect(sx, sy, bw * scale, bh * scale);
-
-    // Draw grid hint
-    ctx.strokeStyle = "#2B3A34";
-    ctx.lineWidth = 0.5;
-    const gs = gridSize * scale;
-    for (let x = sx; x <= sx + bw * scale; x += gs) {
-      ctx.beginPath();
-      ctx.moveTo(x, sy);
-      ctx.lineTo(x, sy + bh * scale);
-      ctx.stroke();
-    }
-    for (let y = sy; y <= sy + bh * scale; y += gs) {
-      ctx.beginPath();
-      ctx.moveTo(sx, y);
-      ctx.lineTo(sx + bw * scale, y);
-      ctx.stroke();
-    }
-
-    // Draw token dots
-    for (const t of sceneTokens) {
-      // Skip tokens hidden by fog (players only)
-      if (!isGM && fogZones.length > 0) {
-        const tc = t.x + (t.size * gridSize) / 2;
-        const ty = t.y + (t.size * gridSize) / 2;
-        const revealed = fogZones.some(
-          (z) => isInFogZone(tc, ty, z),
-        );
-        if (!revealed) continue;
-      }
-      ctx.fillStyle = t.color || "#c5b358";
-      ctx.beginPath();
-      ctx.arc(sx + (t.x / bw) * bw * scale, sy + (t.y / bh) * bh * scale, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Draw fog revealed zones on minimap
-    if (fogZones.length > 0) {
-      ctx.fillStyle = "rgba(214, 168, 79, 0.35)";
-      for (const zone of fogZones) {
-        const zx = sx + (zone.x / bw) * bw * scale;
-        const zy = sy + (zone.y / bh) * bh * scale;
-        const zw = (zone.width / bw) * bw * scale;
-        const zh = (zone.height / bh) * bh * scale;
-        if (zone.shape === "circle") {
-          ctx.beginPath();
-          ctx.arc(zx + zw / 2, zy + zh / 2, zw / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.fillRect(zx, zy, zw, zh);
-        }
-      }
-    }
-
-    // Draw viewport rectangle
-    const el = scrollRef.current;
-    if (el) {
-      const vx = (el.scrollLeft / bw) * bw * scale;
-      const vy = (el.scrollTop / bh) * bh * scale;
-      const vw = (el.clientWidth / zoom / bw) * bw * scale;
-      const vh = (el.clientHeight / zoom / bh) * bh * scale;
-      ctx.strokeStyle = "#c5b358";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(sx + vx, sy + vy, vw, vh);
-    }
-  }, [selectedScene, sceneTokens, zoom, fogZones, isGM, gridSize, isInFogZone]);
-
   // ── Render ──────────────────────────────────────────────────────────────
 
   if (!selectedScene) {
@@ -823,168 +561,35 @@ export function CampaignMap({
   return (
     <div className="campaign-map-shell">
       {/* ── Toolbar ──────────────────────────────────────────── */}
-      <div className="campaign-map-toolbar">
-        {scenes.length > 1 && onSelectScene && (
-          <select
-            value={selectedSceneId}
-            onChange={(e) => {
-              onSelectScene(e.target.value);
-              onLoadSceneTokens?.(e.target.value);
-            }}
-          >
-            {scenes.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {scenes.length <= 1 && <strong>{selectedScene.name}</strong>}
-
-        <div className="campaign-map-zoom">
-          <button
-            type="button"
-            onClick={() => {
-              const rect = scrollRef.current?.getBoundingClientRect();
-              if (rect) zoomOut(rect.width / 2, rect.height / 2);
-            }}
-            aria-label="Zoom arrière"
-          >
-            −
-          </button>
-          <span>{zoomPercent}%</span>
-          <button
-            type="button"
-            onClick={() => {
-              const rect = scrollRef.current?.getBoundingClientRect();
-              if (rect) zoomIn(rect.width / 2, rect.height / 2);
-            }}
-            aria-label="Zoom avant"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Grid toggle */}
-        <button
-          type="button"
-          className={`campaign-map-grid-toggle ${showGrid ? "active" : ""}`}
-          onClick={() => setShowGrid((g) => !g)}
-          title={showGrid ? "Masquer la grille" : "Afficher la grille"}
-        >
-          <Grid3X3 size={14} />
-        </button>
-
-        {/* Recenter button */}
-        <button
-          type="button"
-          className="campaign-map-recenter"
-          onClick={recenter}
-          title="Recentrer la scène"
-        >
-          <Crosshair size={14} />
-        </button>
-
-        {/* Pan toggle */}
-        <button
-          type="button"
-          className={`campaign-map-pan-toggle ${panMode ? "active" : ""}`}
-          onClick={() => {
-            setPanMode((prev) => {
-              if (!prev) {
-                // Disable fog draw/erase when entering pan mode
-                setFogDrawMode(false);
-                setFogEraseMode(false);
-                setFogDrawing(false);
-                setFogCurrentRect(null);
-              }
-              return !prev;
-            });
-          }}
-        >
-          {panMode ? "✋ Pan ON" : "✋ Pan"}
-        </button>
-
-        {/* Fog controls */}
-        {isGM && (
-          <>
-            <button
-              type="button"
-              className={`campaign-map-grid-toggle ${showFog ? "active" : ""}`}
-              onClick={() => {
-                setShowFog((s) => {
-                  if (s) {
-                    setFogDrawMode(false);
-                    setFogEraseMode(false);
-                  }
-                  return !s;
-                });
-              }}
-              title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
-            >
-              {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showFog ? "Afficher fog" : "Masquer fog"}
-            </button>
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogDrawMode && !fogEraseMode ? "active" : ""}`}
-                onClick={() => {
-                  setFogDrawMode((m) => !m);
-                  setFogEraseMode(false);
-                }}
-                title="Dessiner le brouillard"
-              >
-                Draw
-              </button>
-            )}
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogCircleMode ? "active" : ""}`}
-                onClick={() => setFogCircleMode((m) => !m)}
-                title={fogCircleMode ? "Mode rectangle" : "Mode cercle"}
-              >
-                {fogCircleMode ? "◯" : "▭"}
-              </button>
-            )}
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogEraseMode ? "active" : ""}`}
-                onClick={() => {
-                  setFogEraseMode((m) => !m);
-                  setFogDrawMode(false);
-                }}
-                title="Gomme (clic sur une zone pour l'effacer)"
-              >
-                <Eraser size={14} />
-              </button>
-            )}
-            {fogZones.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  className="campaign-map-grid-toggle"
-                  onClick={() => saveFogZones(fogZones.slice(0, -1))}
-                  title="Annuler dernière zone"
-                >
-                  <Undo2 size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="campaign-map-grid-toggle"
-                  onClick={() => saveFogZones([])}
-                  title="Reset tout le brouillard"
-                >
-                  Reset
-                </button>
-              </>
-            )}
-          </>
-        )}
-      </div>
+      <MapToolbar
+        scenes={scenes}
+        selectedSceneId={selectedSceneId}
+        onSelectScene={onSelectScene}
+        onLoadSceneTokens={onLoadSceneTokens}
+        zoomPercent={zoomPercent}
+        zoomIn={zoomIn}
+        zoomOut={zoomOut}
+        scrollRef={scrollRef}
+        showGrid={showGrid}
+        setShowGrid={setShowGrid}
+        recenter={recenter}
+        panMode={panMode}
+        setPanMode={setPanMode}
+        setFogDrawMode={setFogDrawMode}
+        setFogEraseMode={setFogEraseMode}
+        setFogDrawing={setFogDrawing}
+        setFogCurrentRect={setFogCurrentRect}
+        isGM={isGM}
+        showFog={showFog}
+        setShowFog={setShowFog}
+        fogDrawMode={fogDrawMode}
+        fogCircleMode={fogCircleMode}
+        setFogCircleMode={setFogCircleMode}
+        fogEraseMode={fogEraseMode}
+        fogZones={fogZones}
+        saveFogZones={saveFogZones}
+        selectedSceneName={selectedScene.name}
+      />
 
       {/* ── Map viewport ─────────────────────────────────────── */}
       <div
@@ -1323,7 +928,16 @@ export function CampaignMap({
       </div>
 
       {/* ── Minimap ─────────────────────────────────────────── */}
-      <canvas ref={minimapRef} className="campaign-map-minimap" width={160} height={120} />
+      <MapMinimap
+        selectedScene={selectedScene}
+        sceneTokens={sceneTokens}
+        zoom={zoom}
+        fogZones={fogZones}
+        isGM={isGM}
+        gridSize={gridSize}
+        isInFogZone={isInFogZone}
+        scrollRef={scrollRef}
+      />
     </div>
   );
 }
