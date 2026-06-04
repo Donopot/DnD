@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Scene } from "../api/types";
+import { authHeaders } from "../api/client";
 
 /**
  * Loads a scene background image as a blob URL.
@@ -19,7 +20,7 @@ export function useSceneBackground(scene: Scene | null | undefined, token: strin
 
     async function load() {
       const response = await fetch(scene!.background_url!, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(token),
       });
 
       if (!response.ok) {

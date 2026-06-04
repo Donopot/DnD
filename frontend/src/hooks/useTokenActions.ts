@@ -75,19 +75,19 @@ export function useTokenActions(
           const gridSize = selectedScene.grid_size ?? 50;
           const centerX = updated.x + (updated.size * gridSize) / 2;
           const centerY = updated.y + (updated.size * gridSize) / 2;
-          fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+          apiRequest(
+            `/api/tokens/${tokenToMove.id}/reveal`,
+            token,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                center_x: centerX,
+                center_y: centerY,
+                radius_ft: visionRadius,
+              }),
+              signal: controller.signal,
             },
-            body: JSON.stringify({
-              center_x: centerX,
-              center_y: centerY,
-              radius_ft: visionRadius,
-            }),
-            signal: controller.signal,
-          }).catch((err) => {
+          ).catch((err) => {
             if (err?.name === "AbortError") return;
             onError("Révélation automatique du brouillard impossible.");
           });
