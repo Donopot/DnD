@@ -63,9 +63,7 @@ import { apiRequest } from "./api/client";
 import type {
   AuthResponse,
   Character,
-  GameLogEntry,
   Handout,
-  Roll,
   Scene,
   SceneToken,
 } from "./api/types";
@@ -134,7 +132,7 @@ export default function App() {
     onBusyStart: () => { setIsBusy(true); setMessage(""); },
     onBusyEnd: () => setIsBusy(false),
   });
-  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, clearJournal } =
+  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal } =
     journal;
 
   const tokenActions = useTokenActions({
@@ -543,28 +541,14 @@ export default function App() {
 
   async function handleLogNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCampaign) {
-      return;
-    }
-    setIsBusy(true);
-    setMessage("");
+    if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
-    try {
-      await request<GameLogEntry>(`/api/campaigns/${selectedCampaign.id}/log`, {
-        method: "POST",
-        body: JSON.stringify({
-          message: String(form.get("message")),
-          visibility: String(form.get("visibility")),
-        }),
-      });
-      event.currentTarget.reset();
-      await loadSessionLog(selectedCampaign.id);
-      setMessage("Note ajoutee au journal.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to add note");
-    } finally {
-      setIsBusy(false);
-    }
+    await addLogNote(
+      selectedCampaign.id,
+      String(form.get("message")),
+      String(form.get("visibility")),
+    );
+    event.currentTarget.reset();
   }
 
   function logout() {
