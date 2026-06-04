@@ -2,16 +2,9 @@ import { BookOpen, Clock, Eye, EyeOff, Globe, Lock, Plus, Trash2, Users } from "
 import { type FormEvent, useMemo, useState } from "react";
 
 import type { Handout, Scene } from "../api/types";
-
-type HandoutPanelProps = {
-  handouts: Handout[];
-  scenes: Scene[];
-  isBusy: boolean;
-  onCreateHandout: (event: FormEvent<HTMLFormElement>) => void;
-  onRevealHandout: (handout: Handout) => void;
-  onDeleteHandout: (handout: Handout) => void;
-  campaignId: string;
-};
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { usePanelContext } from "../contexts/PanelContext";
 
 // ── Reveal history (localStorage) ─────────────────────────────────────────
 
@@ -78,15 +71,32 @@ function visibilityIcon(visibility: string) {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function HandoutPanel({
-  handouts,
-  scenes,
-  isBusy,
-  onCreateHandout,
-  onRevealHandout,
-  onDeleteHandout,
-  campaignId,
-}: HandoutPanelProps) {
+/** @deprecated Props kept for backward compatibility until all callers use contexts. */
+type HandoutPanelProps = {
+  handouts?: Handout[];
+  scenes?: Scene[];
+  isBusy?: boolean;
+  onCreateHandout?: (event: FormEvent<HTMLFormElement>) => void;
+  onRevealHandout?: (handout: Handout) => void;
+  onDeleteHandout?: (handout: Handout) => void;
+  campaignId?: string;
+};
+
+export function HandoutPanel(props: HandoutPanelProps = {}) {
+  // Contexts — primary source of truth
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const panel = usePanelContext();
+
+  // Merge: contexts take precedence, props as fallback
+  const handouts = state.handouts.length > 0 ? state.handouts : (props.handouts ?? []);
+  const scenes = state.scenes.length > 0 ? state.scenes : (props.scenes ?? []);
+  const isBusy = props.isBusy ?? panel.isBusy;
+  const onCreateHandout = props.onCreateHandout ?? actions.handleCreateHandout;
+  const onRevealHandout = props.onRevealHandout ?? actions.handleRevealHandout;
+  const onDeleteHandout = props.onDeleteHandout ?? actions.handleDeleteHandout;
+  const campaignId = props.campaignId ?? state.selectedCampaign?.id ?? "";
+
   const [showCreate, setShowCreate] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<RevealEntry[]>(() => readHistory(campaignId));
@@ -103,7 +113,7 @@ export function HandoutPanel({
     setHistory(updated);
     writeHistory(campaignId, updated);
 
-    onRevealHandout(handout);
+    void onRevealHandout(handout);
   }
 
   const revealedCount = useMemo(
@@ -272,7 +282,7 @@ export function HandoutPanel({
                   <button
                     className="danger"
                     disabled={isBusy}
-                    onClick={() => onDeleteHandout(handout)}
+                    onClick={() => void onDeleteHandout(handout)}
                     type="button"
                     title="Supprimer"
                   >

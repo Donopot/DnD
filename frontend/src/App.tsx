@@ -8,6 +8,7 @@ import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
 import { GmWorkspace } from "./app/GmWorkspace";
+import { GmWorkspaceProvider } from "./contexts";
 import {
   SESSION_LIVE_PANEL_SETS,
   type SessionLiveMode,
@@ -659,76 +660,159 @@ export default function App() {
   // 7. GM — has campaign → full VTT workspace
   return (
     <ErrorBoundary>
-      <GmWorkspace
-        token={token}
-        user={user}
-        campaigns={campaigns}
-        selectedCampaign={selectedCampaign}
-        members={members}
-        characters={characters}
-        selectedCharacter={selectedCharacter}
-        encounters={encounters}
-        handouts={handouts}
-        rolls={rolls}
-        logEntries={logEntries}
-        latestInvite={latestInvite}
-        activeInvites={activeInvites}
-        scenes={scenes}
-        selectedScene={selectedScene}
-        selectedSceneId={selectedSceneId}
-        sceneTokens={sceneTokens}
-        selectedTokenId={selectedTokenId}
-        selectedCharacterId={selectedCharacterId}
-        inspectedCharacterId={inspectedCharacterId}
-        showCharacterWizard={showCharacterWizard}
-        showShortcuts={showShortcuts}
-        isBusy={isBusy}
-        isFocusMap={isFocusMap}
-        isPanelsHidden={isPanelsHidden}
-        gmView={gmView}
-        activeSessionLiveMode={activeSessionLiveMode}
-        liveModePanelIds={liveModePanelIds}
-        presenceCount={presenceCount}
-        realtimeStatus={realtimeStatus}
-        fp={fp}
-        theme={theme}
-        toggleTheme={toggleTheme}
-        toasts={toasts}
-        dismissToast={dismissToast}
-        wsRef={ws.wsRef}
-        onLogout={logout}
-        handleQuickRoll={handleQuickRoll}
-        handleRoll={handleRoll}
-        handleLogNote={handleLogNote}
-        handleCreateHandout={handleCreateHandout}
-        handleRevealHandout={revealHandout}
-        handleDeleteHandout={handleDeleteHandout}
-        handleToggleTokenHidden={handleToggleTokenHidden}
-        handleMoveToken={tokenActions.moveToken}
-        handleCreateCharacter={handleCreateCharacter}
-        handleCreateInvite={handleCreateInvite}
-        handleRevokeInvite={handleRevokeInvite}
-        setSelectedCampaignId={campaign.selectCampaign}
-        setSelectedTokenId={setSelectedTokenId}
-        setSelectedCharacterId={setSelectedCharacterId}
-        setSelectedSceneId={vtt.setSelectedSceneId}
-        setInspectedCharacterId={setInspectedCharacterId}
-        setShowCharacterWizard={setShowCharacterWizard}
-        setShowShortcuts={setShowShortcuts}
-        setIsFocusMap={setIsFocusMap}
-        setIsPanelsHidden={setIsPanelsHidden}
-        setGmView={setGmView}
-        setActiveSessionLiveMode={setActiveSessionLiveMode}
-        setSceneTokens={vtt.setSceneTokens}
-        setCharacters={setCharacters}
-        setLogEntries={setLogEntries}
-        loadCombatState={vtt.loadCombatState}
-        loadSceneTokens={vtt.loadSceneTokens}
-        loadVttState={vtt.loadVttState}
-        loadCharacters={loadCharacters}
+      <GmWorkspaceProvider
+        state={{
+          token,
+          user,
+          campaigns,
+          selectedCampaign,
+          activeCampaignId,
+          members,
+          characters,
+          selectedCharacter,
+          selectedCharacterId,
+          encounters,
+          handouts,
+          rolls,
+          logEntries,
+          latestInvite,
+          activeInvites,
+          scenes,
+          selectedScene,
+          selectedSceneId,
+          sceneTokens,
+          selectedTokenId,
+        }}
+        actions={{
+          handleCreateHandout,
+          handleRevealHandout: revealHandout,
+          handleDeleteHandout,
+          handleRoll,
+          handleQuickRoll,
+          handleLogNote,
+          handleToggleTokenHidden,
+          handleMoveToken: tokenActions.moveToken,
+          handleCreateCharacter,
+          handleCreateInvite,
+          handleRevokeInvite,
+          onLogout: logout,
+        }}
+        vtt={{
+          selectedSceneId,
+          selectedScene,
+          sceneTokens,
+          selectedTokenId,
+          campaignMapProps,
+          sceneBackgroundObjectUrl,
+          setSelectedSceneId: vtt.setSelectedSceneId,
+          setSelectedTokenId,
+          setSceneTokens: vtt.setSceneTokens,
+          loadVttState: vtt.loadVttState,
+          loadSceneTokens: vtt.loadSceneTokens,
+          loadCombatState: vtt.loadCombatState,
+        }}
         campaignMapProps={campaignMapProps}
         isMapFloating={isMapFloating}
-      />
+        panel={{
+          gmView,
+          setGmView,
+          activeSessionLiveMode,
+          setActiveSessionLiveMode,
+          liveModePanelIds,
+          isPanelsHidden,
+          setIsPanelsHidden,
+          isFocusMap,
+          setIsFocusMap,
+          fp,
+          inspectedCharacterId,
+          setInspectedCharacterId,
+          showCharacterWizard,
+          setShowCharacterWizard,
+          showShortcuts,
+          setShowShortcuts,
+          isBusy,
+        }}
+        session={{
+          presenceCount,
+          realtimeStatus,
+          wsRef: ws.wsRef,
+          theme,
+          toggleTheme,
+          toasts,
+          dismissToast,
+        }}
+      >
+        <GmWorkspace
+          token={token}
+          user={user}
+          campaigns={campaigns}
+          selectedCampaign={selectedCampaign}
+          members={members}
+          characters={characters}
+          selectedCharacter={selectedCharacter}
+          encounters={encounters}
+          handouts={handouts}
+          rolls={rolls}
+          logEntries={logEntries}
+          latestInvite={latestInvite}
+          activeInvites={activeInvites}
+          scenes={scenes}
+          selectedScene={selectedScene}
+          selectedSceneId={selectedSceneId}
+          sceneTokens={sceneTokens}
+          selectedTokenId={selectedTokenId}
+          selectedCharacterId={selectedCharacterId}
+          inspectedCharacterId={inspectedCharacterId}
+          showCharacterWizard={showCharacterWizard}
+          showShortcuts={showShortcuts}
+          isBusy={isBusy}
+          isFocusMap={isFocusMap}
+          isPanelsHidden={isPanelsHidden}
+          gmView={gmView}
+          activeSessionLiveMode={activeSessionLiveMode}
+          liveModePanelIds={liveModePanelIds}
+          presenceCount={presenceCount}
+          realtimeStatus={realtimeStatus}
+          fp={fp}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          toasts={toasts}
+          dismissToast={dismissToast}
+          wsRef={ws.wsRef}
+          onLogout={logout}
+          handleQuickRoll={handleQuickRoll}
+          handleRoll={handleRoll}
+          handleLogNote={handleLogNote}
+          handleCreateHandout={handleCreateHandout}
+          handleRevealHandout={revealHandout}
+          handleDeleteHandout={handleDeleteHandout}
+          handleToggleTokenHidden={handleToggleTokenHidden}
+          handleMoveToken={tokenActions.moveToken}
+          handleCreateCharacter={handleCreateCharacter}
+          handleCreateInvite={handleCreateInvite}
+          handleRevokeInvite={handleRevokeInvite}
+          setSelectedCampaignId={campaign.selectCampaign}
+          setSelectedTokenId={setSelectedTokenId}
+          setSelectedCharacterId={setSelectedCharacterId}
+          setSelectedSceneId={vtt.setSelectedSceneId}
+          setInspectedCharacterId={setInspectedCharacterId}
+          setShowCharacterWizard={setShowCharacterWizard}
+          setShowShortcuts={setShowShortcuts}
+          setIsFocusMap={setIsFocusMap}
+          setIsPanelsHidden={setIsPanelsHidden}
+          setGmView={setGmView}
+          setActiveSessionLiveMode={setActiveSessionLiveMode}
+          setSceneTokens={vtt.setSceneTokens}
+          setCharacters={setCharacters}
+          setLogEntries={setLogEntries}
+          loadCombatState={vtt.loadCombatState}
+          loadSceneTokens={vtt.loadSceneTokens}
+          loadVttState={vtt.loadVttState}
+          loadCharacters={loadCharacters}
+          campaignMapProps={campaignMapProps}
+          isMapFloating={isMapFloating}
+        />
+      </GmWorkspaceProvider>
     </ErrorBoundary>
   );
 }

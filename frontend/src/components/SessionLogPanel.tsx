@@ -2,6 +2,9 @@ import { Bookmark, BookmarkCheck, Dices, Filter, Pin, PinOff } from "lucide-reac
 import type { FormEvent } from "react";
 
 import type { Character, GameLogEntry, Roll } from "../api/types";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { usePanelContext } from "../contexts/PanelContext";
 
 const CATEGORIES = [
   { id: "general", label: "General", emoji: "📝" },
@@ -11,29 +14,34 @@ const CATEGORIES = [
   { id: "gm_note", label: "Note MJ", emoji: "🔒" },
 ] as const;
 
+/** @deprecated Props kept for backward compatibility until all callers use contexts. */
 type SessionLogPanelProps = {
-  characters: Character[];
-  selectedCharacter: Character | undefined;
-  rolls: Roll[];
-  logEntries: GameLogEntry[];
-  isBusy: boolean;
-  token: string;
-  onRoll: (event: FormEvent<HTMLFormElement>) => void;
-  onAddNote: (event: FormEvent<HTMLFormElement>) => void;
-  onRefresh: (category?: string) => void;
+  characters?: Character[];
+  selectedCharacter?: Character | undefined;
+  rolls?: Roll[];
+  logEntries?: GameLogEntry[];
+  isBusy?: boolean;
+  token?: string;
+  onRoll?: (event: FormEvent<HTMLFormElement>) => void;
+  onAddNote?: (event: FormEvent<HTMLFormElement>) => void;
+  onRefresh?: (category?: string) => void;
 };
 
-export function SessionLogPanel({
-  characters,
-  selectedCharacter,
-  rolls,
-  logEntries,
-  isBusy,
-  token,
-  onRoll,
-  onAddNote,
-  onRefresh,
-}: SessionLogPanelProps) {
+export function SessionLogPanel(props: SessionLogPanelProps = {}) {
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const panel = usePanelContext();
+
+  const characters = props.characters ?? state.characters;
+  const selectedCharacter = props.selectedCharacter ?? state.selectedCharacter;
+  const rolls = props.rolls ?? state.rolls;
+  const logEntries = props.logEntries ?? state.logEntries;
+  const isBusy = props.isBusy ?? panel.isBusy;
+  const token = props.token ?? state.token;
+  const onRoll = props.onRoll ?? actions.handleRoll;
+  const onAddNote = props.onAddNote ?? actions.handleLogNote;
+  const onRefresh = props.onRefresh;
+
   const latestRoll = rolls[0];
   const pinnedEntries = logEntries.filter((e) => e.pinned);
   const sessionMarkers = logEntries.filter((e) => e.session_marker);
@@ -48,293 +56,229 @@ export function SessionLogPanel({
         },
         body: JSON.stringify({ pinned: !entry.pinned }),
       });
-      onRefresh();
+      onRefresh?.();
     } catch {
-      // silently ignore
+      // silent
     }
   }
 
-  async function setCategory(entry: GameLogEntry, category: string) {
+  async function toggleSessionMarker(entry: GameLogEntry) {
     try {
-      await fetch(
-        `/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      await fetch(`/api/log-entries/${entry.id}/session-marker`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
-      onRefresh();
+        body: JSON.stringify({ session_marker: !entry.session_marker }),
+      });
+      onRefresh?.();
     } catch {
-      // silently ignore
-    }
-  }
-
-  async function createSessionMarker() {
-    try {
-      const response = await fetch(
-        `/api/campaigns/${logEntries[0]?.campaign_id}/log/session-marker`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ label: "Nouvelle session" }),
-        },
-      );
-      if (response.ok) {
-        onRefresh();
-      }
-    } catch {
-      // silently ignore
+      // silent
     }
   }
 
   return (
-    <div className="session-section">
-      <div className="section-heading">
-        <h3>Journal</h3>
-        <Dices aria-hidden="true" />
-      </div>
+    <div className="gm-panel-content session-log-panel" data-vtt-panel>
+      {/* ── Quick Roll ─────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong><Dices size={14} /> Lancer un dé</strong>
+        </header>
+        <form className="gm-panel-section" onSubmit={onRoll}>
+          <label>
+            Formule
+            <input name="formula" required placeholder="1d20+5" />
+          </label>
+          <label>
+            Label
+            <input name="label" placeholder="Jet de perception" />
+          </label>
+          <div className="mini-grid">
+            <label>
+              Mode
+              <select name="mode" defaultValue="normal">
+                <option value="normal">Normal</option>
+                <option value="advantage">Avantage</option>
+                <option value="disadvantage">Désavantage</option>
+              </select>
+            </label>
+            <label>
+              Visibilité
+              <select name="visibility" defaultValue="public">
+                <option value="public">Public</option>
+                <option value="gm">MJ</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Personnage
+            <select name="character_id" defaultValue="">
+              <option value="">Aucun</option>
+              {characters.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="gm-panel-actions">
+            <button disabled={isBusy} type="submit">
+              <Dices size={12} /> Lancer
+            </button>
+          </div>
+        </form>
+      </section>
 
-      <div className="session-command-card">
-        <div>
-          <span className="session-status">Session live</span>
-          <h4>
-            {latestRoll
-              ? `${latestRoll.label || latestRoll.formula} = ${latestRoll.total}`
-              : "Aucun jet recent"}
-          </h4>
-          <p>
+      {/* ── Latest Roll ──────────────────────────────────────────────── */}
+      {latestRoll && (
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong>Dernier jet</strong>
+          </header>
+          <div className="gm-panel-card selected">
+            <p>
+              <strong>{latestRoll.label || latestRoll.formula}</strong>
+              {" → "}
+              <span style={{ fontSize: "1.2rem", fontWeight: 800 }}>
+                {latestRoll.total}
+              </span>
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ── Stats ──────────────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Statistiques</strong>
+          <small>
             {rolls.length} jet(s) · {pinnedEntries.length} epingle(s) · {sessionMarkers.length}{" "}
             session(s)
-          </p>
+          </small>
+        </header>
+      </section>
+
+      {/* ── Add Note ─────────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Ajouter une note</strong>
+        </header>
+        <form className="gm-panel-section" onSubmit={onAddNote}>
+          <label>
+            Message
+            <textarea name="message" rows={2} required placeholder="Note de session..." />
+          </label>
+          <label>
+            Visibilité
+            <select name="visibility" defaultValue="gm">
+              <option value="public">Public</option>
+              <option value="gm">MJ</option>
+            </select>
+          </label>
+          <div className="gm-panel-actions">
+            <button disabled={isBusy} type="submit">
+              Ajouter
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* ── Category filters ──────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong><Filter size={12} /> Filtrer</strong>
+        </header>
+        <div className="category-filter-list">
+          <button className="ghost-button compact" onClick={() => onRefresh?.()} type="button">
+            Tous
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              className="ghost-button compact"
+              onClick={() => onRefresh?.(cat.id)}
+              type="button"
+            >
+              {cat.emoji} {cat.label}
+            </button>
+          ))}
         </div>
-        <button
-          className="ghost-button compact"
-          onClick={createSessionMarker}
-          disabled={isBusy}
-          type="button"
-          title="Marquer debut de session"
-        >
-          <Bookmark size={14} /> Session
-        </button>
-      </div>
+      </section>
 
-      <div className="session-compact-layout">
-        <aside className="session-tools-card">
-          <details className="tool-card" data-quick-panel="roll" open>
-            <summary>Lancer les des</summary>
-
-            <form className="form-stack" onSubmit={onRoll}>
-              <label>
-                Personnage
-                <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
-                  <option value="">Jet libre</option>
-                  {characters.map((character) => (
-                    <option key={character.id} value={character.id}>
-                      {character.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                Libelle
-                <input name="label" maxLength={120} placeholder="Attaque, perception..." />
-              </label>
-
-              <label>
-                Formule
-                <input name="formula" defaultValue="1d20" required />
-              </label>
-
-              <div className="mini-grid three">
-                <label>
-                  Mode
-                  <select name="mode" defaultValue="normal">
-                    <option value="normal">Normal</option>
-                    <option value="advantage">Avantage</option>
-                    <option value="disadvantage">Desavantage</option>
-                  </select>
-                </label>
-
-                <label>
-                  Visibilite
-                  <select name="visibility" defaultValue="public">
-                    <option value="public">Public</option>
-                    <option value="gm">MJ</option>
-                  </select>
-                </label>
-              </div>
-
-              <button className="primary-button" disabled={isBusy} type="submit">
-                Lancer
-              </button>
-            </form>
-          </details>
-
-          <details className="tool-card" data-quick-panel="note">
-            <summary>Note de session</summary>
-
-            <form className="form-stack" onSubmit={onAddNote}>
-              <label>
-                Message
-                <textarea name="message" rows={4} maxLength={2000} required />
-              </label>
-
-              <label>
-                Visibilite
-                <select name="visibility" defaultValue="public">
-                  <option value="public">Public</option>
-                  <option value="gm">MJ</option>
-                </select>
-              </label>
-
-              <button className="ghost-button" disabled={isBusy} type="submit">
-                Ajouter au journal
-              </button>
-            </form>
-          </details>
-
-          {/* Category filters */}
-          <details className="tool-card">
-            <summary>
-              <Filter size={12} /> Categories
-            </summary>
-            <div className="category-filter-list">
-              <button className="ghost-button compact" onClick={() => onRefresh()} type="button">
-                Tous
-              </button>
-              {CATEGORIES.map((cat) => (
+      {/* ── Pinned Entries ─────────────────────────────────────────────── */}
+      {pinnedEntries.length > 0 && (
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong><Pin size={12} /> Épinglés</strong>
+          </header>
+          <div className="gm-panel-list">
+            {pinnedEntries.map((e) => (
+              <div className="gm-panel-row" key={e.id}>
+                <span>
+                  <small>{new Date(e.created_at).toLocaleTimeString()}</small>
+                  <span>{e.message}</span>
+                </span>
                 <button
-                  key={cat.id}
                   className="ghost-button compact"
-                  onClick={() => onRefresh(cat.id)}
+                  onClick={() => void togglePin(e)}
                   type="button"
+                  title="Désépingler"
                 >
-                  {cat.emoji} {cat.label}
+                  <PinOff size={12} />
                 </button>
-              ))}
-            </div>
-          </details>
-        </aside>
-
-        {/* Pinned entries */}
-        {pinnedEntries.length > 0 && (
-          <section className="session-history-card pinned-section">
-            <div className="session-subheading">
-              <h4>
-                <Pin size={12} /> Epingles
-              </h4>
-              <small>{pinnedEntries.length}</small>
-            </div>
-            <div className="compact-log-list">
-              {pinnedEntries.map((entry) => (
-                <article className={`compact-log-row ${entry.entry_type} pinned`} key={entry.id}>
-                  <div className="log-row-content">
-                    <span>{entry.message}</span>
-                    <small>
-                      {CATEGORIES.find((c) => c.id === entry.category)?.emoji} {entry.category} ·{" "}
-                      {entry.visibility}
-                      {entry.session_marker ? " · 🏁 Session" : ""}
-                    </small>
-                  </div>
-                  <button
-                    className="ghost-button pin-btn"
-                    onClick={() => void togglePin(entry)}
-                    title="Depingler"
-                    type="button"
-                  >
-                    <PinOff size={12} />
-                  </button>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Recent rolls */}
-        <section className="session-history-card">
-          <div className="session-subheading">
-            <h4>Derniers jets</h4>
-            <small>{rolls.length} total</small>
+              </div>
+            ))}
           </div>
-
-          {rolls.length === 0 ? (
-            <p className="muted">Aucun jet pour cette session.</p>
-          ) : (
-            <div className="compact-roll-list">
-              {rolls.slice(0, 8).map((roll) => (
-                <article className="compact-roll-row" key={roll.id}>
-                  <span>
-                    <strong>{roll.label || roll.formula}</strong>
-                    <small>
-                      {roll.formula} · {roll.mode} · {roll.visibility}
-                    </small>
-                  </span>
-                  <em>{roll.total}</em>
-                </article>
-              ))}
-            </div>
-          )}
         </section>
+      )}
 
-        {/* Log entries with categories */}
-        <section className="session-history-card">
-          <div className="session-subheading">
-            <h4>Journal</h4>
-            <small>{logEntries.length} entree(s)</small>
-          </div>
-
+      {/* ── All Entries ───────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Journal</strong>
+          <small>{logEntries.length} entrée(s)</small>
+        </header>
+        <div className="gm-panel-list" style={{ maxHeight: 400 }}>
           {logEntries.length === 0 ? (
-            <p className="muted">Le journal est vide.</p>
+            <p className="gm-panel-muted">Aucune entrée de journal.</p>
           ) : (
-            <div className="compact-log-list">
-              {logEntries.slice(0, 20).map((entry) => (
-                <article
-                  className={`compact-log-row ${entry.entry_type} ${entry.pinned ? "pinned" : ""}`}
-                  key={entry.id}
-                >
-                  <div className="log-row-content">
-                    <div className="log-row-header">
-                      <span>{entry.message}</span>
-                      <div className="log-row-actions">
-                        <button
-                          className="ghost-button pin-btn"
-                          onClick={() => void togglePin(entry)}
-                          title={entry.pinned ? "Depingler" : "Epingler"}
-                          type="button"
-                        >
-                          {entry.pinned ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
-                        </button>
-                        <select
-                          className="category-select"
-                          value={entry.category}
-                          onChange={(e) => void setCategory(entry, e.target.value)}
-                          title="Changer categorie"
-                        >
-                          {CATEGORIES.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.emoji} {cat.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <small>
-                      {entry.visibility}
-                      {entry.session_marker ? " · 🏁" : ""}
-                    </small>
-                  </div>
-                </article>
-              ))}
-            </div>
+            logEntries.map((e) => (
+              <div
+                className={`gm-panel-row ${e.pinned ? "selected" : ""} ${e.session_marker ? "session-marker" : ""}`}
+                key={e.id}
+              >
+                <span>
+                  <small>
+                    {new Date(e.created_at).toLocaleTimeString()}
+                    {e.category && ` · ${e.category}`}
+                    {e.visibility === "gm" && " · MJ"}
+                  </small>
+                  <span>{e.message}</span>
+                </span>
+                <span style={{ display: "flex", gap: 4 }}>
+                  <button
+                    className="ghost-button compact"
+                    onClick={() => void toggleSessionMarker(e)}
+                    type="button"
+                    title={e.session_marker ? "Retirer marqueur" : "Marquer session"}
+                  >
+                    {e.session_marker ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+                  </button>
+                  <button
+                    className="ghost-button compact"
+                    onClick={() => void togglePin(e)}
+                    type="button"
+                    title={e.pinned ? "Désépingler" : "Épingler"}
+                  >
+                    {e.pinned ? <PinOff size={12} /> : <Pin size={12} />}
+                  </button>
+                </span>
+              </div>
+            ))
           )}
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

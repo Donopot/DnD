@@ -2,21 +2,25 @@ import { ArrowDownToLine, ArrowUpToLine, Eye, EyeOff, Plus, Trash2 } from "lucid
 import { useMemo, useState } from "react";
 
 import type { Character, Scene, SceneToken } from "../api/types";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useVttContext } from "../contexts/VttContext";
 
 type TokenPosition = {
   x: number;
   y: number;
 };
 
+/** @deprecated Props kept for backward compatibility until all callers use contexts. */
 type TokenDetailPanelProps = {
-  selectedScene: Scene | undefined;
-  selectedToken: SceneToken | undefined;
-  selectedTokenCharacter: Character | undefined;
-  selectedTokenPosition: TokenPosition | undefined;
-  token: string;
+  selectedScene?: Scene | undefined;
+  selectedToken?: SceneToken | undefined;
+  selectedTokenCharacter?: Character | undefined;
+  selectedTokenPosition?: TokenPosition | undefined;
+  token?: string;
   onCenterSelectedToken?: () => void;
-  onDeselectToken: () => void;
-  onNudgeSelectedToken: (dx: number, dy: number) => void;
+  onDeselectToken?: () => void;
+  onNudgeSelectedToken?: (dx: number, dy: number) => void;
   onTokenUpdated?: (updated: SceneToken) => void;
 };
 
@@ -26,17 +30,32 @@ const HOSTILITY_OPTIONS = [
   { value: "ally", label: "Allié", color: "#22c55e" },
 ] as const;
 
-export function TokenDetailPanel({
-  selectedScene,
-  selectedToken,
-  selectedTokenCharacter,
-  selectedTokenPosition,
-  token,
-  onCenterSelectedToken,
-  onDeselectToken,
-  onNudgeSelectedToken,
-  onTokenUpdated,
-}: TokenDetailPanelProps) {
+export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
+  // Contexts — primary source of truth
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const vtt = useVttContext();
+
+  // Compute derived values from contexts (with prop fallback)
+  const authToken = props.token ?? state.token;
+  const selectedTokenId = vtt.selectedTokenId;
+  const selectedToken =
+    props.selectedToken ?? state.sceneTokens.find((t) => t.id === selectedTokenId);
+  const selectedScene = props.selectedScene ?? state.selectedScene;
+  const selectedTokenCharacter = props.selectedTokenCharacter ?? (
+    selectedToken?.character_id
+      ? state.characters.find((c) => c.id === selectedToken.character_id)
+      : undefined
+  );
+  const selectedTokenPosition = props.selectedTokenPosition ?? (
+    selectedToken ? { x: selectedToken.x, y: selectedToken.y } : undefined
+  );
+  const onDeselectToken = props.onDeselectToken ?? (() => vtt.setSelectedTokenId(""));
+  const onNudgeSelectedToken = props.onNudgeSelectedToken ?? ((dx: number, dy: number) => {
+    if (selectedToken) void actions.handleMoveToken(selectedToken, dx, dy);
+  });
+  const onTokenUpdated = props.onTokenUpdated;
+
   const step = selectedScene?.grid_size ?? 50;
 
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -46,373 +65,239 @@ export function TokenDetailPanel({
   const headers = useMemo(
     () => ({
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${authToken}`,
     }),
-    [token],
+    [authToken],
   );
 
-  // ── PATCH helper ────────────────────────────────────────────────────
-
-  async function patchToken(updates: Record<string, unknown>) {
+  async function updateField(field: string, value: unknown) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}`, {
+      const res = await fetch(`/api/scene-tokens/${selectedToken.id}`, {
         method: "PATCH",
         headers,
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ [field]: value }),
       });
       if (res.ok) {
-        const updated: SceneToken = await res.json();
+        const updated = await res.json() as SceneToken;
         onTokenUpdated?.(updated);
       }
     } catch {
-      /* ignore */
+      // silent
     } finally {
       setBusy(false);
+      setEditingField(null);
     }
   }
 
-  // ── Inline edit ─────────────────────────────────────────────────────
-
-  function startEdit(field: string, initial: string) {
+  function startEdit(field: string, currentValue: unknown) {
     setEditingField(field);
-    setEditValue(initial);
+    setEditValue(String(currentValue ?? ""));
   }
 
-  function commitEdit(field: string, value: string) {
-    setEditingField(null);
-    if (!selectedToken) return;
-    const trimmed = value.trim();
-    if (!trimmed) return;
-
-    if (field === "name" && trimmed !== selectedToken.name) {
-      void patchToken({ name: trimmed });
-    } else if (field === "x" || field === "y") {
-      const num = Number.parseInt(trimmed, 10);
-      if (Number.isFinite(num) && num !== selectedToken[field]) {
-        void patchToken({ [field]: num });
-      }
-    } else if (field === "size") {
-      const num = Number.parseInt(trimmed, 10);
-      if (Number.isFinite(num) && num >= 1 && num <= 8 && num !== selectedToken.size) {
-        void patchToken({ size: num });
-      }
-    } else if (field === "color") {
-      if (trimmed !== selectedToken.color) {
-        void patchToken({ color: trimmed });
-      }
-    }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent, field: string) {
-    if (e.key === "Enter") commitEdit(field, editValue);
-    if (e.key === "Escape") setEditingField(null);
-  }
-
-  // ── Actions ─────────────────────────────────────────────────────────
-
-  function toggleHidden() {
-    if (!selectedToken) return;
-    void patchToken({ is_hidden: !selectedToken.is_hidden });
-  }
-
-  async function deleteToken() {
-    if (!selectedToken) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}`, { method: "DELETE", headers });
-      if (res.ok) {
-        onDeselectToken();
-        onTokenUpdated?.(selectedToken);
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function duplicateToken() {
-    if (!selectedToken) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/duplicate`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const dup: SceneToken = await res.json();
-        onTokenUpdated?.(dup);
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function bringForward() {
-    if (!selectedToken) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/bring-forward`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const updated: SceneToken = await res.json();
-        onTokenUpdated?.(updated);
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function sendBackward() {
-    if (!selectedToken) return;
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/send-backward`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const updated: SceneToken = await res.json();
-        onTokenUpdated?.(updated);
-      }
-    } catch {
-      /* ignore */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function applyHP(delta: number) {
-    if (!selectedToken) return;
-    const current = (selectedToken.metadata?.hp_current as number) ?? 0;
-    const max = (selectedToken.metadata?.hp_max as number) ?? 0;
-    const newHp = Math.max(0, Math.min(max || 9999, current + delta));
-    void patchToken({ metadata: { ...selectedToken.metadata, hp_current: newHp } });
-  }
-
-  function setHostility(value: string) {
-    void patchToken({ metadata: { ...selectedToken?.metadata, hostility: value } });
-  }
-
-  // ── Inline field renderer ───────────────────────────────────────────
-
-  function EditableField({
-    field,
-    value,
-    type = "text",
-    className = "",
-  }: {
-    field: string;
-    value: string;
-    type?: string;
-    className?: string;
-  }) {
-    if (editingField === field) {
-      return (
-        <input
-          autoFocus
-          className={`token-detail-edit-input ${className}`}
-          onBlur={() => commitEdit(field, editValue)}
-          onChange={(e) => setEditValue(e.target.value)}
-          onKeyDown={(e) => handleKeyDown(e, field)}
-          type={type}
-          value={editValue}
-        />
-      );
-    }
-    return (
-      <span
-        className={`token-detail-editable ${className}`}
-        onClick={() => startEdit(field, value)}
-        title="Cliquer pour modifier"
-      >
-        {value}
-      </span>
-    );
-  }
-
-  // ── No token selected ───────────────────────────────────────────────
-
-  if (!selectedToken || !selectedTokenPosition) {
+  if (!selectedToken) {
     return (
       <div className="gm-panel-content token-detail-panel" data-vtt-panel>
-        <section className="gm-panel-section">
-          <header className="gm-panel-section-header">
-            <strong>Aucune sélection</strong>
-          </header>
-          <p className="gm-panel-muted">
-            Sélectionne un token sur la carte ou dans la liste pour afficher ses détails.
-          </p>
-        </section>
+        <p className="gm-panel-muted">Sélectionnez un token sur la carte.</p>
       </div>
     );
   }
 
-  const hostility = (selectedToken.metadata?.hostility as string) ?? "neutral";
-  const hpCurrent = (selectedToken.metadata?.hp_current as number) ?? null;
-  const hpMax = (selectedToken.metadata?.hp_max as number) ?? null;
-
-  // ── Main render ─────────────────────────────────────────────────────
-
   return (
     <div className="gm-panel-content token-detail-panel" data-vtt-panel>
-      {/* ── Identity ─────────────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <EditableField field="name" value={selectedToken.name} />
+          <strong>🔍 {selectedToken.name || "Token"}</strong>
           <small>
-            {selectedTokenCharacter?.name ?? "Token libre"}
+            {selectedTokenCharacter?.name ?? "Sans personnage"}
           </small>
         </header>
-      </section>
 
-      {/* ── Position ─────────────────────────────────────────────── */}
-      <section className="gm-panel-section">
-        <header className="gm-panel-section-header">
-          <strong>Position</strong>
-          <small>Pas de {step}px</small>
-        </header>
-
-        <div className="gm-panel-context">
-          <span className="gm-panel-stat">
-            <small>X</small>
-            <EditableField field="x" value={String(selectedTokenPosition.x)} />
-          </span>
-          <span className="gm-panel-stat">
-            <small>Y</small>
-            <EditableField field="y" value={String(selectedTokenPosition.y)} />
-          </span>
-          <span className="gm-panel-stat">
-            <small>Taille</small>
-            <EditableField field="size" value={String(selectedToken.size)} />
-          </span>
-          <span className="gm-panel-stat">
-            <small>Visibilité</small>
-            <button
-              className={`token-detail-toggle ${selectedToken.is_hidden ? "hidden" : ""}`}
-              disabled={busy}
-              onClick={toggleHidden}
-              type="button"
-            >
-              {selectedToken.is_hidden ? <><EyeOff size={12} /> Caché</> : <><Eye size={12} /> Visible</>}
-            </button>
-          </span>
+        <div className="gm-panel-actions">
+          <button onClick={onDeselectToken} type="button">
+            Désélectionner
+          </button>
         </div>
       </section>
 
-      {/* ── Appearance ───────────────────────────────────────────── */}
+      {/* ── Properties ───────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong>Apparence</strong>
+          <strong>Propriétés</strong>
         </header>
 
-        <div className="gm-panel-context">
-          <span className="gm-panel-stat">
-            <small>Couleur</small>
-            <span className="token-detail-color-row">
-              <span
-                className="token-detail-color-swatch"
-                style={{ background: selectedToken.color }}
+        <div className="gm-panel-list">
+          {/* Label */}
+          <div className="gm-panel-row">
+            <span>Label</span>
+            {editingField === "label" ? (
+              <input
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={() => updateField("label", editValue)}
+                onKeyDown={(e) => e.key === "Enter" && updateField("label", editValue)}
+                className="token-detail-edit-input"
               />
-              <EditableField field="color" value={selectedToken.color} />
-            </span>
-          </span>
+            ) : (
+              <span
+                className="token-detail-editable"
+                onClick={() => startEdit("label", selectedToken.name)}
+              >
+                {selectedToken.name || "(aucun)"}
+              </span>
+            )}
+          </div>
 
-          <span className="gm-panel-stat">
-            <small>Attitude</small>
-            <div className="gm-panel-actions">
+          {/* Size */}
+          <div className="gm-panel-row">
+            <span>Taille</span>
+            {editingField === "size" ? (
+              <select
+                autoFocus
+                value={editValue}
+                onChange={(e) => {
+                  setEditValue(e.target.value);
+                  updateField("size", e.target.value);
+                }}
+                onBlur={() => setEditingField(null)}
+              >
+                <option value="tiny">TP</option>
+                <option value="small">P</option>
+                <option value="medium">M</option>
+                <option value="large">G</option>
+                <option value="huge">TG</option>
+                <option value="gargantuan">Gig</option>
+              </select>
+            ) : (
+              <span
+                className="token-detail-editable"
+                onClick={() => startEdit("size", selectedToken.size ?? "medium")}
+              >
+                {selectedToken.size ?? "medium"}
+              </span>
+            )}
+          </div>
+
+          {/* Hostility */}
+          <div className="gm-panel-row">
+            <span>Hostilité</span>
+            <span style={{ display: "flex", gap: 4 }}>
               {HOSTILITY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  className={hostility === opt.value ? "active" : ""}
-                  disabled={busy}
-                  onClick={() => setHostility(opt.value)}
-                  style={hostility === opt.value ? { borderColor: opt.color, color: opt.color } : undefined}
+                  className={`token-detail-toggle ${(selectedToken.metadata?.hostility as string) === opt.value ? "active" : ""}`}
+                  style={{
+                    borderColor: (selectedToken.metadata?.hostility as string) === opt.value ? opt.color : undefined,
+                    color: (selectedToken.metadata?.hostility as string) === opt.value ? opt.color : undefined,
+                  }}
+                  onClick={() => updateField("hostility", opt.value)}
                   type="button"
+                  disabled={busy}
                 >
                   {opt.label}
                 </button>
               ))}
-            </div>
-          </span>
+            </span>
+          </div>
+
+          {/* Hidden */}
+          <div className="gm-panel-row">
+            <span>Visibilité</span>
+            <button
+              className={`token-detail-toggle ${selectedToken.is_hidden ? "hidden" : ""}`}
+              onClick={() => {
+                void actions.handleToggleTokenHidden(selectedToken).then(() => {
+                  if (onTokenUpdated) {
+                    onTokenUpdated({ ...selectedToken, is_hidden: !selectedToken.is_hidden });
+                  }
+                });
+              }}
+              type="button"
+              disabled={busy}
+            >
+              {selectedToken.is_hidden ? <EyeOff size={12} /> : <Eye size={12} />}
+              {selectedToken.is_hidden ? "Caché" : "Visible"}
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* ── HP ────────────────────────────────────────────────────── */}
-      {hpMax !== null && hpMax > 0 && (
+      {/* ── Nudge ──────────────────────────────────────────────────── */}
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Position</strong>
+          {selectedTokenPosition && (
+            <small>
+              ({selectedTokenPosition.x}, {selectedTokenPosition.y})
+            </small>
+          )}
+        </header>
+
+        <div className="token-detail-nudge-grid">
+          <button
+            onClick={() => onNudgeSelectedToken(0, -step)}
+            type="button"
+            title="Haut"
+          >
+            <ArrowUpToLine size={14} />
+          </button>
+          <button
+            onClick={() => onNudgeSelectedToken(-step, 0)}
+            type="button"
+            title="Gauche"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => onNudgeSelectedToken(step, 0)}
+            type="button"
+            title="Droite"
+          >
+            →
+          </button>
+          <button
+            onClick={() => onNudgeSelectedToken(0, step)}
+            type="button"
+            title="Bas"
+          >
+            <ArrowDownToLine size={14} />
+          </button>
+        </div>
+      </section>
+
+      {/* ── Character link ─────────────────────────────────────────── */}
+      {selectedTokenCharacter && (
         <section className="gm-panel-section">
           <header className="gm-panel-section-header">
-            <strong>Points de vie</strong>
-            <small>
-              {hpCurrent ?? "?"} / {hpMax}
-            </small>
+            <strong>Personnage lié</strong>
           </header>
-
-          <div className="gm-panel-progress">
-            <div
-              className="gm-panel-progress-fill"
-              style={{ width: `${Math.max(0, Math.min(100, ((hpCurrent ?? 0) / hpMax) * 100))}%` }}
-            />
-          </div>
-
-          <div className="gm-panel-actions">
-            <button disabled={busy} onClick={() => applyHP(-5)} type="button">-5</button>
-            <button disabled={busy} onClick={() => applyHP(-1)} type="button">-1</button>
-            <button disabled={busy} onClick={() => applyHP(1)} type="button">+1</button>
-            <button disabled={busy} onClick={() => applyHP(5)} type="button">+5</button>
+          <div className="gm-panel-card">
+            <strong>{selectedTokenCharacter.name}</strong>
+            <p className="gm-panel-muted">
+              {selectedTokenCharacter.class_name} niv.{selectedTokenCharacter.level}
+            </p>
           </div>
         </section>
       )}
 
-      {/* ── Nudge ─────────────────────────────────────────────────── */}
+      {/* ── Delete ─────────────────────────────────────────────────── */}
       <section className="gm-panel-section">
-        <header className="gm-panel-section-header">
-          <strong>Déplacer</strong>
-          <small>Pas de {step}px</small>
-        </header>
-
-        <div className="token-detail-nudge-grid" aria-label={`Déplacer ${selectedToken.name}`}>
-          <button type="button" onClick={() => onNudgeSelectedToken(0, -step)}>↑</button>
-          <button type="button" onClick={() => onNudgeSelectedToken(-step, 0)}>←</button>
-          <button type="button" onClick={() => onNudgeSelectedToken(step, 0)}>→</button>
-          <button type="button" onClick={() => onNudgeSelectedToken(0, step)}>↓</button>
-        </div>
-      </section>
-
-      {/* ── Actions ───────────────────────────────────────────────── */}
-      <section className="gm-panel-section">
-        <header className="gm-panel-section-header">
-          <strong>Actions</strong>
-        </header>
-
         <div className="gm-panel-actions">
-          {onCenterSelectedToken && (
-            <button disabled={busy} onClick={onCenterSelectedToken} type="button">
-              Centrer
-            </button>
-          )}
-          <button disabled={busy} onClick={duplicateToken} type="button">
-            <Plus size={12} /> Dupliquer
-          </button>
-          <button disabled={busy} onClick={bringForward} type="button" title="Mettre au premier plan">
-            <ArrowUpToLine size={12} /> Devant
-          </button>
-          <button disabled={busy} onClick={sendBackward} type="button" title="Mettre à l'arrière-plan">
-            <ArrowDownToLine size={12} /> Derrière
-          </button>
-          <button disabled={busy} onClick={deleteToken} type="button">
+          <button
+            className="danger"
+            onClick={() => {
+              if (confirm(`Supprimer le token "${selectedToken.name || "sans nom"}" ?`)) {
+                void updateField("deleted", true);
+                onDeselectToken();
+              }
+            }}
+            type="button"
+            disabled={busy}
+          >
             <Trash2 size={12} /> Supprimer
-          </button>
-          <button disabled={busy} onClick={onDeselectToken} type="button">
-            Désélectionner
           </button>
         </div>
       </section>
