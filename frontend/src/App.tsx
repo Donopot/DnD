@@ -111,6 +111,7 @@ export default function App() {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
+  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -243,7 +244,7 @@ export default function App() {
     if (!token) {
       return;
     }
-    void bootstrap(token);
+    void loadInitialCampaigns(token);
   }, [token]);
 
   useEffect(() => {
@@ -396,7 +397,7 @@ export default function App() {
     return apiRequest<T>(path, auth.token, options);
   }
 
-  async function bootstrap(activeToken: string) {
+  async function loadInitialCampaigns(activeToken: string) {
     try {
       await loadCampaigns(activeToken);
     } catch (error) {
@@ -1009,10 +1010,12 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
+          inviteAcceptedTokenRef.current = newToken;
           login(newToken);
         }}
         onJoined={async () => {
-          await loadCampaigns(token);
+          await loadCampaigns(inviteAcceptedTokenRef.current ?? token);
+          inviteAcceptedTokenRef.current = null;
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
