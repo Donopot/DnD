@@ -35,6 +35,7 @@ import { useCampaignData } from "./hooks/useCampaignData";
 import { useVttState } from "./hooks/useVttState";
 import { useTokenActions } from "./hooks/useTokenActions";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import { useSessionJournal } from "./hooks/useSessionJournal";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -93,8 +94,6 @@ export default function App() {
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
-  const [rolls, setRolls] = useState<Roll[]>([]);
-  const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
@@ -128,6 +127,9 @@ export default function App() {
     },
   });
   const { presenceCount, realtimeStatus } = ws;
+
+  const journal = useSessionJournal({ token, onError: setMessage });
+  const { rolls, logEntries, setLogEntries, loadSessionLog, clearJournal } = journal;
 
   const tokenActions = useTokenActions({
     token,
@@ -255,8 +257,7 @@ export default function App() {
     if (!token || !selectedCampaign) {
       campaign.clearMembers();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
+      clearJournal();
       return;
     }
     campaign.selectCampaign(selectedCampaign.id);
@@ -301,19 +302,6 @@ export default function App() {
       setSelectedCharacterId((current) => current || data[0]?.id || "");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load characters");
-    }
-  }
-
-  async function loadSessionLog(campaignId: string) {
-    try {
-      const [rollData, logData] = await Promise.all([
-        request<Roll[]>(`/api/campaigns/${campaignId}/rolls`),
-        request<GameLogEntry[]>(`/api/campaigns/${campaignId}/log`),
-      ]);
-      setRolls(rollData);
-      setLogEntries(logData);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load session log");
     }
   }
 
@@ -435,8 +423,7 @@ export default function App() {
       );
       campaign.clearLatestInvite();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
+      clearJournal();
       setSelectedCharacterId("");
       event.currentTarget.reset();
       setMessage("Campagne creee.");
@@ -609,8 +596,7 @@ export default function App() {
     campaign.clearCampaigns();
     campaign.clearMembers();
     setCharacters([]);
-    setRolls([]);
-    setLogEntries([]);
+    clearJournal();
     setSelectedCharacterId("");
     campaign.clearInvites();
   }
