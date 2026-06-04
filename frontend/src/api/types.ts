@@ -169,6 +169,16 @@ export type Encounter = {
   updated_at: string;
 };
 
+export type CombatantCondition =
+  | string
+  | {
+      name: string;
+      duration?: number | null;
+      duration_unit?: "rounds" | "minutes" | "hours" | null;
+      source?: string | null;
+      is_concentration?: boolean;
+    };
+
 export type Combatant = {
   id: string;
   encounter_id: string;
@@ -179,7 +189,7 @@ export type Combatant = {
   armor_class: number | null;
   hp_current: number | null;
   hp_max: number | null;
-  conditions: string[];
+  conditions: CombatantCondition[];
   notes: string;
   is_player_controlled: boolean;
   is_hidden: boolean;
