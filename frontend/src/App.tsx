@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { type CampaignView } from "./components/CampaignViewTabs";
@@ -18,22 +18,19 @@ import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
+import { useCampaignData } from "./hooks/useCampaignData";
+import { useVttState } from "./hooks/useVttState";
+import { useTokenActions } from "./hooks/useTokenActions";
+import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import { useSessionJournal } from "./hooks/useSessionJournal";
+import { useHandouts } from "./hooks/useHandouts";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 import { apiRequest } from "./api/client";
 import type {
-  Asset,
   AuthResponse,
-  Campaign,
   Character,
-  Combatant,
-  Encounter,
-  EncounterDetail,
-  GameLogEntry,
   Handout,
-  Invite,
-  Member,
-  Roll,
   Scene,
   SceneToken,
 } from "./api/types";
@@ -47,37 +44,26 @@ export default function App() {
   const auth = useAuthSession();
   const { token, user, login } = auth;
   const authLogout = auth.logout;
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
-  const [members, setMembers] = useState<Member[]>([]);
+
+  const campaign = useCampaignData(token);
+  const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
+
+  const vtt = useVttState(token);
+  const {
+    scenes, selectedSceneId, selectedScene, sceneTokens,
+    encounters, selectedEncounterId,
+  } = vtt;
+
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
-  const [rolls, setRolls] = useState<Roll[]>([]);
-  const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
-  const [scenes, setScenes] = useState<Scene[]>([]);
-  const [selectedSceneId, setSelectedSceneId] = useState<string>("");
-  const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
-  const [, setAssetList] = useState<Asset[]>([]);
-  const [, setSelectedAssetId] = useState<string>("");
-  const [encounters, setEncounters] = useState<Encounter[]>([]);
-  const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
-  const [, setCombatants] = useState<Combatant[]>([]);
-  const [handouts, setHandouts] = useState<Handout[]>([]);
-  const [presenceCount, setPresenceCount] = useState(0);
-  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
-    "offline",
-  );
-  const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
-  const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
-  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -88,21 +74,55 @@ export default function App() {
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
-  const wsRef = useRef<WebSocket | null>(null);
-  const fogRevealAbortRef = useRef<AbortController | null>(null);
 
-  const selectedCampaign = useMemo(
-    () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
-    [campaigns, selectedCampaignId],
-  );
+  const ws = useRealtimeSession({
+    token,
+    campaignId: selectedCampaign?.id,
+    selectedSceneId: selectedScene?.id,
+    onError: setMessage,
+    onSessionSceneToken: () => { void vtt.loadVttState(selectedCampaign!.id); },
+    onSessionEncounter: () => { void vtt.loadCombatState(selectedCampaign!.id); },
+    onSessionHandout: () => { void loadHandouts(selectedCampaign!.id); },
+    onSessionLog: () => { void loadSessionLog(selectedCampaign!.id); },
+    onTokenMoved: (tokenId, x, y) => {
+      vtt.setSceneTokens((current) =>
+        current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
+      );
+    },
+  });
+  const { presenceCount, realtimeStatus } = ws;
+
+  const journal = useSessionJournal({
+    token,
+    onError: setMessage,
+    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyEnd: () => setIsBusy(false),
+  });
+  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal } =
+    journal;
+
+  const handoutsHook = useHandouts({
+    token,
+    onError: setMessage,
+    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyEnd: () => setIsBusy(false),
+  });
+  const { handouts, loadHandouts, createHandout, revealHandout, deleteHandout } = handoutsHook;
+
+  const tokenActions = useTokenActions({
+    token,
+    selectedScene,
+    setSceneTokens: vtt.setSceneTokens,
+    performTokenAction: vtt.performTokenAction,
+    onError: setMessage,
+    onMessage: setMessage,
+    onStart: () => { setIsBusy(true); setMessage(""); },
+    onEnd: () => setIsBusy(false),
+  });
+
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
-  );
-
-  const selectedScene = useMemo(
-    () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
-    [scenes, selectedSceneId],
   );
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
@@ -128,7 +148,7 @@ export default function App() {
     );
     return {
       isGM: true as const,
-      wsRef,
+      wsRef: ws.wsRef,
       permissions: {
         canSelectToken: () => true,
         canMoveToken: () => true,
@@ -143,18 +163,17 @@ export default function App() {
       selectedSceneId,
       sceneTokens,
       sceneBackgroundObjectUrl,
-      onSelectScene: setSelectedSceneId,
+      onSelectScene: vtt.setSelectedSceneId,
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
-      onLoadSceneTokens: (id: string) => void loadSceneTokens(id),
-      onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
+      onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
+      onMoveToken: (t: SceneToken, dx: number, dy: number) => void tokenActions.moveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
       onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
         void handleTokenBatchAction(action, ts, v),
     };
   }, [
-    wsRef,
     sceneTokens,
     characters,
     user?.id,
@@ -210,25 +229,23 @@ export default function App() {
     if (!token) {
       return;
     }
-    void loadInitialCampaigns(token);
+    void bootstrap(token);
   }, [token]);
 
   useEffect(() => {
     if (!token || !selectedCampaign) {
-      setMembers([]);
+      campaign.clearMembers();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
-      setPresenceCount(0);
+      clearJournal();
       return;
     }
-    setSelectedCampaignId(selectedCampaign.id);
-    void loadMembers(selectedCampaign.id);
+    campaign.selectCampaign(selectedCampaign.id);
+    void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
-    void loadVttState(selectedCampaign.id);
-    void loadAssets(selectedCampaign.id);
-    void loadCombatState(selectedCampaign.id);
+    void vtt.loadVttState(selectedCampaign.id);
+    void vtt.loadAssets(selectedCampaign.id);
+    void vtt.loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [token, selectedCampaign?.id]);
 
@@ -244,147 +261,16 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const MAX_RECONNECT = 3;
-  const reconnectAttempts = useRef(0);
-  const reconnectTimer = useRef<number | undefined>(undefined);
-
-  function connect() {
-    wsRef.current?.close();
-    if (reconnectTimer.current) {
-      window.clearTimeout(reconnectTimer.current);
-      reconnectTimer.current = undefined;
-    }
-
-    if (!token || !selectedCampaign?.id) {
-      setRealtimeStatus("offline");
-      return;
-    }
-
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}`,
-    );
-    wsRef.current = socket;
-    setRealtimeStatus("connecting");
-
-    socket.onopen = () => {
-      reconnectAttempts.current = 0;
-      const activeToken = auth.token || "";
-      socket.send(JSON.stringify({ type: "auth", token: activeToken }));
-      setRealtimeStatus("online");
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-
-        if (payload.type === "error" && payload.detail) {
-          setMessage(`WebSocket: ${payload.detail}`);
-          return;
-        }
-
-        if (typeof payload.presence_count === "number") {
-          setPresenceCount(payload.presence_count);
-        }
-
-        if (payload.type === "session_changed") {
-          void loadSessionLog(selectedCampaign.id);
-
-          if (payload.resource === "scene" || payload.resource === "token") {
-            void loadVttState(selectedCampaign.id);
-          }
-
-          if (payload.resource === "encounter") {
-            void loadCombatState(selectedCampaign.id);
-          }
-
-          if (payload.resource === "handout") {
-            void loadHandouts(selectedCampaign.id);
-          }
-        }
-
-        if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
-          setSceneTokens((current) =>
-            current.map((sceneToken) =>
-              sceneToken.id === payload.token_id
-                ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
-                : sceneToken,
-            ),
-          );
-        }
-      } catch {
-        /* ignore malformed messages */
-      }
-    };
-
-    socket.onclose = (event) => {
-      if (wsRef.current !== socket) return;
-      setRealtimeStatus("offline");
-
-      // Don't reconnect on auth failure (code 1008 = policy violation)
-      if (event.code === 1008) {
-        setMessage("WebSocket authentication failed — re-login required");
-        return;
-      }
-
-      // Exponential backoff: 1s, 2s, 4s, max 3 attempts
-      if (reconnectAttempts.current < MAX_RECONNECT) {
-        reconnectAttempts.current += 1;
-        const delay = Math.pow(2, reconnectAttempts.current - 1) * 1000;
-        setMessage(`WebSocket disconnected — retrying in ${delay / 1000}s…`);
-        reconnectTimer.current = window.setTimeout(() => {
-          connect();
-        }, delay);
-      } else {
-        setMessage("WebSocket disconnected — max retries reached");
-      }
-    };
-
-    socket.onerror = () => {
-      // onclose will fire after onerror — reconnect handled there
-      setRealtimeStatus("offline");
-    };
-  }
-
-  useEffect(() => {
-    setPresenceCount(0);
-    connect();
-
-    return () => {
-      wsRef.current?.close();
-      if (reconnectTimer.current) {
-        window.clearTimeout(reconnectTimer.current);
-        reconnectTimer.current = undefined;
-      }
-    };
-  }, [token, selectedCampaign?.id, selectedScene?.id]);
-
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return apiRequest<T>(path, auth.token, options);
   }
 
-  async function loadInitialCampaigns(activeToken: string) {
+  async function bootstrap(activeToken: string) {
     try {
-      await loadCampaigns(activeToken);
+      await campaign.loadCampaigns(activeToken);
     } catch (error) {
-      setCampaigns([]);
+      campaign.clearCampaigns();
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
-    }
-  }
-
-  async function loadCampaigns(activeToken = auth.token) {
-    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken);
-    setCampaigns(data);
-    if (data.length > 0) {
-      setSelectedCampaignId((current) => current || data[0].id);
-    }
-  }
-
-  async function loadMembers(campaignId: string) {
-    try {
-      setMembers(await request<Member[]>(`/api/campaigns/${campaignId}/members`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load members");
     }
   }
 
@@ -398,202 +284,23 @@ export default function App() {
     }
   }
 
-  async function loadSessionLog(campaignId: string) {
-    try {
-      const [rollData, logData] = await Promise.all([
-        request<Roll[]>(`/api/campaigns/${campaignId}/rolls`),
-        request<GameLogEntry[]>(`/api/campaigns/${campaignId}/log`),
-      ]);
-      setRolls(rollData);
-      setLogEntries(logData);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load session log");
-    }
-  }
-
-  async function loadSceneTokens(sceneId: string) {
-    try {
-      setSceneTokens(await request<SceneToken[]>(`/api/scenes/${sceneId}/tokens`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load scene tokens");
-    }
-  }
-
-  async function loadVttState(campaignId: string) {
-    try {
-      const data = await request<Scene[]>(`/api/campaigns/${campaignId}/scenes`);
-      setScenes(data);
-
-      if (data.length === 0) {
-        setSelectedSceneId("");
-        setSceneTokens([]);
-        return;
-      }
-
-      const effectiveScene = data.find((scene) => scene.id === selectedSceneId) ?? data[0];
-      setSelectedSceneId(effectiveScene.id);
-      await loadSceneTokens(effectiveScene.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load VTT scene");
-    }
-  }
-
-  async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToMove.id}/move`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          x: Math.max(0, tokenToMove.x + dx),
-          y: Math.max(0, tokenToMove.y + dy),
-        }),
-      });
-
-      setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-
-      // ── Auto fog reveal ──────────────────────────────────────
-      // If this token has character linkage and a vision radius, auto-reveal fog
-      const visionRadius = tokenToMove.vision_radius ?? 0;
-      if (tokenToMove.character_id && visionRadius > 0 && selectedScene) {
-        // Abort any previous pending fog reveal
-        fogRevealAbortRef.current?.abort();
-        const controller = new AbortController();
-        fogRevealAbortRef.current = controller;
-
-        const gridSize = selectedScene.grid_size ?? 50;
-        const centerX = updated.x + (updated.size * gridSize) / 2;
-        const centerY = updated.y + (updated.size * gridSize) / 2;
-        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            center_x: centerX,
-            center_y: centerY,
-            radius_ft: visionRadius,
-          }),
-          signal: controller.signal,
-        }).catch((err) => {
-          if (err?.name === "AbortError") return; // cancelled by newer move
-        });
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to move token");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  // Per-token action without setIsBusy/setMessage (used by batch handler)
-  async function performTokenAction(
-    action: string,
-    tokenToAct: SceneToken,
-    value?: number,
-  ): Promise<SceneToken | void> {
-    switch (action) {
-      case "duplicate": {
-        const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => [...current, dup]);
-        return dup;
-      }
-      case "delete": {
-        await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
-        setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
-        break;
-      }
-      case "hide":
-      case "reveal": {
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ is_hidden: action === "hide" }),
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
-      case "add-combat": {
-        setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
-        break;
-      }
-      case "front": {
-        const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
-        return fwd;
-      }
-      case "back": {
-        const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
-        return bwd;
-      }
-      case "damage":
-      case "heal": {
-        const amount = value ?? 0;
-        const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
-        const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
-        const newHp =
-          action === "damage"
-            ? Math.max(0, hpCurrent - amount)
-            : Math.min(hpMax, hpCurrent + amount);
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            metadata: { ...tokenToAct.metadata, hp_current: newHp },
-          }),
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
-    }
-  }
-
+  // Per-token action wrapper (handles "add-combat" locally)
   async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      await performTokenAction(action, tokenToAct, value);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : `Unable to ${action} token`);
-    } finally {
-      setIsBusy(false);
+    if (action === "add-combat") {
+      setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
+      return;
     }
+    await tokenActions.wrapSingle(action, tokenToAct, value);
   }
 
-  // Sequential batch action handler for multi-select
+  // Sequential batch action handler
   async function handleTokenBatchAction(action: string, tokens: SceneToken[], value?: number) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      for (const token of tokens) {
-        await performTokenAction(action, token, value);
-      }
-      if (action === "delete") {
-        setMessage(`${tokens.length} token(s) supprimé(s).`);
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : `Unable to ${action} tokens`);
-    } finally {
-      setIsBusy(false);
-    }
+    await tokenActions.wrapBatch(action, tokens, value);
   }
 
   async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
     try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToToggle.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
-      });
-      setSceneTokens((current) =>
-        current.map((t) => (t.id === updated.id ? updated : t)),
-      );
+      await vtt.handleToggleTokenHidden(tokenToToggle);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Impossible de changer la visibilité",
@@ -601,149 +308,26 @@ export default function App() {
     }
   }
 
-  function updateEncounterFromDetail(detail: EncounterDetail) {
-    setEncounters((current) => {
-      const summary: Encounter = {
-        id: detail.id,
-        campaign_id: detail.campaign_id,
-        scene_id: detail.scene_id,
-        name: detail.name,
-        status: detail.status,
-        round_number: detail.round_number,
-        turn_index: detail.turn_index,
-        active_combatant_id: detail.active_combatant_id,
-        created_at: detail.created_at,
-        updated_at: detail.updated_at,
-      };
-
-      if (current.some((item) => item.id === detail.id)) {
-        return current.map((item) => (item.id === detail.id ? summary : item));
-      }
-
-      return [summary, ...current];
-    });
-
-    setCombatants(detail.combatants);
-  }
-
-  async function loadEncounterDetail(encounterId: string) {
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${encounterId}`);
-      updateEncounterFromDetail(detail);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load encounter");
-    }
-  }
-
-  async function loadCombatState(campaignId: string) {
-    try {
-      const data = await request<Encounter[]>(`/api/campaigns/${campaignId}/encounters`);
-      setEncounters(data);
-
-      if (data.length === 0) {
-        setSelectedEncounterId("");
-        setCombatants([]);
-        return;
-      }
-
-      const effectiveEncounter =
-        data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
-      setSelectedEncounterId(effectiveEncounter.id);
-      await loadEncounterDetail(effectiveEncounter.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load combat state");
-    }
-  }
-
-  async function loadHandouts(campaignId: string) {
-    try {
-      setHandouts(await request<Handout[]>(`/api/campaigns/${campaignId}/handouts`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load handouts");
-    }
-  }
 
   async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!selectedCampaign) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
+    if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
-    const sceneId = String(form.get("scene_id") || "");
-
-    try {
-      const handout = await request<Handout>(`/api/campaigns/${selectedCampaign.id}/handouts`, {
-        method: "POST",
-        body: JSON.stringify({
-          title: String(form.get("title")),
-          content: String(form.get("content") || ""),
-          visibility: String(form.get("visibility") || "gm"),
-          scene_id: sceneId || null,
-        }),
-      });
-
-      setHandouts((current) => [handout, ...current]);
-      event.currentTarget.reset();
-      setMessage("Handout cree.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to create handout");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleRevealHandout(handout: Handout) {
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const updated = await request<Handout>(`/api/handouts/${handout.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_revealed: true }),
-      });
-
-      setHandouts((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setMessage(`Handout "${updated.title}" partage aux joueurs.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to reveal handout");
-    } finally {
-      setIsBusy(false);
-    }
+    await createHandout(
+      selectedCampaign.id,
+      String(form.get("title")),
+      String(form.get("content") || ""),
+      String(form.get("visibility") || "gm"),
+      String(form.get("scene_id") || "") || null,
+    );
+    event.currentTarget.reset();
   }
 
   async function handleDeleteHandout(handout: Handout) {
-    if (!confirm(`Supprimer le handout "${handout.title}" ?`)) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      await request<void>(`/api/handouts/${handout.id}`, { method: "DELETE" });
-      setHandouts((current) => current.filter((item) => item.id !== handout.id));
-      setMessage("Handout supprime.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to delete handout");
-    } finally {
-      setIsBusy(false);
-    }
+    if (!confirm(`Supprimer le handout "${handout.title}" ?`)) return;
+    await deleteHandout(handout);
   }
 
-  async function loadAssets(campaignId: string) {
-    try {
-      const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
-      setAssetList(data);
-      setSelectedAssetId((current) => current || data[0]?.id || "");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load assets");
-    }
-  }
 
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -751,20 +335,13 @@ export default function App() {
     setMessage("");
     const form = new FormData(event.currentTarget);
     try {
-      const campaign = await request<Campaign>("/api/campaigns", {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          description: String(form.get("description")),
-        }),
-      });
-      setCampaigns((current) => [campaign, ...current]);
-      setSelectedCampaignId(campaign.id);
-      setLatestInvite(null);
+      await campaign.createCampaign(
+        String(form.get("name")),
+        String(form.get("description")),
+      );
+      campaign.clearLatestInvite();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
-      setPresenceCount(0);
+      clearJournal();
       setSelectedCharacterId("");
       event.currentTarget.reset();
       setMessage("Campagne creee.");
@@ -828,19 +405,12 @@ export default function App() {
   }
 
   async function handleCreateInvite() {
-    if (!selectedCampaign) {
-      return;
-    }
+    if (!selectedCampaign) return;
     setIsBusy(true);
     setMessage("");
     try {
-      const invite = await request<Invite>(`/api/campaigns/${selectedCampaign.id}/invites`, {
-        method: "POST",
-        body: JSON.stringify({ role: "player", expires_in_days: 14, max_uses: 10 }),
-      });
-      setLatestInvite(invite);
+      await campaign.createInvite();
       setMessage("Invitation creee.");
-      void loadInvites();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create invite");
     } finally {
@@ -848,24 +418,11 @@ export default function App() {
     }
   }
 
-  async function loadInvites(campaignId?: string) {
-    const cid = campaignId ?? selectedCampaign?.id;
-    if (!cid) return;
-    try {
-      const invites = await request<Invite[]>(`/api/campaigns/${cid}/invites`);
-      setActiveInvites(invites);
-    } catch {
-      // Silently ignore — user may not be GM
-    }
-  }
-
   async function handleRevokeInvite(token: string) {
     if (!selectedCampaign) return;
     setIsBusy(true);
     try {
-      await request(`/api/invites/${token}/revoke`, { method: "POST" });
-      setActiveInvites((prev) => prev.filter((inv) => inv.token !== token));
-      if (latestInvite?.token === token) setLatestInvite(null);
+      await campaign.revokeInvite(token);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to revoke invite");
     } finally {
@@ -878,6 +435,7 @@ export default function App() {
     if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
     await doRoll(
+      selectedCampaign.id,
       String(form.get("formula")),
       String(form.get("label")),
       String(form.get("mode")) as "normal" | "advantage" | "disadvantage",
@@ -892,78 +450,30 @@ export default function App() {
     mode: "normal" | "advantage" | "disadvantage",
   ) {
     if (!selectedCampaign) return;
-    await doRoll(formula, label, mode, "public", selectedCharacter?.id ?? "");
-  }
-
-  async function doRoll(
-    formula: string,
-    label: string,
-    mode: "normal" | "advantage" | "disadvantage",
-    visibility: string,
-    characterId: string,
-  ) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign?.id}/rolls`, {
-        method: "POST",
-        body: JSON.stringify({
-          formula,
-          label,
-          mode,
-          visibility,
-          character_id: characterId || null,
-        }),
-      });
-      setRolls((current) => [roll, ...current].slice(0, 100));
-      await loadSessionLog(selectedCampaign?.id);
-      setMessage(`Jet: ${roll.total}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to roll dice");
-    } finally {
-      setIsBusy(false);
-    }
+    await quickRoll(selectedCampaign.id, formula, label, mode, selectedCharacter?.id ?? "");
   }
 
   async function handleLogNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCampaign) {
-      return;
-    }
-    setIsBusy(true);
-    setMessage("");
+    if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
-    try {
-      await request<GameLogEntry>(`/api/campaigns/${selectedCampaign.id}/log`, {
-        method: "POST",
-        body: JSON.stringify({
-          message: String(form.get("message")),
-          visibility: String(form.get("visibility")),
-        }),
-      });
-      event.currentTarget.reset();
-      await loadSessionLog(selectedCampaign.id);
-      setMessage("Note ajoutee au journal.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to add note");
-    } finally {
-      setIsBusy(false);
-    }
+    await addLogNote(
+      selectedCampaign.id,
+      String(form.get("message")),
+      String(form.get("visibility")),
+    );
+    event.currentTarget.reset();
   }
 
   function logout() {
-    wsRef.current?.close();
+    ws.wsRef.current?.close();
     authLogout();
-    setCampaigns([]);
-    setMembers([]);
+    campaign.clearCampaigns();
+    campaign.clearMembers();
     setCharacters([]);
-    setRolls([]);
-    setLogEntries([]);
-    setPresenceCount(0);
+    clearJournal();
     setSelectedCharacterId("");
-    setLatestInvite(null);
-    setActiveInvites([]);
-    setSelectedCampaignId("");
+    campaign.clearInvites();
   }
 
   // ── Routing ──────────────────────────────────────────────────
@@ -976,12 +486,10 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
-          inviteAcceptedTokenRef.current = newToken;
           login(newToken);
         }}
         onJoined={async () => {
-          await loadCampaigns(inviteAcceptedTokenRef.current ?? token);
-          inviteAcceptedTokenRef.current = null;
+          await campaign.loadCampaigns(token);
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
@@ -1007,7 +515,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
             if (payload.mode === "register") {
               setInviteToken(null);
               window.history.pushState({}, "", "/");
@@ -1038,7 +546,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
           } catch (err) {
             setMessage(err instanceof Error ? err.message : "Échec");
           } finally {
@@ -1057,7 +565,7 @@ export default function App() {
         userDisplayName={user.display_name}
         onLogout={logout}
         onJoined={() => {
-          void loadCampaigns(token);
+          void campaign.loadCampaigns(token);
         }}
       />
     );
@@ -1091,9 +599,7 @@ export default function App() {
     );
   }
 
-  // 7. GM — has campaign → full VTT interface
-  //     Layout: sidebar | CampaignMap | panels
-
+  // 7. GM — has campaign → full VTT workspace
   return (
     <ErrorBoundary>
       <GmWorkspace
@@ -1132,23 +638,23 @@ export default function App() {
         toggleTheme={toggleTheme}
         toasts={toasts}
         dismissToast={dismissToast}
-        wsRef={wsRef}
+        wsRef={ws.wsRef}
         onLogout={logout}
         handleQuickRoll={handleQuickRoll}
         handleRoll={handleRoll}
         handleLogNote={handleLogNote}
         handleCreateHandout={handleCreateHandout}
-        handleRevealHandout={handleRevealHandout}
+        handleRevealHandout={revealHandout}
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
-        handleMoveToken={handleMoveToken}
+        handleMoveToken={tokenActions.moveToken}
         handleCreateCharacter={handleCreateCharacter}
         handleCreateInvite={handleCreateInvite}
         handleRevokeInvite={handleRevokeInvite}
-        setSelectedCampaignId={setSelectedCampaignId}
+        setSelectedCampaignId={campaign.selectCampaign}
         setSelectedTokenId={setSelectedTokenId}
         setSelectedCharacterId={setSelectedCharacterId}
-        setSelectedSceneId={setSelectedSceneId}
+        setSelectedSceneId={vtt.setSelectedSceneId}
         setInspectedCharacterId={setInspectedCharacterId}
         setShowCharacterWizard={setShowCharacterWizard}
         setShowShortcuts={setShowShortcuts}
@@ -1156,15 +662,13 @@ export default function App() {
         setIsPanelsHidden={setIsPanelsHidden}
         setGmView={setGmView}
         setActiveSessionLiveMode={setActiveSessionLiveMode}
-        setSceneTokens={setSceneTokens}
+        setSceneTokens={vtt.setSceneTokens}
         setCharacters={setCharacters}
         setLogEntries={setLogEntries}
-        setLatestInvite={setLatestInvite}
-        loadCombatState={loadCombatState}
-        loadSceneTokens={loadSceneTokens}
-        loadVttState={loadVttState}
+        loadCombatState={vtt.loadCombatState}
+        loadSceneTokens={vtt.loadSceneTokens}
+        loadVttState={vtt.loadVttState}
         loadCharacters={loadCharacters}
-        loadInvites={loadInvites}
         campaignMapProps={campaignMapProps}
         isMapFloating={isMapFloating}
       />

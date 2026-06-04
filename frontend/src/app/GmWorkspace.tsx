@@ -95,7 +95,7 @@ export type GmWorkspaceProps = {
   handleRevokeInvite: (token: string) => void;
 
   // ── Setters
-  setSelectedCampaignId: React.Dispatch<React.SetStateAction<string>>;
+  setSelectedCampaignId: (id: string) => void;
   setSelectedTokenId: React.Dispatch<React.SetStateAction<string>>;
   setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
   setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
@@ -109,14 +109,14 @@ export type GmWorkspaceProps = {
   setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
-  setLatestInvite: React.Dispatch<React.SetStateAction<Invite | null>>;
+  setLatestInvite?: React.Dispatch<React.SetStateAction<Invite | null>>;
 
   // ── Async callbacks
   loadCombatState: (campaignId: string) => Promise<void>;
   loadSceneTokens: (sceneId: string) => Promise<void>;
   loadVttState: (campaignId: string) => Promise<void>;
   loadCharacters: (campaignId: string) => Promise<void>;
-  loadInvites: (campaignId?: string) => Promise<void>;
+  loadInvites?: (campaignId?: string) => Promise<void>;
 };
 
 // ── Lazy-loaded heavy components ────────────────────────────────────────────
@@ -235,8 +235,8 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               key={c.id}
               onClick={() => {
                 setSelectedCampaignId(c.id);
-                setLatestInvite(null);
-                void loadInvites(c.id);
+                if (setLatestInvite) setLatestInvite(null);
+                if (loadInvites) { void loadInvites(c.id); }
               }}
               type="button"
               aria-label={`${c.name} — ${c.member_count} membres`}
