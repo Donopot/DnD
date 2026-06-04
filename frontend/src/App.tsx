@@ -61,9 +61,6 @@ import type {
   Asset,
   AuthResponse,
   Character,
-  Combatant,
-  Encounter,
-  EncounterDetail,
   GameLogEntry,
   Handout,
   Roll,
@@ -85,7 +82,10 @@ export default function App() {
   const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
   const vtt = useVttState(token);
-  const { scenes, selectedSceneId, selectedScene, sceneTokens } = vtt;
+  const {
+    scenes, selectedSceneId, selectedScene, sceneTokens,
+    encounters, selectedEncounterId,
+  } = vtt;
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
@@ -96,9 +96,6 @@ export default function App() {
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [, setAssetList] = useState<Asset[]>([]);
   const [, setSelectedAssetId] = useState<string>("");
-  const [encounters, setEncounters] = useState<Encounter[]>([]);
-  const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
-  const [, setCombatants] = useState<Combatant[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
@@ -250,7 +247,7 @@ export default function App() {
     void loadSessionLog(selectedCampaign.id);
     void vtt.loadVttState(selectedCampaign.id);
     void loadAssets(selectedCampaign.id);
-    void loadCombatState(selectedCampaign.id);
+    void vtt.loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [token, selectedCampaign?.id]);
 
@@ -317,7 +314,7 @@ export default function App() {
           }
 
           if (payload.resource === "encounter") {
-            void loadCombatState(selectedCampaign.id);
+            void vtt.loadCombatState(selectedCampaign.id);
           }
 
           if (payload.resource === "handout") {
@@ -520,59 +517,6 @@ export default function App() {
     }
   }
 
-  function updateEncounterFromDetail(detail: EncounterDetail) {
-    setEncounters((current) => {
-      const summary: Encounter = {
-        id: detail.id,
-        campaign_id: detail.campaign_id,
-        scene_id: detail.scene_id,
-        name: detail.name,
-        status: detail.status,
-        round_number: detail.round_number,
-        turn_index: detail.turn_index,
-        active_combatant_id: detail.active_combatant_id,
-        created_at: detail.created_at,
-        updated_at: detail.updated_at,
-      };
-
-      if (current.some((item) => item.id === detail.id)) {
-        return current.map((item) => (item.id === detail.id ? summary : item));
-      }
-
-      return [summary, ...current];
-    });
-
-    setCombatants(detail.combatants);
-  }
-
-  async function loadEncounterDetail(encounterId: string) {
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${encounterId}`);
-      updateEncounterFromDetail(detail);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load encounter");
-    }
-  }
-
-  async function loadCombatState(campaignId: string) {
-    try {
-      const data = await request<Encounter[]>(`/api/campaigns/${campaignId}/encounters`);
-      setEncounters(data);
-
-      if (data.length === 0) {
-        setSelectedEncounterId("");
-        setCombatants([]);
-        return;
-      }
-
-      const effectiveEncounter =
-        data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
-      setSelectedEncounterId(effectiveEncounter.id);
-      await loadEncounterDetail(effectiveEncounter.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load combat state");
-    }
-  }
 
   async function loadHandouts(campaignId: string) {
     try {
@@ -1173,7 +1117,7 @@ export default function App() {
             setShowCharacterWizard={setShowCharacterWizard}
             setCharacters={setCharacters}
             setLogEntries={setLogEntries}
-            loadCombatState={loadCombatState}
+            loadCombatState={vtt.loadCombatState}
             loadSceneTokens={vtt.loadSceneTokens}
             loadVttState={vtt.loadVttState}
           />
@@ -1209,7 +1153,7 @@ export default function App() {
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
         handleMoveToken={handleMoveToken}
-        loadCombatState={loadCombatState}
+        loadCombatState={vtt.loadCombatState}
         loadSceneTokens={vtt.loadSceneTokens}
         loadVttState={vtt.loadVttState}
         setSelectedTokenId={setSelectedTokenId}
