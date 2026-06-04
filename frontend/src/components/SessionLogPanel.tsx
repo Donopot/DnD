@@ -1,6 +1,7 @@
 import { Bookmark, Dices, Filter, Pin, PinOff } from "lucide-react";
 import { useContext, type FormEvent } from "react";
 
+import { apiRequest } from "../api/client";
 import type { Character, GameLogEntry, Roll } from "../api/types";
 import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
 import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
@@ -55,12 +56,8 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
 
   async function togglePin(entry: GameLogEntry) {
     try {
-      await fetch(`/api/log-entries/${entry.id}/pin`, {
+      await apiRequest(`/api/log-entries/${entry.id}/pin`, token, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ pinned: !entry.pinned }),
       });
       onRefresh?.();
@@ -71,14 +68,10 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
 
   async function setCategory(entry: GameLogEntry, category: string) {
     try {
-      await fetch(
+      await apiRequest(
         `/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        token,
+        { method: "PATCH" },
       );
       onRefresh?.();
     } catch {
@@ -90,17 +83,11 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
     if (!campaignId) return;
 
     try {
-      const response = await fetch(`/api/campaigns/${campaignId}/log/session-marker`, {
+      await apiRequest(`/api/campaigns/${campaignId}/log/session-marker`, token, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ label: "Nouvelle session" }),
       });
-      if (response.ok) {
-        onRefresh?.();
-      }
+      onRefresh?.();
     } catch {
       // silent
     }
