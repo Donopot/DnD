@@ -585,18 +585,9 @@ export default function App() {
     try {
       switch (action) {
         case "duplicate": {
-          // Create a new token with same properties
-          if (!selectedScene) break;
-          const dup = await request<SceneToken>(`/api/scenes/${selectedScene.id}/tokens`, {
+          // Use dedicated duplicate endpoint
+          const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
             method: "POST",
-            body: JSON.stringify({
-              name: `${tokenToAct.name} (copie)`,
-              x: tokenToAct.x + 50,
-              y: tokenToAct.y + 50,
-              color: tokenToAct.color,
-              size: tokenToAct.size,
-              character_id: tokenToAct.character_id,
-            }),
           });
           setSceneTokens((current) => [...current, dup]);
           break;
@@ -619,9 +610,18 @@ export default function App() {
           setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
           break;
         }
-        case "front":
+        case "front": {
+          const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
+            method: "POST",
+          });
+          setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
+          break;
+        }
         case "back": {
-          setMessage("Z-index : fonctionnalité à venir.");
+          const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
+            method: "POST",
+          });
+          setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
           break;
         }
         case "damage":

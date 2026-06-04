@@ -278,6 +278,7 @@ class TokenCreateRequest(BaseModel):
     color: str = Field(default="#7c3aed", max_length=32)
     is_hidden: bool = False
     vision_radius: int = Field(default=0, ge=0, description="Vision radius in feet for auto fog reveal")
+    z_index: int = Field(default=0, description="Display layer ordering")
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -290,6 +291,7 @@ class TokenUpdateRequest(BaseModel):
     color: str | None = Field(default=None, max_length=32)
     is_hidden: bool | None = None
     vision_radius: int | None = Field(default=None, ge=0)
+    z_index: int | None = None
     metadata: dict[str, Any] | None = None
 
 
@@ -304,6 +306,7 @@ class TokenPublic(BaseModel):
     color: str
     is_hidden: bool
     vision_radius: int = 0
+    z_index: int = 0
     metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
