@@ -8,7 +8,7 @@ import {
   Swords,
   UserPlus,
 } from "lucide-react";
-import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
@@ -34,6 +34,7 @@ import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
 import { useVttState } from "./hooks/useVttState";
 import { useTokenActions } from "./hooks/useTokenActions";
+import { useRealtimeSession } from "./hooks/useRealtimeSession";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -95,10 +96,6 @@ export default function App() {
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
-  const [presenceCount, setPresenceCount] = useState(0);
-  const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
-    "offline",
-  );
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
@@ -114,7 +111,23 @@ export default function App() {
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
-  const wsRef = useRef<WebSocket | null>(null);
+
+  const ws = useRealtimeSession({
+    token,
+    campaignId: selectedCampaign?.id,
+    selectedSceneId: selectedScene?.id,
+    onError: setMessage,
+    onSessionSceneToken: () => { void vtt.loadVttState(selectedCampaign!.id); },
+    onSessionEncounter: () => { void vtt.loadCombatState(selectedCampaign!.id); },
+    onSessionHandout: () => { void loadHandouts(selectedCampaign!.id); },
+    onSessionLog: () => { void loadSessionLog(selectedCampaign!.id); },
+    onTokenMoved: (tokenId, x, y) => {
+      vtt.setSceneTokens((current) =>
+        current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
+      );
+    },
+  });
+  const { presenceCount, realtimeStatus } = ws;
 
   const tokenActions = useTokenActions({
     token,
@@ -154,7 +167,7 @@ export default function App() {
     );
     return {
       isGM: true as const,
-      wsRef,
+      wsRef: ws.wsRef,
       permissions: {
         canSelectToken: () => true,
         canMoveToken: () => true,
@@ -180,7 +193,6 @@ export default function App() {
         void handleTokenBatchAction(action, ts, v),
     };
   }, [
-    wsRef,
     sceneTokens,
     characters,
     user?.id,
@@ -245,7 +257,6 @@ export default function App() {
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
-      setPresenceCount(0);
       return;
     }
     campaign.selectCampaign(selectedCampaign.id);
@@ -269,121 +280,6 @@ export default function App() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
-
-  const MAX_RECONNECT = 3;
-  const reconnectAttempts = useRef(0);
-  const reconnectTimer = useRef<number | undefined>(undefined);
-
-  function connect() {
-    wsRef.current?.close();
-    if (reconnectTimer.current) {
-      window.clearTimeout(reconnectTimer.current);
-      reconnectTimer.current = undefined;
-    }
-
-    if (!token || !selectedCampaign?.id) {
-      setRealtimeStatus("offline");
-      return;
-    }
-
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${selectedCampaign.id}`,
-    );
-    wsRef.current = socket;
-    setRealtimeStatus("connecting");
-
-    socket.onopen = () => {
-      reconnectAttempts.current = 0;
-      const activeToken = auth.token || "";
-      socket.send(JSON.stringify({ type: "auth", token: activeToken }));
-      setRealtimeStatus("online");
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-
-        if (payload.type === "error" && payload.detail) {
-          setMessage(`WebSocket: ${payload.detail}`);
-          return;
-        }
-
-        if (typeof payload.presence_count === "number") {
-          setPresenceCount(payload.presence_count);
-        }
-
-        if (payload.type === "session_changed") {
-          void loadSessionLog(selectedCampaign.id);
-
-          if (payload.resource === "scene" || payload.resource === "token") {
-            void vtt.loadVttState(selectedCampaign.id);
-          }
-
-          if (payload.resource === "encounter") {
-            void vtt.loadCombatState(selectedCampaign.id);
-          }
-
-          if (payload.resource === "handout") {
-            void loadHandouts(selectedCampaign.id);
-          }
-        }
-
-        if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
-          vtt.setSceneTokens((current) =>
-            current.map((sceneToken) =>
-              sceneToken.id === payload.token_id
-                ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
-                : sceneToken,
-            ),
-          );
-        }
-      } catch {
-        /* ignore malformed messages */
-      }
-    };
-
-    socket.onclose = (event) => {
-      if (wsRef.current !== socket) return;
-      setRealtimeStatus("offline");
-
-      // Don't reconnect on auth failure (code 1008 = policy violation)
-      if (event.code === 1008) {
-        setMessage("WebSocket authentication failed — re-login required");
-        return;
-      }
-
-      // Exponential backoff: 1s, 2s, 4s, max 3 attempts
-      if (reconnectAttempts.current < MAX_RECONNECT) {
-        reconnectAttempts.current += 1;
-        const delay = Math.pow(2, reconnectAttempts.current - 1) * 1000;
-        setMessage(`WebSocket disconnected — retrying in ${delay / 1000}s…`);
-        reconnectTimer.current = window.setTimeout(() => {
-          connect();
-        }, delay);
-      } else {
-        setMessage("WebSocket disconnected — max retries reached");
-      }
-    };
-
-    socket.onerror = () => {
-      // onclose will fire after onerror — reconnect handled there
-      setRealtimeStatus("offline");
-    };
-  }
-
-  useEffect(() => {
-    setPresenceCount(0);
-    connect();
-
-    return () => {
-      wsRef.current?.close();
-      if (reconnectTimer.current) {
-        window.clearTimeout(reconnectTimer.current);
-        reconnectTimer.current = undefined;
-      }
-    };
-  }, [token, selectedCampaign?.id, selectedScene?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return apiRequest<T>(path, auth.token, options);
@@ -541,7 +437,6 @@ export default function App() {
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
-      setPresenceCount(0);
       setSelectedCharacterId("");
       event.currentTarget.reset();
       setMessage("Campagne creee.");
@@ -709,14 +604,13 @@ export default function App() {
   }
 
   function logout() {
-    wsRef.current?.close();
+    ws.wsRef.current?.close();
     authLogout();
     campaign.clearCampaigns();
     campaign.clearMembers();
     setCharacters([]);
     setRolls([]);
     setLogEntries([]);
-    setPresenceCount(0);
     setSelectedCharacterId("");
     campaign.clearInvites();
   }
@@ -1012,7 +906,7 @@ export default function App() {
             logEntries={logEntries}
             members={members}
             encounters={encounters}
-            wsRef={wsRef}
+            wsRef={ws.wsRef}
             user={user}
             isBusy={isBusy}
             latestInvite={latestInvite}
@@ -1056,7 +950,7 @@ export default function App() {
         rolls={rolls}
         logEntries={logEntries}
         members={members}
-        wsRef={wsRef}
+        wsRef={ws.wsRef}
         user={user}
         isBusy={isBusy}
         selectedSceneId={selectedSceneId}
