@@ -253,8 +253,7 @@ export function GmFloatingPanels(props: GmFloatingPanelsProps) {
             {panel.id === "npc-generator" && <NpcGenerator />}
             {panel.id === MAP_PANEL_ID && (
               <div className="floating-map-panel">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <CampaignMap {...(campaignMapProps as any)} />
+                <CampaignMap {...campaignMapProps} />
               </div>
             )}
             {panel.id === "scene" && (
