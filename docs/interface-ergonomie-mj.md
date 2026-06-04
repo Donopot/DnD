@@ -15,18 +15,19 @@ Ce document complete `docs/frontend-ui.md` et `docs/vtt-map-fog.md` :
 
 ## Contexte GitHub
 
-Etat observe via GitHub le 4 juin 2026 :
+Etat observe via GitHub le 4 juin 2026, apres merge des PR GM-2F/3C/3D :
 
-| PR | Sujet | Impact UI |
-|----|-------|-----------|
-| #54 | Conditions panel | Ajoute la gestion des etats en session live |
-| #55 | Active encounter panel | Ajoute une vue de rencontre active avec objectifs/loot |
-| #57 | Review checklist AGENTS | Renforce les regles de review UI/CSS |
-| #58 | Quick actions dice row | Ameliore les actions rapides et le scoping CSS |
+| PR | Sujet | Statut | Impact UI |
+|----|-------|--------|-----------|
+| #54 | Conditions panel | Mergee | Ajoute la gestion des etats en session live |
+| #55 | Active encounter panel | Mergee | Ajoute une vue de rencontre active avec objectifs/loot |
+| #57 | Review checklist AGENTS | Mergee | Renforce les regles de review UI/CSS |
+| #58 | Quick actions dice row | Mergee | Ameliore les actions rapides et le scoping CSS |
 
-Ces PR vont dans le bon sens : elles densifient le cockpit MJ. La refonte
-ergonomique doit maintenant organiser ces outils autour des workflows reels de
-session, au lieu d'ajouter des panneaux de facon lineaire.
+Ces PR ont pose le socle des panneaux MJ recents : actions rapides, conditions,
+rencontre active et checklist de review. La refonte ergonomique doit maintenant
+organiser ces outils autour des workflows reels de session, au lieu d'ajouter des
+panneaux de facon lineaire.
 
 ## Objectifs produit
 
@@ -622,7 +623,8 @@ Objectif : aligner les agents et le produit.
 
 - Ajouter ce document.
 - Lier depuis `docs/frontend-ui.md` ou `docs/README.md` si necessaire.
-- Mettre a jour le registre des travaux actifs si les PR #54/#55/#58 sont mergees.
+- Marquer les PR #54, #55, #57 et #58 comme socle deja merge dans `main`.
+- Garder ce document comme cadrage vivant pour les prochaines refontes UI.
 
 ### PR 2 — PanelRenderer et registry de rendu
 
@@ -756,7 +758,7 @@ La refonte est consideree reussie si :
 
 ## Ordre de priorité recommandé
 
-1. Merge ou stabiliser les PR #54, #55, #58.
+1. Valider en session le socle merge : Quick Actions, Conditions et Rencontre active.
 2. Introduire `PanelRenderer`.
 3. Ajouter presets de layout.
 4. Ajouter overrides MJ explicites.
