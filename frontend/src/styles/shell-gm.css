@@ -1145,62 +1145,8 @@ select {
 
 /* End Sprint GM-2D - Party summary panel */
 
-/* ── Sprint GM-2E - Initiative panel ── */
+/* ── Sprint GM-2E - Initiative panel (refactored with gm-panel-* common CSS) ── */
 /* Sprint GM-2E - Initiative panel */
-
-.initiative-panel {
-  display: grid;
-  gap: 10px;
-}
-
-.initiative-panel-header {
-  display: grid;
-  gap: 8px;
-}
-
-.initiative-panel-header span {
-  display: grid;
-  gap: 2px;
-}
-
-.initiative-panel-header strong {
-  color: var(--text-normal);
-  font-size: 0.86rem;
-}
-
-.initiative-panel-header small {
-  color: var(--text-weak);
-  font-size: 0.68rem;
-  font-weight: 750;
-}
-
-.initiative-panel-header div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.initiative-panel button {
-  min-height: 28px;
-  padding: 4px 8px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--bg-surface-secondary);
-  color: var(--text-normal);
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.initiative-panel button:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  background: var(--accent-dim);
-  color: var(--brand-green);
-}
-
-.initiative-panel button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
 
 .initiative-list {
   display: grid;
@@ -1208,20 +1154,8 @@ select {
 }
 
 .initiative-row {
-  display: grid;
   grid-template-columns: 32px minmax(0, 1fr) 64px 44px;
   align-items: center;
-  gap: 6px;
-  padding: 7px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  background: var(--bg-surface-secondary);
-}
-
-.initiative-row.active {
-  border-color: var(--accent-primary);
-  background: var(--accent-dim);
-  box-shadow: inset 0 0 0 1px var(--border-subtle);
 }
 
 .initiative-turn-button {
@@ -1238,7 +1172,6 @@ select {
 
 .initiative-row strong {
   overflow: hidden;
-  color: var(--text-normal);
   font-size: 0.78rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1246,9 +1179,7 @@ select {
 
 .initiative-row small {
   overflow: hidden;
-  color: var(--text-weak);
   font-size: 0.62rem;
-  font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1267,11 +1198,6 @@ select {
   text-align: center;
 }
 
-.initiative-panel-footer {
-  display: flex;
-  justify-content: flex-end;
-}
-
 @media (max-width: 760px) {
   .initiative-row {
     grid-template-columns: 30px minmax(0, 1fr);
@@ -1285,7 +1211,7 @@ select {
 
 /* End Sprint GM-2E - Initiative panel */
 
-/* ── Sprint GM-2F - Quick actions panel ── */
+/* ── Sprint GM-2F - Quick actions panel (refactored with gm-panel-* common CSS) ── */
 /* Sprint GM-2F - Quick actions panel */
 
 .quick-actions button:hover:not(:disabled) {
@@ -1294,42 +1220,11 @@ select {
   color: var(--accent-primary);
 }
 
-@media (max-width: 760px) {
-  .quick-actions-context,
-  .quick-actions-grid,
-  .quick-actions-dice {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* End Sprint GM-2F - Quick actions panel */
 
-/* ── Sprint GM-2G - Visibility inspector panel ── */
+/* ── Sprint GM-2G - Visibility inspector panel (refactored with gm-panel-* common CSS) ── */
 /* Sprint GM-2G - Visibility inspector panel */
 
-.visibility-inspector-panel {
-  display: grid;
-  gap: 12px;
-}
-
-.visibility-inspector-panel section {
-  display: grid;
-  gap: 7px;
-}
-
-.visibility-inspector-panel section > strong {
-  color: var(--text-normal);
-  font-size: 0.76rem;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.visibility-inspector-overview {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.visibility-inspector-overview article,
 .visibility-token-card,
 .visibility-token-list article {
   display: grid;
@@ -1340,7 +1235,6 @@ select {
   background: var(--bg-surface-secondary);
 }
 
-.visibility-inspector-overview span,
 .visibility-token-card small,
 .visibility-token-list small {
   color: var(--text-weak);
@@ -1348,7 +1242,6 @@ select {
   font-weight: 850;
 }
 
-.visibility-inspector-overview strong,
 .visibility-token-card b,
 .visibility-token-list b {
   overflow: hidden;
@@ -1399,38 +1292,10 @@ select {
   font-weight: 750;
 }
 
-.visibility-filter-buttons,
 .visibility-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.visibility-actions {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.visibility-inspector-panel button {
-  min-height: 30px;
-  padding: 5px 8px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--bg-surface-secondary);
-  color: var(--text-normal);
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.visibility-inspector-panel button.active,
-.visibility-inspector-panel button:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  background: var(--accent-dim);
-  color: var(--brand-green);
-}
-
-.visibility-inspector-panel button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  gap: 6px;
 }
 
 .visibility-toggle-btn {
@@ -1457,15 +1322,7 @@ select {
   min-width: 0;
 }
 
-.visibility-inspector-panel footer small {
-  color: var(--text-weak);
-  font-size: 0.66rem;
-  font-weight: 750;
-}
-
 @media (max-width: 760px) {
-  .visibility-inspector-overview,
-  .visibility-filter-buttons,
   .visibility-actions {
     grid-template-columns: 1fr;
   }
@@ -1638,21 +1495,6 @@ select {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
-}
-
-@media (max-width: 760px) {
-  .quick-actions-context-card,
-  .quick-actions-button-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions-preset-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .quick-actions-dice-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 /* End Quick Actions compact stabilization */
@@ -2099,6 +1941,13 @@ select {
 .gm-panel-button:hover:not(:disabled),
 .gm-panel-actions button:hover:not(:disabled),
 .gm-panel-content button:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+}
+
+.gm-panel-button.active,
+.gm-panel-actions button.active {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);

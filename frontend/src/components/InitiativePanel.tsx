@@ -175,32 +175,37 @@ export function InitiativePanel({ sceneId, sceneTokens }: InitiativePanelProps) 
   }
 
   return (
-    <div className="initiative-panel">
-      <header className="initiative-panel-header">
-        <span>
-          <strong>Round {initiativeState.round}</strong>
-          <small>{orderedTokens.length} combattant(s)</small>
-        </span>
+    <div className="gm-panel-content initiative-panel" data-vtt-panel>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <span>
+            <strong>Round {initiativeState.round}</strong>
+            <small>{orderedTokens.length} combattant(s)</small>
+          </span>
 
-        <div>
-          <button disabled={sceneTokens.length === 0} onClick={rollInitiativeForAll} type="button">
-            Tout lancer
-          </button>
-          <button disabled={orderedTokens.length === 0} onClick={goToNextTurn} type="button">
-            Tour suivant
-          </button>
-        </div>
-      </header>
+          <div className="gm-panel-actions">
+            <button disabled={sceneTokens.length === 0} onClick={rollInitiativeForAll} type="button">
+              Tout lancer
+            </button>
+            <button disabled={orderedTokens.length === 0} onClick={goToNextTurn} type="button">
+              Tour suivant
+            </button>
+          </div>
+        </header>
+      </section>
 
       {sceneTokens.length === 0 ? (
-        <p className="muted">Aucun token sur cette scène.</p>
+        <p className="gm-panel-muted">Aucun token sur cette scène.</p>
       ) : (
-        <div className="initiative-list">
+        <div className="gm-panel-list initiative-list">
           {orderedTokens.map((token, index) => {
             const isActive = initiativeState.activeTokenId === token.id;
 
             return (
-              <article className={`initiative-row ${isActive ? "active" : ""}`} key={token.id}>
+              <article
+                className={`gm-panel-row initiative-row ${isActive ? "selected" : ""}`}
+                key={token.id}
+              >
                 <button
                   className="initiative-turn-button"
                   onClick={() => selectActiveToken(token.id)}
@@ -236,7 +241,7 @@ export function InitiativePanel({ sceneId, sceneTokens }: InitiativePanelProps) 
         </div>
       )}
 
-      <footer className="initiative-panel-footer">
+      <footer className="gm-panel-footer">
         <button disabled={sceneTokens.length === 0} onClick={resetInitiative} type="button">
           Reset initiative
         </button>
