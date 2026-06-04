@@ -1145,68 +1145,21 @@ select {
 
 /* End Sprint GM-2D - Party summary panel */
 
-/* ── Sprint GM-2E - Initiative panel (refactored with gm-panel-* common CSS) ── */
+/* ── Sprint GM-2E - Initiative panel (backend-integrated) ── */
 /* Sprint GM-2E - Initiative panel */
 
-.initiative-list {
-  display: grid;
-  gap: 7px;
-}
-
-.initiative-row {
-  grid-template-columns: 32px minmax(0, 1fr) 64px 44px;
+.initiative-panel .initiative-badge {
+  display: inline-flex;
   align-items: center;
-}
-
-.initiative-turn-button {
-  width: 28px;
-  min-width: 28px;
-  padding: 0;
-}
-
-.initiative-row span {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.initiative-row strong {
-  overflow: hidden;
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.initiative-row small {
-  overflow: hidden;
-  font-size: 0.62rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.initiative-row input {
-  width: 100%;
-  min-height: 30px;
-  padding: 4px 6px;
-  border: 1px solid var(--border-subtle);
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
   border-radius: 8px;
-  background: var(--bg-surface-secondary);
-  color: var(--text-normal);
-  font: inherit;
-  font-size: 0.76rem;
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  font-size: 0.78rem;
   font-weight: 900;
-  text-align: center;
-}
-
-@media (max-width: 760px) {
-  .initiative-row {
-    grid-template-columns: 30px minmax(0, 1fr);
-  }
-
-  .initiative-row input,
-  .initiative-row > button:last-child {
-    grid-column: span 1;
-  }
 }
 
 /* End Sprint GM-2E - Initiative panel */

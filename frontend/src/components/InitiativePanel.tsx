@@ -1,251 +1,292 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { Play, SkipForward, Square, Swords, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import type { SceneToken } from "../api/types";
+import type { Combatant, Encounter, EncounterDetail } from "../api/types";
 
-type InitiativeState = {
-  initiatives: Record<string, string>;
-  activeTokenId: string;
-  round: number;
-};
+// ── Types ──────────────────────────────────────────────────────────────────
 
 type InitiativePanelProps = {
-  sceneId: string;
-  sceneTokens: SceneToken[];
+  campaignId: string;
+  token: string;
 };
 
-function getStorageKey(sceneId: string) {
-  return `dnd-initiative:${sceneId}`;
-}
+// ── Component ──────────────────────────────────────────────────────────────
 
-function readStoredInitiative(sceneId: string): InitiativeState {
-  if (!sceneId) {
-    return {
-      initiatives: {},
-      activeTokenId: "",
-      round: 1,
-    };
-  }
+export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [detail, setDetail] = useState<EncounterDetail | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  try {
-    const rawValue = window.localStorage.getItem(getStorageKey(sceneId));
-
-    if (!rawValue) {
-      return {
-        initiatives: {},
-        activeTokenId: "",
-        round: 1,
-      };
-    }
-
-    return {
-      initiatives: {},
-      activeTokenId: "",
-      round: 1,
-      ...(JSON.parse(rawValue) as Partial<InitiativeState>),
-    };
-  } catch {
-    return {
-      initiatives: {},
-      activeTokenId: "",
-      round: 1,
-    };
-  }
-}
-
-function getInitiativeValue(value: string) {
-  const parsed = Number.parseInt(value, 10);
-
-  return Number.isFinite(parsed) ? parsed : -999;
-}
-
-export function InitiativePanel({ sceneId, sceneTokens }: InitiativePanelProps) {
-  const [initiativeState, setInitiativeState] = useState<InitiativeState>(() =>
-    readStoredInitiative(sceneId),
+  const headers = useMemo(
+    () => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    }),
+    [token],
   );
 
-  useEffect(() => {
-    const currentSceneId = sceneId;
+  // ── Load encounters ──────────────────────────────────────────────────
 
-    setInitiativeState(readStoredInitiative(currentSceneId));
-  }, [sceneId]);
-
-  const orderedTokens = useMemo(() => {
-    return [...sceneTokens].sort((left, right) => {
-      const leftInitiative = getInitiativeValue(initiativeState.initiatives[left.id] ?? "");
-      const rightInitiative = getInitiativeValue(initiativeState.initiatives[right.id] ?? "");
-
-      if (rightInitiative !== leftInitiative) {
-        return rightInitiative - leftInitiative;
+  async function loadEncounters() {
+    if (!campaignId) return;
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/encounters`, { headers });
+      if (!res.ok) return;
+      const data: Encounter[] = await res.json();
+      setEncounters(data);
+      // Auto-select active encounter, then first non-ended
+      const active = data.find((e) => e.status === "active");
+      if (active) {
+        setSelectedId(active.id);
+      } else if (data.length > 0 && !selectedId) {
+        setSelectedId(data[0].id);
       }
-
-      return left.name.localeCompare(right.name);
-    });
-  }, [initiativeState.initiatives, sceneTokens]);
-
-  function persist(nextState: InitiativeState) {
-    if (!sceneId) {
-      return;
+    } catch {
+      /* ignore */
     }
-
-    window.localStorage.setItem(getStorageKey(sceneId), JSON.stringify(nextState));
   }
 
-  function updateState(updater: (current: InitiativeState) => InitiativeState) {
-    setInitiativeState((current) => {
-      const nextState = updater(current);
+  useEffect(() => {
+    void loadEncounters();
+  }, [campaignId, token]);
 
-      persist(nextState);
+  // ── Load encounter detail ────────────────────────────────────────────
 
-      return nextState;
-    });
+  async function loadDetail(encounterId: string) {
+    if (!encounterId) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/encounters/${encounterId}`, { headers });
+      if (!res.ok) return;
+      const data: EncounterDetail = await res.json();
+      setDetail(data);
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function handleInitiativeChange(tokenId: string, event: ChangeEvent<HTMLInputElement>) {
-    const nextValue = event.target.value;
+  useEffect(() => {
+    if (selectedId) void loadDetail(selectedId);
+  }, [selectedId]);
 
-    updateState((current) => ({
-      ...current,
-      initiatives: {
-        ...current.initiatives,
-        [tokenId]: nextValue,
-      },
-    }));
+  // ── Actions ───────────────────────────────────────────────────────────
+
+  async function call(endpoint: string, method = "POST") {
+    setBusy(true);
+    try {
+      const res = await fetch(endpoint, { method, headers });
+      if (res.ok) {
+        const data: EncounterDetail = await res.json();
+        setDetail(data);
+        // Refresh encounter list to update status
+        void loadEncounters();
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function rollInitiativeForToken(tokenId: string) {
-    const roll = Math.floor(Math.random() * 20) + 1;
+  function startEncounter() { if (selectedId) void call(`/api/encounters/${selectedId}/start`); }
+  function nextTurn() { if (selectedId) void call(`/api/encounters/${selectedId}/next-turn`); }
+  function endEncounter() { if (selectedId) void call(`/api/encounters/${selectedId}/end`); }
 
-    updateState((current) => ({
-      ...current,
-      initiatives: {
-        ...current.initiatives,
-        [tokenId]: String(roll),
-      },
-    }));
-  }
-
-  function rollInitiativeForAll() {
-    updateState((current) => {
-      const nextInitiatives = { ...current.initiatives };
-
-      sceneTokens.forEach((token) => {
-        nextInitiatives[token.id] = String(Math.floor(Math.random() * 20) + 1);
+  async function toggleDefeated(combatantId: string, currentDefeated: boolean) {
+    try {
+      const res = await fetch(`/api/combatants/${combatantId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ is_defeated: !currentDefeated }),
       });
-
-      return {
-        ...current,
-        initiatives: nextInitiatives,
-        activeTokenId: sceneTokens[0]?.id ?? "",
-        round: Math.max(1, current.round),
-      };
-    });
-  }
-
-  function selectActiveToken(tokenId: string) {
-    updateState((current) => ({
-      ...current,
-      activeTokenId: tokenId,
-    }));
-  }
-
-  function goToNextTurn() {
-    if (orderedTokens.length === 0) {
-      return;
+      if (res.ok && selectedId) void loadDetail(selectedId);
+    } catch {
+      /* ignore */
     }
-
-    updateState((current) => {
-      const activeIndex = orderedTokens.findIndex((token) => token.id === current.activeTokenId);
-      const nextIndex = activeIndex === -1 ? 0 : (activeIndex + 1) % orderedTokens.length;
-      const nextRound = activeIndex !== -1 && nextIndex === 0 ? current.round + 1 : current.round;
-
-      return {
-        ...current,
-        activeTokenId: orderedTokens[nextIndex]?.id ?? "",
-        round: nextRound,
-      };
-    });
   }
 
-  function resetInitiative() {
-    updateState(() => ({
-      initiatives: {},
-      activeTokenId: "",
-      round: 1,
-    }));
+  // ── Computed ──────────────────────────────────────────────────────────
+
+  const combatants = detail?.combatants ?? [];
+  const activeId = detail?.active_combatant_id;
+  const isActive = detail?.status === "active";
+  const isEnded = detail?.status === "ended";
+  const isDraft = detail?.status === "draft";
+
+  const activeCombatants = useMemo(
+    () => combatants.filter((c) => !c.is_defeated),
+    [combatants],
+  );
+  const defeatedCombatants = useMemo(
+    () => combatants.filter((c) => c.is_defeated),
+    [combatants],
+  );
+
+  // ── Render ───────────────────────────────────────────────────────────
+
+  if (!campaignId) {
+    return (
+      <div className="gm-panel-content initiative-panel" data-vtt-panel>
+        <p className="gm-panel-muted">Sélectionnez une campagne.</p>
+      </div>
+    );
   }
 
   return (
     <div className="gm-panel-content initiative-panel" data-vtt-panel>
+      {/* ── Encounter selector ────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <span>
-            <strong>Round {initiativeState.round}</strong>
-            <small>{orderedTokens.length} combattant(s)</small>
-          </span>
-
-          <div className="gm-panel-actions">
-            <button disabled={sceneTokens.length === 0} onClick={rollInitiativeForAll} type="button">
-              Tout lancer
-            </button>
-            <button disabled={orderedTokens.length === 0} onClick={goToNextTurn} type="button">
-              Tour suivant
-            </button>
-          </div>
+          <strong><Swords size={12} /> Combat</strong>
         </header>
+
+        {encounters.length === 0 ? (
+          <p className="gm-panel-muted">
+            Aucun combat. Créez un combat dans le panneau Combat.
+          </p>
+        ) : (
+          <div className="gm-panel-actions">
+            {encounters.map((e) => (
+              <button
+                key={e.id}
+                onClick={() => setSelectedId(e.id)}
+                type="button"
+                className={selectedId === e.id ? "active" : ""}
+              >
+                {e.status === "active" ? <Play size={12} /> : e.status === "ended" ? <Square size={12} /> : <Users size={12} />}{" "}
+                {e.name}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
-      {sceneTokens.length === 0 ? (
-        <p className="gm-panel-muted">Aucun token sur cette scène.</p>
-      ) : (
-        <div className="gm-panel-list initiative-list">
-          {orderedTokens.map((token, index) => {
-            const isActive = initiativeState.activeTokenId === token.id;
+      {/* ── Round & status ────────────────────────────────────────── */}
+      {detail && (
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong>{detail.name}</strong>
+            <small>
+              Round {detail.round_number}
+              {isActive && ` · Tour ${detail.turn_index + 1}/${activeCombatants.length}`}
+              {isDraft && " · Préparation"}
+              {isEnded && " · Terminé"}
+            </small>
+          </header>
 
-            return (
-              <article
-                className={`gm-panel-row initiative-row ${isActive ? "selected" : ""}`}
-                key={token.id}
-              >
-                <button
-                  className="initiative-turn-button"
-                  onClick={() => selectActiveToken(token.id)}
-                  title="Définir comme tour actif"
-                  type="button"
-                >
-                  {isActive ? "▶" : index + 1}
+          {/* ── Controls ──────────────────────────────────────────── */}
+          <div className="gm-panel-actions">
+            {isDraft && (
+              <button disabled={busy || combatants.length === 0} onClick={startEncounter} type="button">
+                <Play size={12} /> Démarrer le combat
+              </button>
+            )}
+            {isActive && (
+              <>
+                <button disabled={busy} onClick={nextTurn} type="button">
+                  <SkipForward size={12} /> Tour suivant
                 </button>
-
-                <span>
-                  <strong>{token.name}</strong>
-                  <small>
-                    x {token.x} · y {token.y}
-                    {token.is_hidden ? " · caché" : ""}
-                  </small>
-                </span>
-
-                <input
-                  aria-label={`Initiative de ${token.name}`}
-                  inputMode="numeric"
-                  onChange={(event) => handleInitiativeChange(token.id, event)}
-                  placeholder="-"
-                  type="number"
-                  value={initiativeState.initiatives[token.id] ?? ""}
-                />
-
-                <button onClick={() => rollInitiativeForToken(token.id)} title="Lancer 1d20" type="button">
-                  d20
+                <button disabled={busy} onClick={endEncounter} type="button">
+                  <Square size={12} /> Terminer
                 </button>
-              </article>
-            );
-          })}
-        </div>
+              </>
+            )}
+            {isEnded && (
+              <button disabled={busy} onClick={startEncounter} type="button">
+                <Play size={12} /> Reprendre
+              </button>
+            )}
+          </div>
+        </section>
       )}
 
-      <footer className="gm-panel-footer">
-        <button disabled={sceneTokens.length === 0} onClick={resetInitiative} type="button">
-          Reset initiative
-        </button>
-      </footer>
+      {/* ── Combatants ─────────────────────────────────────────────── */}
+      {combatants.length === 0 ? (
+        <p className="gm-panel-muted">
+          {detail ? "Aucun combattant dans ce combat." : busy ? "Chargement…" : "Sélectionnez un combat."}
+        </p>
+      ) : (
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong>Combattants</strong>
+            <small>{activeCombatants.length} actif(s) · {defeatedCombatants.length} vaincu(s)</small>
+          </header>
+
+          <div className="gm-panel-list">
+            {/* Active combatants (sorted by initiative) */}
+            {activeCombatants.map((c) => {
+              const isCurrentTurn = isActive && c.id === activeId;
+              return (
+                <article
+                  className={`gm-panel-row ${isCurrentTurn ? "selected" : ""}`}
+                  key={c.id}
+                >
+                  <span className="initiative-badge">
+                    {c.initiative}
+                  </span>
+                  <span>
+                    <strong>{c.name}</strong>
+                    <small>
+                      {c.hp_current !== null && c.hp_max !== null
+                        ? `PV ${c.hp_current}/${c.hp_max}`
+                        : ""}
+                      {c.armor_class !== null ? ` · CA ${c.armor_class}` : ""}
+                      {isCurrentTurn ? " · Tour actif" : ""}
+                    </small>
+                  </span>
+                  {isActive && (
+                    <button
+                      className="gm-panel-button"
+                      onClick={() => void toggleDefeated(c.id, c.is_defeated)}
+                      title="Vaincu"
+                      type="button"
+                    >
+                      KO
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+
+            {/* Defeated combatants */}
+            {defeatedCombatants.map((c) => (
+              <article
+                className="gm-panel-row"
+                key={c.id}
+                style={{ opacity: 0.55 }}
+              >
+                <span className="initiative-badge">—</span>
+                <span>
+                  <strong style={{ textDecoration: "line-through" }}>{c.name}</strong>
+                  <small>Vaincu</small>
+                </span>
+                {isActive && (
+                  <button
+                    className="gm-panel-button"
+                    onClick={() => void toggleDefeated(c.id, c.is_defeated)}
+                    title="Ramener au combat"
+                    type="button"
+                  >
+                    ↩
+                  </button>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Footer ─────────────────────────────────────────────────── */}
+      {detail && (
+        <footer className="gm-panel-footer">
+          <span className="gm-panel-muted">
+            {isActive ? "Combat en cours" : isEnded ? "Combat terminé" : "Préparation"}
+          </span>
+        </footer>
+      )}
     </div>
   );
 }
