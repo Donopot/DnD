@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import type { ComponentProps } from "react";
 import { FloatingPanel } from "../components/FloatingPanel";
 import { CampaignMap } from "../components/CampaignMap";
 import type { GmFloatingPanelsProps } from "./types";
@@ -74,7 +73,7 @@ import { SessionLogPanel } from "../components/SessionLogPanel";
 import { TokenDetailPanel } from "../components/TokenDetailPanel";
 import { VisibilityInspectorPanel } from "../components/VisibilityInspectorPanel";
 
-const MAP_PANEL_ID = "map";
+const MAP_PANEL_ID = "campaign-map";
 
 export function GmFloatingPanels(props: GmFloatingPanelsProps) {
   const {
