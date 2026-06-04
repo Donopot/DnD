@@ -1,3 +1,5 @@
+import asyncio
+import hashlib
 import re
 from uuid import UUID
 from uuid import uuid4
@@ -8,6 +10,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import File
 from fastapi import HTTPException
+from fastapi import Query
 from fastapi import UploadFile
 from fastapi import status
 from fastapi.responses import StreamingResponse
@@ -31,8 +34,11 @@ ALLOWED_IMAGE_TYPES = {
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
+# ── S3 helpers (non-blocking via asyncio.to_thread) ────────────────────────
 
-def s3_client():
+
+def _build_s3_client():
+    """Build a boto3 S3 client (synchronous — called inside to_thread)."""
     settings = get_settings()
     return boto3.client(
         "s3",
@@ -42,6 +48,39 @@ def s3_client():
         config=Config(signature_version="s3v4"),
         region_name="us-east-1",
     )
+
+
+async def s3_put_object(key: str, body: bytes, content_type: str) -> None:
+    """Upload an object to S3 without blocking the event loop."""
+    settings = get_settings()
+
+    def _put():
+        client = _build_s3_client()
+        client.put_object(
+            Bucket=settings.minio_bucket,
+            Key=key,
+            Body=body,
+            ContentType=content_type,
+        )
+
+    await asyncio.to_thread(_put)
+
+
+async def s3_get_object(key: str) -> dict:
+    """Download an object from S3 without blocking the event loop."""
+    settings = get_settings()
+
+    def _get():
+        client = _build_s3_client()
+        return client.get_object(
+            Bucket=settings.minio_bucket,
+            Key=key,
+        )
+
+    return await asyncio.to_thread(_get)
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
 
 
 def safe_filename(filename: str) -> str:
@@ -87,9 +126,14 @@ async def get_scene_or_404(scene_id: UUID):
     return row
 
 
+# ── Routes ─────────────────────────────────────────────────────────────────
+
+
 @router.get("/campaigns/{campaign_id}/assets", response_model=list[AssetPublic])
 async def list_assets(
     campaign_id: UUID,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
     current_user=Depends(get_current_user),
 ) -> list[AssetPublic]:
     await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
@@ -100,14 +144,21 @@ async def list_assets(
         from campaign_assets
         where campaign_id = $1
         order by created_at desc
+        limit $2 offset $3
         """,
         campaign_id,
+        limit,
+        offset,
     )
 
     return [asset_public(row) for row in rows]
 
 
-@router.post("/campaigns/{campaign_id}/assets", response_model=AssetPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/campaigns/{campaign_id}/assets",
+    response_model=AssetPublic,
+    status_code=status.HTTP_201_CREATED,
+)
 async def upload_asset(
     campaign_id: UUID,
     file: UploadFile = File(...),
@@ -117,7 +168,10 @@ async def upload_asset(
 
     content_type = file.content_type or "application/octet-stream"
     if content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=415, detail="Only PNG, JPEG, WebP and GIF images are supported")
+        raise HTTPException(
+            status_code=415,
+            detail="Only PNG, JPEG, WebP and GIF images are supported",
+        )
 
     content = await file.read()
     size_bytes = len(content)
@@ -128,16 +182,10 @@ async def upload_asset(
     if size_bytes > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Uploaded file is too large")
 
-    settings = get_settings()
     filename = safe_filename(file.filename or "map")
     object_key = f"campaigns/{campaign_id}/assets/{uuid4()}-{filename}"
 
-    s3_client().put_object(
-        Bucket=settings.minio_bucket,
-        Key=object_key,
-        Body=content,
-        ContentType=content_type,
-    )
+    await s3_put_object(object_key, content, content_type)
 
     row = await get_pool().fetchrow(
         """
@@ -170,20 +218,31 @@ async def asset_content(
     current_user=Depends(get_current_user),
 ):
     asset = await get_asset_or_404(asset_id)
-    await require_campaign_role(asset["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
-
-    settings = get_settings()
-    response = s3_client().get_object(
-        Bucket=settings.minio_bucket,
-        Key=asset["object_key"],
+    await require_campaign_role(
+        asset["campaign_id"], current_user["id"], {"gm", "co_gm", "player"}
     )
 
+    response = await s3_get_object(asset["object_key"])
+    body = response["Body"]
+    etag = response.get("ETag", "").strip('"')
+    content_length = response.get("ContentLength")
+    last_modified = response.get("LastModified")
+
+    headers: dict[str, str] = {
+        "Content-Disposition": f'inline; filename="{safe_filename(asset["name"])}"',
+        "Cache-Control": "public, max-age=3600, immutable",
+    }
+    if etag:
+        headers["ETag"] = f'"{etag}"'
+    if content_length is not None:
+        headers["Content-Length"] = str(content_length)
+    if last_modified is not None:
+        headers["Last-Modified"] = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
+
     return StreamingResponse(
-        response["Body"],
+        body,
         media_type=asset["content_type"],
-        headers={
-            "Content-Disposition": f'inline; filename="{safe_filename(asset["name"])}"',
-        },
+        headers=headers,
     )
 
 
@@ -201,7 +260,9 @@ async def update_scene_background(
     if payload.asset_id is not None:
         asset = await get_asset_or_404(payload.asset_id)
         if asset["campaign_id"] != scene["campaign_id"]:
-            raise HTTPException(status_code=400, detail="Asset does not belong to this campaign")
+            raise HTTPException(
+                status_code=400, detail="Asset does not belong to this campaign"
+            )
         background_url = f"/api/assets/{asset['id']}/content"
 
     row = await get_pool().fetchrow(
