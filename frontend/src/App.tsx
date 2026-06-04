@@ -32,6 +32,7 @@ import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
+import { useVttState } from "./hooks/useVttState";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -83,6 +84,9 @@ export default function App() {
   const campaign = useCampaignData(token);
   const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
+  const vtt = useVttState(token);
+  const { scenes, selectedSceneId, selectedScene, sceneTokens } = vtt;
+
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -90,9 +94,6 @@ export default function App() {
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
-  const [scenes, setScenes] = useState<Scene[]>([]);
-  const [selectedSceneId, setSelectedSceneId] = useState<string>("");
-  const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
   const [, setAssetList] = useState<Asset[]>([]);
   const [, setSelectedAssetId] = useState<string>("");
   const [encounters, setEncounters] = useState<Encounter[]>([]);
@@ -124,11 +125,6 @@ export default function App() {
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
-  );
-
-  const selectedScene = useMemo(
-    () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
-    [scenes, selectedSceneId],
   );
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
@@ -169,10 +165,10 @@ export default function App() {
       selectedSceneId,
       sceneTokens,
       sceneBackgroundObjectUrl,
-      onSelectScene: setSelectedSceneId,
+      onSelectScene: vtt.setSelectedSceneId,
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
-      onLoadSceneTokens: (id: string) => void loadSceneTokens(id),
+      onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
       onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
@@ -252,7 +248,7 @@ export default function App() {
     void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
-    void loadVttState(selectedCampaign.id);
+    void vtt.loadVttState(selectedCampaign.id);
     void loadAssets(selectedCampaign.id);
     void loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
@@ -317,7 +313,7 @@ export default function App() {
           void loadSessionLog(selectedCampaign.id);
 
           if (payload.resource === "scene" || payload.resource === "token") {
-            void loadVttState(selectedCampaign.id);
+            void vtt.loadVttState(selectedCampaign.id);
           }
 
           if (payload.resource === "encounter") {
@@ -330,7 +326,7 @@ export default function App() {
         }
 
         if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
-          setSceneTokens((current) =>
+          vtt.setSceneTokens((current) =>
             current.map((sceneToken) =>
               sceneToken.id === payload.token_id
                 ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
@@ -421,33 +417,6 @@ export default function App() {
     }
   }
 
-  async function loadSceneTokens(sceneId: string) {
-    try {
-      setSceneTokens(await request<SceneToken[]>(`/api/scenes/${sceneId}/tokens`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load scene tokens");
-    }
-  }
-
-  async function loadVttState(campaignId: string) {
-    try {
-      const data = await request<Scene[]>(`/api/campaigns/${campaignId}/scenes`);
-      setScenes(data);
-
-      if (data.length === 0) {
-        setSelectedSceneId("");
-        setSceneTokens([]);
-        return;
-      }
-
-      const effectiveScene = data.find((scene) => scene.id === selectedSceneId) ?? data[0];
-      setSelectedSceneId(effectiveScene.id);
-      await loadSceneTokens(effectiveScene.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load VTT scene");
-    }
-  }
-
   async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
     setIsBusy(true);
     setMessage("");
@@ -461,7 +430,7 @@ export default function App() {
         }),
       });
 
-      setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      vtt.setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
 
       // ── Auto fog reveal ──────────────────────────────────────
       // If this token has character linkage and a vision radius, auto-reveal fog
@@ -509,12 +478,12 @@ export default function App() {
         const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
           method: "POST",
         });
-        setSceneTokens((current) => [...current, dup]);
+        vtt.setSceneTokens((current) => [...current, dup]);
         return dup;
       }
       case "delete": {
         await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
-        setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
+        vtt.setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
         break;
       }
       case "hide":
@@ -523,7 +492,7 @@ export default function App() {
           method: "PATCH",
           body: JSON.stringify({ is_hidden: action === "hide" }),
         });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
+        vtt.setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
         return updated;
       }
       case "add-combat": {
@@ -534,14 +503,14 @@ export default function App() {
         const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
           method: "POST",
         });
-        setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
+        vtt.setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
         return fwd;
       }
       case "back": {
         const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
           method: "POST",
         });
-        setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
+        vtt.setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
         return bwd;
       }
       case "damage":
@@ -559,7 +528,7 @@ export default function App() {
             metadata: { ...tokenToAct.metadata, hp_current: newHp },
           }),
         });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
+        vtt.setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
         return updated;
       }
     }
@@ -601,7 +570,7 @@ export default function App() {
         method: "PATCH",
         body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
       });
-      setSceneTokens((current) =>
+      vtt.setSceneTokens((current) =>
         current.map((t) => (t.id === updated.id ? updated : t)),
       );
     } catch (error) {
@@ -1257,16 +1226,16 @@ export default function App() {
             handleCreateInvite={handleCreateInvite}
             handleRevokeInvite={handleRevokeInvite}
             setSelectedTokenId={setSelectedTokenId}
-            setSceneTokens={setSceneTokens}
-            setSelectedSceneId={setSelectedSceneId}
+            setSceneTokens={vtt.setSceneTokens}
+            setSelectedSceneId={vtt.setSelectedSceneId}
             setSelectedCharacterId={setSelectedCharacterId}
             setInspectedCharacterId={setInspectedCharacterId}
             setShowCharacterWizard={setShowCharacterWizard}
             setCharacters={setCharacters}
             setLogEntries={setLogEntries}
             loadCombatState={loadCombatState}
-            loadSceneTokens={loadSceneTokens}
-            loadVttState={loadVttState}
+            loadSceneTokens={vtt.loadSceneTokens}
+            loadVttState={vtt.loadVttState}
           />
         </aside>
       </Suspense>
@@ -1301,11 +1270,11 @@ export default function App() {
         handleToggleTokenHidden={handleToggleTokenHidden}
         handleMoveToken={handleMoveToken}
         loadCombatState={loadCombatState}
-        loadSceneTokens={loadSceneTokens}
-        loadVttState={loadVttState}
+        loadSceneTokens={vtt.loadSceneTokens}
+        loadVttState={vtt.loadVttState}
         setSelectedTokenId={setSelectedTokenId}
-        setSceneTokens={setSceneTokens}
-        setSelectedSceneId={setSelectedSceneId}
+        setSceneTokens={vtt.setSceneTokens}
+        setSelectedSceneId={vtt.setSelectedSceneId}
       />
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
