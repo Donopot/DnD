@@ -48,7 +48,7 @@ type TokenBatchActionHandler = (
   value?: number,
 ) => void;
 
-type CampaignMapProps = {
+export type CampaignMapProps = {
   campaignId: string;
   token: string;
   scenes: Scene[];

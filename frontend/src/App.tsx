@@ -18,8 +18,7 @@ import { GmLobby } from "./components/GmLobby";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
-import { GmFloatingPanels } from "./panels/GmFloatingPanels";
-import { GmDockedPanels } from "./panels/GmDockedPanels";
+import { GmWorkspace } from "./app/GmWorkspace";
 import {
   SESSION_LIVE_MODES,
   SESSION_LIVE_PANEL_SETS,
@@ -1144,221 +1143,44 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
-      {/* ── Sidebar ─────────────────────────────────────────── */}
-      <aside className="gm-sidebar">
-        <div className="brand-mark compact">
-          <Swords aria-hidden="true" />
-          DnD
-        </div>
-
-        <nav className="gm-campaign-list" aria-label="Mes campagnes">
-          <h4>Mes tables</h4>
-          {campaigns.map((c) => (
-            <button
-              className={`gm-campaign-item ${selectedCampaign?.id === c.id ? "selected" : ""}`}
-              key={c.id}
-              onClick={() => {
-                setSelectedCampaignId(c.id);
-                setLatestInvite(null);
-                void loadInvites(c.id);
-              }}
-              type="button"
-              aria-label={`${c.name} — ${c.member_count} membres`}
-              aria-current={selectedCampaign?.id === c.id ? "true" : undefined}
-            >
-              <strong>{c.name}</strong>
-              <small>{c.member_count} membres</small>
-            </button>
-          ))}
-        </nav>
-
-        <div className="gm-members-list">
-          <h4>Membres</h4>
-          {members.map((m) => (
-            <div className="gm-member-row" key={m.user_id}>
-              <span>{m.display_name}</span>
-              <small>{m.role}</small>
-            </div>
-          ))}
-        </div>
-
-        <div className="gm-sidebar-actions">
-          <button
-            className="primary-button compact"
-            disabled={isBusy}
-            onClick={handleCreateInvite}
-            type="button"
-          >
-            <UserPlus aria-hidden="true" size={14} />
-            Inviter
-          </button>
-          <button className="ghost-button compact" onClick={logout} type="button">
-            <DoorOpen aria-hidden="true" size={14} />
-            Sortir
-          </button>
-        </div>
-        {latestInvite && (
-          <div className="invite-link-box">
-            <p className="invite-link-label">Lien d'invitation :</p>
-            <div className="invite-link-row">
-              <input
-                className="invite-link-input"
-                readOnly
-                value={`${window.location.origin}/invite/${latestInvite.token}`}
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <button
-                className="compact"
-                onClick={() => {
-                  void navigator.clipboard.writeText(
-                    `${window.location.origin}/invite/${latestInvite.token}`,
-                  );
-                }}
-                type="button"
-              >
-                📋
-              </button>
-            </div>
-          </div>
-        )}
-      </aside>
-
-      {/* ── Centre — Carte ──────────────────────────────────── */}
-      <section className="gm-map-area">
-        <div className="gm-map-topbar">
-          <div>
-            <span className="realtime-pill">{realtimeStatus}</span>
-            <span>{presenceCount} connectés</span>
-          </div>
-          <span className="gm-campaign-name">{selectedCampaign?.name ?? "Campagne"}</span>
-          <div className="session-live-mode-buttons compact" aria-label="Modes">
-            {SESSION_LIVE_MODES.map((m) => (
-              <button
-                key={m.id}
-                className={activeSessionLiveMode === m.id ? "active" : ""}
-                onClick={() => setActiveSessionLiveMode(m.id)}
-                type="button"
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <button
-            className="focus-map-btn"
-            onClick={() => setIsFocusMap((prev) => !prev)}
-            title={isFocusMap ? "Quitter plein écran" : "Carte plein écran"}
-            type="button"
-          >
-            {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
-          <button
-            className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
-            onClick={() => setIsPanelsHidden((prev) => !prev)}
-            title={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
-            type="button"
-          >
-            {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
-          </button>
-          <button
-            className="focus-map-btn"
-            onClick={toggleTheme}
-            title={theme === "dark" ? "Mode clair" : "Mode sombre"}
-            type="button"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          {!isMapFloating && (
-            <button
-              className="focus-map-btn"
-              onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
-              title="Détacher la carte en panneau flottant"
-              type="button"
-            >
-              🗺️
-            </button>
-          )}
-        </div>
-
-        <CampaignViewTabs activeView={gmView} onChange={setGmView} />
-
-        {!isMapFloating && (
-          <CampaignMap {...campaignMapProps} />
-        )}
-      </section>
-
-      {/* ── Droite — Panneaux dockés ─────────────────────────── */}
-      <Suspense fallback={<PanelFallback />}>
-        <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
-          <GmDockedPanels
-            gmView={gmView}
-            liveModePanelIds={liveModePanelIds}
-            fpOpen={(id, title) => fp.open(id, title)}
-            selectedCampaign={selectedCampaign}
-            token={token}
-            scenes={scenes}
-            sceneTokens={sceneTokens}
-            selectedScene={selectedScene}
-            selectedTokenId={selectedTokenId}
-            characters={characters}
-            selectedCharacter={selectedCharacter}
-            handouts={handouts}
-            rolls={rolls}
-            logEntries={logEntries}
-            members={members}
-            encounters={encounters}
-            wsRef={wsRef}
-            user={user}
-            isBusy={isBusy}
-            latestInvite={latestInvite}
-            activeInvites={activeInvites}
-            handleQuickRoll={handleQuickRoll}
-            handleRoll={handleRoll}
-            handleLogNote={handleLogNote}
-            handleCreateHandout={handleCreateHandout}
-            handleRevealHandout={handleRevealHandout}
-            handleDeleteHandout={handleDeleteHandout}
-            handleToggleTokenHidden={handleToggleTokenHidden}
-            handleMoveToken={handleMoveToken}
-            handleCreateCharacter={handleCreateCharacter}
-            handleCreateInvite={handleCreateInvite}
-            handleRevokeInvite={handleRevokeInvite}
-            setSelectedTokenId={setSelectedTokenId}
-            setSceneTokens={setSceneTokens}
-            setSelectedSceneId={setSelectedSceneId}
-            setSelectedCharacterId={setSelectedCharacterId}
-            setInspectedCharacterId={setInspectedCharacterId}
-            setShowCharacterWizard={setShowCharacterWizard}
-            setCharacters={setCharacters}
-            setLogEntries={setLogEntries}
-            loadCombatState={loadCombatState}
-            loadSceneTokens={loadSceneTokens}
-            loadVttState={loadVttState}
-          />
-        </aside>
-      </Suspense>
-
-      {/* ── Floating Panels ──────────────────────────────────── */}
-      <GmFloatingPanels
-        fp={fp}
-        selectedCampaign={selectedCampaign}
+      <GmWorkspace
         token={token}
-        scenes={scenes}
-        encounters={encounters}
+        user={user}
+        campaigns={campaigns}
+        selectedCampaign={selectedCampaign}
+        members={members}
         characters={characters}
         selectedCharacter={selectedCharacter}
+        encounters={encounters}
         handouts={handouts}
         rolls={rolls}
         logEntries={logEntries}
-        members={members}
-        wsRef={wsRef}
-        user={user}
-        isBusy={isBusy}
-        selectedSceneId={selectedSceneId}
-        selectedTokenId={selectedTokenId}
+        latestInvite={latestInvite}
+        activeInvites={activeInvites}
+        scenes={scenes}
         selectedScene={selectedScene}
+        selectedSceneId={selectedSceneId}
         sceneTokens={sceneTokens}
-        campaignMapProps={campaignMapProps}
+        selectedTokenId={selectedTokenId}
+        selectedCharacterId={selectedCharacterId}
+        inspectedCharacterId={inspectedCharacterId}
+        showCharacterWizard={showCharacterWizard}
+        showShortcuts={showShortcuts}
+        isBusy={isBusy}
+        isFocusMap={isFocusMap}
+        isPanelsHidden={isPanelsHidden}
+        gmView={gmView}
+        activeSessionLiveMode={activeSessionLiveMode}
+        liveModePanelIds={liveModePanelIds}
+        presenceCount={presenceCount}
+        realtimeStatus={realtimeStatus}
+        fp={fp}
+        theme={theme}
+        toggleTheme={toggleTheme}
+        toasts={toasts}
+        dismissToast={dismissToast}
+        wsRef={wsRef}
+        onLogout={logout}
         handleQuickRoll={handleQuickRoll}
         handleRoll={handleRoll}
         handleLogNote={handleLogNote}
@@ -1367,74 +1189,32 @@ export default function App() {
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
         handleMoveToken={handleMoveToken}
+        handleCreateCharacter={handleCreateCharacter}
+        handleCreateInvite={handleCreateInvite}
+        handleRevokeInvite={handleRevokeInvite}
+        setSelectedCampaignId={setSelectedCampaignId}
+        setSelectedTokenId={setSelectedTokenId}
+        setSelectedCharacterId={setSelectedCharacterId}
+        setSelectedSceneId={setSelectedSceneId}
+        setInspectedCharacterId={setInspectedCharacterId}
+        setShowCharacterWizard={setShowCharacterWizard}
+        setShowShortcuts={setShowShortcuts}
+        setIsFocusMap={setIsFocusMap}
+        setIsPanelsHidden={setIsPanelsHidden}
+        setGmView={setGmView}
+        setActiveSessionLiveMode={setActiveSessionLiveMode}
+        setSceneTokens={setSceneTokens}
+        setCharacters={setCharacters}
+        setLogEntries={setLogEntries}
+        setLatestInvite={setLatestInvite}
         loadCombatState={loadCombatState}
         loadSceneTokens={loadSceneTokens}
         loadVttState={loadVttState}
-        setSelectedTokenId={setSelectedTokenId}
-        setSceneTokens={setSceneTokens}
-        setSelectedSceneId={setSelectedSceneId}
+        loadCharacters={loadCharacters}
+        loadInvites={loadInvites}
+        campaignMapProps={campaignMapProps}
+        isMapFloating={isMapFloating}
       />
-
-      {/* ── Panel Dock (minimized panels) ──────────────────────── */}
-      <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
-
-      {/* ── Toast notifications ──────────────────────────────── */}
-      <div className="toast-container">
-        {toasts.map((t) => (
-          <div key={t.id} className={`toast-item${t.type === "error" ? " error" : ""}`}>
-            <span>{t.message}</span>
-            <button onClick={() => dismissToast(t.id)} type="button">
-              ✕
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Character Wizard Modal ───────────────────────────── */}
-      {showCharacterWizard && (
-        <div className="modal-overlay" onClick={() => setShowCharacterWizard(false)}>
-          <div
-            className="modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Création de personnage"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "500px" }}
-          >
-            <CharacterWizard
-              token={token}
-              campaignId={selectedCampaign?.id ?? ""}
-              onCreated={() => {
-                setShowCharacterWizard(false);
-                if (selectedCampaign) {
-                  void loadCharacters(selectedCampaign.id);
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── Keyboard Shortcuts Overlay ─────────────────────────── */}
-      {showShortcuts && <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />}
-
-      {/* ── Character Inspector Modal ─────────────────────────── */}
-      {inspectedCharacterId &&
-        (() => {
-          const char = characters.find((c) => c.id === inspectedCharacterId);
-          if (!char) return null;
-          return (
-            <GmCharacterInspector
-              character={char}
-              token={token}
-              onClose={() => setInspectedCharacterId("")}
-              onCharacterUpdated={(updated) =>
-                setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
-              }
-            />
-          );
-        })()}
-    </main>
     </ErrorBoundary>
   );
 }
