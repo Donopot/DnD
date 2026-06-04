@@ -1993,58 +1993,84 @@ select {
 /* End GM-2D-CSS - Compatibility cleanup */
 
 /* ── GM-2D-CSS-P2 - Token detail standard layout ── */
-/* GM-2D-CSS-P2 - Token detail standard layout */
+/* ── Token Detail Panel (4A - editable inspector) ── */
 
-.token-detail-panel-standard {
+.token-detail-panel {
   min-width: 0;
 }
 
-.token-detail-color-card {
+/* Editable fields */
+.token-detail-panel .token-detail-editable {
+  cursor: pointer;
+  border-bottom: 1px dashed var(--border-subtle);
+  transition: border-color 0.15s;
+}
+
+.token-detail-panel .token-detail-editable:hover {
+  border-color: var(--accent-primary);
+}
+
+.token-detail-panel .token-detail-edit-input {
+  width: 100%;
+  padding: 2px 4px;
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+/* Color row */
+.token-detail-panel .token-detail-color-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 
-.token-detail-color-card span {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.token-detail-color-card i {
-  width: 26px;
-  height: 26px;
+.token-detail-panel .token-detail-color-swatch {
+  width: 18px;
+  height: 18px;
   flex: 0 0 auto;
-  border: 2px solid #fffdf7;
+  border: 2px solid var(--border-subtle);
   border-radius: 999px;
-  box-shadow: 0 0 0 1px #d8d1c2;
 }
 
-.token-detail-nudge-grid {
+/* Visibility toggle */
+.token-detail-panel .token-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-normal);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.token-detail-panel .token-detail-toggle.hidden {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* Nudge grid */
+.token-detail-panel .token-detail-nudge-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 34px));
   justify-content: center;
   gap: 6px;
 }
 
-.token-detail-nudge-grid button:first-child {
-  grid-column: 2;
-}
+.token-detail-panel .token-detail-nudge-grid button:first-child { grid-column: 2; }
+.token-detail-panel .token-detail-nudge-grid button:nth-child(2) { grid-column: 1; }
+.token-detail-panel .token-detail-nudge-grid button:nth-child(3) { grid-column: 3; }
+.token-detail-panel .token-detail-nudge-grid button:nth-child(4) { grid-column: 2; }
 
-.token-detail-nudge-grid button:nth-child(2) {
-  grid-column: 1;
-}
-
-.token-detail-nudge-grid button:nth-child(3) {
-  grid-column: 3;
-}
-
-.token-detail-nudge-grid button:nth-child(4) {
-  grid-column: 2;
-}
-
-.token-detail-nudge-grid button {
+.token-detail-panel .token-detail-nudge-grid button {
   min-width: 34px;
   min-height: 32px;
   padding: 0;
@@ -2054,19 +2080,16 @@ select {
   color: var(--text-normal);
   font-size: 0.82rem;
   font-weight: 950;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.token-detail-nudge-grid button {
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.token-detail-nudge-grid button:hover {
+.token-detail-panel .token-detail-nudge-grid button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
-  color: var(--brand-green);
 }
+
+/* End Token Detail Panel */
 
 /* ── Handouts (GM-3B — refactored with gm-panel-* common CSS) ── */
 /* Handouts */

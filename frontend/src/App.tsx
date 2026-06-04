@@ -1592,10 +1592,18 @@ export default function App() {
                         const t = sceneTokens.find((t) => t.id === selectedTokenId);
                         return t ? { x: t.x, y: t.y } : undefined;
                       })()}
+                      token={token}
                       onDeselectToken={() => setSelectedTokenId("")}
                       onNudgeSelectedToken={(dx, dy) => {
                         const t = sceneTokens.find((t) => t.id === selectedTokenId);
                         if (t) void handleMoveToken(t, dx, dy);
+                      }}
+                      onTokenUpdated={(updated) => {
+                        setSceneTokens((current) =>
+                          updated
+                            ? current.map((t) => (t.id === updated.id ? updated : t))
+                            : current,
+                        );
                       }}
                     />
                   </details>
@@ -2322,10 +2330,18 @@ export default function App() {
                 const t = sceneTokens.find((t) => t.id === selectedTokenId);
                 return t ? { x: t.x, y: t.y } : undefined;
               })()}
+              token={token}
               onDeselectToken={() => setSelectedTokenId("")}
               onNudgeSelectedToken={(dx, dy) => {
                 const t = sceneTokens.find((t) => t.id === selectedTokenId);
                 if (t) void handleMoveToken(t, dx, dy);
+              }}
+              onTokenUpdated={(updated) => {
+                setSceneTokens((current) =>
+                  updated
+                    ? current.map((t) => (t.id === updated.id ? updated : t))
+                    : current,
+                );
               }}
             />
           )}
