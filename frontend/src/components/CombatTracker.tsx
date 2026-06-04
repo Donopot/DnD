@@ -1,12 +1,16 @@
 import { Play, SkipBack, SkipForward, Swords, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Combatant, Encounter } from "../api/types";
+import type { Combatant, CombatantCondition, Encounter } from "../api/types";
 
 type CombatTrackerProps = {
   campaignId: string;
   token: string;
   onEncounterChange?: () => void;
 };
+
+function conditionLabel(condition: CombatantCondition): string {
+  return typeof condition === "string" ? condition : condition.name;
+}
 
 export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTrackerProps) {
   const [encounters, setEncounters] = useState<Encounter[]>([]);
@@ -247,7 +251,7 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
                 (cb.hp_max ?? 0) > 0
                   ? Math.round(((cb.hp_current ?? 0) / (cb.hp_max ?? 1)) * 100)
                   : 100;
-              const conds = (cb.conditions ?? []) as string[];
+              const conds = cb.conditions ?? [];
 
               return (
                 <div
@@ -322,7 +326,7 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
                     <div className="combatant-conditions">
                       {conds.map((c, i) => (
                         <span key={i} className="cond-tag">
-                          {String(c)}
+                          {conditionLabel(c)}
                         </span>
                       ))}
                     </div>

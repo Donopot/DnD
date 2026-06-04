@@ -3,64 +3,93 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { Combatant, Encounter } from "../api/types";
 
-// ── Constants ──────────────────────────────────────────────────────────────
-
 const DND_CONDITIONS = [
-  "Aveuglé", "Charmé", "Assourdi", "Effrayé", "Agrippé",
-  "Incapacité", "Invisible", "Paralysé", "Pétrifié", "Empoisonné",
-  "À terre", "Entravé", "Étourdi", "Inconscient", "Épuisé",
-  "Concentration", "En feu", "Glacé", "Béni", "Maudit",
+  "Aveuglé",
+  "Charmé",
+  "Assourdi",
+  "Effrayé",
+  "Agrippé",
+  "Incapacité",
+  "Invisible",
+  "Paralysé",
+  "Pétrifié",
+  "Empoisonné",
+  "À terre",
+  "Entravé",
+  "Étourdi",
+  "Inconscient",
+  "Épuisé",
+  "Concentration",
+  "En feu",
+  "Glacé",
+  "Béni",
+  "Maudit",
 ] as const;
-
-// ── Types ──────────────────────────────────────────────────────────────────
 
 type ConditionEntry = {
   name: string;
-  duration: number | null; // null = indefinite
-  appliedAt: string; // ISO
+  duration: number | null;
+  duration_unit: "rounds" | "minutes" | "hours" | null;
+  source: string | null;
+  is_concentration: boolean;
 };
-
-type ConditionsState = Record<string, ConditionEntry[]>; // combatantId → conditions
 
 type ConditionsPanelProps = {
   campaignId: string;
   token: string;
 };
 
-// ── localStorage helpers ───────────────────────────────────────────────────
-
-function getStorageKey(campaignId: string, encounterId: string) {
-  return `dnd-conditions:${campaignId}:${encounterId}`;
-}
-
-function readConditions(campaignId: string, encounterId: string): ConditionsState {
-  if (!campaignId || !encounterId) return {};
-  try {
-    const raw = window.localStorage.getItem(getStorageKey(campaignId, encounterId));
-    return raw ? (JSON.parse(raw) as ConditionsState) : {};
-  } catch {
-    return {};
+function normalizeCondition(condition: unknown): ConditionEntry {
+  if (typeof condition === "string") {
+    return {
+      name: condition,
+      duration: null,
+      duration_unit: null,
+      source: null,
+      is_concentration: false,
+    };
   }
-}
 
-function writeConditions(campaignId: string, encounterId: string, state: ConditionsState) {
-  try {
-    window.localStorage.setItem(
-      getStorageKey(campaignId, encounterId),
-      JSON.stringify(state),
-    );
-  } catch {
-    // silent
+  if (condition && typeof condition === "object") {
+    const raw = condition as Partial<ConditionEntry>;
+    return {
+      name: typeof raw.name === "string" ? raw.name : "",
+      duration: typeof raw.duration === "number" ? raw.duration : null,
+      duration_unit: raw.duration_unit ?? null,
+      source: raw.source ?? null,
+      is_concentration: Boolean(raw.is_concentration),
+    };
   }
+
+  return {
+    name: "",
+    duration: null,
+    duration_unit: null,
+    source: null,
+    is_concentration: false,
+  };
 }
 
-// ── Component ──────────────────────────────────────────────────────────────
+function serializeCondition(condition: ConditionEntry): ConditionEntry {
+  return {
+    name: condition.name,
+    duration: condition.duration,
+    duration_unit: condition.duration === null ? null : (condition.duration_unit ?? "rounds"),
+    source: condition.source ?? null,
+    is_concentration: condition.is_concentration,
+  };
+}
+
+function getCombatantConditions(combatant: Combatant): ConditionEntry[] {
+  return ((combatant.conditions ?? []) as unknown[])
+    .map(normalizeCondition)
+    .filter((condition) => condition.name.length > 0);
+}
 
 export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
   const [combatants, setCombatants] = useState<Combatant[]>([]);
-  const [conditions, setConditions] = useState<ConditionsState>({});
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newCondition, setNewCondition] = useState("");
   const [newDuration, setNewDuration] = useState<number | null>(null);
@@ -73,99 +102,160 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     [token],
   );
 
-  // ── Load encounters ──────────────────────────────────────────────────
+  function resetPanelState() {
+    setEncounters([]);
+    setActiveEncounter(null);
+    setCombatants([]);
+    setAddingFor(null);
+    setNewCondition("");
+    setNewDuration(null);
+  }
 
   useEffect(() => {
+    resetPanelState();
+
     if (!campaignId) return;
+
+    let cancelled = false;
     fetch(`/api/campaigns/${campaignId}/encounters`, { headers })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Encounter[]) => setEncounters(data))
-      .catch(() => {});
-  }, [campaignId, headers]);
+      .then((data: Encounter[]) => {
+        if (cancelled) return;
+        setEncounters(data);
+        if (data.length === 0) {
+          setActiveEncounter(null);
+          setCombatants([]);
+          setAddingFor(null);
+          setNewCondition("");
+          setNewDuration(null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) resetPanelState();
+      });
 
-  // ── Load active encounter ────────────────────────────────────────────
+    return () => {
+      cancelled = true;
+    };
+  }, [campaignId, headers]);
 
   async function loadEncounterDetail(encounterId: string) {
     try {
       const res = await fetch(`/api/encounters/${encounterId}`, { headers });
       if (!res.ok) return;
-      const detail = await res.json();
+      const detail = (await res.json()) as Encounter & { combatants?: Combatant[] };
       setActiveEncounter(detail);
-      setCombatants((detail.combatants as Combatant[]) ?? []);
-      setConditions(readConditions(campaignId, encounterId));
+      setCombatants(detail.combatants ?? []);
+      setAddingFor(null);
+      setNewCondition("");
+      setNewDuration(null);
     } catch {
       /* ignore */
     }
   }
 
   useEffect(() => {
-    // Auto-select active encounter
-    if (encounters.length === 0) return;
+    if (encounters.length === 0) {
+      setActiveEncounter(null);
+      setCombatants([]);
+      setAddingFor(null);
+      setNewCondition("");
+      setNewDuration(null);
+      return;
+    }
+
     const active = encounters.find((e) => e.status === "active") ?? encounters[0];
     void loadEncounterDetail(active.id);
   }, [encounters]);
 
-  // ── Persist conditions ────────────────────────────────────────────────
-
-  function persist(next: ConditionsState) {
-    setConditions(next);
-    if (activeEncounter) {
-      writeConditions(campaignId, activeEncounter.id, next);
-    }
+  function updateCombatant(updated: Combatant) {
+    setCombatants((current) =>
+      current.map((combatant) => (combatant.id === updated.id ? updated : combatant)),
+    );
   }
 
-  // ── Add condition to combatant ───────────────────────────────────────
+  async function addCondition(combatantId: string) {
+    if (!activeEncounter || !newCondition) return;
 
-  function addCondition(combatantId: string) {
-    if (!newCondition) return;
-    const entry: ConditionEntry = {
-      name: newCondition,
-      duration: newDuration,
-      appliedAt: new Date().toISOString(),
-    };
-    persist({
-      ...conditions,
-      [combatantId]: [...(conditions[combatantId] ?? []), entry],
+    const res = await fetch(`/api/encounters/${activeEncounter.id}/conditions/apply`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        combatant_id: combatantId,
+        condition: {
+          name: newCondition,
+          duration: newDuration,
+          duration_unit: newDuration === null ? null : "rounds",
+          source: null,
+          is_concentration: newCondition === "Concentration",
+        },
+      }),
     });
+
+    if (!res.ok) return;
+
+    updateCombatant((await res.json()) as Combatant);
     setNewCondition("");
     setNewDuration(null);
     setAddingFor(null);
   }
 
-  function removeCondition(combatantId: string, index: number) {
-    const updated = { ...conditions };
-    updated[combatantId] = (updated[combatantId] ?? []).filter((_, i) => i !== index);
-    if (updated[combatantId].length === 0) delete updated[combatantId];
-    persist(updated);
+  async function removeCondition(combatantId: string, conditionName: string) {
+    if (!activeEncounter) return;
+
+    const res = await fetch(`/api/encounters/${activeEncounter.id}/conditions/remove`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        combatant_id: combatantId,
+        condition_name: conditionName,
+      }),
+    });
+
+    if (!res.ok) return;
+
+    updateCombatant((await res.json()) as Combatant);
   }
 
-  // ── Advance turn ─────────────────────────────────────────────────────
+  async function saveCombatantConditions(combatantId: string, nextConditions: ConditionEntry[]) {
+    const res = await fetch(`/api/combatants/${combatantId}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({
+        conditions: nextConditions.map(serializeCondition),
+      }),
+    });
 
-  function advanceTurn() {
-    const next: ConditionsState = {};
-    for (const [cid, conds] of Object.entries(conditions)) {
-      next[cid] = conds
-        .map((c) => {
-          if (c.duration === null) return c; // indefinite
-          const remaining = c.duration - 1;
-          return remaining <= 0 ? null : { ...c, duration: remaining };
-        })
-        .filter((c): c is ConditionEntry => c !== null);
-      if (next[cid].length === 0) delete next[cid];
-    }
-    persist(next);
+    if (!res.ok) return;
+
+    updateCombatant((await res.json()) as Combatant);
   }
 
-  // ── Status helpers ────────────────────────────────────────────────────
+  async function advanceTurn() {
+    await Promise.all(
+      combatants.map(async (combatant) => {
+        const current = getCombatantConditions(combatant);
+        const next = current
+          .map((condition) => {
+            if (condition.duration === null) return condition;
+            const remaining = condition.duration - 1;
+            return remaining <= 0 ? null : { ...condition, duration: remaining };
+          })
+          .filter((condition): condition is ConditionEntry => condition !== null);
 
-  function getConditionStatus(c: ConditionEntry): "warning" | "critical" | "ok" {
-    if (c.duration === null) return "ok";
-    if (c.duration <= 1) return "critical";
-    if (c.duration <= 3) return "warning";
+        if (JSON.stringify(current) !== JSON.stringify(next)) {
+          await saveCombatantConditions(combatant.id, next);
+        }
+      }),
+    );
+  }
+
+  function getConditionStatus(condition: ConditionEntry): "warning" | "critical" | "ok" {
+    if (condition.duration === null) return "ok";
+    if (condition.duration <= 1) return "critical";
+    if (condition.duration <= 3) return "warning";
     return "ok";
   }
-
-  // ── Render ───────────────────────────────────────────────────────────
 
   if (!campaignId) {
     return (
@@ -175,31 +265,25 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     );
   }
 
-  const hasConditions = Object.values(conditions).some((c) => c.length > 0);
+  const hasConditions = combatants.some((combatant) => getCombatantConditions(combatant).length > 0);
 
   return (
     <div className="gm-panel-content conditions-panel" data-vtt-panel>
-      {/* ── Header ──────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>États & Conditions</strong>
-          <small>
-            {activeEncounter
-              ? `Combat : ${activeEncounter.name}`
-              : "Aucun combat actif"}
-          </small>
+          <small>{activeEncounter ? `Combat : ${activeEncounter.name}` : "Aucun combat actif"}</small>
         </header>
 
         {hasConditions && (
           <div className="gm-panel-actions">
-            <button onClick={advanceTurn} type="button" title="Avancer d'un tour (réduit les durées)">
+            <button onClick={() => void advanceTurn()} type="button" title="Avancer d'un tour">
               <SkipForward size={12} /> Tour suivant
             </button>
           </div>
         )}
       </section>
 
-      {/* ── Combatants ───────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>Combattants</strong>
@@ -212,33 +296,33 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
           </p>
         ) : (
           <div className="gm-panel-list">
-            {combatants.map((cbt) => {
-              const combatantConditions = conditions[cbt.id] ?? [];
+            {combatants.map((combatant) => {
+              const combatantConditions = getCombatantConditions(combatant);
               const hasActive = combatantConditions.length > 0;
 
               return (
                 <article
                   className={`gm-panel-card ${hasActive ? "selected" : ""}`}
-                  key={cbt.id}
+                  key={combatant.id}
                 >
                   <header>
                     <span>
                       <strong>
-                        {cbt.is_player_controlled ? "🧑 " : "👹 "}
-                        {cbt.name}
+                        {combatant.is_player_controlled ? "🧑 " : "👹 "}
+                        {combatant.name}
                       </strong>
                       <small>
-                        {cbt.hp_current !== null && cbt.hp_max !== null
-                          ? `PV ${cbt.hp_current}/${cbt.hp_max}`
+                        {combatant.hp_current !== null && combatant.hp_max !== null
+                          ? `PV ${combatant.hp_current}/${combatant.hp_max}`
                           : ""}
-                        {cbt.hp_current !== null && cbt.hp_current <= 0 && " · KO"}
+                        {combatant.hp_current !== null && combatant.hp_current <= 0 && " · KO"}
                       </small>
                     </span>
 
                     <button
                       type="button"
                       onClick={() => {
-                        setAddingFor(addingFor === cbt.id ? null : cbt.id);
+                        setAddingFor(addingFor === combatant.id ? null : combatant.id);
                         setNewCondition("");
                         setNewDuration(null);
                       }}
@@ -248,8 +332,7 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
                     </button>
                   </header>
 
-                  {/* Add condition form */}
-                  {addingFor === cbt.id && (
+                  {addingFor === combatant.id && (
                     <div className="conditions-add-form">
                       <select
                         value={newCondition}
@@ -257,9 +340,9 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
                         aria-label="État à ajouter"
                       >
                         <option value="">Choisir un état...</option>
-                        {DND_CONDITIONS.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
+                        {DND_CONDITIONS.map((condition) => (
+                          <option key={condition} value={condition}>
+                            {condition}
                           </option>
                         ))}
                       </select>
@@ -268,9 +351,7 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
                           type="number"
                           value={newDuration ?? ""}
                           onChange={(e) =>
-                            setNewDuration(
-                              e.target.value ? Number(e.target.value) : null,
-                            )
+                            setNewDuration(e.target.value ? Number(e.target.value) : null)
                           }
                           placeholder="Tours"
                           min={1}
@@ -278,42 +359,38 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
                           aria-label="Durée en tours"
                         />
                         <button
-                          onClick={() => addCondition(cbt.id)}
+                          onClick={() => void addCondition(combatant.id)}
                           disabled={!newCondition}
                           type="button"
                         >
                           Appliquer
                         </button>
-                        <button
-                          onClick={() => setAddingFor(null)}
-                          type="button"
-                        >
+                        <button onClick={() => setAddingFor(null)} type="button">
                           Annuler
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Active conditions */}
                   {combatantConditions.length > 0 && (
                     <div className="conditions-list">
-                      {combatantConditions.map((c, i) => {
-                        const status = getConditionStatus(c);
+                      {combatantConditions.map((condition, index) => {
+                        const status = getConditionStatus(condition);
                         return (
                           <div
                             className={`conditions-badge ${status}`}
-                            key={i}
+                            key={`${condition.name}-${index}`}
                             title={
-                              c.duration !== null
-                                ? `${c.duration} tour(s) restant(s)`
+                              condition.duration !== null
+                                ? `${condition.duration} tour(s) restant(s)`
                                 : "Durée indéfinie"
                             }
                           >
-                            <span>{c.name}</span>
+                            <span>{condition.name}</span>
                             <small>
-                              {c.duration !== null ? (
+                              {condition.duration !== null ? (
                                 <>
-                                  <Timer size={10} /> {c.duration}t
+                                  <Timer size={10} /> {condition.duration}t
                                 </>
                               ) : (
                                 <Clock size={10} />
@@ -322,7 +399,7 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
                             <button
                               type="button"
                               className="conditions-remove"
-                              onClick={() => removeCondition(cbt.id, i)}
+                              onClick={() => void removeCondition(combatant.id, condition.name)}
                               title="Retirer cet état"
                             >
                               <Trash2 size={10} />
@@ -339,7 +416,6 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
         )}
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer className="gm-panel-footer">
         <span className="gm-panel-muted">
           <Users size={12} /> Les états expirent automatiquement quand vous avancez le tour
