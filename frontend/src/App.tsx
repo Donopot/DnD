@@ -17,6 +17,7 @@ import { useSceneBackground } from "./hooks/useSceneBackground";
 import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
+import { useAuthSession } from "./hooks/useAuthSession";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 import { apiRequest } from "./api/client";
@@ -35,19 +36,17 @@ import type {
   Roll,
   Scene,
   SceneToken,
-  User,
 } from "./api/types";
 
 const MAP_PANEL_ID = "campaign-map";
-
-const TOKEN_STORAGE_KEY = "dnd_access_token";
 
 export default function App() {
   // Ensure localStorage schema version — clear stale data on mismatch
   ensureStorageVersion();
 
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) ?? "");
-  const [user, setUser] = useState<User | null>(null);
+  const auth = useAuthSession();
+  const { token, user, login } = auth;
+  const authLogout = auth.logout;
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const [members, setMembers] = useState<Member[]>([]);
@@ -78,6 +77,7 @@ export default function App() {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
+  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -210,7 +210,7 @@ export default function App() {
     if (!token) {
       return;
     }
-    void bootstrap(token);
+    void loadInitialCampaigns(token);
   }, [token]);
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export default function App() {
 
     socket.onopen = () => {
       reconnectAttempts.current = 0;
-      const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+      const activeToken = auth.token || "";
       socket.send(JSON.stringify({ type: "auth", token: activeToken }));
       setRealtimeStatus("online");
     };
@@ -360,18 +360,10 @@ export default function App() {
   }, [token, selectedCampaign?.id, selectedScene?.id]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const activeToken = token || localStorage.getItem(TOKEN_STORAGE_KEY) || "";
-    return apiRequest<T>(path, activeToken, options);
+    return apiRequest<T>(path, auth.token, options);
   }
 
-  async function bootstrap(activeToken: string) {
-    try {
-      setUser(await request<User>("/api/auth/me"));
-    } catch {
-      logout();
-      return;
-    }
-
+  async function loadInitialCampaigns(activeToken: string) {
     try {
       await loadCampaigns(activeToken);
     } catch (error) {
@@ -380,8 +372,8 @@ export default function App() {
     }
   }
 
-  async function loadCampaigns(activeToken = token) {
-    const data = await request<Campaign[]>("/api/campaigns");
+  async function loadCampaigns(activeToken = auth.token) {
+    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken);
     setCampaigns(data);
     if (data.length > 0) {
       setSelectedCampaignId((current) => current || data[0].id);
@@ -961,9 +953,7 @@ export default function App() {
 
   function logout() {
     wsRef.current?.close();
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setToken("");
-    setUser(null);
+    authLogout();
     setCampaigns([]);
     setMembers([]);
     setCharacters([]);
@@ -986,12 +976,12 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
-          localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-          setToken(newToken);
+          inviteAcceptedTokenRef.current = newToken;
+          login(newToken);
         }}
         onJoined={async () => {
-          const activeToken = localStorage.getItem(TOKEN_STORAGE_KEY) || token;
-          await loadCampaigns(activeToken);
+          await loadCampaigns(inviteAcceptedTokenRef.current ?? token);
+          inviteAcceptedTokenRef.current = null;
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
@@ -1016,9 +1006,7 @@ export default function App() {
               method: "POST",
               body: JSON.stringify(payload),
             });
-            localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
-            setToken(auth.access_token);
-            setUser(auth.user);
+            login(auth.access_token, auth.user);
             await loadCampaigns(auth.access_token);
             if (payload.mode === "register") {
               setInviteToken(null);
@@ -1049,9 +1037,7 @@ export default function App() {
               method: "POST",
               body: JSON.stringify(payload),
             });
-            localStorage.setItem(TOKEN_STORAGE_KEY, auth.access_token);
-            setToken(auth.access_token);
-            setUser(auth.user);
+            login(auth.access_token, auth.user);
             await loadCampaigns(auth.access_token);
           } catch (err) {
             setMessage(err instanceof Error ? err.message : "Échec");
