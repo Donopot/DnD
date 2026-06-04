@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authHeaders } from "../api/client";
+import { apiRequest } from "../api/client";
 import type { SceneToken } from "../api/types";
 
 type TokenPanelProps = {
@@ -36,15 +36,10 @@ export function TokenPanel({ campaignId, token, sceneId, tokens, onTokensChanged
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`/api/scenes/${sceneId}/tokens`, {
+      await apiRequest(`/api/scenes/${sceneId}/tokens`, token, {
         method: "POST",
-        headers: { ...authHeaders(token), "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), x, y, size, color }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.detail ?? "Erreur création token");
-      }
       setName("");
       setX(0);
       setY(0);
@@ -61,11 +56,7 @@ export function TokenPanel({ campaignId, token, sceneId, tokens, onTokensChanged
 
   async function deleteToken(tokenId: string) {
     try {
-      const res = await fetch(`/api/tokens/${tokenId}`, {
-        method: "DELETE",
-        headers: authHeaders(token),
-      });
-      if (!res.ok) throw new Error("Erreur suppression");
+      await apiRequest(`/api/tokens/${tokenId}`, token, { method: "DELETE" });
       onTokensChanged();
     } catch (err: any) {
       setError(err.message ?? "Erreur suppression");
