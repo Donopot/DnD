@@ -67,7 +67,6 @@ import type {
   GameLogEntry,
   Handout,
   Invite,
-  Member,
   Roll,
   Scene,
   SceneToken,
@@ -84,9 +83,8 @@ export default function App() {
   const authLogout = auth.logout;
 
   const campaign = useCampaignData(token);
-  const { campaigns, selectedCampaignId, selectedCampaign } = campaign;
+  const { campaigns, selectedCampaignId, selectedCampaign, members } = campaign;
 
-  const [members, setMembers] = useState<Member[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -247,7 +245,7 @@ export default function App() {
 
   useEffect(() => {
     if (!token || !selectedCampaign) {
-      setMembers([]);
+      campaign.clearMembers();
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
@@ -255,7 +253,7 @@ export default function App() {
       return;
     }
     campaign.selectCampaign(selectedCampaign.id);
-    void loadMembers(selectedCampaign.id);
+    void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
     void loadVttState(selectedCampaign.id);
@@ -401,14 +399,6 @@ export default function App() {
     } catch (error) {
       campaign.clearCampaigns();
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
-    }
-  }
-
-  async function loadMembers(campaignId: string) {
-    try {
-      setMembers(await request<Member[]>(`/api/campaigns/${campaignId}/members`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load members");
     }
   }
 
@@ -974,7 +964,7 @@ export default function App() {
     wsRef.current?.close();
     authLogout();
     campaign.clearCampaigns();
-    setMembers([]);
+    campaign.clearMembers();
     setCharacters([]);
     setRolls([]);
     setLogEntries([]);
