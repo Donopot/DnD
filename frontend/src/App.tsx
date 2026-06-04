@@ -97,6 +97,12 @@ const TokenPanel = lazy(() =>
 const TokenLibraryPanel = lazy(() =>
   import("./components/TokenLibraryPanel").then((m) => ({ default: m.TokenLibraryPanel })),
 );
+const ActiveEncounterPanel = lazy(() =>
+  import("./components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
+);
+const ConditionsPanel = lazy(() =>
+  import("./components/ConditionsPanel").then((m) => ({ default: m.ConditionsPanel })),
+);
 
 // Regular import (small component, used immediately)
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
@@ -1339,6 +1345,31 @@ export default function App() {
                   </details>
                 )}
 
+                {/* Active Encounter */}
+                {liveModePanelIds.has("active-encounter") && (
+                  <details className="gm-panel-section" open>
+                    <summary>
+                      ⚔️ Rencontre active
+                      <button
+                        className="panel-detach-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          fp.open("active-encounter", "⚔️ Rencontre active");
+                        }}
+                        title="Détacher en panneau flottant"
+                        type="button"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
+                    </summary>
+                    <ActiveEncounterPanel
+                      campaignId={selectedCampaign?.id ?? ""}
+                      token={token}
+                    />
+                  </details>
+                )}
+
                 {/* Encounter Builder */}
                 {liveModePanelIds.has("encounter-builder") && (
                   <details className="gm-panel-section">
@@ -2201,8 +2232,20 @@ export default function App() {
               onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
             />
           )}
+          {panel.id === "conditions" && (
+            <ConditionsPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
+          )}
           {panel.id === "dice-roller" && (
             <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
+          )}
+          {panel.id === "active-encounter" && (
+            <ActiveEncounterPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
           )}
           {panel.id === "encounter-builder" && (
             <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />

@@ -3738,13 +3738,13 @@ select {
   gap: 0.4rem;
 }
 
-.qa-bar {
+.quick-actions .qa-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
 }
 
-.qa-btn {
+.quick-actions .qa-btn {
   display: flex;
   align-items: center;
   gap: 0.2rem;
@@ -3759,20 +3759,20 @@ select {
   white-space: nowrap;
 }
 
-.qa-btn:hover {
+.quick-actions .qa-btn:hover {
   filter: brightness(1.3);
   transform: translateY(-1px);
 }
 
-.qa-label {
+.quick-actions .qa-label {
   font-size: 0.7rem;
 }
-.qa-formula {
+.quick-actions .qa-formula {
   font-size: 0.58rem;
   opacity: 0.6;
 }
 
-.qa-editor {
+.quick-actions .qa-editor {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -3782,13 +3782,13 @@ select {
   border-radius: 6px;
 }
 
-.qa-add-row {
+.quick-actions .qa-add-row {
   display: flex;
   gap: 0.25rem;
   align-items: center;
 }
 
-.qa-input {
+.quick-actions .qa-input {
   flex: 1;
   padding: 0.25rem 0.3rem;
   background: #0a0e0b;
@@ -3799,7 +3799,7 @@ select {
   min-width: 0;
 }
 
-.qa-input-sm {
+.quick-actions .qa-input-sm {
   width: 70px;
   padding: 0.25rem 0.3rem;
   background: #0a0e0b;
@@ -3809,7 +3809,7 @@ select {
   font-size: 0.7rem;
 }
 
-.qa-color {
+.quick-actions .qa-color {
   width: 28px;
   height: 28px;
   padding: 0;
@@ -3819,19 +3819,47 @@ select {
   background: none;
 }
 
-.qa-macro-list {
+.quick-actions .qa-macro-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.qa-macro-item {
+.quick-actions .qa-macro-item {
   display: flex;
   align-items: center;
   gap: 0.3rem;
   padding: 0.2rem 0.3rem;
   font-size: 0.68rem;
   color: #8a9a8e;
+}
+
+/* Quick dice */
+.quick-actions .qa-dice-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.quick-actions .qa-dice-btn {
+  min-width: 38px;
+  min-height: 28px;
+  padding: 3px 6px;
+  background: rgba(30, 40, 35, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-normal);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-actions .qa-dice-btn:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  transform: translateY(-1px);
 }
 
 /* ── Campaign View Tabs ── */
@@ -4003,3 +4031,118 @@ select {
 }
 
 /* End Token Library Panel */
+
+/* ── Active Encounter Panel (GM-3D) ── */
+/* Active Encounter Panel */
+
+.active-encounter-panel .encounter-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.active-encounter-panel .encounter-notes-form textarea {
+  min-height: 60px;
+  width: 100%;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.active-encounter-panel .encounter-notes-form textarea:focus {
+  border-color: var(--brand-green);
+  outline: 2px solid var(--border-subtle);
+}
+
+/* End Active Encounter Panel */
+
+/* ── Conditions Panel (GM-3C) ── */
+/* Conditions Panel */
+
+.conditions-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+}
+
+.conditions-add-form select,
+.conditions-add-form input[type="number"] {
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.conditions-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--brand-green);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.conditions-badge.warning {
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+}
+
+.conditions-badge.critical {
+  border-color: var(--danger);
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.conditions-badge small {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.8;
+}
+
+.conditions-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.conditions-remove:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* End Conditions Panel */
