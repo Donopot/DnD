@@ -177,6 +177,23 @@ export function CampaignMap({
     setSelectedTokenIds(controlledSelectedTokenId ? new Set([controlledSelectedTokenId]) : new Set());
   }, [controlledSelectedTokenId]);
 
+  useEffect(() => {
+    const tokenIds = new Set(sceneTokens.map((token) => token.id));
+
+    if (selectedTokenId && !tokenIds.has(selectedTokenId)) {
+      selectToken("");
+    }
+
+    setSelectedTokenIds((current) => {
+      const next = new Set([...current].filter((id) => tokenIds.has(id)));
+      return next.size === current.size ? current : next;
+    });
+
+    if (contextMenu && !tokenIds.has(contextMenu.token.id)) {
+      setContextMenu(null);
+    }
+  }, [sceneTokens, selectedTokenId, contextMenu]);
+
   // Scene transition animation (viewport centering handled by useMapViewport)
   useEffect(() => {
     setSceneTransitioning(true);
@@ -541,6 +558,7 @@ export function CampaignMap({
   function handlePanPointerDown(event: PointerEvent) {
     // Middle button (button=1) always triggers pan regardless of panMode/GM
     const isMiddleButton = event.button === 1;
+    if (event.button !== 0 && !isMiddleButton) return;
     if (!isMiddleButton && isGM && !panMode) return;
     if (isMiddleButton) event.preventDefault();
     setIsPanning(true);
@@ -592,6 +610,15 @@ export function CampaignMap({
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     const canInteractWithToken = permissions.canSelectToken(token.id);
     if (!canInteractWithToken) return;
+
+    if (event.button === 1) {
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
     event.stopPropagation();
 
     // Shift+click = toggle multi-select without starting drag
