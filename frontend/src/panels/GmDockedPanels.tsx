@@ -1,98 +1,72 @@
-import {
-  type Dispatch,
-  type FormEvent,
-  type RefObject,
-  type SetStateAction,
-  useRef,
-} from "react";
-import type {
-  Campaign,
-  Character,
-  Encounter,
-  GameLogEntry,
-  Handout,
-  Invite,
-  Member,
-  Roll,
-  Scene,
-  SceneToken,
-  User,
-} from "../api/types";
-import type { CampaignView } from "../components/CampaignViewTabs";
-import {
-  getDockedPanelsForView,
-  renderDockedPanel,
-} from "./panelRenderer";
+import { useRef } from "react";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useVttContext } from "../contexts/VttContext";
+import { usePanelContext } from "../contexts/PanelContext";
+import { useSessionContext } from "../contexts/SessionContext";
+import { getDockedPanelsForView, renderDockedPanel } from "./panelRenderer";
 
-export type GmDockedPanelsProps = {
-  gmView: CampaignView;
-  liveModePanelIds: Set<string>;
-  fpOpen: (id: string, title: string) => void;
-  selectedCampaign: Campaign | undefined;
-  token: string;
-  scenes: Scene[];
-  sceneTokens: SceneToken[];
-  selectedScene: Scene | undefined;
-  selectedTokenId: string;
-  characters: Character[];
-  selectedCharacter: Character | undefined;
-  handouts: Handout[];
-  rolls: Roll[];
-  logEntries: GameLogEntry[];
-  members: Member[];
-  encounters: Encounter[];
-  wsRef: RefObject<WebSocket | null>;
-  user: User | null;
-  isBusy: boolean;
-  latestInvite: Invite | null;
-  activeInvites: Invite[];
+/** Docked panels read all data from contexts — no more Giant Props Bag. */
+export function GmDockedPanels() {
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const vtt = useVttContext();
+  const panel = usePanelContext();
+  const session = useSessionContext();
 
-  handleQuickRoll: (
-    formula: string,
-    label: string,
-    mode: "normal" | "advantage" | "disadvantage",
-  ) => void;
-  handleRoll: (e: FormEvent<HTMLFormElement>) => void;
-  handleLogNote: (e: FormEvent<HTMLFormElement>) => void;
-  handleCreateHandout: (e: FormEvent<HTMLFormElement>) => void;
-  handleRevealHandout: (handout: Handout) => Promise<void>;
-  handleDeleteHandout: (handout: Handout) => Promise<void>;
-  handleToggleTokenHidden: (token: SceneToken) => Promise<void>;
-  handleMoveToken: (token: SceneToken, dx: number, dy: number) => Promise<void>;
-  handleCreateCharacter: (e: FormEvent<HTMLFormElement>) => void;
-  handleCreateInvite: () => void;
-  handleRevokeInvite: (token: string) => void;
-
-  setSelectedTokenId: Dispatch<SetStateAction<string>>;
-  setSceneTokens: Dispatch<SetStateAction<SceneToken[]>>;
-  setSelectedSceneId: Dispatch<SetStateAction<string>>;
-  setSelectedCharacterId: Dispatch<SetStateAction<string>>;
-  setInspectedCharacterId: Dispatch<SetStateAction<string>>;
-  setShowCharacterWizard: Dispatch<SetStateAction<boolean>>;
-  setCharacters: Dispatch<SetStateAction<Character[]>>;
-  setLogEntries: Dispatch<SetStateAction<GameLogEntry[]>>;
-
-  loadCombatState: (campaignId: string) => Promise<void>;
-  loadSceneTokens: (sceneId: string) => Promise<void>;
-  loadVttState: (campaignId: string) => Promise<void>;
-};
-
-export function GmDockedPanels(props: GmDockedPanelsProps) {
   const logRefreshAbortRef = useRef<AbortController | null>(null);
-  const panels = getDockedPanelsForView(props.gmView, props.liveModePanelIds);
+  const panels = getDockedPanelsForView(panel.gmView, panel.liveModePanelIds);
+
+  // Build GmPanelRenderProps from contexts
+  const renderProps = {
+    fpOpen: (id: string, title: string) => panel.fp.open(id, title),
+    selectedCampaign: state.selectedCampaign,
+    token: state.token,
+    scenes: state.scenes,
+    encounters: state.encounters,
+    sceneTokens: state.sceneTokens,
+    selectedScene: state.selectedScene,
+    selectedSceneId: state.selectedSceneId,
+    selectedTokenId: state.selectedTokenId,
+    characters: state.characters,
+    selectedCharacter: state.selectedCharacter,
+    handouts: state.handouts,
+    rolls: state.rolls,
+    logEntries: state.logEntries,
+    members: state.members,
+    wsRef: session.wsRef,
+    user: state.user,
+    isBusy: panel.isBusy,
+    latestInvite: state.latestInvite,
+    activeInvites: state.activeInvites,
+    handleQuickRoll: actions.handleQuickRoll,
+    handleRoll: actions.handleRoll,
+    handleLogNote: actions.handleLogNote,
+    handleCreateHandout: actions.handleCreateHandout,
+    handleRevealHandout: actions.handleRevealHandout,
+    handleDeleteHandout: actions.handleDeleteHandout,
+    handleToggleTokenHidden: actions.handleToggleTokenHidden,
+    handleMoveToken: actions.handleMoveToken,
+    handleCreateCharacter: actions.handleCreateCharacter,
+    handleCreateInvite: actions.handleCreateInvite,
+    handleRevokeInvite: actions.handleRevokeInvite,
+    setSelectedTokenId: vtt.setSelectedTokenId,
+    setSceneTokens: vtt.setSceneTokens,
+    setSelectedSceneId: vtt.setSelectedSceneId,
+    setSelectedCharacterId: panel.setSelectedCharacterId,
+    setInspectedCharacterId: panel.setInspectedCharacterId,
+    setShowCharacterWizard: panel.setShowCharacterWizard,
+    setCharacters: panel.setCharacters as any,
+    setLogEntries: panel.setLogEntries as any,
+    loadCombatState: vtt.loadCombatState,
+    loadSceneTokens: vtt.loadSceneTokens,
+    loadVttState: vtt.loadVttState,
+    logRefreshAbortRef,
+  };
 
   return (
     <>
-      {panels.map((panel) =>
-        renderDockedPanel(panel, {
-          ...props,
-          logRefreshAbortRef,
-          setSelectedTokenId: (id) => props.setSelectedTokenId(id),
-          setSelectedSceneId: (id) => props.setSelectedSceneId(id),
-          setSelectedCharacterId: (id) => props.setSelectedCharacterId(id),
-          setInspectedCharacterId: (id) => props.setInspectedCharacterId(id),
-        }),
-      )}
+      {panels.map((panel) => renderDockedPanel(panel, renderProps))}
     </>
   );
 }

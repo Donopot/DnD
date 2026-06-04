@@ -31,6 +31,12 @@ export interface WorkspaceActions {
 
   // Auth
   onLogout: () => void;
+
+  // Campaign
+  selectCampaign: (id: string) => void;
+
+  // Data loading
+  loadCharacters: (campaignId: string) => Promise<void>;
 }
 
 export const WorkspaceActionsContext = createContext<WorkspaceActions | null>(null);
