@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 
 import asyncpg
 import boto3
@@ -39,7 +40,21 @@ from app.routers import vtt
 
 settings = get_settings()
 
-app = FastAPI(title="DnD SaaS API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    await connect_db()
+    await init_cache()
+    yield
+    await close_cache()
+    await close_db()
+
+
+app = FastAPI(
+    title="DnD SaaS API",
+    version="0.11.1",
+    lifespan=lifespan,
+)
 app.state.limiter = shared_limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -69,18 +84,6 @@ app.include_router(player.router)
 app.include_router(messages.router)
 app.include_router(npc_generator.router)
 app.include_router(session.ws_router)
-
-
-@app.on_event("startup")
-async def startup() -> None:
-    await connect_db()
-    await init_cache()
-
-
-@app.on_event("shutdown")
-async def shutdown() -> None:
-    await close_cache()
-    await close_db()
 
 
 @app.get("/api/health")

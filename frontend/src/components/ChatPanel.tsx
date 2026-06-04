@@ -18,12 +18,6 @@ interface ChatPanelProps {
   displayName?: string;
 }
 
-const MODE_LABELS: Record<string, string> = {
-  ic: "🎭 En personnage",
-  ooc: "💬 Hors-jeu",
-  whisper: "🤫 Chuchotement",
-};
-
 export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
