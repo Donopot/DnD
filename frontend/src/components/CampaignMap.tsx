@@ -1,4 +1,3 @@
-import { Eraser, Eye, EyeOff, Grid3X3, Crosshair, Undo2 } from "lucide-react";
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scene, SceneToken } from "../api/types";
 import { useGlobalKeyboard } from "../hooks/useGlobalKeyboard";
@@ -13,6 +12,7 @@ import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer, type FogZone } from "./FogLayer";
 import { MapTools } from "./MapTools";
+import { MapToolbar } from "./MapToolbar";
 import { TokenContextMenu } from "./TokenContextMenu";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
@@ -823,168 +823,35 @@ export function CampaignMap({
   return (
     <div className="campaign-map-shell">
       {/* ── Toolbar ──────────────────────────────────────────── */}
-      <div className="campaign-map-toolbar">
-        {scenes.length > 1 && onSelectScene && (
-          <select
-            value={selectedSceneId}
-            onChange={(e) => {
-              onSelectScene(e.target.value);
-              onLoadSceneTokens?.(e.target.value);
-            }}
-          >
-            {scenes.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {scenes.length <= 1 && <strong>{selectedScene.name}</strong>}
-
-        <div className="campaign-map-zoom">
-          <button
-            type="button"
-            onClick={() => {
-              const rect = scrollRef.current?.getBoundingClientRect();
-              if (rect) zoomOut(rect.width / 2, rect.height / 2);
-            }}
-            aria-label="Zoom arrière"
-          >
-            −
-          </button>
-          <span>{zoomPercent}%</span>
-          <button
-            type="button"
-            onClick={() => {
-              const rect = scrollRef.current?.getBoundingClientRect();
-              if (rect) zoomIn(rect.width / 2, rect.height / 2);
-            }}
-            aria-label="Zoom avant"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Grid toggle */}
-        <button
-          type="button"
-          className={`campaign-map-grid-toggle ${showGrid ? "active" : ""}`}
-          onClick={() => setShowGrid((g) => !g)}
-          title={showGrid ? "Masquer la grille" : "Afficher la grille"}
-        >
-          <Grid3X3 size={14} />
-        </button>
-
-        {/* Recenter button */}
-        <button
-          type="button"
-          className="campaign-map-recenter"
-          onClick={recenter}
-          title="Recentrer la scène"
-        >
-          <Crosshair size={14} />
-        </button>
-
-        {/* Pan toggle */}
-        <button
-          type="button"
-          className={`campaign-map-pan-toggle ${panMode ? "active" : ""}`}
-          onClick={() => {
-            setPanMode((prev) => {
-              if (!prev) {
-                // Disable fog draw/erase when entering pan mode
-                setFogDrawMode(false);
-                setFogEraseMode(false);
-                setFogDrawing(false);
-                setFogCurrentRect(null);
-              }
-              return !prev;
-            });
-          }}
-        >
-          {panMode ? "✋ Pan ON" : "✋ Pan"}
-        </button>
-
-        {/* Fog controls */}
-        {isGM && (
-          <>
-            <button
-              type="button"
-              className={`campaign-map-grid-toggle ${showFog ? "active" : ""}`}
-              onClick={() => {
-                setShowFog((s) => {
-                  if (s) {
-                    setFogDrawMode(false);
-                    setFogEraseMode(false);
-                  }
-                  return !s;
-                });
-              }}
-              title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
-            >
-              {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
-              {showFog ? "Afficher fog" : "Masquer fog"}
-            </button>
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogDrawMode && !fogEraseMode ? "active" : ""}`}
-                onClick={() => {
-                  setFogDrawMode((m) => !m);
-                  setFogEraseMode(false);
-                }}
-                title="Dessiner le brouillard"
-              >
-                Draw
-              </button>
-            )}
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogCircleMode ? "active" : ""}`}
-                onClick={() => setFogCircleMode((m) => !m)}
-                title={fogCircleMode ? "Mode rectangle" : "Mode cercle"}
-              >
-                {fogCircleMode ? "◯" : "▭"}
-              </button>
-            )}
-            {showFog && (
-              <button
-                type="button"
-                className={`campaign-map-grid-toggle ${fogEraseMode ? "active" : ""}`}
-                onClick={() => {
-                  setFogEraseMode((m) => !m);
-                  setFogDrawMode(false);
-                }}
-                title="Gomme (clic sur une zone pour l'effacer)"
-              >
-                <Eraser size={14} />
-              </button>
-            )}
-            {fogZones.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  className="campaign-map-grid-toggle"
-                  onClick={() => saveFogZones(fogZones.slice(0, -1))}
-                  title="Annuler dernière zone"
-                >
-                  <Undo2 size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="campaign-map-grid-toggle"
-                  onClick={() => saveFogZones([])}
-                  title="Reset tout le brouillard"
-                >
-                  Reset
-                </button>
-              </>
-            )}
-          </>
-        )}
-      </div>
+      <MapToolbar
+        scenes={scenes}
+        selectedSceneId={selectedSceneId}
+        onSelectScene={onSelectScene}
+        onLoadSceneTokens={onLoadSceneTokens}
+        zoomPercent={zoomPercent}
+        zoomIn={zoomIn}
+        zoomOut={zoomOut}
+        scrollRef={scrollRef}
+        showGrid={showGrid}
+        setShowGrid={setShowGrid}
+        recenter={recenter}
+        panMode={panMode}
+        setPanMode={setPanMode}
+        setFogDrawMode={setFogDrawMode}
+        setFogEraseMode={setFogEraseMode}
+        setFogDrawing={setFogDrawing}
+        setFogCurrentRect={setFogCurrentRect}
+        isGM={isGM}
+        showFog={showFog}
+        setShowFog={setShowFog}
+        fogDrawMode={fogDrawMode}
+        fogCircleMode={fogCircleMode}
+        setFogCircleMode={setFogCircleMode}
+        fogEraseMode={fogEraseMode}
+        fogZones={fogZones}
+        saveFogZones={saveFogZones}
+        selectedSceneName={selectedScene.name}
+      />
 
       {/* ── Map viewport ─────────────────────────────────────── */}
       <div
