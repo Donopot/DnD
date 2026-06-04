@@ -79,7 +79,7 @@ export default function App() {
   ensureStorageVersion();
 
   const auth = useAuthSession();
-  const { token, user, setUser, login } = auth;
+  const { token, user, login } = auth;
   const authLogout = auth.logout;
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
@@ -405,8 +405,8 @@ export default function App() {
     }
   }
 
-  async function loadCampaigns(_activeToken = token) {
-    const data = await request<Campaign[]>("/api/campaigns");
+  async function loadCampaigns(activeToken = auth.token) {
+    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken);
     setCampaigns(data);
     if (data.length > 0) {
       setSelectedCampaignId((current) => current || data[0].id);
