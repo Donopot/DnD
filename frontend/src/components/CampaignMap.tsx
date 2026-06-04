@@ -372,14 +372,14 @@ export function CampaignMap({
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       // ── Token-specific shortcuts (only when a token is selected) ──
-      if (selectedTokenId && sceneTokens) {
+      if (onTokenAction && selectedTokenId) {
         const token = sceneTokens.find((t) => t.id === selectedTokenId);
         if (token) {
           switch (e.key) {
             case "Delete":
             case "Backspace":
               e.preventDefault();
-              onTokenAction?.("delete", token);
+              onTokenAction("delete", token);
               return;
           }
 
@@ -388,12 +388,12 @@ export function CampaignMap({
               case "d":
               case "D":
                 e.preventDefault();
-                onTokenAction?.("duplicate", token);
+                onTokenAction("duplicate", token);
                 return;
               case "h":
               case "H":
                 e.preventDefault();
-                onTokenAction?.(token.is_hidden ? "reveal" : "hide", token);
+                onTokenAction(token.is_hidden ? "reveal" : "hide", token);
                 return;
             }
           }
@@ -401,11 +401,11 @@ export function CampaignMap({
           switch (e.key) {
             case "]":
               e.preventDefault();
-              onTokenAction?.("front", token);
+              onTokenAction("front", token);
               return;
             case "[":
               e.preventDefault();
-              onTokenAction?.("back", token);
+              onTokenAction("back", token);
               return;
           }
         }
