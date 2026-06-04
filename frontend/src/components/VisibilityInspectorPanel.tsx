@@ -68,7 +68,7 @@ export function VisibilityInspectorPanel({
 
   if (!isGM) {
     return (
-      <div className="gm-panel-content">
+      <div className="gm-panel-content visibility-inspector-panel" data-vtt-panel>
         <p className="gm-panel-muted">Fonctionnalité réservée au MJ.</p>
       </div>
     );
