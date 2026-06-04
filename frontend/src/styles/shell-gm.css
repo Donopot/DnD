@@ -2526,6 +2526,76 @@ select {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* ── Invite link display ─────────────────────────────── */
+.invite-link-box {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: var(--bg-surface-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.invite-link-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+
+.invite-link-row {
+  display: flex;
+  gap: 4px;
+}
+
+.invite-link-input {
+  flex: 1;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  cursor: text;
+  min-width: 0;
+}
+
+.invite-link-input:focus {
+  outline: 1px solid var(--accent);
+}
+
+/* ── Active invites list ─────────────────────────────── */
+.active-invites-list {
+  margin-top: var(--space-2);
+}
+
+.active-invites-list h4 {
+  font-size: 0.8rem;
+  margin: 0 0 4px 0;
+  color: var(--text-muted);
+}
+
+.active-invite-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 0.75rem;
+}
+
+.active-invite-row .invite-token-preview {
+  flex: 1;
+  font-family: monospace;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.active-invite-row .invite-uses {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
 /* Map area */
 .gm-map-area {
   display: flex;

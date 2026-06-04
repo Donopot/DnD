@@ -157,10 +157,11 @@ export default function App() {
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
     "offline",
   );
-  const [, setLatestInvite] = useState<Invite | null>(null);
+  const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
+  const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
-    const match = window.location.pathname.match(/^\/invite\/([\\w-]+)/);
+    const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
@@ -907,8 +908,34 @@ export default function App() {
       });
       setLatestInvite(invite);
       setMessage("Invitation creee.");
+      void loadInvites();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create invite");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function loadInvites(campaignId?: string) {
+    const cid = campaignId ?? selectedCampaign?.id;
+    if (!cid) return;
+    try {
+      const invites = await request<Invite[]>(`/api/campaigns/${cid}/invites`);
+      setActiveInvites(invites);
+    } catch {
+      // Silently ignore — user may not be GM
+    }
+  }
+
+  async function handleRevokeInvite(token: string) {
+    if (!selectedCampaign) return;
+    setIsBusy(true);
+    try {
+      await request(`/api/invites/${token}/revoke`, { method: "POST" });
+      setActiveInvites((prev) => prev.filter((inv) => inv.token !== token));
+      if (latestInvite?.token === token) setLatestInvite(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to revoke invite");
     } finally {
       setIsBusy(false);
     }
@@ -1005,6 +1032,7 @@ export default function App() {
     setPresenceCount(0);
     setSelectedCharacterId("");
     setLatestInvite(null);
+    setActiveInvites([]);
     setSelectedCampaignId("");
   }
 
@@ -1158,6 +1186,7 @@ export default function App() {
               onClick={() => {
                 setSelectedCampaignId(c.id);
                 setLatestInvite(null);
+                void loadInvites(c.id);
               }}
               type="button"
               aria-label={`${c.name} — ${c.member_count} membres`}
@@ -1194,6 +1223,30 @@ export default function App() {
             Sortir
           </button>
         </div>
+        {latestInvite && (
+          <div className="invite-link-box">
+            <p className="invite-link-label">Lien d'invitation :</p>
+            <div className="invite-link-row">
+              <input
+                className="invite-link-input"
+                readOnly
+                value={`${window.location.origin}/invite/${latestInvite.token}`}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                className="compact"
+                onClick={() => {
+                  void navigator.clipboard.writeText(
+                    `${window.location.origin}/invite/${latestInvite.token}`,
+                  );
+                }}
+                type="button"
+              >
+                📋
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* ── Centre — Carte ──────────────────────────────────── */}
@@ -1909,6 +1962,54 @@ export default function App() {
                         <UserPlus aria-hidden="true" size={14} /> Inviter un joueur
                       </button>
                     </div>
+                    {latestInvite && (
+                      <div className="invite-link-box">
+                        <p className="invite-link-label">Lien d'invitation :</p>
+                        <div className="invite-link-row">
+                          <input
+                            className="invite-link-input"
+                            readOnly
+                            value={`${window.location.origin}/invite/${latestInvite.token}`}
+                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                          />
+                          <button
+                            className="compact"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(
+                                `${window.location.origin}/invite/${latestInvite.token}`,
+                              );
+                            }}
+                            type="button"
+                          >
+                            📋
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {activeInvites.length > 0 && (
+                      <div className="active-invites-list">
+                        <h4>Invitations actives ({activeInvites.length})</h4>
+                        {activeInvites.map((inv) => (
+                          <div className="active-invite-row" key={inv.token}>
+                            <span className="invite-token-preview">
+                              /invite/{inv.token.slice(0, 10)}…
+                            </span>
+                            <span className="invite-uses">
+                              {inv.use_count}/{inv.max_uses ?? "∞"}
+                            </span>
+                            <button
+                              className="danger-button compact"
+                              disabled={isBusy}
+                              onClick={() => handleRevokeInvite(inv.token)}
+                              type="button"
+                              title="Révoquer cette invitation"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <h4>Membres ({members.length})</h4>
                     <div className="member-list">
                       {members.map((m) => (

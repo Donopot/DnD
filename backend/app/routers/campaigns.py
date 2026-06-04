@@ -286,3 +286,23 @@ async def join_invite(token: str, current_user=Depends(get_current_user)) -> Cam
         current_user["id"],
     )
     return campaign_public(row)
+
+
+@router.post("/invites/{token}/revoke", status_code=200)
+async def revoke_invite(token: str, current_user=Depends(get_current_user)):
+    """Revoke an invite (GM/co-GM only)."""
+    row = await get_pool().fetchrow(
+        "select campaign_id, revoked_at from campaign_invites where token = $1",
+        token,
+    )
+    if row is None or row["revoked_at"] is not None:
+        raise HTTPException(status_code=404, detail="Invite not found")
+
+    await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    await get_pool().execute(
+        "update campaign_invites set revoked_at = $1 where token = $2",
+        datetime.now(UTC),
+        token,
+    )
+    return {"detail": "Invite revoked"}
