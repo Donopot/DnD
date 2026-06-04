@@ -57,6 +57,15 @@ export const GM_PANELS: GmPanelDefinition[] = [
     detachable: true,
   },
   {
+    id: "conditions",
+    label: "États & Conditions",
+    emoji: "🏷️",
+    category: "live",
+    description: "États actifs, durée, rappel de tour, liaison combat",
+    status: "active",
+    detachable: true,
+  },
+  {
     id: "encounter-builder",
     label: "Générateur de rencontres",
     emoji: "🧩",
