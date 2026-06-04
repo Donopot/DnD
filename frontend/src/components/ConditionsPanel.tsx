@@ -64,7 +64,6 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newCondition, setNewCondition] = useState("");
   const [newDuration, setNewDuration] = useState<number | null>(null);
-  const [busy, setBusy] = useState(false);
 
   const headers = useMemo(
     () => ({
@@ -87,7 +86,6 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   // ── Load active encounter ────────────────────────────────────────────
 
   async function loadEncounterDetail(encounterId: string) {
-    setBusy(true);
     try {
       const res = await fetch(`/api/encounters/${encounterId}`, { headers });
       if (!res.ok) return;
@@ -97,8 +95,6 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
       setConditions(readConditions(campaignId, encounterId));
     } catch {
       /* ignore */
-    } finally {
-      setBusy(false);
     }
   }
 
