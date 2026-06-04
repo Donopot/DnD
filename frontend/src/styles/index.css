@@ -6,6 +6,7 @@
 @import "./typography.css";
 @import "./components.css";
 @import "./shell-gm.css";
+@import "./shell-gm-panels.css";
 @import "./map.css";
 @import "./widgets.css";
 @import "./player.css";
