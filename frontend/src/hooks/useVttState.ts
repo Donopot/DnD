@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import type {
+  Asset,
   Combatant,
   Encounter,
   EncounterDetail,
@@ -18,6 +19,7 @@ export interface UseVttStateReturn {
   loadVttState: (campaignId: string) => Promise<void>;
   loadSceneTokens: (sceneId: string) => Promise<void>;
   loadCombatState: (campaignId: string) => Promise<void>;
+  loadAssets: (campaignId: string) => Promise<void>;
   setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
   setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
   clearVttState: () => void;
@@ -36,6 +38,8 @@ export function useVttState(token: string): UseVttStateReturn {
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
   const [, setCombatants] = useState<Combatant[]>([]);
+  const [, setAssetList] = useState<Asset[]>([]);
+  const [, setSelectedAssetId] = useState<string>("");
 
   const selectedScene = useMemo(
     () => scenes.find((s) => s.id === selectedSceneId) ?? scenes[0],
@@ -260,6 +264,22 @@ export function useVttState(token: string): UseVttStateReturn {
     [token, selectedEncounterId, loadEncounterDetail],
   );
 
+  const loadAssets = useCallback(
+    async (campaignId: string) => {
+      try {
+        const data = await apiRequest<Asset[]>(
+          `/api/campaigns/${campaignId}/assets`,
+          token,
+        );
+        setAssetList(data);
+        setSelectedAssetId((current) => current || data[0]?.id || "");
+      } catch {
+        // silently handled by caller
+      }
+    },
+    [token],
+  );
+
   const clearVttState = useCallback(() => {
     setScenes([]);
     setSelectedSceneId("");
@@ -279,6 +299,7 @@ export function useVttState(token: string): UseVttStateReturn {
     loadVttState,
     loadSceneTokens,
     loadCombatState,
+    loadAssets,
     setSelectedSceneId,
     setSceneTokens,
     clearVttState,
