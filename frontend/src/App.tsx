@@ -100,6 +100,9 @@ const TokenLibraryPanel = lazy(() =>
 const ActiveEncounterPanel = lazy(() =>
   import("./components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
 );
+const ConditionsPanel = lazy(() =>
+  import("./components/ConditionsPanel").then((m) => ({ default: m.ConditionsPanel })),
+);
 
 // Regular import (small component, used immediately)
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
@@ -2227,6 +2230,12 @@ export default function App() {
               campaignId={selectedCampaign?.id ?? ""}
               token={token}
               onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+            />
+          )}
+          {panel.id === "conditions" && (
+            <ConditionsPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
             />
           )}
           {panel.id === "dice-roller" && (
