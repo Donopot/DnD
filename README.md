@@ -1,145 +1,243 @@
-# DnD SaaS — Virtual Tabletop
+# DnD SaaS — Virtual Tabletop auto-hébergé
 
-Virtual Tabletop Donjons & Dragons en navigateur, conçu pour fonctionner sur HP Mini.
+VTT Donjons & Dragons en navigateur, conçu pour tourner sur un HP Mini et servir une vraie table de jeu.
 
-**Statut** : Beta privée — 33/33 phases complétées 🎉
+Le projet vise une expérience MJ rapide, claire et fiable : préparer une campagne, lancer une session, gérer scènes, cartes, tokens, combats, notes et secrets, tout en séparant strictement la vue MJ et la vue joueur.
 
-## Architecture
+## Statut
 
-| Composant | Technologie | Port interne |
-|-----------|------------|-------------|
-| Frontend | React 19 + Vite | 8090 |
-| Backend | FastAPI (Python 3.12) | 8091 |
-| Database | PostgreSQL 16 | 5432 |
-| Storage | MinIO (S3) | 9000 |
-| Cache | Redis | 6379 |
+Beta privée active.
+
+Le socle est fonctionnel : authentification, campagnes, personnages, scènes, tokens, assets, WebSocket, combat, journal de session, handouts, bibliothèque SRD, panneaux MJ et carte VTT.
+
+Chantiers prioritaires en cours :
+
+- alléger `App.tsx` par extraction progressive ;
+- stabiliser les interactions carte/tokens/fog ;
+- renforcer l'interface joueur ;
+- réduire la dette CSS et clavier ;
+- garder la documentation consolidée.
+
+## Stack
+
+| Couche | Technologie |
+|---|---|
+| Frontend | React, TypeScript, Vite |
+| Backend | FastAPI, Python |
+| Base | PostgreSQL |
+| Cache | Redis |
+| Assets | MinIO / S3 |
+| Temps réel | WebSocket |
+| Déploiement | Docker Compose |
+| Reverse proxy | Caddy + Nginx frontend |
+
+## Architecture rapide
+
+```txt
+Navigateur
+  ↓ HTTPS
+Caddy
+  ↓
+Frontend Nginx / API backend
+  ↓
+FastAPI
+  ↓
+PostgreSQL / Redis / MinIO
+```
+
+Principe central : **le backend est la source de vérité**. Les permissions, les données persistantes et les validations critiques doivent rester côté backend.
 
 ## Démarrage rapide
 
 ```bash
 cp .env.example .env
+# remplir les secrets dans .env
+
 docker compose up -d --build
 ```
 
-- Frontend : http://127.0.0.1:8090
-- Backend health : http://127.0.0.1:8091/api/health
+Accès local :
 
-## Production (HP Mini)
-
+```txt
+Frontend : http://127.0.0.1:8090
+Backend health : http://127.0.0.1:8091/api/health
 ```
+
+Vérification :
+
+```bash
+curl -i http://127.0.0.1:8091/api/health
+docker compose ps
+```
+
+## Production HP Mini
+
+Chemin cible :
+
+```txt
 /home/donopot/dnd-saas
-  .env
-  docker-compose.yml
-  data/
-  backups/
-  logs/
 ```
 
-Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env` de l'autre SaaS. Seul composant partagé : Caddy (entrypoint hôte).
+Services attendus :
 
-## Caddy
+| Service | Rôle | Port |
+|---|---|---|
+| `dnd-frontend` | SPA React via Nginx | 127.0.0.1:8090 |
+| `dnd-backend` | API FastAPI + WS | 127.0.0.1:8091 |
+| `dnd-postgres` | Base PostgreSQL | interne |
+| `dnd-redis` | Cache | interne |
+| `dnd-minio` | Stockage assets | interne |
 
-- `https://dnd.dtmini.com` → Frontend
-- `https://dnd.dtmini.com/api/*` → Backend
-- `https://dnd.dtmini.com/ws/*` → WebSocket
+Caddy expose :
 
-## Fonctionnalités
+```txt
+https://dnd.dtmini.com        → frontend
+https://dnd.dtmini.com/api/*  → backend
+https://dnd.dtmini.com/ws/*   → WebSocket
+```
 
-### Backend (114 endpoints, 18 routeurs, 25 migrations, 118 tests unitaires)
+Ne jamais partager les secrets, volumes, buckets ou bases de données avec un autre SaaS. Le seul composant partagé côté hôte doit rester le reverse proxy.
 
-| Domaine | Endpoints |
-|---------|-----------|
-| Auth | register, login, me |
-| Campagnes | create, list, join via invite code, members, invites |
-| Personnages | CRUD, vault personnel, soumission MJ, XP, HP, conditions, inventaire, ressources |
-| Dés | lancer (normal/avantage/désavantage), journal des lancers |
-| Scènes & Tokens | CRUD scènes, CRUD tokens, déplacement, visibilité, fog of war |
-| Combat | créer/activer/tour, gestion de l'initiative, combattants |
-| Assets | upload/download cartes et tokens, gestion fichiers |
-| Handouts | documents partagés MJ↔Joueurs |
-| Homebrew | créatures, objets, sorts personnalisés |
-| Session | jets, journal structuré, marqueurs, export markdown/JSON |
-| Communication | messages privés, annonces, jets secrets MJ |
-| Santé | health check (DB + S3), rate limiting 200/min |
+## Fonctionnalités principales
 
-### Frontend (46 composants React, ~10 800 lignes CSS, 1798 modules Vite)
+### Maître du Jeu
 
-| Composant | Rôle |
-|-----------|------|
-| AuthPage | Login/register avec force mot de passe, honeypot anti-bot |
-| PlayerLobby | Hall joueur (créer perso, rejoindre campagne) |
-| GmLobby | Hall MJ (créer campagne, gérer persos) |
-| CampaignMap | Carte partagée (zoom, pan, fog of war, tokens, AoE) |
-| MapTools | Ping, règle de distance, gabarits AoE (cône/sphère/cube/ligne), drag token |
-| GmCharacterInspector | Modal MJ : PV, XP, conditions, inventaire, ressources |
-| PlayerView | Interface joueur (carte + persos + dés + handouts + combat + journal) |
-| GmMessagePanel | Communication MJ (messages privés, annonces, jets secrets) |
-| PlayerNotifications | Cloche 🔔 notifications temps réel + polling 30s |
-| EditCharacterSheet | Édition fiche de personnage |
-| SessionLogPanel | Journal de session structuré |
-| HomebrewPanel | Gestion créatures/objets/sorts custom |
-| HandoutPanel | Gestion documents partagés |
-| RulesReference | SRD D&D 5e consultable (conditions, combat, XP, règles) |
-| CombatTracker | Tracker de combat visuel (initiative, HP, conditions, tours) |
-| DiceRoller | Dés visuels animés (d4-d20, Nat 20 glow, avantage/désavantage) |
-| EncounterBuilder | Générateur de rencontres (CR calculator, random par biome) |
-| QuickActions | Macros et barre d'actions rapides personnalisables |
-| SessionStats | Statistiques de session (jets, Nat 20, moyennes) |
-| FogLayer | Brouillard de guerre |
-| PersonalCharactersSection | Vault personnages (création, soumission) |
-| InvitePage | Page invitation avec preview |
-| MessageDock | Toast notifications |
+- Lobby MJ et création de campagne.
+- Gestion des membres et invitations.
+- Carte VTT avec zoom, pan, grille, tokens, fog, mini-map et mode focus.
+- Panneaux dockés et flottants.
+- Combat, initiative, rencontres, conditions et actions rapides.
+- Notes MJ, messages, handouts et journal de session.
+- Bibliothèque : bestiaire, sorts, objets, règles SRD, tokens, homebrew.
 
-### Temps réel (WebSocket)
+### Joueur
 
-- Présence (connexion/déconnexion joueurs)
-- Changements scène/tokens/handouts/combat (broadcast)
-- Ping carte (clic → animation 2.5s)
-- Règle mesure distance
-- Drag tokens joueurs (validation propriétaire)
-- Gabarits AoE (cône, sphère, cube, ligne)
+- Lobby joueur.
+- Personnages et fiche compacte.
+- Vue joueur séparée.
+- Carte avec visibilité filtrée.
+- Dés, journal public, handouts et état de combat.
 
-### Layouts
+### Carte, tokens et fog
 
-- **AuthPage** : authentification standalone
-- **PlayerLobby** : joueur sans campagne active
-- **GmLobby** : MJ sans campagne active
-- **GM Campaign** : layout 3 colonnes (sidebar 210px | carte | panneaux 320px)
-- **Player Campaign** : carte à gauche + panneaux à droite
+Règle de visibilité joueur :
 
-### Maintenance
+```txt
+Visible joueur = token non caché manuellement ET centre du token dans une zone révélée
+```
 
-- `scripts/backup-db.sh` : backup PostgreSQL quotidien (pg_dump + gzip, rétention 30j)
-- Cron job 03h00 : backup automatique
-- Cron job 06h00 : audit code quotidien
-- Cron job 07h30 : suggestions d'amélioration
+Côté MJ :
+
+```txt
+🙈 = caché manuellement aux joueurs
+👁️‍🗨️ = caché par le brouillard de guerre
+```
+
+Le fog représente des zones révélées. Le canvas dessine un overlay sombre puis découpe les zones `rect` ou `circle`.
 
 ## Développement
 
-> 📘 **Normes toolchain** : voir [`docs/developer-toolchain.md`](docs/developer-toolchain.md) — source unique de vérité (`uv`, `npm ci`, `.node-version`).
+Backend :
 
 ```bash
-# Backend
 cd backend
-uv sync                                            # installer les dépendances (reproductible)
+uv sync
 uv run uvicorn app.main:app --reload --port 8091
+```
 
-# Frontend
+Frontend :
+
+```bash
 cd frontend
-npm ci                                             # installer (package-lock.json fait foi)
+npm ci
 npx vite --port 8090
+```
 
-# Tests
+Tests et validation :
+
+```bash
 cd backend && uv run pytest tests/ -v
 cd frontend && npx tsc --noEmit && npx vite build
 ```
 
+Déploiement local complet :
+
+```bash
+docker compose up -d --build
+docker compose logs --tail=200 -f
+```
+
+## Documentation
+
+La documentation active est dans [`docs/`](docs/README.md).
+
+| Besoin | Document |
+|---|---|
+| Vision produit | [`docs/product-roadmap.md`](docs/product-roadmap.md) |
+| Architecture | [`docs/02-architecture.md`](docs/02-architecture.md) |
+| Interface et panneaux | [`docs/frontend-ui.md`](docs/frontend-ui.md) |
+| Carte, tokens, fog | [`docs/vtt-map-fog.md`](docs/vtt-map-fog.md) |
+| Backend et API | [`docs/backend-api.md`](docs/backend-api.md) |
+| Sécurité et auth | [`docs/security-auth.md`](docs/security-auth.md) |
+| Déploiement | [`docs/deployment-ops.md`](docs/deployment-ops.md) |
+| Contenu SRD | [`docs/srd-content.md`](docs/srd-content.md) |
+
+Règle de maintenance : éviter de créer des documents concurrents. Les docs permanentes doivent être intégrées dans les documents principaux. Les plans de PR temporaires vont dans `docs/work-in-progress/`, puis en archive ou dans une doc permanente après merge.
+
 ## Sécurité
 
-- JWT (access token 7 jours)
-- Rate limiting global 200 req/min (slowapi)
-- Honeypot anti-bot au register
-- Complexité mot de passe (minuscule, majuscule, chiffre, 8+ caractères)
-- Rôles : gm, co_gm, player — authorization par endpoint
-- Cors restrictif (settings.cors_origins)
-- Environnements isolés (jamais partager credentials entre SaaS)
+- JWT via `Authorization: Bearer`.
+- Mots de passe hashés avec bcrypt.
+- Rate limiting sur l'authentification.
+- CORS configuré par environnement.
+- Rôles campagne : `gm`, `co_gm`, `player`.
+- Permissions critiques vérifiées côté backend.
+- `.env` exclu du repo.
+- Stockage MinIO isolé par projet.
+
+## Maintenance serveur
+
+Suivre les logs :
+
+```bash
+docker compose logs --tail=200 -f
+```
+
+Backend seulement :
+
+```bash
+docker compose logs --tail=200 -f dnd-backend
+```
+
+Arrêter uniquement le projet DnD :
+
+```bash
+docker compose stop
+```
+
+Redémarrer :
+
+```bash
+docker compose up -d
+```
+
+Ne pas utiliser `docker compose down -v` sauf volonté explicite de supprimer les volumes.
+
+## Structure du repo
+
+```txt
+backend/   API FastAPI, routers, migrations, tests
+frontend/  React/Vite, composants, hooks, styles
+docs/      Documentation produit, technique et opérations
+scripts/   Scripts de maintenance et vérification
+```
+
+## Priorités techniques actuelles
+
+- Réduire le monolithe `App.tsx`.
+- Extraire les responsabilités en hooks et workspaces.
+- Unifier les raccourcis clavier.
+- Versionner les données `localStorage`.
+- Renforcer `AbortController` sur les fetchs lourds.
+- Découper les CSS volumineux par domaine.
+- Garder les requêtes backend paramétrées et auditées.
