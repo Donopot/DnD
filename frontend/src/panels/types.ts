@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { Dispatch, FormEvent, ReactNode, RefObject, SetStateAction } from "react";
 import type {
   Campaign,
   Character,
@@ -60,7 +60,7 @@ export type GmFloatingPanelsProps = {
   rolls: Roll[];
   logEntries: GameLogEntry[];
   members: Member[];
-  wsRef: React.RefObject<WebSocket | null>;
+  wsRef: RefObject<WebSocket | null>;
   user: User | null;
   isBusy: boolean;
   selectedSceneId: string;
@@ -69,9 +69,9 @@ export type GmFloatingPanelsProps = {
   sceneTokens: SceneToken[];
   campaignMapProps: CampaignMapProps;
   handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
-  handleRoll: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleLogNote: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleCreateHandout: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleRoll: (e: FormEvent<HTMLFormElement>) => void;
+  handleLogNote: (e: FormEvent<HTMLFormElement>) => void;
+  handleCreateHandout: (e: FormEvent<HTMLFormElement>) => void;
   handleRevealHandout: (handout: Handout) => Promise<void>;
   handleDeleteHandout: (handout: Handout) => Promise<void>;
   handleToggleTokenHidden: (token: SceneToken) => Promise<void>;
@@ -80,6 +80,7 @@ export type GmFloatingPanelsProps = {
   loadSceneTokens: (sceneId: string) => Promise<void>;
   loadVttState: (campaignId: string) => Promise<void>;
   setSelectedTokenId: (id: string) => void;
-  setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
+  setSceneTokens: Dispatch<SetStateAction<SceneToken[]>>;
   setSelectedSceneId: (id: string) => void;
+  setLogEntries: Dispatch<SetStateAction<GameLogEntry[]>>;
 };

@@ -448,6 +448,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
         setSelectedTokenId={setSelectedTokenId}
         setSceneTokens={setSceneTokens}
         setSelectedSceneId={setSelectedSceneId}
+        setLogEntries={setLogEntries}
       />
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
