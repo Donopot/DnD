@@ -1,6 +1,7 @@
 import { Clock, Plus, SkipForward, Timer, Trash2, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { apiRequest } from "../api/client";
 import type { Combatant, Encounter } from "../api/types";
 
 const DND_CONDITIONS = [
@@ -94,14 +95,6 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   const [newCondition, setNewCondition] = useState("");
   const [newDuration, setNewDuration] = useState<number | null>(null);
 
-  const headers = useMemo(
-    () => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    }),
-    [token],
-  );
-
   function resetPanelState() {
     setEncounters([]);
     setActiveEncounter(null);
@@ -117,9 +110,8 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     if (!campaignId) return;
 
     let cancelled = false;
-    fetch(`/api/campaigns/${campaignId}/encounters`, { headers })
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Encounter[]) => {
+    apiRequest<Encounter[]>(`/api/campaigns/${campaignId}/encounters`, token)
+      .then((data) => {
         if (cancelled) return;
         setEncounters(data);
         if (data.length === 0) {
@@ -137,13 +129,11 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [campaignId, headers]);
+  }, [campaignId, token]);
 
   async function loadEncounterDetail(encounterId: string) {
     try {
-      const res = await fetch(`/api/encounters/${encounterId}`, { headers });
-      if (!res.ok) return;
-      const detail = (await res.json()) as Encounter & { combatants?: Combatant[] };
+      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, token);
       setActiveEncounter(detail);
       setCombatants(detail.combatants ?? []);
       setAddingFor(null);
@@ -177,9 +167,8 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   async function addCondition(combatantId: string) {
     if (!activeEncounter || !newCondition) return;
 
-    const res = await fetch(`/api/encounters/${activeEncounter.id}/conditions/apply`, {
+    const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/apply`, token, {
       method: "POST",
-      headers,
       body: JSON.stringify({
         combatant_id: combatantId,
         condition: {
@@ -192,9 +181,7 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
       }),
     });
 
-    if (!res.ok) return;
-
-    updateCombatant((await res.json()) as Combatant);
+    updateCombatant(updated);
     setNewCondition("");
     setNewDuration(null);
     setAddingFor(null);
@@ -203,32 +190,26 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   async function removeCondition(combatantId: string, conditionName: string) {
     if (!activeEncounter) return;
 
-    const res = await fetch(`/api/encounters/${activeEncounter.id}/conditions/remove`, {
+    const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/remove`, token, {
       method: "POST",
-      headers,
       body: JSON.stringify({
         combatant_id: combatantId,
         condition_name: conditionName,
       }),
     });
 
-    if (!res.ok) return;
-
-    updateCombatant((await res.json()) as Combatant);
+    updateCombatant(updated);
   }
 
   async function saveCombatantConditions(combatantId: string, nextConditions: ConditionEntry[]) {
-    const res = await fetch(`/api/combatants/${combatantId}`, {
+    const updated = await apiRequest<Combatant>(`/api/combatants/${combatantId}`, token, {
       method: "PATCH",
-      headers,
       body: JSON.stringify({
         conditions: nextConditions.map(serializeCondition),
       }),
     });
 
-    if (!res.ok) return;
-
-    updateCombatant((await res.json()) as Combatant);
+    updateCombatant(updated);
   }
 
   async function advanceTurn() {

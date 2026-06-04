@@ -1,6 +1,7 @@
 import { Eye, EyeOff, Swords, Target, Trophy } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { apiRequest } from "../api/client";
 import type { Combatant, Encounter } from "../api/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -58,14 +59,6 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   latestCampaignIdRef.current = campaignId;
   latestTokenRef.current = token;
 
-  const headers = useMemo(
-    () => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    }),
-    [token],
-  );
-
   const resetEncounterDetailState = useCallback(() => {
     setActiveEncounter(null);
     setCombatants([]);
@@ -88,9 +81,8 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     if (!campaignId) return;
 
     let cancelled = false;
-    fetch(`/api/campaigns/${campaignId}/encounters`, { headers })
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: Encounter[]) => {
+    apiRequest<Encounter[]>(`/api/campaigns/${campaignId}/encounters`, token)
+      .then((data) => {
         if (cancelled) return;
         setEncounters(data);
         if (data.length === 0) {
@@ -106,7 +98,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       cancelled = true;
       detailRequestIdRef.current += 1;
     };
-  }, [campaignId, headers, resetEncounterDetailState, resetEncounterState]);
+  }, [campaignId, token, resetEncounterDetailState, resetEncounterState]);
 
   // ── Load active encounter detail ─────────────────────────────────────
 
@@ -117,9 +109,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     const requestToken = latestTokenRef.current;
 
     try {
-      const res = await fetch(`/api/encounters/${encounterId}`, { headers });
-      if (!res.ok) return;
-      const detail = await res.json();
+      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, requestToken);
 
       if (
         requestId !== detailRequestIdRef.current ||
@@ -137,7 +127,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     } catch {
       /* ignore */
     }
-  }, [headers]);
+  }, []);
 
   useEffect(() => {
     if (encounters.length === 0) {

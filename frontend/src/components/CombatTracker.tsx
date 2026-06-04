@@ -1,5 +1,7 @@
 import { Play, SkipBack, SkipForward, Swords, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Combatant, CombatantCondition, Encounter } from "../api/types";
 
 type CombatTrackerProps = {
@@ -19,16 +21,11 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-
   // Load encounters
   async function loadEncounters() {
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/encounters`, { headers });
-      if (res.ok) setEncounters(await res.json());
+      const data = await apiRequest<Encounter[]>(`/api/campaigns/${campaignId}/encounters`, token);
+      setEncounters(data);
     } catch {
       /* ignore */
     }
@@ -42,12 +39,9 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
   async function loadEncounterDetail(encounterId: string) {
     setBusy(true);
     try {
-      const res = await fetch(`/api/encounters/${encounterId}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setActiveEncounter(data);
-        setCombatants(data.combatants || []);
-      }
+      const data = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, token);
+      setActiveEncounter(data);
+      setCombatants(data.combatants || []);
     } catch {
       /* ignore */
     }
@@ -58,18 +52,12 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
     setBusy(true);
     setMessage("");
     try {
-      const res = await fetch(`/api${path}`, {
+      const data = await apiRequest<T>(`/api${path}`, token, {
         method: "POST",
-        headers,
         body: body ? JSON.stringify(body) : undefined,
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Erreur" }));
-        throw new Error(err.detail ?? "Erreur");
-      }
-      const data = await res.json();
       onEncounterChange?.();
-      return data as T;
+      return data;
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Erreur");
       return null;
