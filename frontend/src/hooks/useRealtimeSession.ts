@@ -74,7 +74,7 @@ export function useRealtimeSession(
       setRealtimeStatus("online");
     };
 
-    socket.onmessage = (event) => {
+    const messageHandler = (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data) as RealtimePayload;
         const current = optsRef.current;
@@ -123,6 +123,8 @@ export function useRealtimeSession(
         /* ignore malformed messages */
       }
     };
+
+    socket.addEventListener("message", messageHandler);
 
     socket.onclose = (event) => {
       if (wsRef.current !== socket) return;
