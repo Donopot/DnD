@@ -22,6 +22,7 @@ import type {
   Scene,
   SceneToken,
 } from "../api/types";
+import { apiRequest } from "../api/client";
 import { useSceneBackground } from "../hooks/useSceneBackground";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
@@ -70,31 +71,15 @@ type PlayerSummary = {
 type TabId = "characters" | "map" | "dice" | "handouts" | "combat" | "journal";
 
 // ─── API helpers ──────────────────────────────────────────────────────────
+// Thin wrapper delegating to the centralized apiRequest — gains timeout,
+// consistent error handling, and AbortSignal support.
 
 async function playerRequest<T>(
   path: string,
   token: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: "Request failed" }));
-    throw new Error(body.detail ?? "Request failed");
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
+  return apiRequest<T>(`/api${path}`, token, options);
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────
@@ -322,12 +307,8 @@ export function PlayerView({
         const gridSize = playerScene.grid_size ?? 50;
         const centerX = updated.x + (updated.size * gridSize) / 2;
         const centerY = updated.y + (updated.size * gridSize) / 2;
-        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
+        apiRequest(`/tokens/${tokenToMove.id}/reveal`, token, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             center_x: centerX,
             center_y: centerY,

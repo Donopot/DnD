@@ -21,14 +21,20 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  // Respect an external AbortSignal if provided (e.g. from a hook managing its own lifecycle).
+  // When an external signal is passed, skip our own timeout controller so the caller
+  // retains full abort control.
+  const externalSignal = options.signal;
+  const controller = externalSignal ? null : new AbortController();
+  const timeout = controller
+    ? window.setTimeout(() => controller.abort(), timeoutMs)
+    : null;
   let response: Response;
 
   try {
     response = await fetch(`${API_BASE}${path}`, {
       ...options,
-      signal: controller.signal,
+      signal: externalSignal ?? controller!.signal,
       headers: {
         "Content-Type": "application/json",
         ...authHeaders(token),
@@ -36,12 +42,12 @@ export async function apiRequest<T>(
       },
     });
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (!externalSignal && error instanceof DOMException && error.name === "AbortError") {
       throw new Error("Le serveur ne répond pas. Réessaie dans quelques secondes.");
     }
     throw error;
   } finally {
-    window.clearTimeout(timeout);
+    if (timeout !== null) window.clearTimeout(timeout);
   }
 
   if (!response.ok) {
