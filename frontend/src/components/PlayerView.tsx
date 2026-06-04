@@ -22,6 +22,7 @@ import type {
   Scene,
   SceneToken,
 } from "../api/types";
+import { apiRequest } from "../api/client";
 import { useSceneBackground } from "../hooks/useSceneBackground";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
@@ -76,25 +77,7 @@ async function playerRequest<T>(
   token: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: "Request failed" }));
-    throw new Error(body.detail ?? "Request failed");
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
+  return apiRequest<T>(`/api${path}`, token, options);
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────

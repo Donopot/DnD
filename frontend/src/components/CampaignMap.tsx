@@ -13,6 +13,7 @@ import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer, type FogZone } from "./FogLayer";
 import { MapMinimap } from "./MapMinimap";
+import { MapTokensLayer } from "./MapTokensLayer";
 import { MapTools } from "./MapTools";
 import { MapToolbar } from "./MapToolbar";
 import { TokenContextMenu } from "./TokenContextMenu";
@@ -687,192 +688,25 @@ export function CampaignMap({
             )}
 
             {/* Tokens */}
-            {sceneTokens.map((token) => {
-              const hpPercent = token.metadata?.hp_max
-                ? Math.round(
-                    (((token.metadata?.hp_current as number) ?? 0) /
-                      (token.metadata.hp_max as number)) *
-                      100,
-                  )
-                : null;
-
-              const isPlayerToken = ownedByPlayer(token.id);
-              const isManuallyHidden = token.is_hidden;
-
-              // ── is_hidden filter (players MUST NOT see hidden tokens) ──
-              if (!isGM && isManuallyHidden) {
-                return null;
-              }
-
-              // ── Fog visibility filter (players only) ──────────
-              // Tokens whose center is not in any revealed zone are hidden
-              if (!isGM && fogZones.length > 0) {
-                const tokenCenterX = token.x + (token.size * gridSize) / 2;
-                const tokenCenterY = token.y + (token.size * gridSize) / 2;
-                const isRevealed = fogZones.some((zone) =>
-                  isInFogZone(tokenCenterX, tokenCenterY, zone),
-                );
-                if (!isRevealed) return null;
-              }
-
-              // ── GM fog indicator: token is hidden from players
-              let isFogHidden = false;
-              if (isGM && fogZones.length > 0 && !isManuallyHidden) {
-                const tokenCenterX = token.x + (token.size * gridSize) / 2;
-                const tokenCenterY = token.y + (token.size * gridSize) / 2;
-                isFogHidden = !fogZones.some((zone) =>
-                  isInFogZone(tokenCenterX, tokenCenterY, zone),
-                );
-              }
-
-              const isBloodied = hpPercent !== null && hpPercent <= 50 && hpPercent > 0;
-              const isDefeated = hpPercent !== null && hpPercent <= 0;
-              const isConcentrating =
-                (token.metadata as Record<string, unknown> | null)?.conditions &&
-                Array.isArray((token.metadata as Record<string, unknown>)?.conditions) &&
-                ((token.metadata as Record<string, unknown>)?.conditions as string[]).includes(
-                  "concentrating",
-                );
-
-              /* Conditions visuelles sur les tokens */
-              const conditions: string[] =
-                (token.metadata as Record<string, unknown> | null)?.conditions &&
-                Array.isArray((token.metadata as Record<string, unknown>)?.conditions)
-                  ? ((token.metadata as Record<string, unknown>)?.conditions as string[])
-                  : [];
-
-              const CONDITION_EMOJI: Record<string, string> = {
-                blinded: "👁️‍🗨️",
-                charmed: "💫",
-                deafened: "🔇",
-                frightened: "😱",
-                grappled: "🤝",
-                incapacitated: "💤",
-                invisible: "👻",
-                paralyzed: "🧊",
-                petrified: "🪨",
-                poisoned: "☠️",
-                prone: "⬇️",
-                restrained: "⛓️",
-                stunned: "⚡",
-                unconscious: "💀",
-                concentrating: "🔮",
-                exhausted: "😩",
-                bloodied: "🩸",
-                hidden: "🙈",
-                dodging: "🏃",
-                readied: "⏳",
-              };
-
-              return (
-                <div
-                  className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""} ${isManuallyHidden ? "token-hidden-from-players" : ""}`}
-                  key={token.id}
-                  data-token-id={token.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Token ${token.name}, position (${token.x}, ${token.y})${selectedTokenId === token.id ? " — sélectionné" : ""}${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " — groupe" : ""}`}
-                  onClick={() => {
-                    if (!permissions.canSelectToken(token.id)) return;
-                    selectToken(token.id);
-                    setSelectedTokenIds(new Set([token.id]));
-                  }}
-                  onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && permissions.canSelectToken(token.id)) {
-                      e.preventDefault();
-                      if (e.shiftKey) {
-                        setSelectedTokenIds((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(token.id)) {
-                            next.delete(token.id);
-                          } else {
-                            next.add(token.id);
-                            selectToken(token.id);
-                          }
-                          return next;
-                        });
-                      } else {
-                        selectToken(token.id);
-                        setSelectedTokenIds(new Set([token.id]));
-                      }
-                    }
-                  }}
-                  onPointerDown={(e) => handleTokenPointerDown(e, token)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rect = boardRef.current?.getBoundingClientRect();
-                    if (!rect) return;
-                    setContextMenu({
-                      token,
-                      x: (e.clientX - rect.left) / zoom,
-                      y: (e.clientY - rect.top) / zoom,
-                    });
-                  }}
-                  style={{
-                    left: previewPositions[token.id]?.x ?? token.x,
-                    top: previewPositions[token.id]?.y ?? token.y,
-                    width: token.size * gridSize,
-                    height: token.size * gridSize,
-                    background: token.color,
-                    zIndex: 30 + (token.z_index ?? 0),
-                  }}
-                >
-                  {/* Token icon (first 2 letters) */}
-                  <span className="token-icon">{token.name.slice(0, 2).toUpperCase()}</span>
-
-                  {/* Fog-hidden indicator (GM only) */}
-                  {isFogHidden && !isManuallyHidden && (
-                    <span className="token-fog-icon" title="Caché par le brouillard">
-                      👁️‍🗨️
-                    </span>
-                  )}
-
-                  {/* Manually hidden indicator (GM only) */}
-                  {isManuallyHidden && (
-                    <span className="token-visibility-icon" title="Caché manuellement aux joueurs">
-                      🙈
-                    </span>
-                  )}
-
-                  {/* Token nameplate */}
-                  <span className="token-nameplate">{token.name}</span>
-
-                  {/* Health bar */}
-                  {hpPercent !== null && (
-                    <div className="token-hp-bar">
-                      <span
-                        className="token-hp-fill"
-                        style={{ width: `${Math.max(0, Math.min(100, hpPercent))}%` }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Condition badges */}
-                  {conditions.length > 0 && (
-                    <div className="token-conditions">
-                      {conditions.slice(0, 4).map((c) => (
-                        <span key={c} className="token-condition-badge" title={c}>
-                          {CONDITION_EMOJI[c] || "❓"}
-                        </span>
-                      ))}
-                      {conditions.length > 4 && (
-                        <span className="token-condition-badge token-condition-more">
-                          +{conditions.length - 4}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Selection ring */}
-                  {(selectedTokenId === token.id || selectedTokenIds.has(token.id)) && (
-                    <div
-                      className={`token-ring${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? " token-ring-group" : ""}`}
-                    />
-                  )}
-                </div>
-              );
-            })}
+            <MapTokensLayer
+              sceneTokens={sceneTokens}
+              gridSize={gridSize}
+              isGM={isGM}
+              fogZones={fogZones}
+              isInFogZone={isInFogZone}
+              selectedTokenId={selectedTokenId}
+              selectedTokenIds={selectedTokenIds}
+              dragTokenId={dragTokenId}
+              previewPositions={previewPositions}
+              zoom={zoom}
+              permissions={permissions}
+              ownedByPlayer={ownedByPlayer}
+              selectToken={selectToken}
+              setSelectedTokenIds={setSelectedTokenIds}
+              onTokenPointerDown={handleTokenPointerDown}
+              boardRef={boardRef}
+              onContextMenu={(token, x, y) => setContextMenu({ token, x, y })}
+            />
 
             {/* Ping / Ruler / AoE / Token drag tools */}
             <MapTools
