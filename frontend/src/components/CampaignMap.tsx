@@ -1053,6 +1053,7 @@ export function CampaignMap({
                     width: token.size * gridSize,
                     height: token.size * gridSize,
                     background: token.color,
+                    zIndex: 30 + (token.z_index ?? 0),
                   }}
                 >
                   {/* Token icon (first 2 letters) */}

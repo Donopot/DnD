@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { ArrowDownToLine, ArrowUpToLine, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { Character, Scene, SceneToken } from "../api/types";
@@ -134,24 +134,54 @@ export function TokenDetailPanel({
   }
 
   async function duplicateToken() {
-    if (!selectedToken || !selectedScene) return;
+    if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/scenes/${selectedScene.id}/tokens`, {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/duplicate`, {
         method: "POST",
         headers,
-        body: JSON.stringify({
-          name: `${selectedToken.name} (copie)`,
-          x: selectedToken.x + 50,
-          y: selectedToken.y + 50,
-          color: selectedToken.color,
-          size: selectedToken.size,
-          character_id: selectedToken.character_id,
-        }),
       });
       if (res.ok) {
         const dup: SceneToken = await res.json();
         onTokenUpdated?.(dup);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function bringForward() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/bring-forward`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const updated: SceneToken = await res.json();
+        onTokenUpdated?.(updated);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendBackward() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/send-backward`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const updated: SceneToken = await res.json();
+        onTokenUpdated?.(updated);
       }
     } catch {
       /* ignore */
@@ -371,6 +401,12 @@ export function TokenDetailPanel({
           )}
           <button disabled={busy} onClick={duplicateToken} type="button">
             <Plus size={12} /> Dupliquer
+          </button>
+          <button disabled={busy} onClick={bringForward} type="button" title="Mettre au premier plan">
+            <ArrowUpToLine size={12} /> Devant
+          </button>
+          <button disabled={busy} onClick={sendBackward} type="button" title="Mettre à l'arrière-plan">
+            <ArrowDownToLine size={12} /> Derrière
           </button>
           <button disabled={busy} onClick={deleteToken} type="button">
             <Trash2 size={12} /> Supprimer

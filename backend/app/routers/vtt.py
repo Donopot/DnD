@@ -230,7 +230,7 @@ async def list_tokens(
         select *
         from scene_tokens
         where scene_id = $1 {hidden_clause}
-        order by created_at asc
+        order by z_index asc, created_at asc
         """,
         scene_id,
     )
@@ -257,12 +257,18 @@ async def create_token(
     is_hidden = False if role == "player" else payload.is_hidden
     metadata = {} if role == "player" else payload.metadata
 
+    # Auto-assign z_index = max in scene + 1
+    max_z = await get_pool().fetchval(
+        "select coalesce(max(z_index), 0) + 1 from scene_tokens where scene_id = $1",
+        scene_id,
+    )
+
     row = await get_pool().fetchrow(
         """
         insert into scene_tokens (
-            scene_id, character_id, name, x, y, size, color, is_hidden, vision_radius, metadata
+            scene_id, character_id, name, x, y, size, color, is_hidden, vision_radius, z_index, metadata
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
         returning *
         """,
         scene_id,
@@ -274,6 +280,7 @@ async def create_token(
         payload.color.strip(),
         is_hidden,
         payload.vision_radius,
+        max_z,
         jsonb(metadata),
     )
     token = token_public(row)
@@ -294,10 +301,11 @@ async def update_token(
     current = dict(existing)
     updates = payload.model_dump(exclude_unset=True)
 
-    # Players cannot change is_hidden, vision_radius, or metadata
+    # Players cannot change GM-controlled visibility, vision, layer order, or metadata.
     if role == "player":
         updates.pop("is_hidden", None)
         updates.pop("vision_radius", None)
+        updates.pop("z_index", None)
         updates.pop("metadata", None)
         # Players can only modify tokens linked to their own characters
         if existing["character_id"]:
@@ -331,7 +339,8 @@ async def update_token(
             color = $7,
             is_hidden = $8,
             vision_radius = $9,
-            metadata = $10::jsonb,
+            z_index = $10,
+            metadata = $11::jsonb,
             updated_at = now()
         where id = $1
         returning *
@@ -345,6 +354,7 @@ async def update_token(
         current["color"],
         current["is_hidden"],
         current.get("vision_radius", 0),
+        current.get("z_index", 0),
         jsonb(decode_json(current["metadata"])),
     )
     # GM/co-GM see full metadata; players get empty metadata
@@ -631,3 +641,106 @@ async def update_fog(
         "scene_id": str(scene_id),
         "fog_zones": [zone.model_dump() for zone in payload.fog_zones],
     }
+
+
+# ── Phase 18: Token z-index & duplicate ──────────────────────────────
+
+
+@router.post("/tokens/{token_id}/duplicate", response_model=TokenPublic, status_code=status.HTTP_201_CREATED)
+async def duplicate_token(
+    token_id: UUID,
+    current_user=Depends(get_current_user),
+) -> TokenPublic:
+    """Duplicate a token in the same scene with offset position and top z-index."""
+    existing = await get_token_or_404(token_id)
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    # Compute next z_index
+    max_z = await get_pool().fetchval(
+        "select coalesce(max(z_index), 0) + 1 from scene_tokens where scene_id = $1",
+        existing["scene_id"],
+    )
+
+    row = await get_pool().fetchrow(
+        """
+        insert into scene_tokens (
+            scene_id, character_id, name, x, y, size, color, is_hidden, vision_radius, z_index, metadata
+        )
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
+        returning *
+        """,
+        existing["scene_id"],
+        None,  # duplicate starts unlinked — GM can re-link
+        f"{existing['name']} (copie)",
+        existing["x"] + 50,
+        existing["y"] + 50,
+        existing["size"],
+        existing["color"],
+        existing["is_hidden"],
+        existing["vision_radius"],
+        max_z,
+        jsonb(decode_json(existing["metadata"])),
+    )
+
+    token = token_public(row)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
+    await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)
+    return token
+
+
+@router.post("/tokens/{token_id}/bring-forward", response_model=TokenPublic)
+async def bring_token_forward(
+    token_id: UUID,
+    current_user=Depends(get_current_user),
+) -> TokenPublic:
+    """Bring a token to the front (max z_index + 1)."""
+    existing = await get_token_or_404(token_id)
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    max_z = await get_pool().fetchval(
+        "select coalesce(max(z_index), 0) + 1 from scene_tokens where scene_id = $1",
+        existing["scene_id"],
+    )
+
+    row = await get_pool().fetchrow(
+        "update scene_tokens set z_index = $2, updated_at = now() where id = $1 returning *",
+        token_id,
+        max_z,
+    )
+    token = token_public(row)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
+    await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)
+    return token
+
+
+@router.post("/tokens/{token_id}/send-backward", response_model=TokenPublic)
+async def send_token_backward(
+    token_id: UUID,
+    current_user=Depends(get_current_user),
+) -> TokenPublic:
+    """Send a token to the back without creating negative layer indexes."""
+    existing = await get_token_or_404(token_id)
+    await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
+
+    async with get_pool().acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                """
+                update scene_tokens
+                set z_index = z_index + 1,
+                    updated_at = now()
+                where scene_id = $1
+                  and id <> $2
+                """,
+                existing["scene_id"],
+                token_id,
+            )
+            row = await conn.fetchrow(
+                "update scene_tokens set z_index = 0, updated_at = now() where id = $1 returning *",
+                token_id,
+            )
+
+    token = token_public(row)
+    await cache_invalidate(f"scene:{existing['scene_id']}*")
+    await broadcast_vtt_change(existing["campaign_id"], "token", existing["scene_id"], token.id)
+    return token
