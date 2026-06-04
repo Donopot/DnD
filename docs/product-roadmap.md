@@ -174,6 +174,13 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 | 62 | ⌨️ Navigation clavier (Escape modales, `role=dialog`, `aria-modal`) | ✅ |
 | 63 | ⏳ InlineSpinner + ErrorBoundary (composants prêts) | ✅ |
 | 64 | 🛡️ Error boundaries wrapper (panels, map) | ✅ |
+| 65 | ⚔️ GM-2E — Initiative stable (backend combat intégré, start/next-turn/end, KO) | ✅ |
+| 66 | ⚡ GM-2F — Actions rapides (CSS scopé, dés rapides d4-d100) | ✅ |
+| 67 | 👁️ GM-2G — Visibilité (CSS scopé, fix sélecteur .visibility-alerts) | ✅ |
+| 68 | 📚 GM-3A — Bibliothèque tokens (templates, favoris, recherche, ajout scène) | ✅ |
+| 69 | 📄 GM-3B — Documents révélables (refactor CSS, historique révélations) | ✅ |
+| 70 | 🏷️ GM-3C — États / conditions (durée tours, decrement, badges couleur) | ✅ |
+| 71 | ⚔️ GM-3D — Rencontre active (objectifs, conditions victoire, loot, switch combat) | ✅ |
 
 ---
 
@@ -185,7 +192,7 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 - 114 endpoints, 18 routeurs, 25 migrations, 68+ schémas, 118 tests
 
 **Frontend :**
-- 46 composants React, ~10 800 lignes CSS, 1798 modules Vite
+- 47 composants React, ~10 800 lignes CSS, 1798 modules Vite
 - Build : 677ms, 433 kB (gzip 128 kB)
 
 **Contenu SRD :**
@@ -262,7 +269,7 @@ L'étape 0 (stabilisation de l'interface GM) est terminée :
 | 0C — Consolidation visuelle | Lisibilité, éviter doubles headers, dock amélioré, éviter panneaux hors écran | ✅ |
 | 0D — Validation finale | Build TypeScript/Docker OK, health backend OK, test navigateur, merge/tag | ✅ |
 
-### 5.3 Développement GM — Socle CSS et panneaux existants (Étapes 1-2)
+### 5.3 Développement GM — Socle CSS et panneaux existants (Étapes 1-2) ✅
 
 **GM-2D-CSS — CSS commun panneaux GM** : centraliser le style commun, refactoriser Notes MJ et Résumé du groupe, script de vérification CSS.
 
@@ -276,7 +283,7 @@ L'étape 0 (stabilisation de l'interface GM) est terminée :
 | Actions rapides (GM-2F) | Panneau compact, boutons panneaux/layouts, dés rapides, utilitaires session |
 | Visibilité (GM-2G) | Inspecteur visibilité, token visible/caché, état MJ vs joueurs, rappel anti-erreur |
 
-### 5.4 Nouveaux panneaux GM (Étape 3)
+### 5.4 Nouveaux panneaux GM (Étape 3) ✅
 
 | Panneau | Objectif |
 |---------|----------|
