@@ -175,7 +175,6 @@ export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
-  const [fogVersion, setFogVersion] = useState(0);
 
   const selectedCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
@@ -215,7 +214,6 @@ export default function App() {
     return {
       isGM: true as const,
       wsRef,
-      fogVersion,
       permissions: {
         canSelectToken: () => true,
         canMoveToken: () => true,
@@ -240,7 +238,6 @@ export default function App() {
     };
   }, [
     wsRef,
-    fogVersion,
     sceneTokens,
     characters,
     user?.id,
@@ -286,12 +283,6 @@ export default function App() {
     window.addEventListener("keydown", handleGlobalKey);
     return () => window.removeEventListener("keydown", handleGlobalKey);
   }, []);
-
-  const _activeSessionLiveModeDetail = useMemo(
-    () =>
-      SESSION_LIVE_MODES.find((mode) => mode.id === activeSessionLiveMode) ?? SESSION_LIVE_MODES[0],
-    [activeSessionLiveMode],
-  );
 
   /** Ensemble des IDs de panneaux visibles dans le mode de session actif. */
   const liveModePanelIds = useMemo(

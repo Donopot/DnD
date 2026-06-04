@@ -45,7 +45,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 
 ## Fonctionnalités
 
-### Backend (115 endpoints, 17 routeurs, 25 migrations, 97 tests unitaires)
+### Backend (114 endpoints, 18 routeurs, 25 migrations, 118 tests unitaires)
 
 | Domaine | Endpoints |
 |---------|-----------|
@@ -62,7 +62,7 @@ Ne pas réutiliser les credentials, bases de données, buckets, volumes ou `.env
 | Communication | messages privés, annonces, jets secrets MJ |
 | Santé | health check (DB + S3), rate limiting 200/min |
 
-### Frontend (46 composants React, ~10 800 lignes CSS, 1795 modules Vite)
+### Frontend (46 composants React, ~10 800 lignes CSS, 1798 modules Vite)
 
 | Composant | Rôle |
 |-----------|------|

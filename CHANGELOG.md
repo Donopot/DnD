@@ -36,6 +36,74 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [Phases 42–49] — Audio, Météo, PNJ (2026-06-02)
+
+### Phase 46 — Ambiance audio
+- 9 playlists d'ambiance (taverne, donjon, forêt, combat, etc.)
+- Contrôle volume, synthé brown noise
+
+### Phase 48 — Météo & Atmosphère
+- Effets canvas animés : pluie, neige, brouillard, nuit
+- Intensité réglable, activable par scène
+
+### Phase 49 — Générateur de PNJ
+- Noms, apparence, personnalité, secrets
+- Tables en français, un clic pour générer
+
+---
+
+## [Phases 53–64] — Chat, États visuels, Audit UX (2026-06-02/03)
+
+### Phases 53 & 59 — Chat + États visuels
+- Chat de campagne (IC/OOC/whispers, dés rapides, WebSocket)
+- 20 conditions sur tokens (badges emoji, max 4 affichés)
+
+### Phases 60–64 — Audit UX
+- Thème fonctionnel (23 CSS variables, 407 `var()`, light/dark)
+- Nettoyage CSS dupliqué
+- Navigation clavier (Escape modales, `role=dialog`, `aria-modal`)
+- Composants `InlineSpinner` + `ErrorBoundary`
+- Error boundaries wrapper (panels, map)
+
+---
+
+## [v0.11.1] — Stabilisation Fog + Invitations (2026-06-03)
+
+### Fog of War stabilization
+- Conversion ft→px correcte : `(radius_ft / 5) * grid_size`
+- Stockage shape `"circle"` (plus `"rect"`)
+- WebSocket fogVersion counter → évite stale listener après reconnexion
+- Labels FR (Afficher/Masquer fog), Pan désactive Draw/Erase
+- Rollback via snapshot `previousZones` en cas d'échec PATCH
+
+### Debounce fog API (PR #48)
+- `saveFogZones` splitté : setState local immédiat + `persistFogZones` PATCH différé 350ms
+- Self-ignore WS (`ignoreNextFogWsRef`) → évite GET après propre PATCH
+- Rollback avec `previousFogZonesRef` → UI ne ment pas
+
+### Refactor useFogOfWar hook
+- Extraction du hook `useFogOfWar` (173 lignes) — état fog, PATCH débouncé, listener WS
+- `wsEpoch` incrémenté à chaque `connect()` → listener ré-enregistré sur nouveau socket
+- `CampaignMap.tsx` : −143 lignes (5 useEffect + 2 useCallback → 1 appel hook)
+- `App.tsx` : `fogVersion` mort → `wsEpoch` vivant
+
+### Consolidation documentaire
+- 20+ docs → 7 documents canoniques (~3000 lignes) :
+  `product-roadmap`, `frontend-ui`, `vtt-map-fog`, `backend-api`, `security-auth`, `deployment-ops`, `srd-content`
+
+### Invite system fixes (PR agent/fix/invite-system-fixes)
+- Fix #1 (P0) : `latestInvite` affiché dans l'UI avec lien copiable
+- Fix #2 (P1) : Regex token `[\\\\w-]` → `[\w-]` — parse correct des tokens base64url
+- Fix #3 (P2) : Endpoint `POST /api/invites/{token}/revoke` + boutons ✕ dans liste
+- Liste des invitations actives dans le panel campagne
+
+### Metrics
+- Frontend: tsc 0, build 961ms, 1798 modules
+- Backend: 118/118 tests, 114 endpoints, 18 routeurs, 25 migrations
+- Composants: 46 React, Hooks: 7
+
+---
+
 ## [Phases 34–38] — Plan UX : Interface complète (2026-06-02)
 
 ### Phase 34 — Correctifs critiques

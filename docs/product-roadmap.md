@@ -182,11 +182,11 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 ### 4.1 Métriques finales
 
 **Backend :**
-- 106 endpoints, 17 routeurs, 22 migrations, 68+ schémas, 54 tests
+- 114 endpoints, 18 routeurs, 25 migrations, 68+ schémas, 118 tests
 
 **Frontend :**
-- 43 composants React, ~13 000 lignes CSS, 1778 modules Vite
-- Build : 495ms, 356 kB (gzip 105 kB)
+- 46 composants React, ~10 800 lignes CSS, 1798 modules Vite
+- Build : 677ms, 433 kB (gzip 128 kB)
 
 **Contenu SRD :**
 - 52 créatures, 25 sorts, 11 races, 12 classes, donjons procéduraux
