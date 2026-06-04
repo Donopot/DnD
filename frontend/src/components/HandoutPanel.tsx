@@ -156,7 +156,6 @@ export function HandoutPanel({
                 required
                 maxLength={200}
                 placeholder="Titre du document"
-                className="handout-input"
               />
             </label>
             <label>
