@@ -16,7 +16,6 @@ import { CampaignMap } from "./components/CampaignMap";
 import { type CampaignView, CampaignViewTabs } from "./components/CampaignViewTabs";
 import { EditCharacterSheet } from "./components/EditCharacterSheet";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { FloatingPanel } from "./components/FloatingPanel";
 import { GmLobby } from "./components/GmLobby";
 import { GmNotesPanel } from "./components/GmNotesPanel";
 import { HandoutPanel } from "./components/HandoutPanel";
@@ -29,6 +28,7 @@ import { QuickActions } from "./components/QuickActions";
 import { SessionLogPanel } from "./components/SessionLogPanel";
 import { TokenDetailPanel } from "./components/TokenDetailPanel";
 import { VisibilityInspectorPanel } from "./components/VisibilityInspectorPanel";
+import { GmFloatingPanels } from "./panels/GmFloatingPanels";
 import {
   SESSION_LIVE_MODES,
   SESSION_LIVE_PANEL_SETS,
@@ -1196,7 +1196,8 @@ export default function App() {
   //     Layout: sidebar | CampaignMap | panels
 
   return (
-    <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
+    <ErrorBoundary>
+      <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside className="gm-sidebar">
         <div className="brand-mark compact">
@@ -1341,8 +1342,7 @@ export default function App() {
 
       {/* ── Droite — Panneaux ───────────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
-        <ErrorBoundary>
-          <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
+        <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
             {/* ── LIVE — Combat, Dés, Actions ────────────────────── */}
             {gmView === "live" && (
               <>
@@ -2247,201 +2247,44 @@ export default function App() {
               </div>
             )}
           </aside>
-        </ErrorBoundary>
       </Suspense>
 
       {/* ── Floating Panels ──────────────────────────────────── */}
-      {fp.panels.map((panel) => (
-        <FloatingPanel
-          key={panel.id}
-          panel={panel}
-          onClose={() => fp.close(panel.id)}
-          onMinimize={() => fp.minimize(panel.id)}
-          onBringToFront={() => fp.bringToFront(panel.id)}
-          onMove={(x, y) => fp.updatePosition(panel.id, x, y)}
-          onResize={(w, h) => fp.updateSize(panel.id, w, h)}
-        >
-          {panel.id === "combat" && (
-            <CombatTracker
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
-            />
-          )}
-          {panel.id === "conditions" && (
-            <ConditionsPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-            />
-          )}
-          {panel.id === "dice-roller" && (
-            <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
-          )}
-          {panel.id === "active-encounter" && (
-            <ActiveEncounterPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-            />
-          )}
-          {panel.id === "encounter-builder" && (
-            <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
-          )}
-          {panel.id === "bestiary" && <BestiaryPanel token={token} />}
-          {panel.id === "spellbook" && <SpellbookPanel token={token} />}
-          {panel.id === "quick-actions" && (
-            <QuickActions onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
-          )}
-          {panel.id === "gm-messages" && (
-            <GmMessagePanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              members={members}
-            />
-          )}
-          {panel.id === "session-log" && (
-            <SessionLogPanel
-              characters={characters}
-              selectedCharacter={selectedCharacter}
-              rolls={rolls}
-              logEntries={logEntries}
-              isBusy={isBusy}
-              token={token}
-              onRoll={handleRoll}
-              onAddNote={handleLogNote}
-              onRefresh={() => {}}
-            />
-          )}
-          {panel.id === "session-stats" && (
-            <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
-          )}
-          {panel.id === "dungeon-generator" && <DungeonGenerator token={token} />}
-          {panel.id === "handouts" && (
-            <HandoutPanel
-              handouts={handouts}
-              scenes={scenes}
-              isBusy={isBusy}
-              campaignId={selectedCampaign?.id ?? ""}
-              onCreateHandout={handleCreateHandout}
-              onRevealHandout={(h) => void handleRevealHandout(h)}
-              onDeleteHandout={(h) => void handleDeleteHandout(h)}
-            />
-          )}
-          {panel.id === "items" && <ItemCompendium token={token} />}
-          {panel.id === "homebrew" && (
-            <HomebrewPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              scenes={scenes}
-              encounters={encounters}
-              isBusy={isBusy}
-            />
-          )}
-          {panel.id === "rules" && <RulesReference />}
-          {panel.id === "gm-notes" && (
-            <GmNotesPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              selectedScene={selectedScene}
-              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-            />
-          )}
-          {panel.id === "initiative" && (
-            <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
-          )}
-          {panel.id === "token-detail" && (
-            <TokenDetailPanel
-              selectedScene={selectedScene}
-              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-              selectedTokenCharacter={characters.find(
-                (c) => c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
-              )}
-              selectedTokenPosition={(() => {
-                const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                return t ? { x: t.x, y: t.y } : undefined;
-              })()}
-              token={token}
-              onDeselectToken={() => setSelectedTokenId("")}
-              onNudgeSelectedToken={(dx, dy) => {
-                const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                if (t) void handleMoveToken(t, dx, dy);
-              }}
-              onTokenUpdated={(updated) => {
-                setSceneTokens((current) => {
-                  if (!updated) return current;
-                  return current.some((t) => t.id === updated.id)
-                    ? current.map((t) => (t.id === updated.id ? updated : t))
-                    : [...current, updated];
-                });
-              }}
-            />
-          )}
-          {panel.id === "visibility-inspector" && (
-            <VisibilityInspectorPanel
-              selectedScene={selectedScene}
-              selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-              sceneTokens={sceneTokens}
-              isGM={true}
-              onToggleTokenHidden={handleToggleTokenHidden}
-              onOpenPanel={(panelId) => fp.open(panelId, "")}
-            />
-          )}
-          {panel.id === "party-summary" && (
-            <PartySummaryPanel characters={characters} selectedCharacter={selectedCharacter} />
-          )}
-          {panel.id === "chat" && (
-            <ChatPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              wsRef={wsRef}
-              userId={user?.id}
-              displayName={user?.display_name}
-            />
-          )}
-          {panel.id === "ambiance" && <AmbiancePanel isGM={true} />}
-          {panel.id === "npc-generator" && <NpcGenerator />}
-          {panel.id === MAP_PANEL_ID && (
-            <div className="floating-map-panel">
-              <CampaignMap {...campaignMapProps} />
-            </div>
-          )}
-          {panel.id === "scene" && (
-            <ScenePanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              scenes={scenes}
-              onSelectScene={(id) => setSelectedSceneId(id)}
-              onScenesChanged={() => {
-                if (selectedCampaign?.id) {
-                  void loadVttState(selectedCampaign.id);
-                }
-              }}
-            />
-          )}
-          {panel.id === "tokens" && (
-            <TokenPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              sceneId={selectedScene?.id ?? ""}
-              tokens={sceneTokens}
-              onTokensChanged={() => {
-                if (selectedScene?.id) {
-                  void loadSceneTokens(selectedScene.id);
-                }
-              }}
-            />
-          )}
-          {panel.id === "token-library" && (
-            <TokenLibraryPanel
-              campaignId={selectedCampaign?.id ?? ""}
-              token={token}
-              selectedSceneId={selectedScene?.id}
-              onTokensChanged={() => {
-                if (selectedScene?.id) {
-                  void loadSceneTokens(selectedScene.id);
-                }
-              }}
-            />
-          )}
-        </FloatingPanel>
-      ))}
+      <GmFloatingPanels
+        fp={fp}
+        selectedCampaign={selectedCampaign}
+        token={token}
+        scenes={scenes}
+        encounters={encounters}
+        characters={characters}
+        selectedCharacter={selectedCharacter}
+        handouts={handouts}
+        rolls={rolls}
+        logEntries={logEntries}
+        members={members}
+        wsRef={wsRef}
+        user={user}
+        isBusy={isBusy}
+        selectedSceneId={selectedSceneId}
+        selectedTokenId={selectedTokenId}
+        selectedScene={selectedScene}
+        sceneTokens={sceneTokens}
+        campaignMapProps={campaignMapProps}
+        handleQuickRoll={handleQuickRoll}
+        handleRoll={handleRoll}
+        handleLogNote={handleLogNote}
+        handleCreateHandout={handleCreateHandout}
+        handleRevealHandout={handleRevealHandout}
+        handleDeleteHandout={handleDeleteHandout}
+        handleToggleTokenHidden={handleToggleTokenHidden}
+        handleMoveToken={handleMoveToken}
+        loadCombatState={loadCombatState}
+        loadSceneTokens={loadSceneTokens}
+        loadVttState={loadVttState}
+        setSelectedTokenId={setSelectedTokenId}
+        setSceneTokens={setSceneTokens}
+        setSelectedSceneId={setSelectedSceneId}
+      />
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
       <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
@@ -2503,5 +2346,6 @@ export default function App() {
           );
         })()}
     </main>
+    </ErrorBoundary>
   );
 }
