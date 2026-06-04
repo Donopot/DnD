@@ -70,10 +70,8 @@ async def search_bestiary(
     params.append(offset)
     where = " AND ".join(clauses)
 
-    rows = await pool.fetch(
-        f"SELECT * FROM bestiary WHERE {where} ORDER BY cr, name LIMIT ${len(params)-1} OFFSET ${len(params)}",
-        *params,
-    )
+    query = "SELECT * FROM bestiary WHERE " + where + " ORDER BY cr, name LIMIT $" + str(len(params)-1) + " OFFSET $" + str(len(params))
+    rows = await pool.fetch(query, *params)
     return [_creature_public(r) for r in rows]
 
 

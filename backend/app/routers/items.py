@@ -46,10 +46,8 @@ async def search_items(
     params.extend([limit, offset])
     where = " AND ".join(clauses)
 
-    rows = await pool.fetch(
-        f"SELECT * FROM items WHERE {where} ORDER BY rarity, name LIMIT ${len(params)-1} OFFSET ${len(params)}",
-        *params,
-    )
+    query = "SELECT * FROM items WHERE " + where + " ORDER BY rarity, name LIMIT $" + str(len(params)-1) + " OFFSET $" + str(len(params))
+    rows = await pool.fetch(query, *params)
     return [_item_public(r) for r in rows]
 
 
