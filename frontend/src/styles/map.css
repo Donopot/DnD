@@ -858,6 +858,48 @@
 
 /* ── Floating map panel ───────────────────────────────────────────────── */
 
+/* Multi-select badge */
+.multi-select-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-strong);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+
+.multi-select-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.multi-select-clear:hover {
+  color: var(--text-strong);
+  background: var(--bg-hover);
+}
+
 .floating-map-panel {
   height: 100%;
   min-height: 0;

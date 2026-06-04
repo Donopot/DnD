@@ -35,6 +35,17 @@ type TokenActionHandler = (
   token: SceneToken,
   value?: number,
 ) => void;
+type TokenBatchActionHandler = (
+  action:
+    | "duplicate"
+    | "delete"
+    | "hide"
+    | "reveal"
+    | "front"
+    | "back",
+  tokens: SceneToken[],
+  value?: number,
+) => void;
 
 type CampaignMapProps = {
   campaignId: string;
@@ -58,6 +69,7 @@ type CampaignMapProps = {
   onLoadSceneTokens?: (sceneId: string) => void;
   onMoveToken?: TokenDragHandler;
   onTokenAction?: TokenActionHandler;
+  onTokenBatchAction?: TokenBatchActionHandler;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────
@@ -83,6 +95,7 @@ export function CampaignMap({
   onLoadSceneTokens,
   onMoveToken,
   onTokenAction,
+  onTokenBatchAction,
   selectedTokenId: controlledSelectedTokenId,
   onSelectToken,
 }: CampaignMapProps) {
@@ -372,14 +385,36 @@ export function CampaignMap({
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       // ── Token-specific shortcuts (only when a token is selected) ──
-      if (onTokenAction && selectedTokenId) {
-        const token = sceneTokens.find((t) => t.id === selectedTokenId);
-        if (token) {
+      if (onTokenAction && sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
+        // Determine targets: multi-select set or single primary token
+        const targets: SceneToken[] = [];
+        if (selectedTokenIds.size > 1) {
+          for (const t of sceneTokens) {
+            if (selectedTokenIds.has(t.id)) targets.push(t);
+          }
+        } else {
+          const token = sceneTokens.find((t) => t.id === selectedTokenId);
+          if (token) targets.push(token);
+        }
+        if (targets.length === 0) {
+          /* fall through to general shortcuts below */
+        } else {
+          const isMulti = targets.length > 1;
+
           switch (e.key) {
             case "Delete":
             case "Backspace":
               e.preventDefault();
-              onTokenAction("delete", token);
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("delete", targets);
+              } else {
+                onTokenAction("delete", targets[0]);
+              }
+              // Clean up selection state to avoid phantom tokens
+              if (isMulti) {
+                setSelectedTokenIds(new Set());
+                selectToken("");
+              }
               return;
           }
 
@@ -388,12 +423,23 @@ export function CampaignMap({
               case "d":
               case "D":
                 e.preventDefault();
-                onTokenAction("duplicate", token);
+                if (isMulti && onTokenBatchAction) {
+                  onTokenBatchAction("duplicate", targets);
+                } else {
+                  onTokenAction("duplicate", targets[0]);
+                }
                 return;
               case "h":
               case "H":
                 e.preventDefault();
-                onTokenAction(token.is_hidden ? "reveal" : "hide", token);
+                // If any selected token is visible → hide all, otherwise reveal all
+                const shouldHide = targets.some((t) => !t.is_hidden);
+                const toggleAction = shouldHide ? "hide" : "reveal";
+                if (isMulti && onTokenBatchAction) {
+                  onTokenBatchAction(toggleAction, targets);
+                } else {
+                  onTokenAction(toggleAction, targets[0]);
+                }
                 return;
             }
           }
@@ -401,11 +447,19 @@ export function CampaignMap({
           switch (e.key) {
             case "]":
               e.preventDefault();
-              onTokenAction("front", token);
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("front", targets);
+              } else {
+                onTokenAction("front", targets[0]);
+              }
               return;
             case "[":
               e.preventDefault();
-              onTokenAction("back", token);
+              if (isMulti && onTokenBatchAction) {
+                onTokenBatchAction("back", targets);
+              } else {
+                onTokenAction("back", targets[0]);
+              }
               return;
           }
         }
@@ -444,7 +498,7 @@ export function CampaignMap({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedScene, selectedTokenId, sceneTokens, onTokenAction]);
+  }, [selectedScene, selectedTokenId, selectedTokenIds, sceneTokens, onTokenAction]);
 
   // ── Pan ─────────────────────────────────────────────────────────────────
 
@@ -1185,6 +1239,21 @@ export function CampaignMap({
                   setContextMenu(null);
                 }}
               />
+            )}
+
+            {/* Multi-select badge */}
+            {selectedTokenIds.size > 1 && (
+              <div className="multi-select-badge">
+                {selectedTokenIds.size} tokens sélectionnés
+                <button
+                  type="button"
+                  className="multi-select-clear"
+                  onClick={() => setSelectedTokenIds(new Set())}
+                  title="Tout désélectionner"
+                >
+                  ✕
+                </button>
+              </div>
             )}
           </div>
         </div>
