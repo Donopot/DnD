@@ -1,10 +1,10 @@
 import { BookOpen, Clock, Eye, EyeOff, Globe, Lock, Plus, Trash2, Users } from "lucide-react";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useContext, useEffect, useMemo, useState } from "react";
 
 import type { Handout, Scene } from "../api/types";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { usePanelContext } from "../contexts/PanelContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { PanelContext } from "../contexts/PanelContext";
 
 // ── Reveal history (localStorage) ─────────────────────────────────────────
 
@@ -83,23 +83,30 @@ type HandoutPanelProps = {
 };
 
 export function HandoutPanel(props: HandoutPanelProps = {}) {
-  // Contexts — primary source of truth
-  const state = useWorkspaceState();
-  const actions = useWorkspaceActions();
-  const panel = usePanelContext();
+  const state = useContext(WorkspaceStateContext);
+  const actions = useContext(WorkspaceActionsContext);
+  const panel = useContext(PanelContext);
 
-  // Merge: contexts take precedence, props as fallback
-  const handouts = state.handouts.length > 0 ? state.handouts : (props.handouts ?? []);
-  const scenes = state.scenes.length > 0 ? state.scenes : (props.scenes ?? []);
-  const isBusy = props.isBusy ?? panel.isBusy;
-  const onCreateHandout = props.onCreateHandout ?? actions.handleCreateHandout;
-  const onRevealHandout = props.onRevealHandout ?? actions.handleRevealHandout;
-  const onDeleteHandout = props.onDeleteHandout ?? actions.handleDeleteHandout;
-  const campaignId = props.campaignId ?? state.selectedCampaign?.id ?? "";
+  const handouts = props.handouts ?? state?.handouts ?? [];
+  const scenes = props.scenes ?? state?.scenes ?? [];
+  const isBusy = props.isBusy ?? panel?.isBusy ?? false;
+  const onCreateHandout =
+    props.onCreateHandout ??
+    actions?.handleCreateHandout ??
+    ((event: FormEvent<HTMLFormElement>) => event.preventDefault());
+  const onRevealHandout =
+    props.onRevealHandout ?? actions?.handleRevealHandout ?? (() => undefined);
+  const onDeleteHandout =
+    props.onDeleteHandout ?? actions?.handleDeleteHandout ?? (() => undefined);
+  const campaignId = props.campaignId ?? state?.selectedCampaign?.id ?? "";
 
   const [showCreate, setShowCreate] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<RevealEntry[]>(() => readHistory(campaignId));
+
+  useEffect(() => {
+    setHistory(readHistory(campaignId));
+  }, [campaignId]);
 
   function handleReveal(handout: Handout) {
     // Record in local history

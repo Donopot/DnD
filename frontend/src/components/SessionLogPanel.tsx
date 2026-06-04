@@ -1,10 +1,10 @@
-import { Bookmark, BookmarkCheck, Dices, Filter, Pin, PinOff } from "lucide-react";
-import type { FormEvent } from "react";
+import { Bookmark, Dices, Filter, Pin, PinOff } from "lucide-react";
+import { useContext, type FormEvent } from "react";
 
 import type { Character, GameLogEntry, Roll } from "../api/types";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { usePanelContext } from "../contexts/PanelContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { PanelContext } from "../contexts/PanelContext";
 
 const CATEGORIES = [
   { id: "general", label: "General", emoji: "📝" },
@@ -28,19 +28,26 @@ type SessionLogPanelProps = {
 };
 
 export function SessionLogPanel(props: SessionLogPanelProps = {}) {
-  const state = useWorkspaceState();
-  const actions = useWorkspaceActions();
-  const panel = usePanelContext();
+  const state = useContext(WorkspaceStateContext);
+  const actions = useContext(WorkspaceActionsContext);
+  const panel = useContext(PanelContext);
 
-  const characters = props.characters ?? state.characters;
-  const selectedCharacter = props.selectedCharacter ?? state.selectedCharacter;
-  const rolls = props.rolls ?? state.rolls;
-  const logEntries = props.logEntries ?? state.logEntries;
-  const isBusy = props.isBusy ?? panel.isBusy;
-  const token = props.token ?? state.token;
-  const onRoll = props.onRoll ?? actions.handleRoll;
-  const onAddNote = props.onAddNote ?? actions.handleLogNote;
+  const characters = props.characters ?? state?.characters ?? [];
+  const selectedCharacter = props.selectedCharacter ?? state?.selectedCharacter;
+  const rolls = props.rolls ?? state?.rolls ?? [];
+  const logEntries = props.logEntries ?? state?.logEntries ?? [];
+  const isBusy = props.isBusy ?? panel?.isBusy ?? false;
+  const token = props.token ?? state?.token ?? "";
+  const onRoll =
+    props.onRoll ??
+    actions?.handleRoll ??
+    ((event: FormEvent<HTMLFormElement>) => event.preventDefault());
+  const onAddNote =
+    props.onAddNote ??
+    actions?.handleLogNote ??
+    ((event: FormEvent<HTMLFormElement>) => event.preventDefault());
   const onRefresh = props.onRefresh;
+  const campaignId = logEntries[0]?.campaign_id ?? state?.selectedCampaign?.id ?? "";
 
   const latestRoll = rolls[0];
   const pinnedEntries = logEntries.filter((e) => e.pinned);
@@ -62,17 +69,38 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
     }
   }
 
-  async function toggleSessionMarker(entry: GameLogEntry) {
+  async function setCategory(entry: GameLogEntry, category: string) {
     try {
-      await fetch(`/api/log-entries/${entry.id}/session-marker`, {
-        method: "PATCH",
+      await fetch(
+        `/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      onRefresh?.();
+    } catch {
+      // silent
+    }
+  }
+
+  async function createSessionMarker() {
+    if (!campaignId) return;
+
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/log/session-marker`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ session_marker: !entry.session_marker }),
+        body: JSON.stringify({ label: "Nouvelle session" }),
       });
-      onRefresh?.();
+      if (response.ok) {
+        onRefresh?.();
+      }
     } catch {
       // silent
     }
@@ -113,7 +141,7 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
           </div>
           <label>
             Personnage
-            <select name="character_id" defaultValue="">
+            <select name="character_id" defaultValue={selectedCharacter?.id ?? ""}>
               <option value="">Aucun</option>
               {characters.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -157,6 +185,17 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
             session(s)
           </small>
         </header>
+        <div className="gm-panel-actions">
+          <button
+            className="ghost-button compact"
+            onClick={() => void createSessionMarker()}
+            disabled={isBusy || !campaignId}
+            type="button"
+            title="Marquer debut de session"
+          >
+            <Bookmark size={14} /> Session
+          </button>
+        </div>
       </section>
 
       {/* ── Add Note ─────────────────────────────────────────────────── */}
@@ -257,14 +296,18 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
                   <span>{e.message}</span>
                 </span>
                 <span style={{ display: "flex", gap: 4 }}>
-                  <button
-                    className="ghost-button compact"
-                    onClick={() => void toggleSessionMarker(e)}
-                    type="button"
-                    title={e.session_marker ? "Retirer marqueur" : "Marquer session"}
+                  <select
+                    className="category-select"
+                    value={e.category}
+                    onChange={(event) => void setCategory(e, event.target.value)}
+                    title="Changer categorie"
                   >
-                    {e.session_marker ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
-                  </button>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.emoji} {cat.label}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     className="ghost-button compact"
                     onClick={() => void togglePin(e)}

@@ -1,10 +1,10 @@
 import { ArrowDownToLine, ArrowUpToLine, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 
 import type { Character, Scene, SceneToken } from "../api/types";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { useVttContext } from "../contexts/VttContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { VttContext } from "../contexts/VttContext";
 
 type TokenPosition = {
   x: number;
@@ -31,28 +31,26 @@ const HOSTILITY_OPTIONS = [
 ] as const;
 
 export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
-  // Contexts — primary source of truth
-  const state = useWorkspaceState();
-  const actions = useWorkspaceActions();
-  const vtt = useVttContext();
+  const state = useContext(WorkspaceStateContext);
+  const actions = useContext(WorkspaceActionsContext);
+  const vtt = useContext(VttContext);
 
-  // Compute derived values from contexts (with prop fallback)
-  const authToken = props.token ?? state.token;
-  const selectedTokenId = vtt.selectedTokenId;
+  const authToken = props.token ?? state?.token ?? "";
+  const selectedTokenId = vtt?.selectedTokenId ?? props.selectedToken?.id ?? "";
   const selectedToken =
-    props.selectedToken ?? state.sceneTokens.find((t) => t.id === selectedTokenId);
-  const selectedScene = props.selectedScene ?? state.selectedScene;
+    props.selectedToken ?? state?.sceneTokens.find((t) => t.id === selectedTokenId);
+  const selectedScene = props.selectedScene ?? state?.selectedScene;
   const selectedTokenCharacter = props.selectedTokenCharacter ?? (
     selectedToken?.character_id
-      ? state.characters.find((c) => c.id === selectedToken.character_id)
+      ? state?.characters.find((c) => c.id === selectedToken.character_id)
       : undefined
   );
   const selectedTokenPosition = props.selectedTokenPosition ?? (
     selectedToken ? { x: selectedToken.x, y: selectedToken.y } : undefined
   );
-  const onDeselectToken = props.onDeselectToken ?? (() => vtt.setSelectedTokenId(""));
+  const onDeselectToken = props.onDeselectToken ?? (() => vtt?.setSelectedTokenId(""));
   const onNudgeSelectedToken = props.onNudgeSelectedToken ?? ((dx: number, dy: number) => {
-    if (selectedToken) void actions.handleMoveToken(selectedToken, dx, dy);
+    if (selectedToken) void actions?.handleMoveToken(selectedToken, dx, dy);
   });
   const onTokenUpdated = props.onTokenUpdated;
 
@@ -70,14 +68,14 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     [authToken],
   );
 
-  async function updateField(field: string, value: unknown) {
+  async function patchToken(payload: Partial<SceneToken>) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/scene-tokens/${selectedToken.id}`, {
+      const res = await fetch(`/api/tokens/${selectedToken.id}`, {
         method: "PATCH",
         headers,
-        body: JSON.stringify({ [field]: value }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         const updated = await res.json() as SceneToken;
@@ -89,6 +87,121 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
       setBusy(false);
       setEditingField(null);
     }
+  }
+
+  function updateField(field: string, value: unknown) {
+    if (!selectedToken) return;
+
+    if (field === "name") {
+      const name = String(value).trim();
+      if (name && name !== selectedToken.name) void patchToken({ name });
+      return;
+    }
+
+    if (field === "size") {
+      const size = Number(value);
+      if (Number.isFinite(size) && size >= 1 && size <= 8 && size !== selectedToken.size) {
+        void patchToken({ size });
+      }
+      return;
+    }
+
+    if (field === "color") {
+      const color = String(value).trim();
+      if (color && color !== selectedToken.color) void patchToken({ color });
+      return;
+    }
+
+    if (field === "hostility") {
+      void patchToken({
+        metadata: { ...selectedToken.metadata, hostility: String(value) },
+      } as Partial<SceneToken>);
+    }
+  }
+
+  async function deleteToken() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (res.ok) {
+        onDeselectToken();
+      }
+    } catch {
+      // silent
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function duplicateToken() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/duplicate`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const updated = await res.json() as SceneToken;
+        onTokenUpdated?.(updated);
+      }
+    } catch {
+      // silent
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function bringForward() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/bring-forward`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const updated = await res.json() as SceneToken;
+        onTokenUpdated?.(updated);
+      }
+    } catch {
+      // silent
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendBackward() {
+    if (!selectedToken) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tokens/${selectedToken.id}/send-backward`, {
+        method: "POST",
+        headers,
+      });
+      if (res.ok) {
+        const updated = await res.json() as SceneToken;
+        onTokenUpdated?.(updated);
+      }
+    } catch {
+      // silent
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function applyHP(delta: number) {
+    if (!selectedToken) return;
+    const current = (selectedToken.metadata?.hp_current as number) ?? 0;
+    const max = (selectedToken.metadata?.hp_max as number) ?? 0;
+    const nextHp = Math.max(0, Math.min(max || 9999, current + delta));
+    void patchToken({
+      metadata: { ...selectedToken.metadata, hp_current: nextHp },
+    } as Partial<SceneToken>);
   }
 
   function startEdit(field: string, currentValue: unknown) {
@@ -103,6 +216,13 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
       </div>
     );
   }
+
+  const hpCurrent =
+    typeof selectedToken.metadata?.hp_current === "number"
+      ? selectedToken.metadata.hp_current
+      : null;
+  const hpMax =
+    typeof selectedToken.metadata?.hp_max === "number" ? selectedToken.metadata.hp_max : null;
 
   return (
     <div className="gm-panel-content token-detail-panel" data-vtt-panel>
@@ -137,8 +257,8 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
                 autoFocus
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                onBlur={() => updateField("label", editValue)}
-                onKeyDown={(e) => e.key === "Enter" && updateField("label", editValue)}
+                onBlur={() => updateField("name", editValue)}
+                onKeyDown={(e) => e.key === "Enter" && updateField("name", editValue)}
                 className="token-detail-edit-input"
               />
             ) : (
@@ -155,30 +275,43 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
           <div className="gm-panel-row">
             <span>Taille</span>
             {editingField === "size" ? (
-              <select
+              <input
                 autoFocus
+                type="number"
+                min={1}
+                max={8}
                 value={editValue}
-                onChange={(e) => {
-                  setEditValue(e.target.value);
-                  updateField("size", e.target.value);
-                }}
-                onBlur={() => setEditingField(null)}
-              >
-                <option value="tiny">TP</option>
-                <option value="small">P</option>
-                <option value="medium">M</option>
-                <option value="large">G</option>
-                <option value="huge">TG</option>
-                <option value="gargantuan">Gig</option>
-              </select>
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={() => updateField("size", editValue)}
+                onKeyDown={(e) => e.key === "Enter" && updateField("size", editValue)}
+                className="token-detail-edit-input"
+              />
             ) : (
               <span
                 className="token-detail-editable"
-                onClick={() => startEdit("size", selectedToken.size ?? "medium")}
+                onClick={() => startEdit("size", selectedToken.size ?? 1)}
               >
-                {selectedToken.size ?? "medium"}
+                {selectedToken.size ?? 1}
               </span>
             )}
+          </div>
+
+          {/* Color */}
+          <div className="gm-panel-row">
+            <span>Couleur</span>
+            <span className="token-detail-color-row">
+              <span
+                className="token-detail-color-swatch"
+                style={{ background: selectedToken.color }}
+              />
+              <input
+                type="color"
+                value={selectedToken.color}
+                onChange={(e) => updateField("color", e.target.value)}
+                disabled={busy}
+                title="Changer la couleur"
+              />
+            </span>
           </div>
 
           {/* Hostility */}
@@ -209,11 +342,13 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <button
               className={`token-detail-toggle ${selectedToken.is_hidden ? "hidden" : ""}`}
               onClick={() => {
-                void actions.handleToggleTokenHidden(selectedToken).then(() => {
-                  if (onTokenUpdated) {
-                    onTokenUpdated({ ...selectedToken, is_hidden: !selectedToken.is_hidden });
-                  }
-                });
+                if (actions) {
+                  void actions.handleToggleTokenHidden(selectedToken).then(() => {
+                    onTokenUpdated?.({ ...selectedToken, is_hidden: !selectedToken.is_hidden });
+                  });
+                } else {
+                  void patchToken({ is_hidden: !selectedToken.is_hidden });
+                }
               }}
               type="button"
               disabled={busy}
@@ -224,6 +359,39 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
           </div>
         </div>
       </section>
+
+      {hpMax !== null && hpMax > 0 && (
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong>Points de vie</strong>
+            <small>
+              {hpCurrent ?? "?"} / {hpMax}
+            </small>
+          </header>
+
+          <div className="gm-panel-progress">
+            <div
+              className="gm-panel-progress-fill"
+              style={{
+                width: `${Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    ((hpCurrent ?? 0) / hpMax) * 100,
+                  ),
+                )}%`,
+              }}
+            />
+          </div>
+
+          <div className="gm-panel-actions">
+            <button disabled={busy} onClick={() => applyHP(-5)} type="button">-5</button>
+            <button disabled={busy} onClick={() => applyHP(-1)} type="button">-1</button>
+            <button disabled={busy} onClick={() => applyHP(1)} type="button">+1</button>
+            <button disabled={busy} onClick={() => applyHP(5)} type="button">+5</button>
+          </div>
+        </section>
+      )}
 
       {/* ── Nudge ──────────────────────────────────────────────────── */}
       <section className="gm-panel-section">
@@ -285,13 +453,29 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
 
       {/* ── Delete ─────────────────────────────────────────────────── */}
       <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Actions</strong>
+        </header>
         <div className="gm-panel-actions">
+          {props.onCenterSelectedToken && (
+            <button disabled={busy} onClick={props.onCenterSelectedToken} type="button">
+              Centrer
+            </button>
+          )}
+          <button disabled={busy} onClick={() => void duplicateToken()} type="button">
+            <Plus size={12} /> Dupliquer
+          </button>
+          <button disabled={busy} onClick={() => void bringForward()} type="button" title="Mettre au premier plan">
+            <ArrowUpToLine size={12} /> Devant
+          </button>
+          <button disabled={busy} onClick={() => void sendBackward()} type="button" title="Mettre a l'arriere-plan">
+            <ArrowDownToLine size={12} /> Derriere
+          </button>
           <button
             className="danger"
             onClick={() => {
               if (confirm(`Supprimer le token "${selectedToken.name || "sans nom"}" ?`)) {
-                void updateField("deleted", true);
-                onDeselectToken();
+                void deleteToken();
               }
             }}
             type="button"
