@@ -22,26 +22,31 @@ export interface UseRealtimeSessionReturn {
 
 const MAX_RECONNECT = 3;
 
+type RealtimePayload = {
+  type?: string;
+  detail?: string;
+  presence_count?: number;
+  resource?: string;
+  campaign_id?: string;
+  scene_id?: string;
+  token_id?: string;
+  x?: number | string;
+  y?: number | string;
+};
+
 export function useRealtimeSession(
   opts: UseRealtimeSessionOptions,
 ): UseRealtimeSessionReturn {
-  const {
-    token,
-    campaignId,
-    selectedSceneId,
-    onError,
-    onSessionSceneToken,
-    onSessionEncounter,
-    onSessionHandout,
-    onSessionLog,
-    onTokenMoved,
-  } = opts;
+  const { token, campaignId } = opts;
 
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>("offline");
   const wsRef = useRef<WebSocket | null>(null);
+  const optsRef = useRef(opts);
   const reconnectAttempts = useRef(0);
   const reconnectTimer = useRef<number | undefined>(undefined);
+
+  optsRef.current = opts;
 
   const connect = useCallback(() => {
     wsRef.current?.close();
@@ -55,9 +60,10 @@ export function useRealtimeSession(
       return;
     }
 
+    const activeCampaignId = campaignId;
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     const socket = new WebSocket(
-      `${protocol}://${window.location.host}/ws/campaigns/${campaignId}`,
+      `${protocol}://${window.location.host}/ws/campaigns/${activeCampaignId}`,
     );
     wsRef.current = socket;
     setRealtimeStatus("connecting");
@@ -70,10 +76,15 @@ export function useRealtimeSession(
 
     socket.onmessage = (event) => {
       try {
-        const payload = JSON.parse(event.data);
+        const payload = JSON.parse(event.data) as RealtimePayload;
+        const current = optsRef.current;
+
+        if (payload.campaign_id && payload.campaign_id !== activeCampaignId) {
+          return;
+        }
 
         if (payload.type === "error" && payload.detail) {
-          onError(`WebSocket: ${payload.detail}`);
+          current.onError(`WebSocket: ${payload.detail}`);
           return;
         }
 
@@ -82,27 +93,31 @@ export function useRealtimeSession(
         }
 
         if (payload.type === "session_changed") {
-          onSessionLog();
+          current.onSessionLog();
 
           if (payload.resource === "scene" || payload.resource === "token") {
-            onSessionSceneToken();
+            current.onSessionSceneToken();
           }
 
           if (payload.resource === "encounter") {
-            onSessionEncounter();
+            current.onSessionEncounter();
           }
 
           if (payload.resource === "handout") {
-            onSessionHandout();
+            current.onSessionHandout();
           }
         }
 
-        if (payload.type === "token_moved" && payload.scene_id === selectedSceneId) {
-          onTokenMoved(
-            payload.token_id,
-            Number(payload.x),
-            Number(payload.y),
-          );
+        const movedX = Number(payload.x);
+        const movedY = Number(payload.y);
+        if (
+          payload.type === "token_moved" &&
+          payload.scene_id === current.selectedSceneId &&
+          payload.token_id &&
+          Number.isFinite(movedX) &&
+          Number.isFinite(movedY)
+        ) {
+          current.onTokenMoved(payload.token_id, movedX, movedY);
         }
       } catch {
         /* ignore malformed messages */
@@ -112,6 +127,7 @@ export function useRealtimeSession(
     socket.onclose = (event) => {
       if (wsRef.current !== socket) return;
       setRealtimeStatus("offline");
+      const onError = optsRef.current.onError;
 
       if (event.code === 1008) {
         onError("WebSocket authentication failed — re-login required");
@@ -133,17 +149,7 @@ export function useRealtimeSession(
     socket.onerror = () => {
       setRealtimeStatus("offline");
     };
-  }, [
-    token,
-    campaignId,
-    selectedSceneId,
-    onError,
-    onSessionSceneToken,
-    onSessionEncounter,
-    onSessionHandout,
-    onSessionLog,
-    onTokenMoved,
-  ]);
+  }, [token, campaignId]);
 
   useEffect(() => {
     setPresenceCount(0);
