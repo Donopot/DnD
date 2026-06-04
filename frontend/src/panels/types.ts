@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type {
   Campaign,
   Character,
@@ -11,8 +11,8 @@ import type {
   SceneToken,
   User,
 } from "../api/types";
-import type { CampaignMap } from "../components/CampaignMap";
 import type { FloatingPanelState } from "../hooks/useFloatingPanels";
+import type { CampaignMapProps } from "../components/CampaignMap";
 
 // ── Shared context for panel rendering ────────────────────────────────
 
@@ -67,7 +67,7 @@ export type GmFloatingPanelsProps = {
   selectedTokenId: string;
   selectedScene: Scene | undefined;
   sceneTokens: SceneToken[];
-  campaignMapProps: ComponentProps<typeof CampaignMap>;
+  campaignMapProps: CampaignMapProps;
   handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
   handleRoll: (e: React.FormEvent<HTMLFormElement>) => void;
   handleLogNote: (e: React.FormEvent<HTMLFormElement>) => void;
