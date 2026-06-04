@@ -36,6 +36,7 @@ import { useVttState } from "./hooks/useVttState";
 import { useTokenActions } from "./hooks/useTokenActions";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
 import { useSessionJournal } from "./hooks/useSessionJournal";
+import { useHandouts } from "./hooks/useHandouts";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -92,7 +93,6 @@ export default function App() {
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
-  const [handouts, setHandouts] = useState<Handout[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
@@ -134,6 +134,14 @@ export default function App() {
   });
   const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal } =
     journal;
+
+  const handoutsHook = useHandouts({
+    token,
+    onError: setMessage,
+    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyEnd: () => setIsBusy(false),
+  });
+  const { handouts, loadHandouts, createHandout, revealHandout, deleteHandout } = handoutsHook;
 
   const tokenActions = useTokenActions({
     token,
@@ -335,84 +343,23 @@ export default function App() {
   }
 
 
-  async function loadHandouts(campaignId: string) {
-    try {
-      setHandouts(await request<Handout[]>(`/api/campaigns/${campaignId}/handouts`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load handouts");
-    }
-  }
-
   async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!selectedCampaign) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
+    if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
-    const sceneId = String(form.get("scene_id") || "");
-
-    try {
-      const handout = await request<Handout>(`/api/campaigns/${selectedCampaign.id}/handouts`, {
-        method: "POST",
-        body: JSON.stringify({
-          title: String(form.get("title")),
-          content: String(form.get("content") || ""),
-          visibility: String(form.get("visibility") || "gm"),
-          scene_id: sceneId || null,
-        }),
-      });
-
-      setHandouts((current) => [handout, ...current]);
-      event.currentTarget.reset();
-      setMessage("Handout cree.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to create handout");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function handleRevealHandout(handout: Handout) {
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const updated = await request<Handout>(`/api/handouts/${handout.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_revealed: true }),
-      });
-
-      setHandouts((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setMessage(`Handout "${updated.title}" partage aux joueurs.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to reveal handout");
-    } finally {
-      setIsBusy(false);
-    }
+    await createHandout(
+      selectedCampaign.id,
+      String(form.get("title")),
+      String(form.get("content") || ""),
+      String(form.get("visibility") || "gm"),
+      String(form.get("scene_id") || "") || null,
+    );
+    event.currentTarget.reset();
   }
 
   async function handleDeleteHandout(handout: Handout) {
-    if (!confirm(`Supprimer le handout "${handout.title}" ?`)) {
-      return;
-    }
-
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      await request<void>(`/api/handouts/${handout.id}`, { method: "DELETE" });
-      setHandouts((current) => current.filter((item) => item.id !== handout.id));
-      setMessage("Handout supprime.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to delete handout");
-    } finally {
-      setIsBusy(false);
-    }
+    if (!confirm(`Supprimer le handout "${handout.title}" ?`)) return;
+    await deleteHandout(handout);
   }
 
 
@@ -863,7 +810,7 @@ export default function App() {
             handleRoll={handleRoll}
             handleLogNote={handleLogNote}
             handleCreateHandout={handleCreateHandout}
-            handleRevealHandout={handleRevealHandout}
+            handleRevealHandout={revealHandout}
             handleDeleteHandout={handleDeleteHandout}
             handleToggleTokenHidden={handleToggleTokenHidden}
             handleMoveToken={tokenActions.moveToken}
@@ -910,7 +857,7 @@ export default function App() {
         handleRoll={handleRoll}
         handleLogNote={handleLogNote}
         handleCreateHandout={handleCreateHandout}
-        handleRevealHandout={handleRevealHandout}
+        handleRevealHandout={revealHandout}
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
         handleMoveToken={tokenActions.moveToken}
