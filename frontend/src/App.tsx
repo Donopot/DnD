@@ -8,7 +8,7 @@ import {
   Swords,
   UserPlus,
 } from "lucide-react";
-import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
@@ -101,6 +101,7 @@ export default function App() {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
+  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -117,10 +118,10 @@ export default function App() {
     campaignId: selectedCampaign?.id,
     selectedSceneId: selectedScene?.id,
     onError: setMessage,
-    onSessionSceneToken: () => { void vtt.loadVttState(selectedCampaign!.id); },
-    onSessionEncounter: () => { void vtt.loadCombatState(selectedCampaign!.id); },
-    onSessionHandout: () => { void loadHandouts(selectedCampaign!.id); },
-    onSessionLog: () => { void loadSessionLog(selectedCampaign!.id); },
+    onSessionSceneToken: () => { if (selectedCampaign?.id) void vtt.loadVttState(selectedCampaign.id); },
+    onSessionEncounter: () => { if (selectedCampaign?.id) void vtt.loadCombatState(selectedCampaign.id); },
+    onSessionHandout: () => { if (selectedCampaign?.id) void loadHandouts(selectedCampaign.id); },
+    onSessionLog: () => { if (selectedCampaign?.id) void loadSessionLog(selectedCampaign.id); },
     onTokenMoved: (tokenId, x, y) => {
       vtt.setSceneTokens((current) =>
         current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
@@ -625,10 +626,12 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
+          inviteAcceptedTokenRef.current = newToken;
           login(newToken);
         }}
         onJoined={async () => {
-          await campaign.loadCampaigns(token);
+          await campaign.loadCampaigns(inviteAcceptedTokenRef.current ?? token);
+          inviteAcceptedTokenRef.current = null;
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
