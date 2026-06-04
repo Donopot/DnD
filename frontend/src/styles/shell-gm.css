@@ -1225,8 +1225,8 @@ select {
 /* ── Sprint GM-2G - Visibility inspector panel (refactored with gm-panel-* common CSS) ── */
 /* Sprint GM-2G - Visibility inspector panel */
 
-.visibility-token-card,
-.visibility-token-list article {
+.visibility-inspector-panel .visibility-token-card,
+.visibility-inspector-panel .visibility-token-list article {
   display: grid;
   gap: 3px;
   padding: 8px;
@@ -1235,15 +1235,15 @@ select {
   background: var(--bg-surface-secondary);
 }
 
-.visibility-token-card small,
-.visibility-token-list small {
+.visibility-inspector-panel .visibility-token-card small,
+.visibility-inspector-panel .visibility-token-list small {
   color: var(--text-weak);
   font-size: 0.62rem;
   font-weight: 850;
 }
 
-.visibility-token-card b,
-.visibility-token-list b {
+.visibility-inspector-panel .visibility-token-card b,
+.visibility-inspector-panel .visibility-token-list b {
   overflow: hidden;
   color: var(--text-normal);
   font-size: 0.8rem;
@@ -1251,21 +1251,21 @@ select {
   white-space: nowrap;
 }
 
-.visibility-token-card {
+.visibility-inspector-panel .visibility-token-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.visibility-token-card.hidden,
-.visibility-token-list article.hidden {
+.visibility-inspector-panel .visibility-token-card.hidden,
+.visibility-inspector-panel .visibility-token-list article.hidden {
   border-color: var(--danger);
   background: var(--danger-dim);
 }
 
-.visibility-token-card em,
-.visibility-token-list em {
+.visibility-inspector-panel .visibility-token-card em,
+.visibility-inspector-panel .visibility-token-list em {
   padding: 3px 6px;
   border-radius: 999px;
   background: var(--accent-dim);
@@ -1276,13 +1276,13 @@ select {
   white-space: nowrap;
 }
 
-.visibility-token-card.hidden em,
-.visibility-token-list article.hidden em {
+.visibility-inspector-panel .visibility-token-card.hidden em,
+.visibility-inspector-panel .visibility-token-list article.hidden em {
   background: #f7d7d0;
   color: var(--danger);
 }
 
-.visibility-alerts ul {
+.visibility-inspector-panel ul.visibility-alerts {
   display: grid;
   gap: 5px;
   margin: 0;
@@ -1292,38 +1292,38 @@ select {
   font-weight: 750;
 }
 
-.visibility-actions {
+.visibility-inspector-panel .visibility-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
-.visibility-toggle-btn {
+.visibility-inspector-panel .visibility-toggle-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.visibility-token-list > div {
+.visibility-inspector-panel .visibility-token-list > div {
   display: grid;
   gap: 6px;
   max-height: 220px;
   overflow: auto;
 }
 
-.visibility-token-list article {
+.visibility-inspector-panel .visibility-token-list article {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
 
-.visibility-token-list span {
+.visibility-inspector-panel .visibility-token-list span {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
 @media (max-width: 760px) {
-  .visibility-actions {
+  .visibility-inspector-panel .visibility-actions {
     grid-template-columns: 1fr;
   }
 }
