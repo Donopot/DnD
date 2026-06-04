@@ -59,14 +59,12 @@ import { apiRequest } from "./api/client";
 import type {
   Asset,
   AuthResponse,
-  Campaign,
   Character,
   Combatant,
   Encounter,
   EncounterDetail,
   GameLogEntry,
   Handout,
-  Invite,
   Roll,
   Scene,
   SceneToken,
@@ -83,7 +81,7 @@ export default function App() {
   const authLogout = auth.logout;
 
   const campaign = useCampaignData(token);
-  const { campaigns, selectedCampaignId, selectedCampaign, members } = campaign;
+  const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
@@ -105,8 +103,6 @@ export default function App() {
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
     "offline",
   );
-  const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
-  const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
@@ -769,7 +765,7 @@ export default function App() {
         String(form.get("name")),
         String(form.get("description")),
       );
-      setLatestInvite(null);
+      campaign.clearLatestInvite();
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
@@ -837,19 +833,12 @@ export default function App() {
   }
 
   async function handleCreateInvite() {
-    if (!selectedCampaign) {
-      return;
-    }
+    if (!selectedCampaign) return;
     setIsBusy(true);
     setMessage("");
     try {
-      const invite = await request<Invite>(`/api/campaigns/${selectedCampaign.id}/invites`, {
-        method: "POST",
-        body: JSON.stringify({ role: "player", expires_in_days: 14, max_uses: 10 }),
-      });
-      setLatestInvite(invite);
+      await campaign.createInvite();
       setMessage("Invitation creee.");
-      void loadInvites();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create invite");
     } finally {
@@ -857,24 +846,11 @@ export default function App() {
     }
   }
 
-  async function loadInvites(campaignId?: string) {
-    const cid = campaignId ?? selectedCampaign?.id;
-    if (!cid) return;
-    try {
-      const invites = await request<Invite[]>(`/api/campaigns/${cid}/invites`);
-      setActiveInvites(invites);
-    } catch {
-      // Silently ignore — user may not be GM
-    }
-  }
-
   async function handleRevokeInvite(token: string) {
     if (!selectedCampaign) return;
     setIsBusy(true);
     try {
-      await request(`/api/invites/${token}/revoke`, { method: "POST" });
-      setActiveInvites((prev) => prev.filter((inv) => inv.token !== token));
-      if (latestInvite?.token === token) setLatestInvite(null);
+      await campaign.revokeInvite(token);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to revoke invite");
     } finally {
@@ -970,8 +946,7 @@ export default function App() {
     setLogEntries([]);
     setPresenceCount(0);
     setSelectedCharacterId("");
-    setLatestInvite(null);
-    setActiveInvites([]);
+    campaign.clearInvites();
   }
 
   // ── Routing ──────────────────────────────────────────────────
@@ -1118,8 +1093,8 @@ export default function App() {
               key={c.id}
               onClick={() => {
                 campaign.selectCampaign(c.id);
-                setLatestInvite(null);
-                void loadInvites(c.id);
+                campaign.clearLatestInvite();
+                void campaign.loadInvites(c.id);
               }}
               type="button"
               aria-label={`${c.name} — ${c.member_count} membres`}
