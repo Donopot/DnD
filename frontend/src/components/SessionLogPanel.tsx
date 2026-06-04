@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, Dices, Filter, Pin, PinOff } from "lucide-react";
+import { Bookmark, Dices, Filter, Pin, PinOff } from "lucide-react";
 import type { FormEvent } from "react";
 
 import type { Character, GameLogEntry, Roll } from "../api/types";
@@ -62,17 +62,41 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
     }
   }
 
-  async function toggleSessionMarker(entry: GameLogEntry) {
+  async function setCategory(entry: GameLogEntry, category: string) {
     try {
-      await fetch(`/api/log-entries/${entry.id}/session-marker`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      await fetch(
+        `/api/log-entries/${entry.id}/category?category=${encodeURIComponent(category)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-        body: JSON.stringify({ session_marker: !entry.session_marker }),
-      });
+      );
       onRefresh?.();
+    } catch {
+      // silent
+    }
+  }
+
+  async function createSessionMarker() {
+    try {
+      const campaignId = logEntries[0]?.campaign_id ?? state.selectedCampaign?.id ?? "";
+      if (!campaignId) return;
+      const response = await fetch(
+        `/api/campaigns/${campaignId}/log/session-marker`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ label: "Nouvelle session" }),
+        },
+      );
+      if (response.ok) {
+        onRefresh?.();
+      }
     } catch {
       // silent
     }
@@ -157,6 +181,16 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
             session(s)
           </small>
         </header>
+        <button
+          className="ghost-button compact"
+          onClick={() => void createSessionMarker()}
+          disabled={isBusy}
+          type="button"
+          title="Marquer début de session"
+          style={{ marginTop: "0.5rem" }}
+        >
+          <Bookmark size={14} /> Session
+        </button>
       </section>
 
       {/* ── Add Note ─────────────────────────────────────────────────── */}
@@ -257,14 +291,19 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
                   <span>{e.message}</span>
                 </span>
                 <span style={{ display: "flex", gap: 4 }}>
-                  <button
-                    className="ghost-button compact"
-                    onClick={() => void toggleSessionMarker(e)}
-                    type="button"
-                    title={e.session_marker ? "Retirer marqueur" : "Marquer session"}
+                  <select
+                    className="category-select"
+                    value={e.category}
+                    onChange={(ev) => void setCategory(e, ev.target.value)}
+                    title="Changer catégorie"
+                    style={{ fontSize: "11px" }}
                   >
-                    {e.session_marker ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
-                  </button>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.emoji} {cat.label}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     className="ghost-button compact"
                     onClick={() => void togglePin(e)}
