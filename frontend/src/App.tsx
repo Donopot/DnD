@@ -31,6 +31,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
+import { useCampaignData } from "./hooks/useCampaignData";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -58,15 +59,12 @@ import { apiRequest } from "./api/client";
 import type {
   Asset,
   AuthResponse,
-  Campaign,
   Character,
   Combatant,
   Encounter,
   EncounterDetail,
   GameLogEntry,
   Handout,
-  Invite,
-  Member,
   Roll,
   Scene,
   SceneToken,
@@ -81,9 +79,10 @@ export default function App() {
   const auth = useAuthSession();
   const { token, user, login } = auth;
   const authLogout = auth.logout;
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
-  const [members, setMembers] = useState<Member[]>([]);
+
+  const campaign = useCampaignData(token);
+  const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
+
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -104,8 +103,6 @@ export default function App() {
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
     "offline",
   );
-  const [latestInvite, setLatestInvite] = useState<Invite | null>(null);
-  const [activeInvites, setActiveInvites] = useState<Invite[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
@@ -125,10 +122,6 @@ export default function App() {
   const wsRef = useRef<WebSocket | null>(null);
   const fogRevealAbortRef = useRef<AbortController | null>(null);
 
-  const selectedCampaign = useMemo(
-    () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
-    [campaigns, selectedCampaignId],
-  );
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
@@ -244,20 +237,20 @@ export default function App() {
     if (!token) {
       return;
     }
-    void loadInitialCampaigns(token);
+    void bootstrap(token);
   }, [token]);
 
   useEffect(() => {
     if (!token || !selectedCampaign) {
-      setMembers([]);
+      campaign.clearMembers();
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
       setPresenceCount(0);
       return;
     }
-    setSelectedCampaignId(selectedCampaign.id);
-    void loadMembers(selectedCampaign.id);
+    campaign.selectCampaign(selectedCampaign.id);
+    void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
     void loadVttState(selectedCampaign.id);
@@ -397,28 +390,12 @@ export default function App() {
     return apiRequest<T>(path, auth.token, options);
   }
 
-  async function loadInitialCampaigns(activeToken: string) {
+  async function bootstrap(activeToken: string) {
     try {
-      await loadCampaigns(activeToken);
+      await campaign.loadCampaigns(activeToken);
     } catch (error) {
-      setCampaigns([]);
+      campaign.clearCampaigns();
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
-    }
-  }
-
-  async function loadCampaigns(activeToken = auth.token) {
-    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken);
-    setCampaigns(data);
-    if (data.length > 0) {
-      setSelectedCampaignId((current) => current || data[0].id);
-    }
-  }
-
-  async function loadMembers(campaignId: string) {
-    try {
-      setMembers(await request<Member[]>(`/api/campaigns/${campaignId}/members`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load members");
     }
   }
 
@@ -785,16 +762,11 @@ export default function App() {
     setMessage("");
     const form = new FormData(event.currentTarget);
     try {
-      const campaign = await request<Campaign>("/api/campaigns", {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          description: String(form.get("description")),
-        }),
-      });
-      setCampaigns((current) => [campaign, ...current]);
-      setSelectedCampaignId(campaign.id);
-      setLatestInvite(null);
+      await campaign.createCampaign(
+        String(form.get("name")),
+        String(form.get("description")),
+      );
+      campaign.clearLatestInvite();
       setCharacters([]);
       setRolls([]);
       setLogEntries([]);
@@ -862,19 +834,12 @@ export default function App() {
   }
 
   async function handleCreateInvite() {
-    if (!selectedCampaign) {
-      return;
-    }
+    if (!selectedCampaign) return;
     setIsBusy(true);
     setMessage("");
     try {
-      const invite = await request<Invite>(`/api/campaigns/${selectedCampaign.id}/invites`, {
-        method: "POST",
-        body: JSON.stringify({ role: "player", expires_in_days: 14, max_uses: 10 }),
-      });
-      setLatestInvite(invite);
+      await campaign.createInvite();
       setMessage("Invitation creee.");
-      void loadInvites();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to create invite");
     } finally {
@@ -882,24 +847,11 @@ export default function App() {
     }
   }
 
-  async function loadInvites(campaignId?: string) {
-    const cid = campaignId ?? selectedCampaign?.id;
-    if (!cid) return;
-    try {
-      const invites = await request<Invite[]>(`/api/campaigns/${cid}/invites`);
-      setActiveInvites(invites);
-    } catch {
-      // Silently ignore — user may not be GM
-    }
-  }
-
   async function handleRevokeInvite(token: string) {
     if (!selectedCampaign) return;
     setIsBusy(true);
     try {
-      await request(`/api/invites/${token}/revoke`, { method: "POST" });
-      setActiveInvites((prev) => prev.filter((inv) => inv.token !== token));
-      if (latestInvite?.token === token) setLatestInvite(null);
+      await campaign.revokeInvite(token);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to revoke invite");
     } finally {
@@ -950,7 +902,7 @@ export default function App() {
         }),
       });
       setRolls((current) => [roll, ...current].slice(0, 100));
-      await loadSessionLog(selectedCampaign?.id);
+      if (selectedCampaign) await loadSessionLog(selectedCampaign.id);
       setMessage(`Jet: ${roll.total}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to roll dice");
@@ -988,16 +940,14 @@ export default function App() {
   function logout() {
     wsRef.current?.close();
     authLogout();
-    setCampaigns([]);
-    setMembers([]);
+    campaign.clearCampaigns();
+    campaign.clearMembers();
     setCharacters([]);
     setRolls([]);
     setLogEntries([]);
     setPresenceCount(0);
     setSelectedCharacterId("");
-    setLatestInvite(null);
-    setActiveInvites([]);
-    setSelectedCampaignId("");
+    campaign.clearInvites();
   }
 
   // ── Routing ──────────────────────────────────────────────────
@@ -1014,7 +964,7 @@ export default function App() {
           login(newToken);
         }}
         onJoined={async () => {
-          await loadCampaigns(inviteAcceptedTokenRef.current ?? token);
+          await campaign.loadCampaigns(inviteAcceptedTokenRef.current ?? token);
           inviteAcceptedTokenRef.current = null;
           setInviteToken(null);
           if (window.history.pushState) {
@@ -1041,7 +991,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
             if (payload.mode === "register") {
               setInviteToken(null);
               window.history.pushState({}, "", "/");
@@ -1072,7 +1022,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
           } catch (err) {
             setMessage(err instanceof Error ? err.message : "Échec");
           } finally {
@@ -1091,7 +1041,7 @@ export default function App() {
         userDisplayName={user.display_name}
         onLogout={logout}
         onJoined={() => {
-          void loadCampaigns(token);
+          void campaign.loadCampaigns(token);
         }}
       />
     );
@@ -1145,9 +1095,9 @@ export default function App() {
               className={`gm-campaign-item ${selectedCampaign?.id === c.id ? "selected" : ""}`}
               key={c.id}
               onClick={() => {
-                setSelectedCampaignId(c.id);
-                setLatestInvite(null);
-                void loadInvites(c.id);
+                campaign.selectCampaign(c.id);
+                campaign.clearLatestInvite();
+                void campaign.loadInvites(c.id);
               }}
               type="button"
               aria-label={`${c.name} — ${c.member_count} membres`}
