@@ -4007,13 +4007,13 @@ select {
 /* ── Active Encounter Panel (GM-3D) ── */
 /* Active Encounter Panel */
 
-.encounter-notes-form {
+.active-encounter-panel .encounter-notes-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.encounter-notes-form textarea {
+.active-encounter-panel .encounter-notes-form textarea {
   min-height: 60px;
   width: 100%;
   resize: vertical;
@@ -4027,7 +4027,7 @@ select {
   line-height: 1.45;
 }
 
-.encounter-notes-form textarea:focus {
+.active-encounter-panel .encounter-notes-form textarea:focus {
   border-color: var(--brand-green);
   outline: 2px solid var(--border-subtle);
 }
