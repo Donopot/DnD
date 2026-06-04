@@ -48,6 +48,7 @@ export const SESSION_LIVE_MODES: SessionLiveModeDefinition[] = [
 export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
   exploration: [
     "combat",
+    "conditions",
     "encounter-builder",
     "dice-roller",
     "quick-actions",
@@ -73,9 +74,11 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "npc-generator",
     "scene",
     "tokens",
+    "token-library",
   ],
   combat: [
     "combat",
+    "conditions",
     "active-encounter",
     "encounter-builder",
     "dice-roller",
@@ -92,6 +95,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "characters",
     "chat",
     "tokens",
+    "token-library",
   ],
   roleplay: [
     "gm-notes",
@@ -111,6 +115,7 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "ambiance",
     "npc-generator",
     "scene",
+    "token-library",
   ],
   "quick-prep": [
     "combat",
@@ -131,9 +136,11 @@ export const SESSION_LIVE_PANEL_SETS: Record<SessionLiveMode, GmPanelId[]> = {
     "npc-generator",
     "scene",
     "tokens",
+    "token-library",
   ],
   minimal: [
     "combat",
+    "conditions",
     "token-detail",
     "session-log",
     "quick-actions",
