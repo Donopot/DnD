@@ -50,7 +50,7 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
     actions.handleRoll, actions.handleQuickRoll, actions.handleLogNote,
     actions.handleToggleTokenHidden, actions.handleMoveToken,
     actions.handleCreateCharacter, actions.handleCreateInvite, actions.handleRevokeInvite,
-    actions.onLogout,
+    actions.onLogout, actions.selectCampaign, actions.loadCharacters,
   ]);
 
   const vttValue = useMemo(() => vtt, [
@@ -61,7 +61,8 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
   const panelValue = useMemo(() => panel, [
     panel.gmView, panel.activeSessionLiveMode, panel.liveModePanelIds,
     panel.isPanelsHidden, panel.isFocusMap, panel.fp,
-    panel.inspectedCharacterId, panel.showCharacterWizard, panel.showShortcuts,
+    panel.selectedCharacterId, panel.inspectedCharacterId,
+    panel.showCharacterWizard, panel.showShortcuts,
     panel.isBusy,
   ]);
 

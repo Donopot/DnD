@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import type { CampaignView } from "../components/CampaignViewTabs";
 import type { SessionLiveMode } from "../config/sessionLiveModes";
 import type { useFloatingPanels } from "../hooks/useFloatingPanels";
+import type { Character, GameLogEntry } from "../api/types";
 import type React from "react";
 
 /**
@@ -19,6 +20,8 @@ export interface PanelContextValue {
   isFocusMap: boolean;
   setIsFocusMap: React.Dispatch<React.SetStateAction<boolean>>;
   fp: ReturnType<typeof useFloatingPanels>;
+  selectedCharacterId: string;
+  setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
   inspectedCharacterId: string;
   setInspectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
   showCharacterWizard: boolean;
@@ -26,6 +29,8 @@ export interface PanelContextValue {
   showShortcuts: boolean;
   setShowShortcuts: React.Dispatch<React.SetStateAction<boolean>>;
   isBusy: boolean;
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+  setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
 }
 
 export const PanelContext = createContext<PanelContextValue | null>(null);

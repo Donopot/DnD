@@ -210,6 +210,8 @@ function selectedTokenPosition(props: GmPanelRenderProps) {
 
 function refreshSessionLog(props: GmPanelRenderProps, category?: string) {
   if (!props.selectedCampaign || !props.setLogEntries) return;
+  const campaign = props.selectedCampaign;
+  const setLogEntries = props.setLogEntries;
 
   void (async () => {
     try {
@@ -221,14 +223,14 @@ function refreshSessionLog(props: GmPanelRenderProps, category?: string) {
 
       const suffix = category ? `&category=${encodeURIComponent(category)}` : "";
       const response = await fetch(
-        `/api/campaigns/${props.selectedCampaign.id}/log?limit=100${suffix}`,
+        `/api/campaigns/${campaign.id}/log?limit=100${suffix}`,
         {
           headers: { Authorization: `Bearer ${props.token}` },
           signal: controller.signal,
         },
       );
       if (response.ok) {
-        props.setLogEntries(await response.json());
+        setLogEntries(await response.json());
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
