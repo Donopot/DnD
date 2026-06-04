@@ -174,6 +174,17 @@ Le CSS custom du panneau doit être scopé sous cette classe :
 
 **Règle de review :** si tu trouves une classe de scoping sans CSS → **crée le CSS scopé**, ne supprime pas la classe. Vérifie le pattern des autres panneaux (`handout-panel`, `initiative-panel`, `token-library-panel`, etc.) avant de conclure qu'une classe est orpheline.
 
+### 📋 Checklist de review — Avant de push
+
+Toute PR doit passer ces vérifications avant le push final :
+
+1. **Imports inutilisés** — `tsc --noEmit` ne détecte pas toujours les imports de type inutilisés (ex: `import type { Combatant }` jamais référencé dans le code). Vérifier chaque import manuellement.
+2. **CSS orphelin** — toute classe supprimée du JSX doit aussi être nettoyée du CSS (et vice-versa : toute classe du JSX doit exister en CSS).
+3. **Pattern panneau** — vérifier `data-vtt-panel`, `gm-panel-content`, classe de scoping, CSS scopé sous la classe du panneau.
+4. **CSS global vs scopé** — pas de sélecteurs globaux (`.mon-form { }`) quand ils appartiennent à un panneau spécifique (`.mon-panel .mon-form { }`).
+5. **Orphelins post-refactor** — après une refonte de composant, chercher les classes mortes dans TOUS les fichiers CSS importés (pas seulement `shell-gm.css`, aussi `tokens.css`, etc.).
+6. **Build + tests** — `tsc --noEmit`, `npm run build`, `pytest`, `check-gm-panel-css.sh` doivent tous passer.
+
 ---
 
 ## Toolchain obligatoire
