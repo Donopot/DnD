@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiRequest } from "../api/client";
+import { getAuthToken } from "../api/token";
 import type { FogZone } from "../components/FogLayer";
 
 export type UseFogOfWarInput = {
@@ -63,12 +65,12 @@ export function useFogOfWar({
     fogAbortRef.current?.abort();
     const controller = new AbortController();
     fogAbortRef.current = controller;
-    const t = localStorage.getItem("dnd_access_token") || "";
-    fetch(`/api/scenes/${selectedSceneId}/fog`, {
-      headers: { Authorization: `Bearer ${t}` },
-      signal: controller.signal,
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+
+    apiRequest<{ fog_zones: FogZone[] }>(
+      `/scenes/${selectedSceneId}/fog`,
+      getAuthToken(),
+      { signal: controller.signal },
+    )
       .then((d) => setFogZones(d.fog_zones || []))
       .catch((err) => {
         if (err?.name === "AbortError") return;
@@ -81,24 +83,20 @@ export function useFogOfWar({
 
   const persistFogZones = useCallback(
     async (newZones: FogZone[]) => {
-      const t = localStorage.getItem("dnd_access_token") ?? "";
-
       fogSaveAbortRef.current?.abort();
       const controller = new AbortController();
       fogSaveAbortRef.current = controller;
 
       try {
-        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${t}`,
+        await apiRequest(
+          `/scenes/${selectedSceneId}/fog`,
+          getAuthToken(),
+          {
+            method: "PATCH",
+            body: JSON.stringify({ fog_zones: newZones }),
+            signal: controller.signal,
           },
-          body: JSON.stringify({ fog_zones: newZones }),
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
+        );
 
         previousFogZonesRef.current = null;
         ignoreNextFogWsRef.current = true;
@@ -185,12 +183,11 @@ export function useFogOfWar({
           const controller = new AbortController();
           fogSyncAbortRef.current = controller;
 
-          const t = localStorage.getItem("dnd_access_token") || "";
-          fetch(`/api/scenes/${selectedSceneId}/fog`, {
-            headers: { Authorization: `Bearer ${t}` },
-            signal: controller.signal,
-          })
-            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+          apiRequest<{ fog_zones: FogZone[] }>(
+            `/scenes/${selectedSceneId}/fog`,
+            getAuthToken(),
+            { signal: controller.signal },
+          )
             .then((d) => setFogZones(d.fog_zones || []))
             .catch((err) => {
               if (err?.name === "AbortError") return;
