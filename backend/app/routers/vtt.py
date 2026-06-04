@@ -1,5 +1,6 @@
 import logging
 import math
+import re
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -672,7 +673,40 @@ async def duplicate_token(
         existing["scene_id"],
     )
 
-    # Toggle is_hidden for the duplicate so it doesn't stay on top of the original
+    # ── Auto-increment name ──────────────────────────────────────────
+    base_name = existing["name"]
+    # Strip existing "(copie)" or " (N)" suffix to get the root name
+    stripped = re.sub(r"\s*\(copie\)\s*$", "", base_name).strip()
+    stripped = re.sub(r"\s*\(\d+\)\s*$", "", stripped).strip()
+    if not stripped:
+        stripped = base_name  # fallback if regex stripped everything
+
+    # Find highest existing number for this base name in the scene
+    pattern = re.escape(stripped) + r"\s*\((\d+)\)"
+    rows = await get_pool().fetch(
+        "select name from scene_tokens where scene_id = $1 and name ~ $2",
+        existing["scene_id"],
+        pattern,
+    )
+    max_n = 0
+    for row in rows:
+        m = re.search(r"\((\d+)\)$", row["name"])
+        if m:
+            n = int(m.group(1))
+            if n > max_n:
+                max_n = n
+
+    # Also check if the stripped name itself exists (counts as #1)
+    exact_match = await get_pool().fetchval(
+        "select 1 from scene_tokens where scene_id = $1 and name = $2 limit 1",
+        existing["scene_id"],
+        stripped,
+    )
+    if exact_match:
+        max_n = max(max_n, 1)
+
+    new_name = f"{stripped} ({max_n + 1})"
+
     row = await get_pool().fetchrow(
         """
         insert into scene_tokens (
@@ -683,7 +717,7 @@ async def duplicate_token(
         """,
         existing["scene_id"],
         None,  # duplicate starts unlinked — GM can re-link
-        f"{existing['name']} (copie)",
+        new_name,
         existing["x"] + 50,
         existing["y"] + 50,
         existing["size"],

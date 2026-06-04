@@ -372,14 +372,28 @@ export function CampaignMap({
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       // ── Token-specific shortcuts (only when a token is selected) ──
-      if (selectedTokenId && sceneTokens) {
-        const token = sceneTokens.find((t) => t.id === selectedTokenId);
-        if (token) {
+      if (sceneTokens && (selectedTokenId || selectedTokenIds.size > 0)) {
+        // Determine targets: multi-select set or single primary token
+        const targets: SceneToken[] = [];
+        if (selectedTokenIds.size > 1) {
+          for (const t of sceneTokens) {
+            if (selectedTokenIds.has(t.id)) targets.push(t);
+          }
+        } else {
+          const token = sceneTokens.find((t) => t.id === selectedTokenId);
+          if (token) targets.push(token);
+        }
+        if (targets.length === 0) {
+          /* fall through to general shortcuts below */
+        } else {
+          const isMulti = targets.length > 1;
+
           switch (e.key) {
             case "Delete":
             case "Backspace":
               e.preventDefault();
-              onTokenAction?.("delete", token);
+              for (const t of targets) onTokenAction?.("delete", t);
+              if (isMulti) setSelectedTokenIds(new Set());
               return;
           }
 
@@ -388,12 +402,15 @@ export function CampaignMap({
               case "d":
               case "D":
                 e.preventDefault();
-                onTokenAction?.("duplicate", token);
+                for (const t of targets) onTokenAction?.("duplicate", t);
                 return;
               case "h":
               case "H":
                 e.preventDefault();
-                onTokenAction?.(token.is_hidden ? "reveal" : "hide", token);
+                // Toggle all to the opposite of the primary token's state
+                const primaryHidden = targets[0].is_hidden;
+                const toggleAction = primaryHidden ? "reveal" : "hide";
+                for (const t of targets) onTokenAction?.(toggleAction, t);
                 return;
             }
           }
@@ -401,11 +418,11 @@ export function CampaignMap({
           switch (e.key) {
             case "]":
               e.preventDefault();
-              onTokenAction?.("front", token);
+              for (const t of targets) onTokenAction?.("front", t);
               return;
             case "[":
               e.preventDefault();
-              onTokenAction?.("back", token);
+              for (const t of targets) onTokenAction?.("back", t);
               return;
           }
         }
@@ -444,7 +461,7 @@ export function CampaignMap({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedScene, selectedTokenId, sceneTokens, onTokenAction]);
+  }, [selectedScene, selectedTokenId, selectedTokenIds, sceneTokens, onTokenAction]);
 
   // ── Pan ─────────────────────────────────────────────────────────────────
 
@@ -1184,6 +1201,21 @@ export function CampaignMap({
                   setContextMenu(null);
                 }}
               />
+            )}
+
+            {/* Multi-select badge */}
+            {selectedTokenIds.size > 1 && (
+              <div className="multi-select-badge">
+                {selectedTokenIds.size} tokens sélectionnés
+                <button
+                  type="button"
+                  className="multi-select-clear"
+                  onClick={() => setSelectedTokenIds(new Set())}
+                  title="Tout désélectionner"
+                >
+                  ✕
+                </button>
+              </div>
             )}
           </div>
         </div>
