@@ -5,6 +5,8 @@ import { apiRequest } from "../api/client";
 export interface UseSessionJournalOptions {
   token: string;
   onError: (msg: string) => void;
+  onBusyStart: () => void;
+  onBusyEnd: () => void;
 }
 
 export interface UseSessionJournalReturn {
@@ -12,13 +14,28 @@ export interface UseSessionJournalReturn {
   logEntries: GameLogEntry[];
   setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
   loadSessionLog: (campaignId: string) => Promise<void>;
+  doRoll: (
+    campaignId: string,
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+    visibility: string,
+    characterId: string,
+  ) => Promise<void>;
+  quickRoll: (
+    campaignId: string,
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+    characterId: string,
+  ) => Promise<void>;
   clearJournal: () => void;
 }
 
 export function useSessionJournal(
   opts: UseSessionJournalOptions,
 ): UseSessionJournalReturn {
-  const { token, onError } = opts;
+  const { token, onError, onBusyStart, onBusyEnd } = opts;
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
 
@@ -47,5 +64,51 @@ export function useSessionJournal(
     setLogEntries([]);
   }, []);
 
-  return { rolls, logEntries, setLogEntries, loadSessionLog, clearJournal };
+  const doRoll = useCallback(
+    async (
+      campaignId: string,
+      formula: string,
+      label: string,
+      mode: "normal" | "advantage" | "disadvantage",
+      visibility: string,
+      characterId: string,
+    ) => {
+      onBusyStart();
+      try {
+        const roll = await request<Roll>(`/api/campaigns/${campaignId}/rolls`, {
+          method: "POST",
+          body: JSON.stringify({
+            formula,
+            label,
+            mode,
+            visibility,
+            character_id: characterId || null,
+          }),
+        });
+        setRolls((current) => [roll, ...current].slice(0, 100));
+        await loadSessionLog(campaignId);
+        onError(`Jet: ${roll.total}`);
+      } catch (error) {
+        onError(error instanceof Error ? error.message : "Unable to roll dice");
+      } finally {
+        onBusyEnd();
+      }
+    },
+    [token, onError, onBusyStart, onBusyEnd, loadSessionLog],
+  );
+
+  const quickRoll = useCallback(
+    async (
+      campaignId: string,
+      formula: string,
+      label: string,
+      mode: "normal" | "advantage" | "disadvantage",
+      characterId: string,
+    ) => {
+      await doRoll(campaignId, formula, label, mode, "public", characterId);
+    },
+    [doRoll],
+  );
+
+  return { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, clearJournal };
 }

@@ -128,8 +128,14 @@ export default function App() {
   });
   const { presenceCount, realtimeStatus } = ws;
 
-  const journal = useSessionJournal({ token, onError: setMessage });
-  const { rolls, logEntries, setLogEntries, loadSessionLog, clearJournal } = journal;
+  const journal = useSessionJournal({
+    token,
+    onError: setMessage,
+    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyEnd: () => setIsBusy(false),
+  });
+  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, clearJournal } =
+    journal;
 
   const tokenActions = useTokenActions({
     token,
@@ -517,6 +523,7 @@ export default function App() {
     if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
     await doRoll(
+      selectedCampaign.id,
       String(form.get("formula")),
       String(form.get("label")),
       String(form.get("mode")) as "normal" | "advantage" | "disadvantage",
@@ -531,37 +538,7 @@ export default function App() {
     mode: "normal" | "advantage" | "disadvantage",
   ) {
     if (!selectedCampaign) return;
-    await doRoll(formula, label, mode, "public", selectedCharacter?.id ?? "");
-  }
-
-  async function doRoll(
-    formula: string,
-    label: string,
-    mode: "normal" | "advantage" | "disadvantage",
-    visibility: string,
-    characterId: string,
-  ) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign?.id}/rolls`, {
-        method: "POST",
-        body: JSON.stringify({
-          formula,
-          label,
-          mode,
-          visibility,
-          character_id: characterId || null,
-        }),
-      });
-      setRolls((current) => [roll, ...current].slice(0, 100));
-      if (selectedCampaign) await loadSessionLog(selectedCampaign.id);
-      setMessage(`Jet: ${roll.total}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to roll dice");
-    } finally {
-      setIsBusy(false);
-    }
+    await quickRoll(selectedCampaign.id, formula, label, mode, selectedCharacter?.id ?? "");
   }
 
   async function handleLogNote(event: FormEvent<HTMLFormElement>) {
