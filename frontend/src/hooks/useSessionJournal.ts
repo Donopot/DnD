@@ -29,6 +29,7 @@ export interface UseSessionJournalReturn {
     mode: "normal" | "advantage" | "disadvantage",
     characterId: string,
   ) => Promise<void>;
+  addLogNote: (campaignId: string, message: string, visibility: string) => Promise<void>;
   clearJournal: () => void;
 }
 
@@ -110,5 +111,24 @@ export function useSessionJournal(
     [doRoll],
   );
 
-  return { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, clearJournal };
+  const addLogNote = useCallback(
+    async (campaignId: string, message: string, visibility: string) => {
+      onBusyStart();
+      try {
+        await request<GameLogEntry>(`/api/campaigns/${campaignId}/log`, {
+          method: "POST",
+          body: JSON.stringify({ message, visibility }),
+        });
+        await loadSessionLog(campaignId);
+        onError("Note ajoutee au journal.");
+      } catch (error) {
+        onError(error instanceof Error ? error.message : "Unable to add note");
+      } finally {
+        onBusyEnd();
+      }
+    },
+    [token, onError, onBusyStart, onBusyEnd, loadSessionLog],
+  );
+
+  return { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal };
 }
