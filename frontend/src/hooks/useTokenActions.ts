@@ -6,6 +6,11 @@ export interface UseTokenActionsOptions {
   token: string;
   selectedScene: Scene | undefined;
   setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
+  performTokenAction: (
+    action: string,
+    token: SceneToken,
+    value?: number,
+  ) => Promise<SceneToken | void>;
   onError: (msg: string) => void;
   onStart: () => void;
   onEnd: () => void;
@@ -13,12 +18,30 @@ export interface UseTokenActionsOptions {
 
 export interface UseTokenActionsReturn {
   moveToken: (tokenToMove: SceneToken, dx: number, dy: number) => Promise<void>;
+  wrapSingle: (
+    action: string,
+    token: SceneToken,
+    value?: number,
+  ) => Promise<void>;
+  wrapBatch: (
+    action: string,
+    tokens: SceneToken[],
+    value?: number,
+  ) => Promise<void>;
 }
 
 export function useTokenActions(
   opts: UseTokenActionsOptions,
 ): UseTokenActionsReturn {
-  const { token, selectedScene, setSceneTokens, onError, onStart, onEnd } = opts;
+  const {
+    token,
+    selectedScene,
+    setSceneTokens,
+    performTokenAction,
+    onError,
+    onStart,
+    onEnd,
+  } = opts;
   const fogRevealAbortRef = useRef<AbortController | null>(null);
 
   const moveToken = useCallback(
@@ -41,7 +64,6 @@ export function useTokenActions(
           current.map((item) => (item.id === updated.id ? updated : item)),
         );
 
-        // ── Auto fog reveal ──────────────────────────────────────
         const visionRadius = tokenToMove.vision_radius ?? 0;
         if (tokenToMove.character_id && visionRadius > 0 && selectedScene) {
           fogRevealAbortRef.current?.abort();
@@ -78,5 +100,46 @@ export function useTokenActions(
     [token, selectedScene, setSceneTokens, onError, onStart, onEnd],
   );
 
-  return { moveToken };
+  const wrapSingle = useCallback(
+    async (action: string, tokenToAct: SceneToken, value?: number) => {
+      onStart();
+      try {
+        await performTokenAction(action, tokenToAct, value);
+      } catch (error) {
+        onError(
+          error instanceof Error
+            ? error.message
+            : `Unable to ${action} token`,
+        );
+      } finally {
+        onEnd();
+      }
+    },
+    [performTokenAction, onError, onStart, onEnd],
+  );
+
+  const wrapBatch = useCallback(
+    async (action: string, tokens: SceneToken[], value?: number) => {
+      onStart();
+      try {
+        for (const token of tokens) {
+          await performTokenAction(action, token, value);
+        }
+        if (action === "delete") {
+          onError(`${tokens.length} token(s) supprimé(s).`);
+        }
+      } catch (error) {
+        onError(
+          error instanceof Error
+            ? error.message
+            : `Unable to ${action} tokens`,
+        );
+      } finally {
+        onEnd();
+      }
+    },
+    [performTokenAction, onError, onStart, onEnd],
+  );
+
+  return { moveToken, wrapSingle, wrapBatch };
 }
