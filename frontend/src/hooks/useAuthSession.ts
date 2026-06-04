@@ -4,9 +4,12 @@ import { apiRequest } from "../api/client";
 
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
+export type AuthStatus = "anonymous" | "checking" | "authenticated";
+
 export interface UseAuthSessionReturn {
   token: string;
   user: User | null;
+  status: AuthStatus;
   isAuthenticated: boolean;
   login: (accessToken: string, user?: User) => void;
   logout: () => void;
@@ -18,6 +21,9 @@ export function useAuthSession(): UseAuthSessionReturn {
     () => localStorage.getItem(TOKEN_STORAGE_KEY) ?? "",
   );
   const [user, setUser] = useState<User | null>(null);
+
+  const status: AuthStatus = !token ? "anonymous" : !user ? "checking" : "authenticated";
+  const isAuthenticated = status === "authenticated";
 
   const login = useCallback((accessToken: string, u?: User) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
@@ -47,7 +53,8 @@ export function useAuthSession(): UseAuthSessionReturn {
   return {
     token,
     user,
-    isAuthenticated: !!user,
+    status,
+    isAuthenticated,
     login,
     logout,
     setUser,
