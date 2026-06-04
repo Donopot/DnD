@@ -8,7 +8,7 @@ import {
   Swords,
   UserPlus,
 } from "lucide-react";
-import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { CampaignMap } from "./components/CampaignMap";
@@ -35,6 +35,7 @@ import { useCampaignData } from "./hooks/useCampaignData";
 import { useVttState } from "./hooks/useVttState";
 import { useTokenActions } from "./hooks/useTokenActions";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import { useSessionJournal } from "./hooks/useSessionJournal";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -62,9 +63,7 @@ import { apiRequest } from "./api/client";
 import type {
   AuthResponse,
   Character,
-  GameLogEntry,
   Handout,
-  Roll,
   Scene,
   SceneToken,
 } from "./api/types";
@@ -93,15 +92,12 @@ export default function App() {
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [inspectedCharacterId, setInspectedCharacterId] = useState<string>("");
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
-  const [rolls, setRolls] = useState<Roll[]>([]);
-  const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [message, setMessage] = useState("");
   const [inviteToken, setInviteToken] = useState<string | null>(() => {
     const match = window.location.pathname.match(/^\/invite\/([\w-]+)/);
     return match ? match[1] : null;
   });
-  const inviteAcceptedTokenRef = useRef<string | null>(null);
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
     useState<SessionLiveMode>("exploration");
   const [isBusy, setIsBusy] = useState(false);
@@ -118,10 +114,10 @@ export default function App() {
     campaignId: selectedCampaign?.id,
     selectedSceneId: selectedScene?.id,
     onError: setMessage,
-    onSessionSceneToken: () => { if (selectedCampaign?.id) void vtt.loadVttState(selectedCampaign.id); },
-    onSessionEncounter: () => { if (selectedCampaign?.id) void vtt.loadCombatState(selectedCampaign.id); },
-    onSessionHandout: () => { if (selectedCampaign?.id) void loadHandouts(selectedCampaign.id); },
-    onSessionLog: () => { if (selectedCampaign?.id) void loadSessionLog(selectedCampaign.id); },
+    onSessionSceneToken: () => { void vtt.loadVttState(selectedCampaign!.id); },
+    onSessionEncounter: () => { void vtt.loadCombatState(selectedCampaign!.id); },
+    onSessionHandout: () => { void loadHandouts(selectedCampaign!.id); },
+    onSessionLog: () => { void loadSessionLog(selectedCampaign!.id); },
     onTokenMoved: (tokenId, x, y) => {
       vtt.setSceneTokens((current) =>
         current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
@@ -129,6 +125,15 @@ export default function App() {
     },
   });
   const { presenceCount, realtimeStatus } = ws;
+
+  const journal = useSessionJournal({
+    token,
+    onError: setMessage,
+    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyEnd: () => setIsBusy(false),
+  });
+  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal } =
+    journal;
 
   const tokenActions = useTokenActions({
     token,
@@ -257,8 +262,7 @@ export default function App() {
     if (!token || !selectedCampaign) {
       campaign.clearMembers();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
+      clearJournal();
       return;
     }
     campaign.selectCampaign(selectedCampaign.id);
@@ -303,19 +307,6 @@ export default function App() {
       setSelectedCharacterId((current) => current || data[0]?.id || "");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load characters");
-    }
-  }
-
-  async function loadSessionLog(campaignId: string) {
-    try {
-      const [rollData, logData] = await Promise.all([
-        request<Roll[]>(`/api/campaigns/${campaignId}/rolls`),
-        request<GameLogEntry[]>(`/api/campaigns/${campaignId}/log`),
-      ]);
-      setRolls(rollData);
-      setLogEntries(logData);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load session log");
     }
   }
 
@@ -437,8 +428,7 @@ export default function App() {
       );
       campaign.clearLatestInvite();
       setCharacters([]);
-      setRolls([]);
-      setLogEntries([]);
+      clearJournal();
       setSelectedCharacterId("");
       event.currentTarget.reset();
       setMessage("Campagne creee.");
@@ -532,6 +522,7 @@ export default function App() {
     if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
     await doRoll(
+      selectedCampaign.id,
       String(form.get("formula")),
       String(form.get("label")),
       String(form.get("mode")) as "normal" | "advantage" | "disadvantage",
@@ -546,63 +537,19 @@ export default function App() {
     mode: "normal" | "advantage" | "disadvantage",
   ) {
     if (!selectedCampaign) return;
-    await doRoll(formula, label, mode, "public", selectedCharacter?.id ?? "");
-  }
-
-  async function doRoll(
-    formula: string,
-    label: string,
-    mode: "normal" | "advantage" | "disadvantage",
-    visibility: string,
-    characterId: string,
-  ) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      const roll = await request<Roll>(`/api/campaigns/${selectedCampaign?.id}/rolls`, {
-        method: "POST",
-        body: JSON.stringify({
-          formula,
-          label,
-          mode,
-          visibility,
-          character_id: characterId || null,
-        }),
-      });
-      setRolls((current) => [roll, ...current].slice(0, 100));
-      if (selectedCampaign) await loadSessionLog(selectedCampaign.id);
-      setMessage(`Jet: ${roll.total}`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to roll dice");
-    } finally {
-      setIsBusy(false);
-    }
+    await quickRoll(selectedCampaign.id, formula, label, mode, selectedCharacter?.id ?? "");
   }
 
   async function handleLogNote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!selectedCampaign) {
-      return;
-    }
-    setIsBusy(true);
-    setMessage("");
+    if (!selectedCampaign) return;
     const form = new FormData(event.currentTarget);
-    try {
-      await request<GameLogEntry>(`/api/campaigns/${selectedCampaign.id}/log`, {
-        method: "POST",
-        body: JSON.stringify({
-          message: String(form.get("message")),
-          visibility: String(form.get("visibility")),
-        }),
-      });
-      event.currentTarget.reset();
-      await loadSessionLog(selectedCampaign.id);
-      setMessage("Note ajoutee au journal.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to add note");
-    } finally {
-      setIsBusy(false);
-    }
+    await addLogNote(
+      selectedCampaign.id,
+      String(form.get("message")),
+      String(form.get("visibility")),
+    );
+    event.currentTarget.reset();
   }
 
   function logout() {
@@ -611,8 +558,7 @@ export default function App() {
     campaign.clearCampaigns();
     campaign.clearMembers();
     setCharacters([]);
-    setRolls([]);
-    setLogEntries([]);
+    clearJournal();
     setSelectedCharacterId("");
     campaign.clearInvites();
   }
@@ -627,12 +573,10 @@ export default function App() {
         token={token}
         userDisplayName={user.display_name}
         onTokenChange={(newToken) => {
-          inviteAcceptedTokenRef.current = newToken;
           login(newToken);
         }}
         onJoined={async () => {
-          await campaign.loadCampaigns(inviteAcceptedTokenRef.current ?? token);
-          inviteAcceptedTokenRef.current = null;
+          await campaign.loadCampaigns(token);
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
