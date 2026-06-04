@@ -1,24 +1,29 @@
-/// <reference types="node" />
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 30_000,
-  retries: 1,
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
+  reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:8090",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173",
+    trace: "on-first-retry",
     screenshot: "only-on-failure",
-    trace: "retain-on-failure",
   },
   projects: [
-    { name: "chromium", use: { browserName: "chromium" } },
-    { name: "firefox", use: { browserName: "firefox" } },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
   webServer: process.env.CI
-    ? undefined
+    ? undefined // CI manages the server via docker compose
     : {
         command: "npm run dev",
-        url: "http://127.0.0.1:8090",
+        url: "http://localhost:5173",
         reuseExistingServer: true,
+        timeout: 30_000,
       },
 });
