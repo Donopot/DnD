@@ -1559,7 +1559,7 @@ export default function App() {
                         <ExternalLink size={12} />
                       </button>
                     </summary>
-                    <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+                    <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
                   </details>
                 )}
 
@@ -2309,7 +2309,7 @@ export default function App() {
             />
           )}
           {panel.id === "initiative" && (
-            <InitiativePanel sceneId={selectedSceneId} sceneTokens={sceneTokens} />
+            <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
           )}
           {panel.id === "token-detail" && (
             <TokenDetailPanel
