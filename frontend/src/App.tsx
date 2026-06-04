@@ -473,65 +473,11 @@ export default function App() {
     tokenToAct: SceneToken,
     value?: number,
   ): Promise<SceneToken | void> {
-    switch (action) {
-      case "duplicate": {
-        const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
-          method: "POST",
-        });
-        vtt.setSceneTokens((current) => [...current, dup]);
-        return dup;
-      }
-      case "delete": {
-        await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
-        vtt.setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
-        break;
-      }
-      case "hide":
-      case "reveal": {
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ is_hidden: action === "hide" }),
-        });
-        vtt.setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
-      case "add-combat": {
-        setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
-        break;
-      }
-      case "front": {
-        const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
-          method: "POST",
-        });
-        vtt.setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
-        return fwd;
-      }
-      case "back": {
-        const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
-          method: "POST",
-        });
-        vtt.setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
-        return bwd;
-      }
-      case "damage":
-      case "heal": {
-        const amount = value ?? 0;
-        const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
-        const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
-        const newHp =
-          action === "damage"
-            ? Math.max(0, hpCurrent - amount)
-            : Math.min(hpMax, hpCurrent + amount);
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            metadata: { ...tokenToAct.metadata, hp_current: newHp },
-          }),
-        });
-        vtt.setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
+    if (action === "add-combat") {
+      setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
+      return;
     }
+    return vtt.performTokenAction(action, tokenToAct, value);
   }
 
   async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
@@ -566,13 +512,7 @@ export default function App() {
 
   async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
     try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToToggle.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
-      });
-      vtt.setSceneTokens((current) =>
-        current.map((t) => (t.id === updated.id ? updated : t)),
-      );
+      await vtt.handleToggleTokenHidden(tokenToToggle);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Impossible de changer la visibilité",
