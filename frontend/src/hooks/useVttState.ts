@@ -1,5 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import type { Scene, SceneToken } from "../api/types";
+import type {
+  Combatant,
+  Encounter,
+  EncounterDetail,
+  Scene,
+  SceneToken,
+} from "../api/types";
 import { apiRequest } from "../api/client";
 
 export interface UseVttStateReturn {
@@ -7,8 +13,11 @@ export interface UseVttStateReturn {
   selectedSceneId: string;
   selectedScene: Scene | undefined;
   sceneTokens: SceneToken[];
+  encounters: Encounter[];
+  selectedEncounterId: string;
   loadVttState: (campaignId: string) => Promise<void>;
   loadSceneTokens: (sceneId: string) => Promise<void>;
+  loadCombatState: (campaignId: string) => Promise<void>;
   setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
   setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
   clearVttState: () => void;
@@ -24,6 +33,9 @@ export function useVttState(token: string): UseVttStateReturn {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
+  const [encounters, setEncounters] = useState<Encounter[]>([]);
+  const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
+  const [, setCombatants] = useState<Combatant[]>([]);
 
   const selectedScene = useMemo(
     () => scenes.find((s) => s.id === selectedSceneId) ?? scenes[0],
@@ -177,10 +189,84 @@ export function useVttState(token: string): UseVttStateReturn {
     [token],
   );
 
+  // ── Combat state ──────────────────────────────────────────
+
+  const updateEncounterFromDetail = useCallback(
+    (detail: EncounterDetail) => {
+      setEncounters((current) => {
+        const summary: Encounter = {
+          id: detail.id,
+          campaign_id: detail.campaign_id,
+          scene_id: detail.scene_id,
+          name: detail.name,
+          status: detail.status,
+          round_number: detail.round_number,
+          turn_index: detail.turn_index,
+          active_combatant_id: detail.active_combatant_id,
+          created_at: detail.created_at,
+          updated_at: detail.updated_at,
+        };
+
+        if (current.some((item) => item.id === detail.id)) {
+          return current.map((item) => (item.id === detail.id ? summary : item));
+        }
+
+        return [summary, ...current];
+      });
+
+      setCombatants(detail.combatants);
+    },
+    [],
+  );
+
+  const loadEncounterDetail = useCallback(
+    async (encounterId: string) => {
+      try {
+        const detail = await apiRequest<EncounterDetail>(
+          `/api/encounters/${encounterId}`,
+          token,
+        );
+        updateEncounterFromDetail(detail);
+      } catch {
+        // silently handled by caller
+      }
+    },
+    [token, updateEncounterFromDetail],
+  );
+
+  const loadCombatState = useCallback(
+    async (campaignId: string) => {
+      try {
+        const data = await apiRequest<Encounter[]>(
+          `/api/campaigns/${campaignId}/encounters`,
+          token,
+        );
+        setEncounters(data);
+
+        if (data.length === 0) {
+          setSelectedEncounterId("");
+          setCombatants([]);
+          return;
+        }
+
+        const effectiveEncounter =
+          data.find((e) => e.id === selectedEncounterId) ?? data[0];
+        setSelectedEncounterId(effectiveEncounter.id);
+        await loadEncounterDetail(effectiveEncounter.id);
+      } catch {
+        // silently handled by caller
+      }
+    },
+    [token, selectedEncounterId, loadEncounterDetail],
+  );
+
   const clearVttState = useCallback(() => {
     setScenes([]);
     setSelectedSceneId("");
     setSceneTokens([]);
+    setEncounters([]);
+    setSelectedEncounterId("");
+    setCombatants([]);
   }, []);
 
   return {
@@ -188,8 +274,11 @@ export function useVttState(token: string): UseVttStateReturn {
     selectedSceneId,
     selectedScene,
     sceneTokens,
+    encounters,
+    selectedEncounterId,
     loadVttState,
     loadSceneTokens,
+    loadCombatState,
     setSelectedSceneId,
     setSceneTokens,
     clearVttState,
