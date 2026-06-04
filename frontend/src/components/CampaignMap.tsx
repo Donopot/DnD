@@ -1,5 +1,6 @@
 import { type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Scene, SceneToken } from "../api/types";
+import { useFogOfWar } from "../hooks/useFogOfWar";
 import { useGlobalKeyboard } from "../hooks/useGlobalKeyboard";
 
 export type MapPermissions = {
@@ -136,25 +137,28 @@ export function CampaignMap({
   const [weatherIntensity, _setWeatherIntensity] = useState(50);
   const [weatherEnabled, _setWeatherEnabled] = useState(false);
 
-  // Fog of war zones (for token visibility filtering)
-  const [fogZones, setFogZones] = useState<FogZone[]>([]);
-  const fogZonesRef = useRef(fogZones);
-  fogZonesRef.current = fogZones;
-
-  const fogSaveTimerRef = useRef<number | null>(null);
-  const ignoreNextFogWsRef = useRef(false);
-  const pendingFogZonesRef = useRef<FogZone[] | null>(null);
-  const previousFogZonesRef = useRef<FogZone[] | null>(null);
-
-  // Fog tool state (lifted from FogLayer)
-  const [showFog, setShowFog] = useState(true);
-  const [fogDrawMode, setFogDrawMode] = useState(false);
-  const [fogCircleMode, setFogCircleMode] = useState(false);
-  const [fogEraseMode, setFogEraseMode] = useState(false);
-  const [fogDrawing, setFogDrawing] = useState(false);
-  const [fogStart, setFogStart] = useState({ x: 0, y: 0 });
-  const [fogCurrentRect, setFogCurrentRect] = useState<FogZone | null>(null);
-  const [fogSaveError, setFogSaveError] = useState("");
+  // ── Fog of War (extracted hook) ──────────────────────────
+  const {
+    fogZones,
+    showFog,
+    setShowFog,
+    fogDrawMode,
+    setFogDrawMode,
+    fogCircleMode,
+    setFogCircleMode,
+    fogEraseMode,
+    setFogEraseMode,
+    fogDrawing,
+    setFogDrawing,
+    fogStart,
+    setFogStart,
+    fogCurrentRect,
+    setFogCurrentRect,
+    fogSaveError,
+    setFogSaveError,
+    saveFogZones,
+    isInFogZone,
+  } = useFogOfWar({ selectedSceneId, wsRef });
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -199,165 +203,6 @@ export function CampaignMap({
     const timer = setTimeout(() => setSceneTransitioning(false), 300);
     return () => clearTimeout(timer);
   }, [selectedSceneId]);
-
-  // ── Fog zone loading ─────────────────────────────────────────────────────
-  const fogAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!selectedScene?.id) {
-      setFogZones([]);
-      return;
-    }
-    // Abort any previous in-flight fog load
-    fogAbortRef.current?.abort();
-    const controller = new AbortController();
-    fogAbortRef.current = controller;
-    const t = localStorage.getItem("dnd_access_token") || "";
-    fetch(`/api/scenes/${selectedScene.id}/fog`, {
-      headers: { Authorization: `Bearer ${t}` },
-      signal: controller.signal,
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d) => setFogZones(d.fog_zones || []))
-      .catch((err) => {
-        if (err?.name === "AbortError") return; // intentionally cancelled
-      });
-    return () => controller.abort();
-  }, [selectedScene?.id]);
-
-  // ── Persist fog zones (raw API call) ───────────────────────────────────────
-  const fogSaveAbortRef = useRef<AbortController | null>(null);
-
-  const persistFogZones = useCallback(
-    async (newZones: FogZone[]) => {
-      const t = localStorage.getItem("dnd_access_token") ?? "";
-
-      // Abort any previous in-flight fog save
-      fogSaveAbortRef.current?.abort();
-      const controller = new AbortController();
-      fogSaveAbortRef.current = controller;
-
-      try {
-        const res = await fetch(`/api/scenes/${selectedSceneId}/fog`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${t}`,
-          },
-          body: JSON.stringify({ fog_zones: newZones }),
-          signal: controller.signal,
-        });
-
-        if (!res.ok) throw new Error(`Fog save failed (${res.status})`);
-
-        previousFogZonesRef.current = null;
-        ignoreNextFogWsRef.current = true;
-        setFogSaveError("");
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        if (previousFogZonesRef.current) {
-          setFogZones(previousFogZonesRef.current);
-        }
-        pendingFogZonesRef.current = null;
-        setFogSaveError("Sauvegarde du brouillard impossible.");
-      }
-    },
-    [selectedSceneId],
-  );
-
-  // ── Debounced fog zone save ───────────────────────────────────────────────
-  const saveFogZones = useCallback(
-    (newZones: FogZone[]) => {
-      if (
-        newZones.some(
-          (zone) =>
-            !Number.isFinite(zone.x) ||
-            !Number.isFinite(zone.y) ||
-            !Number.isFinite(zone.width) ||
-            !Number.isFinite(zone.height) ||
-            zone.width <= 0 ||
-            zone.height <= 0,
-        )
-      ) {
-        setFogSaveError("Zone de brouillard invalide.");
-        return;
-      }
-
-      previousFogZonesRef.current = fogZonesRef.current;
-      setFogZones(newZones);
-      pendingFogZonesRef.current = newZones;
-
-      if (fogSaveTimerRef.current) {
-        window.clearTimeout(fogSaveTimerRef.current);
-      }
-
-      fogSaveTimerRef.current = window.setTimeout(() => {
-        if (pendingFogZonesRef.current) {
-          void persistFogZones(pendingFogZonesRef.current);
-        }
-        pendingFogZonesRef.current = null;
-        fogSaveTimerRef.current = null;
-      }, 350);
-    },
-    [persistFogZones],
-  );
-
-  // ── Cleanup fog save timer on unmount ─────────────────────────────────────
-  useEffect(() => {
-    return () => {
-      if (fogSaveTimerRef.current) {
-        window.clearTimeout(fogSaveTimerRef.current);
-      }
-    };
-  }, []);
-
-  // ── Fog zone WebSocket refresh (self-ignore aware) ────────────────────────
-  const fogSyncAbortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    const ws = wsRef.current;
-    if (!ws) return;
-
-    const handler = (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (
-          data.type === "session_changed" &&
-          data.resource === "fog" &&
-          data.scene_id === selectedSceneId
-        ) {
-          if (ignoreNextFogWsRef.current) {
-            ignoreNextFogWsRef.current = false;
-            return;
-          }
-
-          // Abort any previous in-flight sync fetch
-          fogSyncAbortRef.current?.abort();
-          const controller = new AbortController();
-          fogSyncAbortRef.current = controller;
-
-          const t = localStorage.getItem("dnd_access_token") || "";
-          fetch(`/api/scenes/${selectedSceneId}/fog`, {
-            headers: { Authorization: `Bearer ${t}` },
-            signal: controller.signal,
-          })
-            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-            .then((d) => setFogZones(d.fog_zones || []))
-            .catch((err) => {
-              if (err?.name === "AbortError") return; // intentionally cancelled
-            });
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-
-    ws.addEventListener("message", handler);
-    return () => {
-      ws.removeEventListener("message", handler);
-      fogSyncAbortRef.current?.abort();
-    };
-  }, [wsRef, selectedSceneId]);
 
   // ── Fog zone save with rollback on failure ────────────────────────────────
 
@@ -592,23 +437,9 @@ export function CampaignMap({
     [gridSize],
   );
 
-  // ── Helper: check if a point is inside a fog zone (rect or circle) ──────
-  const isInFogZone = useCallback(
-    (px: number, py: number, zone: FogZone) => {
-      if (zone.shape === "circle") {
-        const cx = zone.x + zone.width / 2;
-        const cy = zone.y + zone.height / 2;
-        const r = zone.width / 2;
-        return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
-      }
-      return px >= zone.x && px <= zone.x + zone.width && py >= zone.y && py <= zone.y + zone.height;
-    },
-    [],
-  );
-
+  // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
     const canInteractWithToken = permissions.canSelectToken(token.id);
-    if (!canInteractWithToken) return;
 
     if (event.button === 1) {
       return;
