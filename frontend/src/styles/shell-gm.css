@@ -4003,3 +4003,85 @@ select {
 .campaign-overview .action-row {
   margin: 0.5rem 0;
 }
+
+/* ── Token Library Panel (GM-3A) ── */
+/* Token Library Panel */
+
+.token-library-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.token-library-search input {
+  flex: 1;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.token-library-search input:focus {
+  border-color: var(--brand-green);
+  outline: 2px solid var(--border-subtle);
+}
+
+.token-library-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.token-library-swatch {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.token-library-row > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.token-library-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+}
+
+.token-library-create-form input[type="text"],
+.token-library-create-form input[type="number"] {
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.token-library-create-form input[type="color"] {
+  width: 100%;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-secondary);
+  cursor: pointer;
+}
+
+/* End Token Library Panel */
