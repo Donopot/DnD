@@ -94,6 +94,9 @@ const ScenePanel = lazy(() =>
 const TokenPanel = lazy(() =>
   import("./components/TokenPanel").then((m) => ({ default: m.TokenPanel })),
 );
+const TokenLibraryPanel = lazy(() =>
+  import("./components/TokenLibraryPanel").then((m) => ({ default: m.TokenLibraryPanel })),
+);
 
 // Regular import (small component, used immediately)
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
@@ -2328,6 +2331,18 @@ export default function App() {
               token={token}
               sceneId={selectedScene?.id ?? ""}
               tokens={sceneTokens}
+              onTokensChanged={() => {
+                if (selectedScene?.id) {
+                  void loadSceneTokens(selectedScene.id);
+                }
+              }}
+            />
+          )}
+          {panel.id === "token-library" && (
+            <TokenLibraryPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+              selectedSceneId={selectedScene?.id}
               onTokensChanged={() => {
                 if (selectedScene?.id) {
                   void loadSceneTokens(selectedScene.id);

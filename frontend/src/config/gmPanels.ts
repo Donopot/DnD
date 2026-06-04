@@ -184,6 +184,15 @@ export const GM_PANELS: GmPanelDefinition[] = [
     status: "active",
     detachable: true,
   },
+  {
+    id: "token-library",
+    label: "Bibliothèque tokens",
+    emoji: "🗂️",
+    category: "preparation",
+    description: "Templates de tokens réutilisables, favoris, ajout rapide",
+    status: "active",
+    detachable: true,
+  },
 
   // ── Onglet "Journal" ───────────────────────────────────────────────
   {
