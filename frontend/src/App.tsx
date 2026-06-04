@@ -120,6 +120,7 @@ export default function App() {
     token,
     selectedScene,
     setSceneTokens: vtt.setSceneTokens,
+    performTokenAction: vtt.performTokenAction,
     onError: setMessage,
     onStart: () => { setIsBusy(true); setMessage(""); },
     onEnd: () => setIsBusy(false),
@@ -420,47 +421,18 @@ export default function App() {
     }
   }
 
-  // Per-token action without setIsBusy/setMessage (used by batch handler)
-  async function performTokenAction(
-    action: string,
-    tokenToAct: SceneToken,
-    value?: number,
-  ): Promise<SceneToken | void> {
+  // Per-token action wrapper (handles "add-combat" locally)
+  async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
     if (action === "add-combat") {
       setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
       return;
     }
-    return vtt.performTokenAction(action, tokenToAct, value);
+    await tokenActions.wrapSingle(action, tokenToAct, value);
   }
 
-  async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      await performTokenAction(action, tokenToAct, value);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : `Unable to ${action} token`);
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  // Sequential batch action handler for multi-select
+  // Sequential batch action handler
   async function handleTokenBatchAction(action: string, tokens: SceneToken[], value?: number) {
-    setIsBusy(true);
-    setMessage("");
-    try {
-      for (const token of tokens) {
-        await performTokenAction(action, token, value);
-      }
-      if (action === "delete") {
-        setMessage(`${tokens.length} token(s) supprimé(s).`);
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : `Unable to ${action} tokens`);
-    } finally {
-      setIsBusy(false);
-    }
+    await tokenActions.wrapBatch(action, tokens, value);
   }
 
   async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
