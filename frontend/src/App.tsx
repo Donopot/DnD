@@ -1,18 +1,7 @@
-import {
-  DoorOpen,
-  ExternalLink,
-  Maximize2,
-  Minimize2,
-  PanelRightClose,
-  PanelRightOpen,
-  Swords,
-  UserPlus,
-} from "lucide-react";
-import { type FormEvent, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
-import { CampaignMap } from "./components/CampaignMap";
-import { type CampaignView, CampaignViewTabs } from "./components/CampaignViewTabs";
+import { type CampaignView } from "./components/CampaignViewTabs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmLobby } from "./components/GmLobby";
 import { InvitePage } from "./components/InvitePage";
@@ -20,7 +9,6 @@ import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
 import { GmWorkspace } from "./app/GmWorkspace";
 import {
-  SESSION_LIVE_MODES,
   SESSION_LIVE_PANEL_SETS,
   type SessionLiveMode,
 } from "./config/sessionLiveModes";
@@ -30,27 +18,6 @@ import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { ensureStorageVersion } from "./utils/storageVersion";
-
-// ── Lazy-loaded heavy components (only those used outside docked panels) ─
-const GmCharacterInspector = lazy(() =>
-  import("./components/GmCharacterInspector").then((m) => ({ default: m.GmCharacterInspector })),
-);
-const CharacterWizard = lazy(() =>
-  import("./components/CharacterWizard").then((m) => ({ default: m.CharacterWizard })),
-);
-
-// Regular import (small component, used immediately)
-import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
-import { PanelDock } from "./components/PanelDock";
-
-const PanelFallback = () => (
-  <div className="panel-loading">
-    <div className="skeleton skeleton-title" />
-    <div className="skeleton skeleton-text" />
-    <div className="skeleton skeleton-text short" />
-    <div className="skeleton skeleton-text" />
-  </div>
-);
 
 import { apiRequest } from "./api/client";
 import type {
