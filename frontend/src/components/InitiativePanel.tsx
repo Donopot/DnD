@@ -1,7 +1,7 @@
 import { Play, SkipForward, Square, Swords, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import type { Combatant, Encounter, EncounterDetail } from "../api/types";
+import type { Encounter, EncounterDetail } from "../api/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
