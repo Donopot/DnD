@@ -3,7 +3,10 @@ import secrets
 from dataclasses import dataclass
 from typing import Any
 
-TOKEN_PATTERN = re.compile(r"([+-]?)\s*(?:(\d*)d(\d+)|(\d+))", re.IGNORECASE)
+# Atomic group (?>…) prevents polynomial ReDoS backtracking when \d* greedily
+# matches digits then fails on a missing 'd' — no backtrack permitted.
+# Requires Python 3.11+.
+TOKEN_PATTERN = re.compile(r"([+-]?)(?:(?>(\d*))d(\d+)|(\d+))", re.IGNORECASE)
 VALID_PATTERN = re.compile(r"^[\ddD+\-\s]+$")
 RANDOM = secrets.SystemRandom()
 
