@@ -31,6 +31,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
+import { useCampaignData } from "./hooks/useCampaignData";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -81,8 +82,10 @@ export default function App() {
   const auth = useAuthSession();
   const { token, user, login } = auth;
   const authLogout = auth.logout;
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
+
+  const campaign = useCampaignData(token);
+  const { campaigns, selectedCampaignId, selectedCampaign } = campaign;
+
   const [members, setMembers] = useState<Member[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
@@ -124,10 +127,6 @@ export default function App() {
   const wsRef = useRef<WebSocket | null>(null);
   const fogRevealAbortRef = useRef<AbortController | null>(null);
 
-  const selectedCampaign = useMemo(
-    () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? campaigns[0],
-    [campaigns, selectedCampaignId],
-  );
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
@@ -255,7 +254,7 @@ export default function App() {
       setPresenceCount(0);
       return;
     }
-    setSelectedCampaignId(selectedCampaign.id);
+    campaign.selectCampaign(selectedCampaign.id);
     void loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
@@ -398,18 +397,10 @@ export default function App() {
 
   async function bootstrap(activeToken: string) {
     try {
-      await loadCampaigns(activeToken);
+      await campaign.loadCampaigns(activeToken);
     } catch (error) {
-      setCampaigns([]);
+      campaign.clearCampaigns();
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
-    }
-  }
-
-  async function loadCampaigns(activeToken = auth.token) {
-    const data = await apiRequest<Campaign[]>("/api/campaigns", activeToken);
-    setCampaigns(data);
-    if (data.length > 0) {
-      setSelectedCampaignId((current) => current || data[0].id);
     }
   }
 
@@ -784,15 +775,10 @@ export default function App() {
     setMessage("");
     const form = new FormData(event.currentTarget);
     try {
-      const campaign = await request<Campaign>("/api/campaigns", {
-        method: "POST",
-        body: JSON.stringify({
-          name: String(form.get("name")),
-          description: String(form.get("description")),
-        }),
-      });
-      setCampaigns((current) => [campaign, ...current]);
-      setSelectedCampaignId(campaign.id);
+      await campaign.createCampaign(
+        String(form.get("name")),
+        String(form.get("description")),
+      );
       setLatestInvite(null);
       setCharacters([]);
       setRolls([]);
@@ -949,7 +935,7 @@ export default function App() {
         }),
       });
       setRolls((current) => [roll, ...current].slice(0, 100));
-      await loadSessionLog(selectedCampaign?.id);
+      if (selectedCampaign) await loadSessionLog(selectedCampaign.id);
       setMessage(`Jet: ${roll.total}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to roll dice");
@@ -987,7 +973,7 @@ export default function App() {
   function logout() {
     wsRef.current?.close();
     authLogout();
-    setCampaigns([]);
+    campaign.clearCampaigns();
     setMembers([]);
     setCharacters([]);
     setRolls([]);
@@ -996,7 +982,6 @@ export default function App() {
     setSelectedCharacterId("");
     setLatestInvite(null);
     setActiveInvites([]);
-    setSelectedCampaignId("");
   }
 
   // ── Routing ──────────────────────────────────────────────────
@@ -1012,7 +997,7 @@ export default function App() {
           login(newToken);
         }}
         onJoined={async () => {
-          await loadCampaigns(token);
+          await campaign.loadCampaigns(token);
           setInviteToken(null);
           if (window.history.pushState) {
             window.history.pushState({}, "", "/");
@@ -1038,7 +1023,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
             if (payload.mode === "register") {
               setInviteToken(null);
               window.history.pushState({}, "", "/");
@@ -1069,7 +1054,7 @@ export default function App() {
               body: JSON.stringify(payload),
             });
             login(auth.access_token, auth.user);
-            await loadCampaigns(auth.access_token);
+            await campaign.loadCampaigns(auth.access_token);
           } catch (err) {
             setMessage(err instanceof Error ? err.message : "Échec");
           } finally {
@@ -1088,7 +1073,7 @@ export default function App() {
         userDisplayName={user.display_name}
         onLogout={logout}
         onJoined={() => {
-          void loadCampaigns(token);
+          void campaign.loadCampaigns(token);
         }}
       />
     );
@@ -1142,7 +1127,7 @@ export default function App() {
               className={`gm-campaign-item ${selectedCampaign?.id === c.id ? "selected" : ""}`}
               key={c.id}
               onClick={() => {
-                setSelectedCampaignId(c.id);
+                campaign.selectCampaign(c.id);
                 setLatestInvite(null);
                 void loadInvites(c.id);
               }}
