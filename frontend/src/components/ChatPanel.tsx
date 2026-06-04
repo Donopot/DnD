@@ -27,18 +27,13 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Listen for chat messages from WebSocket
+  // Listen for chat messages from WebSocket — use addEventListener to avoid
+  // overwriting the central handler owned by useRealtimeSession.
   useEffect(() => {
     const ws = wsRef.current;
     if (!ws) return;
 
-    const originalOnMessage = ws.onmessage;
-
-    ws.onmessage = (event) => {
-      // Call original handler first
-      if (originalOnMessage) {
-        originalOnMessage.call(ws, event);
-      }
-
+    const handler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === "chat_message") {
@@ -49,9 +44,8 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
       }
     };
 
-    return () => {
-      ws.onmessage = originalOnMessage;
-    };
+    ws.addEventListener("message", handler);
+    return () => ws.removeEventListener("message", handler);
   }, [wsRef]);
 
   // Auto-scroll to bottom

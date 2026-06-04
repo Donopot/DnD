@@ -177,7 +177,7 @@ export function PlayerView({
       setRealtimeStatus("online");
     };
 
-    socket.onmessage = (event) => {
+    const messageHandler = (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data);
         if (payload.type === "session_changed") {
@@ -206,6 +206,8 @@ export function PlayerView({
         /* ignore malformed messages */
       }
     };
+
+    socket.addEventListener("message", messageHandler);
 
     socket.onclose = () => setRealtimeStatus("offline");
     socket.onerror = () => setRealtimeStatus("offline");
