@@ -55,7 +55,7 @@ export function GmNotesPanel({ campaignId, selectedScene, selectedToken }: GmNot
   }
 
   return (
-    <div className="gm-panel-content gm-notes-panel">
+    <div className="gm-panel-content gm-notes-panel" data-vtt-panel>
       <section className="gm-panel-context">
         <span className="gm-panel-stat">
           <small>Scène</small>

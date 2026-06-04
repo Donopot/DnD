@@ -40,7 +40,7 @@ function getHealthLabel(percent: number) {
 export function PartySummaryPanel({ characters, selectedCharacter }: PartySummaryPanelProps) {
   if (characters.length === 0) {
     return (
-      <div className="gm-panel-content party-summary-panel">
+      <div className="gm-panel-content party-summary-panel" data-vtt-panel>
         <section className="gm-panel-section">
           <header>
             <strong>Résumé du groupe</strong>

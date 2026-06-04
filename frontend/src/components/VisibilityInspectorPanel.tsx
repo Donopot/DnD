@@ -68,45 +68,53 @@ export function VisibilityInspectorPanel({
 
   if (!isGM) {
     return (
-      <div className="visibility-inspector-panel">
-        <p className="muted">Fonctionnalité réservée au MJ.</p>
+      <div className="gm-panel-content">
+        <p className="gm-panel-muted">Fonctionnalité réservée au MJ.</p>
       </div>
     );
   }
 
   return (
-    <div className="visibility-inspector-panel">
-      <section className="visibility-inspector-overview">
-        <article>
-          <span>Scène</span>
-          <strong>{selectedScene?.name ?? "Aucune"}</strong>
-        </article>
+    <div className="gm-panel-content visibility-inspector-panel" data-vtt-panel>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Vue d'ensemble</strong>
+        </header>
 
-        <article>
-          <span>Non cachés manuellement</span>
-          <strong>{playerVisiblePercent}%</strong>
-        </article>
+        <div className="gm-panel-context">
+          <span className="gm-panel-stat">
+            <small>Scène</small>
+            <strong>{selectedScene?.name ?? "Aucune"}</strong>
+          </span>
 
-        <article>
-          <span>Tokens visibles</span>
-          <strong>{visibleTokens.length}</strong>
-        </article>
+          <span className="gm-panel-stat">
+            <small>Non cachés</small>
+            <strong>{playerVisiblePercent}%</strong>
+          </span>
 
-        <article>
-          <span>Tokens cachés</span>
-          <strong>{hiddenTokens.length}</strong>
-        </article>
+          <span className="gm-panel-stat">
+            <small>Visibles</small>
+            <strong>{visibleTokens.length}</strong>
+          </span>
 
-        {fogHiddenCount > 0 && (
-          <article>
-            <span>Brouillard</span>
-            <strong>{fogHiddenCount} caché(s)</strong>
-          </article>
-        )}
+          <span className="gm-panel-stat">
+            <small>Cachés</small>
+            <strong>{hiddenTokens.length}</strong>
+          </span>
+
+          {fogHiddenCount > 0 && (
+            <span className="gm-panel-stat">
+              <small>Brouillard</small>
+              <strong>{fogHiddenCount} caché(s)</strong>
+            </span>
+          )}
+        </div>
       </section>
 
-      <section className="visibility-selected-token">
-        <strong>Token sélectionné</strong>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Token sélectionné</strong>
+        </header>
 
         {selectedToken ? (
           <div
@@ -141,17 +149,19 @@ export function VisibilityInspectorPanel({
             )}
           </div>
         ) : (
-          <p className="muted">Aucun token sélectionné.</p>
+          <p className="gm-panel-muted">Aucun token sélectionné.</p>
         )}
       </section>
 
-      <section className="visibility-alerts">
-        <strong>Alertes MJ</strong>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Alertes MJ</strong>
+        </header>
 
         {sceneTokens.length === 0 ? (
-          <p className="muted">Aucun token sur cette scène.</p>
+          <p className="gm-panel-muted">Aucun token sur cette scène.</p>
         ) : (
-          <ul>
+          <ul className="visibility-alerts">
             {hiddenTokens.length > 0 && (
               <li>{hiddenTokens.length} token(s) encore caché(s) aux joueurs.</li>
             )}
@@ -174,10 +184,12 @@ export function VisibilityInspectorPanel({
         )}
       </section>
 
-      <section>
-        <strong>Filtrer les tokens</strong>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Filtrer les tokens</strong>
+        </header>
 
-        <div className="visibility-filter-buttons">
+        <div className="gm-panel-actions three">
           <button
             className={filter === "all" ? "active" : ""}
             onClick={() => setFilter("all")}
@@ -202,42 +214,49 @@ export function VisibilityInspectorPanel({
         </div>
       </section>
 
-      <section className="visibility-token-list">
-        <strong>Tokens de scène</strong>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Tokens de scène</strong>
+        </header>
 
         {filteredTokens.length === 0 ? (
-          <p className="muted">Aucun token pour ce filtre.</p>
+          <p className="gm-panel-muted">Aucun token pour ce filtre.</p>
         ) : (
-          <div>
+          <div className="gm-panel-list visibility-token-list">
             {filteredTokens.map((token) => (
-              <article className={token.is_hidden ? "hidden" : ""} key={token.id}>
-                <span>
-                  <b>{token.name}</b>
-                  <small>
-                    x {token.x} · y {token.y} · taille {token.size}
-                  </small>
-                </span>
+              <article
+                className={`gm-panel-row ${token.is_hidden ? "hidden" : ""}`}
+                key={token.id}
+              >
+                <header>
+                  <span>
+                    <strong>{token.name}</strong>
+                    <small>
+                      x {token.x} · y {token.y} · taille {token.size}
+                    </small>
+                  </span>
 
-                {onToggleTokenHidden ? (
-                  <button
-                    type="button"
-                    className="visibility-toggle-btn"
-                    onClick={() => onToggleTokenHidden(token)}
-                    title={token.is_hidden ? "Révéler" : "Cacher"}
-                  >
-                    {token.is_hidden ? (
-                      <>
-                        <Eye size={12} /> Révéler
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff size={12} /> Cacher
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <em>{token.is_hidden ? "Caché" : "Visible"}</em>
-                )}
+                  {onToggleTokenHidden ? (
+                    <button
+                      type="button"
+                      className="visibility-toggle-btn"
+                      onClick={() => onToggleTokenHidden(token)}
+                      title={token.is_hidden ? "Révéler" : "Cacher"}
+                    >
+                      {token.is_hidden ? (
+                        <>
+                          <Eye size={12} /> Révéler
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff size={12} /> Cacher
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <em className="gm-panel-muted">{token.is_hidden ? "Caché" : "Visible"}</em>
+                  )}
+                </header>
               </article>
             ))}
           </div>
@@ -245,10 +264,12 @@ export function VisibilityInspectorPanel({
       </section>
 
       {onToggleTokenHidden && (
-        <section>
-          <strong>Actions groupées</strong>
+        <section className="gm-panel-section">
+          <header className="gm-panel-section-header">
+            <strong>Actions groupées</strong>
+          </header>
 
-          <div className="visibility-actions">
+          <div className="gm-panel-actions">
             <button
               type="button"
               onClick={() => hiddenTokens.forEach((t) => onToggleTokenHidden(t))}
@@ -267,10 +288,12 @@ export function VisibilityInspectorPanel({
         </section>
       )}
 
-      <section>
-        <strong>Raccourcis</strong>
+      <section className="gm-panel-section">
+        <header className="gm-panel-section-header">
+          <strong>Raccourcis</strong>
+        </header>
 
-        <div className="visibility-actions">
+        <div className="gm-panel-actions">
           <button onClick={() => onOpenPanel?.("token-detail")} type="button">
             Détail token
           </button>

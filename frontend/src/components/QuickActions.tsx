@@ -62,7 +62,7 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
   }
 
   return (
-    <div className="quick-actions">
+    <div className="gm-panel-content quick-actions" data-vtt-panel>
       <div className="qa-bar">
         {macros.map((m) => (
           <button
@@ -112,7 +112,7 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
               <div key={m.id} className="qa-macro-item">
                 <span style={{ color: m.color }}>●</span>
                 <span>{m.label}</span>
-                <span className="muted">{m.formula}</span>
+                <span className="gm-panel-muted">{m.formula}</span>
                 <button onClick={() => removeMacro(m.id)} className="inv-remove" type="button">
                   <Trash2 size={10} />
                 </button>
