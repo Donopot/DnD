@@ -5,6 +5,7 @@ import { apiRequest } from "../api/client";
 export interface UseHandoutsOptions {
   token: string;
   onError: (msg: string) => void;
+  onMessage?: (msg: string) => void;
   onBusyStart: () => void;
   onBusyEnd: () => void;
 }
@@ -24,7 +25,7 @@ export interface UseHandoutsReturn {
 }
 
 export function useHandouts(opts: UseHandoutsOptions): UseHandoutsReturn {
-  const { token, onError, onBusyStart, onBusyEnd } = opts;
+  const { token, onError, onMessage, onBusyStart, onBusyEnd } = opts;
   const [handouts, setHandouts] = useState<Handout[]>([]);
 
   async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -57,7 +58,7 @@ export function useHandouts(opts: UseHandoutsOptions): UseHandoutsReturn {
           body: JSON.stringify({ title, content, visibility, scene_id: sceneId }),
         });
         setHandouts((current) => [handout, ...current]);
-        onError("Handout cree.");
+        onMessage?.("Handout cree.");
       } catch (error) {
         onError(error instanceof Error ? error.message : "Unable to create handout");
       } finally {
@@ -76,7 +77,7 @@ export function useHandouts(opts: UseHandoutsOptions): UseHandoutsReturn {
           body: JSON.stringify({ is_revealed: true }),
         });
         setHandouts((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-        onError(`Handout "${updated.title}" partage aux joueurs.`);
+        onMessage?.(`Handout "${updated.title}" partage aux joueurs.`);
       } catch (error) {
         onError(error instanceof Error ? error.message : "Unable to reveal handout");
       } finally {
@@ -92,7 +93,7 @@ export function useHandouts(opts: UseHandoutsOptions): UseHandoutsReturn {
       try {
         await request<void>(`/api/handouts/${handout.id}`, { method: "DELETE" });
         setHandouts((current) => current.filter((item) => item.id !== handout.id));
-        onError("Handout supprime.");
+        onMessage?.("Handout supprime.");
       } catch (error) {
         onError(error instanceof Error ? error.message : "Unable to delete handout");
       } finally {

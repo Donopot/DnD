@@ -75,6 +75,7 @@ export default function App() {
   const journal = useSessionJournal({
     token,
     onError: setMessage,
+    onMessage: setMessage,
     onBusyStart: () => { setIsBusy(true); setMessage(""); },
     onBusyEnd: () => setIsBusy(false),
   });
@@ -84,6 +85,7 @@ export default function App() {
   const handoutsHook = useHandouts({
     token,
     onError: setMessage,
+    onMessage: setMessage,
     onBusyStart: () => { setIsBusy(true); setMessage(""); },
     onBusyEnd: () => setIsBusy(false),
   });
