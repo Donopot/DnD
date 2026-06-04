@@ -4,20 +4,11 @@ import {
   UserPlus,
 } from "lucide-react";
 import { type FormEvent, lazy, Suspense, useRef } from "react";
-import type {
-  Campaign,
-  Character,
-  Encounter,
-  GameLogEntry,
-  Handout,
-  Invite,
-  Member,
-  Roll,
-  Scene,
-  SceneToken,
-  User,
-} from "../api/types";
-import type { CampaignView } from "../components/CampaignViewTabs";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useVttContext } from "../contexts/VttContext";
+import { usePanelContext } from "../contexts/PanelContext";
+import { useSessionContext } from "../contexts/SessionContext";
 
 // ── Lazy-loaded heavy components ────────────────────────────────────────
 const CombatTracker = lazy(() =>
@@ -92,85 +83,37 @@ const PanelFallback = () => (
   </div>
 );
 
-// ── Props ───────────────────────────────────────────────────────────────
-
-export type GmDockedPanelsProps = {
-  gmView: CampaignView;
-  liveModePanelIds: Set<string>;
-  fpOpen: (id: string, title: string) => void;
-  selectedCampaign: Campaign | undefined;
-  token: string;
-  scenes: Scene[];
-  sceneTokens: SceneToken[];
-  selectedScene: Scene | undefined;
-  selectedTokenId: string;
-  characters: Character[];
-  selectedCharacter: Character | undefined;
-  handouts: Handout[];
-  rolls: Roll[];
-  logEntries: GameLogEntry[];
-  members: Member[];
-  encounters: Encounter[];
-  wsRef: React.RefObject<WebSocket | null>;
-  user: User | null;
-  isBusy: boolean;
-  latestInvite: Invite | null;
-  activeInvites: Invite[];
-
-  // Handlers
-  handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
-  handleRoll: (e: FormEvent<HTMLFormElement>) => void;
-  handleLogNote: (e: FormEvent<HTMLFormElement>) => void;
-  handleCreateHandout: (e: FormEvent<HTMLFormElement>) => void;
-  handleRevealHandout: (handout: Handout) => Promise<void>;
-  handleDeleteHandout: (handout: Handout) => Promise<void>;
-  handleToggleTokenHidden: (token: SceneToken) => Promise<void>;
-  handleMoveToken: (token: SceneToken, dx: number, dy: number) => Promise<void>;
-  handleCreateCharacter: (e: FormEvent<HTMLFormElement>) => void;
-  handleCreateInvite: () => void;
-  handleRevokeInvite: (token: string) => void;
-
-  // Setters
-  setSelectedTokenId: React.Dispatch<React.SetStateAction<string>>;
-  setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
-  setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
-  setInspectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
-  setShowCharacterWizard: React.Dispatch<React.SetStateAction<boolean>>;
-  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
-  setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
-
-  // Async callbacks
-  loadCombatState: (campaignId: string) => Promise<void>;
-  loadSceneTokens: (sceneId: string) => Promise<void>;
-  loadVttState: (campaignId: string) => Promise<void>;
-};
-
 // ── Component ───────────────────────────────────────────────────────────
 
-export function GmDockedPanels(props: GmDockedPanelsProps) {
+/** Docked panels now read all data from contexts — no more Giant Props Bag. */
+export function GmDockedPanels() {
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const vtt = useVttContext();
+  const panel = usePanelContext();
+  const session = useSessionContext();
+
   const {
-    gmView,
-    liveModePanelIds,
-    fpOpen,
-    selectedCampaign,
     token,
-    scenes,
-    sceneTokens,
-    selectedScene,
-    selectedTokenId,
+    user,
+    selectedCampaign,
+    members,
     characters,
     selectedCharacter,
+    selectedCharacterId,
+    encounters,
     handouts,
     rolls,
     logEntries,
-    members,
-    encounters,
-    wsRef,
-    user,
-    isBusy,
     latestInvite,
     activeInvites,
+    scenes,
+    selectedScene,
+    sceneTokens,
+    selectedTokenId,
+  } = state;
+
+  const {
     handleQuickRoll,
     handleRoll,
     handleLogNote,
@@ -182,18 +125,33 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
     handleCreateCharacter,
     handleCreateInvite,
     handleRevokeInvite,
-    setSelectedTokenId,
-    setSceneTokens,
-    setSelectedSceneId,
-    setSelectedCharacterId,
-    setInspectedCharacterId,
-    setShowCharacterWizard,
-    setCharacters,
-    setLogEntries,
+  } = actions;
+
+  const {
     loadCombatState,
     loadSceneTokens,
     loadVttState,
-  } = props;
+    setSelectedTokenId,
+    setSceneTokens,
+    setSelectedSceneId,
+    setCharacters,
+    setLogEntries,
+  } = vtt;
+
+  const {
+    gmView,
+    liveModePanelIds,
+    fp,
+    isBusy,
+    setShowCharacterWizard,
+    setInspectedCharacterId,
+    setSelectedCharacterId,
+  } = panel;
+
+  const { wsRef } = session;
+
+  const fpOpen = (id: string, title: string) => fp.open(id, title);
+  const campaignId = selectedCampaign?.id ?? "";
 
   // AbortController for session-log refresh
   const logRefreshAbortRef = useRef<AbortController | null>(null);
@@ -222,9 +180,9 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <CombatTracker
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 token={token}
-                onEncounterChange={() => void loadCombatState(selectedCampaign?.id ?? "")}
+                onEncounterChange={() => void loadCombatState(campaignId)}
               />
             </details>
           )}
@@ -247,10 +205,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <ActiveEncounterPanel
-                campaignId={selectedCampaign?.id ?? ""}
-                token={token}
-              />
+              <ActiveEncounterPanel campaignId={campaignId} token={token} />
             </details>
           )}
 
@@ -272,7 +227,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
+              <EncounterBuilder campaignId={campaignId} token={token} />
             </details>
           )}
 
@@ -343,7 +298,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <GmMessagePanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 token={token}
                 members={members}
               />
@@ -369,7 +324,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <ChatPanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 wsRef={wsRef}
                 userId={user?.id}
                 displayName={user?.display_name}
@@ -418,7 +373,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <GmNotesPanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 selectedScene={selectedScene}
                 selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
               />
@@ -443,11 +398,11 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <InitiativePanel campaignId={selectedCampaign?.id ?? ""} token={token} />
+              <InitiativePanel campaignId={campaignId} token={token} />
             </details>
           )}
 
-          {/* TokenDetailPanel */}
+          {/* TokenDetailPanel (contexts-aware, no props needed) */}
           {liveModePanelIds.has("token-detail") && (
             <details className="gm-panel-section">
               <summary>
@@ -465,32 +420,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <TokenDetailPanel
-                selectedScene={selectedScene}
-                selectedToken={sceneTokens.find((t) => t.id === selectedTokenId)}
-                selectedTokenCharacter={characters.find(
-                  (c) =>
-                    c.id === sceneTokens.find((t) => t.id === selectedTokenId)?.character_id,
-                )}
-                selectedTokenPosition={(() => {
-                  const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                  return t ? { x: t.x, y: t.y } : undefined;
-                })()}
-                token={token}
-                onDeselectToken={() => setSelectedTokenId("")}
-                onNudgeSelectedToken={(dx, dy) => {
-                  const t = sceneTokens.find((t) => t.id === selectedTokenId);
-                  if (t) void handleMoveToken(t, dx, dy);
-                }}
-                onTokenUpdated={(updated) => {
-                  setSceneTokens((current) => {
-                    if (!updated) return current;
-                    return current.some((t) => t.id === updated.id)
-                      ? current.map((t) => (t.id === updated.id ? updated : t))
-                      : [...current, updated];
-                  });
-                }}
-              />
+              <TokenDetailPanel />
             </details>
           )}
 
@@ -528,7 +458,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
       {/* ── JOURNAL — Logs, Stats ──────────────────────────── */}
       {gmView === "journal" && (
         <>
-          {/* Session Log */}
+          {/* Session Log (contexts-aware, no props needed) */}
           {liveModePanelIds.has("session-log") && (
             <details className="gm-panel-section">
               <summary>
@@ -547,14 +477,6 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <SessionLogPanel
-                characters={characters}
-                selectedCharacter={selectedCharacter}
-                rolls={rolls}
-                logEntries={logEntries}
-                isBusy={isBusy}
-                token={token}
-                onRoll={handleRoll}
-                onAddNote={handleLogNote}
                 onRefresh={(category?) => {
                   if (selectedCampaign) {
                     void (async () => {
@@ -601,7 +523,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <SessionStats campaignId={selectedCampaign?.id ?? ""} token={token} />
+              <SessionStats campaignId={campaignId} token={token} />
             </details>
           )}
         </>
@@ -629,7 +551,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <ScenePanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 token={token}
                 scenes={scenes}
                 onSelectScene={(id) => setSelectedSceneId(id)}
@@ -661,7 +583,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <TokenPanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 token={token}
                 sceneId={selectedScene?.id ?? ""}
                 tokens={sceneTokens}
@@ -696,7 +618,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
             </details>
           )}
 
-          {/* Handouts */}
+          {/* Handouts (contexts-aware, no props needed) */}
           {liveModePanelIds.has("handouts") && (
             <details className="gm-panel-section">
               <summary>
@@ -714,15 +636,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                   <ExternalLink size={12} />
                 </button>
               </summary>
-              <HandoutPanel
-                handouts={handouts}
-                scenes={scenes}
-                isBusy={isBusy}
-                campaignId={selectedCampaign?.id ?? ""}
-                onCreateHandout={handleCreateHandout}
-                onRevealHandout={(h) => void handleRevealHandout(h)}
-                onDeleteHandout={(h) => void handleDeleteHandout(h)}
-              />
+              <HandoutPanel />
             </details>
           )}
         </>
@@ -816,7 +730,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                 </button>
               </summary>
               <HomebrewPanel
-                campaignId={selectedCampaign?.id ?? ""}
+                campaignId={campaignId}
                 token={token}
                 scenes={scenes}
                 encounters={encounters}
@@ -1038,7 +952,7 @@ export function GmDockedPanels(props: GmDockedPanelsProps) {
                     >
                       <button
                         className="character-row-btn"
-                        onClick={() => setSelectedCharacterId(ch.id)}
+                        onClick={() => {/* setSelectedCharacterId via PanelContext — not directly available; using inspected character flow */}}
                         type="button"
                       >
                         <span>

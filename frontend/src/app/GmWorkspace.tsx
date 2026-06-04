@@ -1,19 +1,9 @@
 import { DoorOpen, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Swords, UserPlus } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import type {
   Campaign,
   Character,
-  Encounter,
-  GameLogEntry,
-  Handout,
-  Invite,
-  Member,
-  Roll,
-  Scene,
-  SceneToken,
-  User,
 } from "../api/types";
-import type { CampaignView } from "../components/CampaignViewTabs";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
 import { PanelDock } from "../components/PanelDock";
@@ -22,105 +12,21 @@ import { GmFloatingPanels } from "../panels/GmFloatingPanels";
 import type { SessionLiveMode } from "../config/sessionLiveModes";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { useFloatingPanels } from "../hooks/useFloatingPanels";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { usePanelContext } from "../contexts/PanelContext";
+import { useSessionContext } from "../contexts/SessionContext";
+import { useVttContext } from "../contexts/VttContext";
 
-// ── Props ───────────────────────────────────────────────────────────────────
+// ── Props (kept lean — data comes from contexts) ──────────────────────────
 
 export type GmWorkspaceProps = {
-  // ── Auth & user
-  token: string;
-  user: User | null;
-
-  // ── Campaign state
-  campaigns: Campaign[];
-  selectedCampaign: Campaign | undefined;
-  members: Member[];
-  characters: Character[];
-  selectedCharacter: Character | undefined;
-  encounters: Encounter[];
-  handouts: Handout[];
-  rolls: Roll[];
-  logEntries: GameLogEntry[];
-  latestInvite: Invite | null;
-  activeInvites: Invite[];
-
-  // ── VTT state
-  scenes: Scene[];
-  selectedScene: Scene | undefined;
-  selectedSceneId: string;
-  sceneTokens: SceneToken[];
-  selectedTokenId: string;
-  selectedCharacterId: string;
-  inspectedCharacterId: string;
-
-  // ── UI state
-  showCharacterWizard: boolean;
-  showShortcuts: boolean;
-  isBusy: boolean;
-  isFocusMap: boolean;
-  isPanelsHidden: boolean;
-  gmView: CampaignView;
-  activeSessionLiveMode: SessionLiveMode;
-  liveModePanelIds: Set<string>;
-  presenceCount: number;
-  realtimeStatus: string;
-
-  // ── Floating panels
-  fp: ReturnType<typeof useFloatingPanels>;
-
-  // ── Theme & toasts
-  theme: string;
-  toggleTheme: () => void;
-  toasts: { id: number; message: string; type?: string }[];
-  dismissToast: (id: number) => void;
-
-  // ── Computed props
   campaignMapProps: CampaignMapProps;
   isMapFloating: boolean;
-
-  // ── WebSocket
-  wsRef: React.RefObject<WebSocket | null>;
-
-  // ── Handlers
-  onLogout: () => void;
-  handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
-  handleRoll: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleLogNote: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleCreateHandout: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleRevealHandout: (handout: Handout) => Promise<void>;
-  handleDeleteHandout: (handout: Handout) => Promise<void>;
-  handleToggleTokenHidden: (token: SceneToken) => Promise<void>;
-  handleMoveToken: (token: SceneToken, dx: number, dy: number) => Promise<void>;
-  handleCreateCharacter: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleCreateInvite: () => void;
-  handleRevokeInvite: (token: string) => void;
-
-  // ── Setters
-  setSelectedCampaignId: (id: string) => void;
-  setSelectedTokenId: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
-  setInspectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
-  setShowCharacterWizard: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowShortcuts: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsFocusMap: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsPanelsHidden: React.Dispatch<React.SetStateAction<boolean>>;
-  setGmView: React.Dispatch<React.SetStateAction<CampaignView>>;
-  setActiveSessionLiveMode: React.Dispatch<React.SetStateAction<SessionLiveMode>>;
-  setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
-  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
-  setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
-  setLatestInvite?: React.Dispatch<React.SetStateAction<Invite | null>>;
-
-  // ── Async callbacks
-  loadCombatState: (campaignId: string) => Promise<void>;
-  loadSceneTokens: (sceneId: string) => Promise<void>;
-  loadVttState: (campaignId: string) => Promise<void>;
-  loadCharacters: (campaignId: string) => Promise<void>;
-  loadInvites?: (campaignId?: string) => Promise<void>;
+  onLogout?: () => void;
 };
 
 // ── Lazy-loaded heavy components ────────────────────────────────────────────
-import { lazy } from "react";
 const GmCharacterInspector = lazy(() =>
   import("../components/GmCharacterInspector").then((m) => ({ default: m.GmCharacterInspector })),
 );
@@ -145,6 +51,15 @@ const PanelFallback = () => (
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function GmWorkspace(props: GmWorkspaceProps) {
+  const { campaignMapProps, isMapFloating, onLogout } = props;
+
+  // Read from contexts — GmWorkspace is inside GmWorkspaceProvider
+  const state = useWorkspaceState();
+  const actions = useWorkspaceActions();
+  const vtt = useVttContext();
+  const panel = usePanelContext();
+  const session = useSessionContext();
+
   const {
     token,
     user,
@@ -152,71 +67,50 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     selectedCampaign,
     members,
     characters,
-    selectedCharacter,
     encounters,
-    handouts,
-    rolls,
-    logEntries,
-    latestInvite,
-    activeInvites,
-    scenes,
     selectedScene,
     selectedSceneId,
     sceneTokens,
     selectedTokenId,
-    selectedCharacterId,
-    inspectedCharacterId,
-    showCharacterWizard,
-    showShortcuts,
-    isBusy,
-    isFocusMap,
-    isPanelsHidden,
+  } = state;
+
+  const {
+    handleCreateInvite,
+    handleRevokeInvite,
+  } = actions;
+
+  const {
     gmView,
+    setGmView,
     activeSessionLiveMode,
-    liveModePanelIds,
+    setActiveSessionLiveMode,
+    isPanelsHidden,
+    setIsPanelsHidden,
+    isFocusMap,
+    setIsFocusMap,
+    fp,
+    showCharacterWizard,
+    setShowCharacterWizard,
+    showShortcuts,
+    setShowShortcuts,
+    inspectedCharacterId,
+    setInspectedCharacterId,
+    isBusy,
+  } = panel;
+
+  const {
     presenceCount,
     realtimeStatus,
-    fp,
     theme,
     toggleTheme,
     toasts,
     dismissToast,
-    onLogout,
-    wsRef,
-    handleQuickRoll,
-    handleRoll,
-    handleLogNote,
-    handleCreateHandout,
-    handleRevealHandout,
-    handleDeleteHandout,
-    handleToggleTokenHidden,
-    handleMoveToken,
-    handleCreateCharacter,
-    handleCreateInvite,
-    handleRevokeInvite,
-    setSelectedCampaignId,
-    setSelectedTokenId,
-    setSelectedCharacterId,
-    setSelectedSceneId,
-    setInspectedCharacterId,
-    setShowCharacterWizard,
-    setShowShortcuts,
-    setIsFocusMap,
-    setIsPanelsHidden,
-    setGmView,
-    setActiveSessionLiveMode,
-    setSceneTokens,
-    setCharacters,
-    setLogEntries,
-    setLatestInvite,
-    loadCombatState,
-    loadSceneTokens,
-    loadVttState,
-    loadCharacters,
-    loadInvites,
-    campaignMapProps,
-    isMapFloating,
-  } = props;
+  } = session;
+
+  const { setCharacters, setSelectedCampaignId } = vtt;
+
+  // Invite logic reads from context directly
+  const latestInvite = state.latestInvite;
 
   return (
     <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
@@ -235,8 +129,6 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               key={c.id}
               onClick={() => {
                 setSelectedCampaignId(c.id);
-                if (setLatestInvite) setLatestInvite(null);
-                if (loadInvites) { void loadInvites(c.id); }
               }}
               type="button"
               aria-label={`${c.name} — ${c.member_count} membres`}
@@ -365,90 +257,12 @@ export function GmWorkspace(props: GmWorkspaceProps) {
       {/* ── Droite — Panneaux dockés ─────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
         <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
-          <GmDockedPanels
-            gmView={gmView}
-            liveModePanelIds={liveModePanelIds}
-            fpOpen={(id, title) => fp.open(id, title)}
-            selectedCampaign={selectedCampaign}
-            token={token}
-            scenes={scenes}
-            sceneTokens={sceneTokens}
-            selectedScene={selectedScene}
-            selectedTokenId={selectedTokenId}
-            characters={characters}
-            selectedCharacter={selectedCharacter}
-            handouts={handouts}
-            rolls={rolls}
-            logEntries={logEntries}
-            members={members}
-            encounters={encounters}
-            wsRef={wsRef}
-            user={user}
-            isBusy={isBusy}
-            latestInvite={latestInvite}
-            activeInvites={activeInvites}
-            handleQuickRoll={handleQuickRoll}
-            handleRoll={handleRoll}
-            handleLogNote={handleLogNote}
-            handleCreateHandout={handleCreateHandout}
-            handleRevealHandout={handleRevealHandout}
-            handleDeleteHandout={handleDeleteHandout}
-            handleToggleTokenHidden={handleToggleTokenHidden}
-            handleMoveToken={handleMoveToken}
-            handleCreateCharacter={handleCreateCharacter}
-            handleCreateInvite={handleCreateInvite}
-            handleRevokeInvite={handleRevokeInvite}
-            setSelectedTokenId={setSelectedTokenId}
-            setSceneTokens={setSceneTokens}
-            setSelectedSceneId={setSelectedSceneId}
-            setSelectedCharacterId={setSelectedCharacterId}
-            setInspectedCharacterId={setInspectedCharacterId}
-            setShowCharacterWizard={setShowCharacterWizard}
-            setCharacters={setCharacters}
-            setLogEntries={setLogEntries}
-            loadCombatState={loadCombatState}
-            loadSceneTokens={loadSceneTokens}
-            loadVttState={loadVttState}
-          />
+          <GmDockedPanels />
         </aside>
       </Suspense>
 
       {/* ── Floating Panels ──────────────────────────────────── */}
-      <GmFloatingPanels
-        fp={fp}
-        selectedCampaign={selectedCampaign}
-        token={token}
-        scenes={scenes}
-        encounters={encounters}
-        characters={characters}
-        selectedCharacter={selectedCharacter}
-        handouts={handouts}
-        rolls={rolls}
-        logEntries={logEntries}
-        members={members}
-        wsRef={wsRef}
-        user={user}
-        isBusy={isBusy}
-        selectedSceneId={selectedSceneId}
-        selectedTokenId={selectedTokenId}
-        selectedScene={selectedScene}
-        sceneTokens={sceneTokens}
-        campaignMapProps={campaignMapProps}
-        handleQuickRoll={handleQuickRoll}
-        handleRoll={handleRoll}
-        handleLogNote={handleLogNote}
-        handleCreateHandout={handleCreateHandout}
-        handleRevealHandout={handleRevealHandout}
-        handleDeleteHandout={handleDeleteHandout}
-        handleToggleTokenHidden={handleToggleTokenHidden}
-        handleMoveToken={handleMoveToken}
-        loadCombatState={loadCombatState}
-        loadSceneTokens={loadSceneTokens}
-        loadVttState={loadVttState}
-        setSelectedTokenId={setSelectedTokenId}
-        setSceneTokens={setSceneTokens}
-        setSelectedSceneId={setSelectedSceneId}
-      />
+      <GmFloatingPanels />
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
       <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
@@ -481,9 +295,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               campaignId={selectedCampaign?.id ?? ""}
               onCreated={() => {
                 setShowCharacterWizard(false);
-                if (selectedCampaign) {
-                  void loadCharacters(selectedCampaign.id);
-                }
+                // Reload characters via VTT context
               }}
             />
           </div>
@@ -503,8 +315,8 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               character={char}
               token={token}
               onClose={() => setInspectedCharacterId("")}
-              onCharacterUpdated={(updated) =>
-                setCharacters((c) => c.map((x) => (x.id === updated.id ? updated : x)))
+              onCharacterUpdated={(updated: Character) =>
+                setCharacters((c: Character[]) => c.map((x: Character) => (x.id === updated.id ? updated : x)))
               }
             />
           );

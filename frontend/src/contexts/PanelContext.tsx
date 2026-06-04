@@ -19,6 +19,8 @@ export interface PanelContextValue {
   isFocusMap: boolean;
   setIsFocusMap: React.Dispatch<React.SetStateAction<boolean>>;
   fp: ReturnType<typeof useFloatingPanels>;
+  selectedCharacterId: string;
+  setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
   inspectedCharacterId: string;
   setInspectedCharacterId: React.Dispatch<React.SetStateAction<string>>;
   showCharacterWizard: boolean;

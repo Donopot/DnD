@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Scene, SceneToken } from "../api/types";
+import type { Character, GameLogEntry, Scene, SceneToken } from "../api/types";
 import type { CampaignMapProps } from "../components/CampaignMap";
 import type React from "react";
 
@@ -18,10 +18,14 @@ export interface VttContextValue {
   setSelectedSceneId: React.Dispatch<React.SetStateAction<string>>;
   setSelectedTokenId: React.Dispatch<React.SetStateAction<string>>;
   setSceneTokens: React.Dispatch<React.SetStateAction<SceneToken[]>>;
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+  setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
 
   loadVttState: (campaignId: string) => Promise<void>;
   loadSceneTokens: (sceneId: string) => Promise<void>;
   loadCombatState: (campaignId: string) => Promise<void>;
+  loadCharacters: (campaignId: string) => Promise<void>;
+  setSelectedCampaignId: (id: string) => void;
 }
 
 export const VttContext = createContext<VttContextValue | null>(null);

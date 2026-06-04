@@ -61,7 +61,8 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
   const panelValue = useMemo(() => panel, [
     panel.gmView, panel.activeSessionLiveMode, panel.liveModePanelIds,
     panel.isPanelsHidden, panel.isFocusMap, panel.fp,
-    panel.inspectedCharacterId, panel.showCharacterWizard, panel.showShortcuts,
+    panel.selectedCharacterId, panel.inspectedCharacterId,
+    panel.showCharacterWizard, panel.showShortcuts,
     panel.isBusy,
   ]);
 
