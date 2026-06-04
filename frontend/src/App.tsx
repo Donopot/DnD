@@ -1787,6 +1787,7 @@ export default function App() {
                       handouts={handouts}
                       scenes={scenes}
                       isBusy={isBusy}
+                      campaignId={selectedCampaign?.id ?? ""}
                       onCreateHandout={handleCreateHandout}
                       onRevealHandout={(h) => void handleRevealHandout(h)}
                       onDeleteHandout={(h) => void handleDeleteHandout(h)}
@@ -2240,6 +2241,7 @@ export default function App() {
               handouts={handouts}
               scenes={scenes}
               isBusy={isBusy}
+              campaignId={selectedCampaign?.id ?? ""}
               onCreateHandout={handleCreateHandout}
               onRevealHandout={(h) => void handleRevealHandout(h)}
               onDeleteHandout={(h) => void handleDeleteHandout(h)}

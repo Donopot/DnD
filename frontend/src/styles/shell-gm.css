@@ -2115,117 +2115,35 @@ select {
   color: var(--brand-green);
 }
 
-/* ── Handouts ── */
-/* ===== Handouts ===== */
-.handout-section {
-  margin: 16px 0;
-}
+/* ── Handouts (GM-3B — refactored with gm-panel-* common CSS) ── */
+/* Handouts */
 
-.handout-actions {
-  margin-bottom: 12px;
-}
-
-.handout-form {
+.handout-panel label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  margin-bottom: 14px;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-normal);
 }
 
-.handout-form label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.82rem;
-  color: #4a4234;
-  gap: 3px;
-}
-
-.handout-form input,
-.handout-form textarea,
-.handout-form select {
+.handout-panel label input,
+.handout-panel label textarea,
+.handout-panel label select {
   padding: 8px 10px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: var(--bg-surface-secondary);
-  font-size: 0.88rem;
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.82rem;
 }
 
-.handout-form textarea {
+.handout-panel label textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-.handout-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.handout-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  background: var(--bg-surface-secondary);
-}
-
-.handout-row.revealed {
-  border-color: var(--accent-primary);
-  background: var(--accent-dim);
-}
-
-.handout-main {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.handout-main strong {
-  font-size: 0.92rem;
-  color: var(--text-normal);
-}
-
-.handout-main small {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.76rem;
-  color: #6b5e4b;
-}
-
-.handout-preview {
-  margin: 6px 0 0;
-  font-size: 0.8rem;
-  color: #5a4e3e;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-.handout-row-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.handout-row-actions button.danger {
-  color: #c0392b;
-}
-
-.handout-row-actions button.danger {
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.handout-row-actions button.danger:hover {
-  background: #fdecea;
-  border-color: #c0392b;
-}
+/* End Handouts */
 
 /* End GM-2D-CSS-P2 - Token detail standard layout */
 
