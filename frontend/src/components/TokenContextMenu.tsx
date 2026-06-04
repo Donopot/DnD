@@ -96,14 +96,14 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
         <Crosshair size={13} /> Centrer
       </button>
       <button type="button" onClick={() => doAction("duplicate")}>
-        <Copy size={13} /> Dupliquer
+        <Copy size={13} /> Dupliquer <kbd>⌘D</kbd>
       </button>
 
       <div className="token-context-divider" />
 
       <button type="button" onClick={() => doAction(token.is_hidden ? "reveal" : "hide")}>
         {token.is_hidden ? <Eye size={13} /> : <EyeOff size={13} />}
-        {token.is_hidden ? "Révéler" : "Masquer"}
+        {token.is_hidden ? "Révéler" : "Masquer"} <kbd>⌘H</kbd>
       </button>
       <button type="button" onClick={() => doAction("add-combat")}>
         <Swords size={13} /> Ajouter au combat
@@ -112,10 +112,10 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
       <div className="token-context-divider" />
 
       <button type="button" onClick={() => doAction("front")}>
-        <Layers3 size={13} /> Premier plan
+        <Layers3 size={13} /> Premier plan <kbd>]</kbd>
       </button>
       <button type="button" onClick={() => doAction("back")}>
-        <Layers size={13} /> Arrière-plan
+        <Layers size={13} /> Arrière-plan <kbd>[</kbd>
       </button>
 
       {/* Health / Damage */}

@@ -843,6 +843,19 @@
   background: var(--accent-dim);
 }
 
+/* Keyboard shortcut hint in context menu */
+.token-context-menu kbd {
+  margin-left: auto;
+  padding: 1px 5px;
+  font-size: 0.65rem;
+  font-family: inherit;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
 /* ── Floating map panel ───────────────────────────────────────────────── */
 
 .floating-map-panel {
