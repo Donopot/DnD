@@ -33,6 +33,7 @@ import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
 import { useVttState } from "./hooks/useVttState";
+import { useTokenActions } from "./hooks/useTokenActions";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -114,7 +115,15 @@ export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
-  const fogRevealAbortRef = useRef<AbortController | null>(null);
+
+  const tokenActions = useTokenActions({
+    token,
+    selectedScene,
+    setSceneTokens: vtt.setSceneTokens,
+    onError: setMessage,
+    onStart: () => { setIsBusy(true); setMessage(""); },
+    onEnd: () => setIsBusy(false),
+  });
 
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
@@ -163,7 +172,7 @@ export default function App() {
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
       onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
-      onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
+      onMoveToken: (t: SceneToken, dx: number, dy: number) => void tokenActions.moveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
       onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
@@ -408,56 +417,6 @@ export default function App() {
       setLogEntries(logData);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to load session log");
-    }
-  }
-
-  async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToMove.id}/move`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          x: Math.max(0, tokenToMove.x + dx),
-          y: Math.max(0, tokenToMove.y + dy),
-        }),
-      });
-
-      vtt.setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-
-      // ── Auto fog reveal ──────────────────────────────────────
-      // If this token has character linkage and a vision radius, auto-reveal fog
-      const visionRadius = tokenToMove.vision_radius ?? 0;
-      if (tokenToMove.character_id && visionRadius > 0 && selectedScene) {
-        // Abort any previous pending fog reveal
-        fogRevealAbortRef.current?.abort();
-        const controller = new AbortController();
-        fogRevealAbortRef.current = controller;
-
-        const gridSize = selectedScene.grid_size ?? 50;
-        const centerX = updated.x + (updated.size * gridSize) / 2;
-        const centerY = updated.y + (updated.size * gridSize) / 2;
-        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            center_x: centerX,
-            center_y: centerY,
-            radius_ft: visionRadius,
-          }),
-          signal: controller.signal,
-        }).catch((err) => {
-          if (err?.name === "AbortError") return; // cancelled by newer move
-        });
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to move token");
-    } finally {
-      setIsBusy(false);
     }
   }
 
@@ -1093,7 +1052,7 @@ export default function App() {
             handleRevealHandout={handleRevealHandout}
             handleDeleteHandout={handleDeleteHandout}
             handleToggleTokenHidden={handleToggleTokenHidden}
-            handleMoveToken={handleMoveToken}
+            handleMoveToken={tokenActions.moveToken}
             handleCreateCharacter={handleCreateCharacter}
             handleCreateInvite={handleCreateInvite}
             handleRevokeInvite={handleRevokeInvite}
@@ -1140,7 +1099,7 @@ export default function App() {
         handleRevealHandout={handleRevealHandout}
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
-        handleMoveToken={handleMoveToken}
+        handleMoveToken={tokenActions.moveToken}
         loadCombatState={vtt.loadCombatState}
         loadSceneTokens={vtt.loadSceneTokens}
         loadVttState={vtt.loadVttState}
