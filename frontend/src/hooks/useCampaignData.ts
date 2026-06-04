@@ -48,6 +48,7 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
 
   const selectCampaign = useCallback((id: string) => {
     setSelectedCampaignId(id);
+    setLatestInvite(null);
   }, []);
 
   const clearCampaigns = useCallback(() => {
@@ -101,6 +102,9 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
   );
 
   const createInvite = useCallback(async (): Promise<Invite> => {
+    if (!selectedCampaignId) {
+      throw new Error("No campaign selected");
+    }
     const invite = await apiRequest<Invite>(
       `/api/campaigns/${selectedCampaignId}/invites`,
       token,
