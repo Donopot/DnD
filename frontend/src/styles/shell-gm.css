@@ -4003,3 +4003,33 @@ select {
 }
 
 /* End Token Library Panel */
+
+/* ── Active Encounter Panel (GM-3D) ── */
+/* Active Encounter Panel */
+
+.encounter-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.encounter-notes-form textarea {
+  min-height: 60px;
+  width: 100%;
+  resize: vertical;
+  padding: 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-secondary);
+  color: var(--text-normal);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.encounter-notes-form textarea:focus {
+  border-color: var(--brand-green);
+  outline: 2px solid var(--border-subtle);
+}
+
+/* End Active Encounter Panel */

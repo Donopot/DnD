@@ -97,6 +97,9 @@ const TokenPanel = lazy(() =>
 const TokenLibraryPanel = lazy(() =>
   import("./components/TokenLibraryPanel").then((m) => ({ default: m.TokenLibraryPanel })),
 );
+const ActiveEncounterPanel = lazy(() =>
+  import("./components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
+);
 
 // Regular import (small component, used immediately)
 import { KeyboardShortcuts } from "./components/KeyboardShortcuts";
@@ -2203,6 +2206,12 @@ export default function App() {
           )}
           {panel.id === "dice-roller" && (
             <DiceRoller onRoll={(formula, lbl, m) => void handleQuickRoll(formula, lbl, m)} />
+          )}
+          {panel.id === "active-encounter" && (
+            <ActiveEncounterPanel
+              campaignId={selectedCampaign?.id ?? ""}
+              token={token}
+            />
           )}
           {panel.id === "encounter-builder" && (
             <EncounterBuilder campaignId={selectedCampaign?.id ?? ""} token={token} />
