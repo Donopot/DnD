@@ -1,4 +1,4 @@
-import { DoorOpen, ExternalLink, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Swords, UserPlus } from "lucide-react";
+import { DoorOpen, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Swords, UserPlus } from "lucide-react";
 import { Suspense } from "react";
 import type {
   Campaign,
@@ -182,6 +182,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     toggleTheme,
     toasts,
     dismissToast,
+    onLogout,
     wsRef,
     handleQuickRoll,
     handleRoll,
@@ -268,7 +269,10 @@ export function GmWorkspace(props: GmWorkspaceProps) {
             <UserPlus aria-hidden="true" size={14} />
             Inviter
           </button>
-          {/* logout handled by parent via onLogout prop */}
+          <button className="ghost-button compact" onClick={onLogout} type="button">
+            <DoorOpen aria-hidden="true" size={14} />
+            Sortir
+          </button>
         </div>
         {latestInvite && (
           <div className="invite-link-box">
