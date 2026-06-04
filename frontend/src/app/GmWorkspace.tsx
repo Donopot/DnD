@@ -16,7 +16,6 @@ import type {
 import type { CampaignView } from "../components/CampaignViewTabs";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
-import { ErrorBoundary } from "../components/ErrorBoundary";
 import { PanelDock } from "../components/PanelDock";
 import { GmDockedPanels } from "../panels/GmDockedPanels";
 import { GmFloatingPanels } from "../panels/GmFloatingPanels";
