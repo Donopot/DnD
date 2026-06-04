@@ -1,6 +1,9 @@
 import { ArrowLeft, ArrowRight, Check, Dice1 } from "lucide-react";
 import { useState } from "react";
 
+import { apiRequest } from "../api/client";
+import type { Character } from "../api/types";
+
 // ─── Race data (simplified SRD) ────────────────────────────────────────────
 
 const RACES: { name: string; asi: Record<string, number>; traits: string[] }[] = [
@@ -269,12 +272,8 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
       const ac = 10 + Math.floor((form.stats.dex - 10) / 2);
       const spd = form.race?.includes("Nain") ? 25 : 30;
 
-      const res = await fetch(`/api/campaigns/${campaignId}/characters`, {
+      const updated = await apiRequest<Character>(`/api/campaigns/${campaignId}/characters`, token, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           name: form.name,
           ancestry: form.race,
@@ -288,9 +287,7 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
         }),
       });
 
-      if (res.ok) {
-        onCreated();
-      }
+      onCreated();
     } catch {
       /* ignore */
     } finally {

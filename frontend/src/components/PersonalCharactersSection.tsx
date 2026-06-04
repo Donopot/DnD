@@ -1,5 +1,7 @@
 import { Edit3, Plus, Send, Shield, Sparkles, User } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Character } from "../api/types";
 
 type PersonalCharactersSectionProps = {
@@ -26,11 +28,7 @@ export function PersonalCharactersSection({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/characters/mine", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const data = await res.json();
+      const data = await apiRequest<Character[]>("/api/characters/mine", token);
       setCharacters(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
@@ -50,16 +48,10 @@ export function PersonalCharactersSection({
 
     setCreating(true);
     try {
-      const res = await fetch("/api/characters", {
+      const created = await apiRequest<Character>("/api/characters", token, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
-      const created = await res.json();
       setCharacters((prev) => [...prev, created]);
       setNewName("");
     } catch (err: unknown) {
@@ -74,16 +66,10 @@ export function PersonalCharactersSection({
     setSubmittingId(character.id);
     setSubmitMessage("");
     try {
-      const res = await fetch(`/api/characters/${character.id}/submit`, {
+      const data = await apiRequest<{ detail?: string }>(`/api/characters/${character.id}/submit`, token, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ campaign_id: campaignId }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || `Erreur ${res.status}`);
       // Update local state: mark as submitted
       setCharacters((prev) =>
         prev.map((c) =>

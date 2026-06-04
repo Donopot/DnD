@@ -1,6 +1,8 @@
 import { Castle, Swords, UserPlus } from "lucide-react";
 import { useState } from "react";
 
+import { apiRequest } from "../api/client";
+
 type InvitePreviewData = {
   campaign_name: string;
   role: string;
@@ -56,17 +58,7 @@ export function InvitePreviewCard({ inviteToken, authToken, onJoined }: InvitePr
     setIsBusy(true);
     setError("");
     try {
-      const res = await fetch(`/api/invites/${inviteToken}/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({ detail: "Impossible de rejoindre" }));
-        throw new Error(body.detail ?? "Impossible de rejoindre");
-      }
+      await apiRequest(`/api/invites/${inviteToken}/join`, authToken, { method: "POST" });
       onJoined();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Échec");
