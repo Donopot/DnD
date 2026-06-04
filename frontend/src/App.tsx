@@ -149,6 +149,7 @@ export default function App() {
     setSceneTokens: vtt.setSceneTokens,
     performTokenAction: vtt.performTokenAction,
     onError: setMessage,
+    onMessage: setMessage,
     onStart: () => { setIsBusy(true); setMessage(""); },
     onEnd: () => setIsBusy(false),
   });

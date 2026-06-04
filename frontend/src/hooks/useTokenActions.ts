@@ -12,6 +12,7 @@ export interface UseTokenActionsOptions {
     value?: number,
   ) => Promise<SceneToken | void>;
   onError: (msg: string) => void;
+  onMessage?: (msg: string) => void;
   onStart: () => void;
   onEnd: () => void;
 }
@@ -39,6 +40,7 @@ export function useTokenActions(
     setSceneTokens,
     performTokenAction,
     onError,
+    onMessage,
     onStart,
     onEnd,
   } = opts;
@@ -87,6 +89,7 @@ export function useTokenActions(
             signal: controller.signal,
           }).catch((err) => {
             if (err?.name === "AbortError") return;
+            onError("Révélation automatique du brouillard impossible.");
           });
         }
       } catch (error) {
@@ -126,7 +129,7 @@ export function useTokenActions(
           await performTokenAction(action, token, value);
         }
         if (action === "delete") {
-          onError(`${tokens.length} token(s) supprimé(s).`);
+          onMessage?.(`${tokens.length} token(s) supprimé(s).`);
         }
       } catch (error) {
         onError(
