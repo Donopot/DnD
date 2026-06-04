@@ -1,22 +1,39 @@
 # DnD SaaS — Virtual Tabletop auto-hébergé
 
-VTT Donjons & Dragons en navigateur, conçu pour tourner sur un HP Mini et servir une vraie table de jeu.
+VTT Donjons & Dragons en navigateur, conçu pour fonctionner sur un HP Mini.
 
-Le projet vise une expérience MJ rapide, claire et fiable : préparer une campagne, lancer une session, gérer scènes, cartes, tokens, combats, notes et secrets, tout en séparant strictement la vue MJ et la vue joueur.
+Le projet vise une expérience fluide pour une vraie table de jeu : préparation de campagne, session live, carte VTT, tokens, combats, notes, handouts, visibilité MJ/joueur et outils d’improvisation.
 
 ## Statut
 
 Beta privée active.
 
-Le socle est fonctionnel : authentification, campagnes, personnages, scènes, tokens, assets, WebSocket, combat, journal de session, handouts, bibliothèque SRD, panneaux MJ et carte VTT.
+Le socle est fonctionnel :
 
-Chantiers prioritaires en cours :
+- authentification ;
+- campagnes et invitations ;
+- personnages ;
+- scènes et tokens ;
+- carte VTT ;
+- fog of war ;
+- WebSocket ;
+- combat et initiative ;
+- journal de session ;
+- handouts ;
+- bibliothèque SRD ;
+- panneaux MJ dockés et flottants ;
+- interface joueur séparée.
 
-- alléger `App.tsx` par extraction progressive ;
-- stabiliser les interactions carte/tokens/fog ;
-- renforcer l'interface joueur ;
-- réduire la dette CSS et clavier ;
-- garder la documentation consolidée.
+Chantiers prioritaires :
+
+- alléger `App.tsx` ;
+- stabiliser carte / tokens / fog ;
+- renforcer l’interface joueur ;
+- réduire la dette CSS ;
+- unifier les raccourcis clavier ;
+- maintenir une documentation consolidée.
+
+---
 
 ## Stack
 
@@ -30,6 +47,8 @@ Chantiers prioritaires en cours :
 | Temps réel | WebSocket |
 | Déploiement | Docker Compose |
 | Reverse proxy | Caddy + Nginx frontend |
+
+---
 
 ## Architecture rapide
 
@@ -45,13 +64,21 @@ FastAPI
 PostgreSQL / Redis / MinIO
 ```
 
-Principe central : **le backend est la source de vérité**. Les permissions, les données persistantes et les validations critiques doivent rester côté backend.
+Principe central :
+
+```txt
+Le backend est la source de vérité.
+```
+
+Les permissions, les données persistantes et les validations critiques doivent rester côté backend.
+
+---
 
 ## Démarrage rapide
 
 ```bash
 cp .env.example .env
-# remplir les secrets dans .env
+nano .env
 
 docker compose up -d --build
 ```
@@ -59,8 +86,8 @@ docker compose up -d --build
 Accès local :
 
 ```txt
-Frontend : http://127.0.0.1:8090
-Backend health : http://127.0.0.1:8091/api/health
+Frontend       http://127.0.0.1:8090
+Backend health http://127.0.0.1:8091/api/health
 ```
 
 Vérification :
@@ -70,23 +97,25 @@ curl -i http://127.0.0.1:8091/api/health
 docker compose ps
 ```
 
+---
+
 ## Production HP Mini
 
-Chemin cible :
+Chemin principal :
 
 ```txt
 /home/donopot/dnd-saas
 ```
 
-Services attendus :
+Services :
 
 | Service | Rôle | Port |
 |---|---|---|
 | `dnd-frontend` | SPA React via Nginx | 127.0.0.1:8090 |
-| `dnd-backend` | API FastAPI + WS | 127.0.0.1:8091 |
+| `dnd-backend` | API FastAPI + WebSocket | 127.0.0.1:8091 |
 | `dnd-postgres` | Base PostgreSQL | interne |
 | `dnd-redis` | Cache | interne |
-| `dnd-minio` | Stockage assets | interne |
+| `dnd-minio` | Assets / stockage S3 | interne |
 
 Caddy expose :
 
@@ -96,27 +125,37 @@ https://dnd.dtmini.com/api/*  → backend
 https://dnd.dtmini.com/ws/*   → WebSocket
 ```
 
-Ne jamais partager les secrets, volumes, buckets ou bases de données avec un autre SaaS. Le seul composant partagé côté hôte doit rester le reverse proxy.
+Ne jamais partager les secrets, volumes, buckets ou bases de données avec un autre SaaS.
+
+---
 
 ## Fonctionnalités principales
 
 ### Maître du Jeu
 
-- Lobby MJ et création de campagne.
-- Gestion des membres et invitations.
-- Carte VTT avec zoom, pan, grille, tokens, fog, mini-map et mode focus.
+- Lobby MJ.
+- Création et gestion de campagne.
+- Invitations joueurs.
+- Carte VTT avec zoom, pan, grille, tokens, mini-map, mode focus.
+- Fog of War manuel.
 - Panneaux dockés et flottants.
-- Combat, initiative, rencontres, conditions et actions rapides.
-- Notes MJ, messages, handouts et journal de session.
-- Bibliothèque : bestiaire, sorts, objets, règles SRD, tokens, homebrew.
+- Combat, initiative, rencontres, conditions.
+- Notes MJ.
+- Messages et journal.
+- Documents révélables.
+- Bestiaire, sorts, objets, règles SRD, homebrew.
+- Actions rapides et dés.
 
 ### Joueur
 
 - Lobby joueur.
-- Personnages et fiche compacte.
+- Personnages.
 - Vue joueur séparée.
-- Carte avec visibilité filtrée.
-- Dés, journal public, handouts et état de combat.
+- Carte filtrée selon visibilité.
+- Dés.
+- Journal public.
+- Handouts.
+- État de combat.
 
 ### Carte, tokens et fog
 
@@ -133,7 +172,9 @@ Côté MJ :
 👁️‍🗨️ = caché par le brouillard de guerre
 ```
 
-Le fog représente des zones révélées. Le canvas dessine un overlay sombre puis découpe les zones `rect` ou `circle`.
+Le fog représente des zones révélées. Le canvas affiche un voile sombre puis découpe les zones révélées.
+
+---
 
 ## Développement
 
@@ -153,11 +194,17 @@ npm ci
 npx vite --port 8090
 ```
 
-Tests et validation :
+Tests :
 
 ```bash
-cd backend && uv run pytest tests/ -v
-cd frontend && npx tsc --noEmit && npx vite build
+cd backend
+uv run pytest tests/ -v
+```
+
+```bash
+cd frontend
+npx tsc --noEmit
+npx vite build
 ```
 
 Déploiement local complet :
@@ -167,37 +214,68 @@ docker compose up -d --build
 docker compose logs --tail=200 -f
 ```
 
+---
+
 ## Documentation
 
-La documentation active est dans [`docs/`](docs/README.md).
+La documentation active est dans :
+
+```txt
+docs/
+```
+
+Point d’entrée :
+
+```txt
+docs/README.md
+```
+
+Documents principaux actuels :
 
 | Besoin | Document |
 |---|---|
-| Vision produit | [`docs/product-roadmap.md`](docs/product-roadmap.md) |
-| Architecture | [`docs/02-architecture.md`](docs/02-architecture.md) |
-| Interface et panneaux | [`docs/frontend-ui.md`](docs/frontend-ui.md) |
-| Carte, tokens, fog | [`docs/vtt-map-fog.md`](docs/vtt-map-fog.md) |
-| Backend et API | [`docs/backend-api.md`](docs/backend-api.md) |
-| Sécurité et auth | [`docs/security-auth.md`](docs/security-auth.md) |
-| Déploiement | [`docs/deployment-ops.md`](docs/deployment-ops.md) |
-| Contenu SRD | [`docs/srd-content.md`](docs/srd-content.md) |
+| Vision produit | `docs/product-roadmap.md` |
+| Architecture | `docs/02-architecture.md` |
+| Interface et panneaux | `docs/frontend-ui.md` |
+| Carte, tokens, fog | `docs/vtt-map-fog.md` |
+| Backend et API | `docs/backend-api.md` |
+| Sécurité et auth | `docs/security-auth.md` |
+| Déploiement | `docs/deployment-ops.md` |
+| Contenu SRD | `docs/srd-content.md` |
 
-Règle de maintenance : éviter de créer des documents concurrents. Les docs permanentes doivent être intégrées dans les documents principaux. Les plans de PR temporaires vont dans `docs/work-in-progress/`, puis en archive ou dans une doc permanente après merge.
+Dossiers utiles :
+
+| Dossier | Rôle |
+|---|---|
+| `docs/work-in-progress/` | Plans de PR, audits temporaires, documents de travail |
+| `docs/archive/` | Anciennes phases et docs remplacées |
+| `docs/learning/` | Notes pédagogiques |
+| `docs/skills/` | Notes techniques réutilisables |
+
+Règle de maintenance :
+
+```txt
+Pas de nouveau document racine dans docs/ si le contenu peut entrer dans une doc existante.
+```
+
+---
 
 ## Sécurité
 
 - JWT via `Authorization: Bearer`.
 - Mots de passe hashés avec bcrypt.
-- Rate limiting sur l'authentification.
+- Rate limiting sur l’authentification.
 - CORS configuré par environnement.
 - Rôles campagne : `gm`, `co_gm`, `player`.
-- Permissions critiques vérifiées côté backend.
+- Permissions critiques côté backend.
 - `.env` exclu du repo.
-- Stockage MinIO isolé par projet.
+- Secrets et volumes isolés par projet.
+
+---
 
 ## Maintenance serveur
 
-Suivre les logs :
+Suivre tous les logs :
 
 ```bash
 docker compose logs --tail=200 -f
@@ -209,7 +287,13 @@ Backend seulement :
 docker compose logs --tail=200 -f dnd-backend
 ```
 
-Arrêter uniquement le projet DnD :
+État des conteneurs :
+
+```bash
+docker compose ps
+```
+
+Arrêter uniquement DnD SaaS :
 
 ```bash
 docker compose stop
@@ -221,23 +305,34 @@ Redémarrer :
 docker compose up -d
 ```
 
-Ne pas utiliser `docker compose down -v` sauf volonté explicite de supprimer les volumes.
+Ne pas utiliser sauf intention explicite :
+
+```bash
+docker compose down -v
+```
+
+Cette commande supprime les volumes.
+
+---
 
 ## Structure du repo
 
 ```txt
-backend/   API FastAPI, routers, migrations, tests
-frontend/  React/Vite, composants, hooks, styles
-docs/      Documentation produit, technique et opérations
-scripts/   Scripts de maintenance et vérification
+backend/    API FastAPI, routers, migrations, tests
+frontend/   React/Vite, composants, hooks, styles
+docs/       Documentation produit, technique et opérations
+scripts/    Scripts de maintenance et vérification
 ```
+
+---
 
 ## Priorités techniques actuelles
 
 - Réduire le monolithe `App.tsx`.
 - Extraire les responsabilités en hooks et workspaces.
+- Stabiliser les panneaux dockés/flottants.
 - Unifier les raccourcis clavier.
 - Versionner les données `localStorage`.
-- Renforcer `AbortController` sur les fetchs lourds.
-- Découper les CSS volumineux par domaine.
-- Garder les requêtes backend paramétrées et auditées.
+- Ajouter `AbortController` sur les fetchs lourds.
+- Découper les CSS volumineux.
+- Continuer à documenter chaque changement important.
