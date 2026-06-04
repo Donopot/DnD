@@ -32,6 +32,7 @@ import { useToast } from "./hooks/useToast";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
+import { useVttState } from "./hooks/useVttState";
 import { ensureStorageVersion } from "./utils/storageVersion";
 
 // ── Lazy-loaded heavy components (only those used outside docked panels) ─
@@ -57,12 +58,8 @@ const PanelFallback = () => (
 
 import { apiRequest } from "./api/client";
 import type {
-  Asset,
   AuthResponse,
   Character,
-  Combatant,
-  Encounter,
-  EncounterDetail,
   GameLogEntry,
   Handout,
   Roll,
@@ -83,6 +80,12 @@ export default function App() {
   const campaign = useCampaignData(token);
   const { campaigns, selectedCampaignId, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
+  const vtt = useVttState(token);
+  const {
+    scenes, selectedSceneId, selectedScene, sceneTokens,
+    encounters, selectedEncounterId,
+  } = vtt;
+
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
@@ -90,14 +93,6 @@ export default function App() {
   const [showCharacterWizard, setShowCharacterWizard] = useState(false);
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
-  const [scenes, setScenes] = useState<Scene[]>([]);
-  const [selectedSceneId, setSelectedSceneId] = useState<string>("");
-  const [sceneTokens, setSceneTokens] = useState<SceneToken[]>([]);
-  const [, setAssetList] = useState<Asset[]>([]);
-  const [, setSelectedAssetId] = useState<string>("");
-  const [encounters, setEncounters] = useState<Encounter[]>([]);
-  const [selectedEncounterId, setSelectedEncounterId] = useState<string>("");
-  const [, setCombatants] = useState<Combatant[]>([]);
   const [handouts, setHandouts] = useState<Handout[]>([]);
   const [presenceCount, setPresenceCount] = useState(0);
   const [realtimeStatus, setRealtimeStatus] = useState<"offline" | "connecting" | "online">(
@@ -125,11 +120,6 @@ export default function App() {
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) ?? characters[0],
     [characters, selectedCharacterId],
-  );
-
-  const selectedScene = useMemo(
-    () => scenes.find((scene) => scene.id === selectedSceneId) ?? scenes[0],
-    [scenes, selectedSceneId],
   );
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
@@ -170,10 +160,10 @@ export default function App() {
       selectedSceneId,
       sceneTokens,
       sceneBackgroundObjectUrl,
-      onSelectScene: setSelectedSceneId,
+      onSelectScene: vtt.setSelectedSceneId,
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
-      onLoadSceneTokens: (id: string) => void loadSceneTokens(id),
+      onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
       onMoveToken: (t: SceneToken, dx: number, dy: number) => void handleMoveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleTokenAction(action, t, v),
@@ -253,9 +243,9 @@ export default function App() {
     void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
-    void loadVttState(selectedCampaign.id);
-    void loadAssets(selectedCampaign.id);
-    void loadCombatState(selectedCampaign.id);
+    void vtt.loadVttState(selectedCampaign.id);
+    void vtt.loadAssets(selectedCampaign.id);
+    void vtt.loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
   }, [token, selectedCampaign?.id]);
 
@@ -318,11 +308,11 @@ export default function App() {
           void loadSessionLog(selectedCampaign.id);
 
           if (payload.resource === "scene" || payload.resource === "token") {
-            void loadVttState(selectedCampaign.id);
+            void vtt.loadVttState(selectedCampaign.id);
           }
 
           if (payload.resource === "encounter") {
-            void loadCombatState(selectedCampaign.id);
+            void vtt.loadCombatState(selectedCampaign.id);
           }
 
           if (payload.resource === "handout") {
@@ -331,7 +321,7 @@ export default function App() {
         }
 
         if (payload.type === "token_moved" && payload.scene_id === selectedScene?.id) {
-          setSceneTokens((current) =>
+          vtt.setSceneTokens((current) =>
             current.map((sceneToken) =>
               sceneToken.id === payload.token_id
                 ? { ...sceneToken, x: Number(payload.x), y: Number(payload.y) }
@@ -422,33 +412,6 @@ export default function App() {
     }
   }
 
-  async function loadSceneTokens(sceneId: string) {
-    try {
-      setSceneTokens(await request<SceneToken[]>(`/api/scenes/${sceneId}/tokens`));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load scene tokens");
-    }
-  }
-
-  async function loadVttState(campaignId: string) {
-    try {
-      const data = await request<Scene[]>(`/api/campaigns/${campaignId}/scenes`);
-      setScenes(data);
-
-      if (data.length === 0) {
-        setSelectedSceneId("");
-        setSceneTokens([]);
-        return;
-      }
-
-      const effectiveScene = data.find((scene) => scene.id === selectedSceneId) ?? data[0];
-      setSelectedSceneId(effectiveScene.id);
-      await loadSceneTokens(effectiveScene.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load VTT scene");
-    }
-  }
-
   async function handleMoveToken(tokenToMove: SceneToken, dx: number, dy: number) {
     setIsBusy(true);
     setMessage("");
@@ -462,7 +425,7 @@ export default function App() {
         }),
       });
 
-      setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      vtt.setSceneTokens((current) => current.map((item) => (item.id === updated.id ? updated : item)));
 
       // ── Auto fog reveal ──────────────────────────────────────
       // If this token has character linkage and a vision radius, auto-reveal fog
@@ -505,65 +468,11 @@ export default function App() {
     tokenToAct: SceneToken,
     value?: number,
   ): Promise<SceneToken | void> {
-    switch (action) {
-      case "duplicate": {
-        const dup = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/duplicate`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => [...current, dup]);
-        return dup;
-      }
-      case "delete": {
-        await request(`/api/tokens/${tokenToAct.id}`, { method: "DELETE" });
-        setSceneTokens((current) => current.filter((t) => t.id !== tokenToAct.id));
-        break;
-      }
-      case "hide":
-      case "reveal": {
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ is_hidden: action === "hide" }),
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
-      case "add-combat": {
-        setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
-        break;
-      }
-      case "front": {
-        const fwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/bring-forward`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
-        return fwd;
-      }
-      case "back": {
-        const bwd = await request<SceneToken>(`/api/tokens/${tokenToAct.id}/send-backward`, {
-          method: "POST",
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
-        return bwd;
-      }
-      case "damage":
-      case "heal": {
-        const amount = value ?? 0;
-        const hpCurrent = (tokenToAct.metadata?.hp_current as number) ?? 0;
-        const hpMax = (tokenToAct.metadata?.hp_max as number) ?? 0;
-        const newHp =
-          action === "damage"
-            ? Math.max(0, hpCurrent - amount)
-            : Math.min(hpMax, hpCurrent + amount);
-        const updated = await request<SceneToken>(`/api/tokens/${tokenToAct.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            metadata: { ...tokenToAct.metadata, hp_current: newHp },
-          }),
-        });
-        setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
-        return updated;
-      }
+    if (action === "add-combat") {
+      setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
+      return;
     }
+    return vtt.performTokenAction(action, tokenToAct, value);
   }
 
   async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
@@ -598,13 +507,7 @@ export default function App() {
 
   async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
     try {
-      const updated = await request<SceneToken>(`/api/tokens/${tokenToToggle.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
-      });
-      setSceneTokens((current) =>
-        current.map((t) => (t.id === updated.id ? updated : t)),
-      );
+      await vtt.handleToggleTokenHidden(tokenToToggle);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Impossible de changer la visibilité",
@@ -612,59 +515,6 @@ export default function App() {
     }
   }
 
-  function updateEncounterFromDetail(detail: EncounterDetail) {
-    setEncounters((current) => {
-      const summary: Encounter = {
-        id: detail.id,
-        campaign_id: detail.campaign_id,
-        scene_id: detail.scene_id,
-        name: detail.name,
-        status: detail.status,
-        round_number: detail.round_number,
-        turn_index: detail.turn_index,
-        active_combatant_id: detail.active_combatant_id,
-        created_at: detail.created_at,
-        updated_at: detail.updated_at,
-      };
-
-      if (current.some((item) => item.id === detail.id)) {
-        return current.map((item) => (item.id === detail.id ? summary : item));
-      }
-
-      return [summary, ...current];
-    });
-
-    setCombatants(detail.combatants);
-  }
-
-  async function loadEncounterDetail(encounterId: string) {
-    try {
-      const detail = await request<EncounterDetail>(`/api/encounters/${encounterId}`);
-      updateEncounterFromDetail(detail);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load encounter");
-    }
-  }
-
-  async function loadCombatState(campaignId: string) {
-    try {
-      const data = await request<Encounter[]>(`/api/campaigns/${campaignId}/encounters`);
-      setEncounters(data);
-
-      if (data.length === 0) {
-        setSelectedEncounterId("");
-        setCombatants([]);
-        return;
-      }
-
-      const effectiveEncounter =
-        data.find((encounter) => encounter.id === selectedEncounterId) ?? data[0];
-      setSelectedEncounterId(effectiveEncounter.id);
-      await loadEncounterDetail(effectiveEncounter.id);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load combat state");
-    }
-  }
 
   async function loadHandouts(campaignId: string) {
     try {
@@ -746,15 +596,6 @@ export default function App() {
     }
   }
 
-  async function loadAssets(campaignId: string) {
-    try {
-      const data = await request<Asset[]>(`/api/campaigns/${campaignId}/assets`);
-      setAssetList(data);
-      setSelectedAssetId((current) => current || data[0]?.id || "");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load assets");
-    }
-  }
 
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1260,16 +1101,16 @@ export default function App() {
             handleCreateInvite={handleCreateInvite}
             handleRevokeInvite={handleRevokeInvite}
             setSelectedTokenId={setSelectedTokenId}
-            setSceneTokens={setSceneTokens}
-            setSelectedSceneId={setSelectedSceneId}
+            setSceneTokens={vtt.setSceneTokens}
+            setSelectedSceneId={vtt.setSelectedSceneId}
             setSelectedCharacterId={setSelectedCharacterId}
             setInspectedCharacterId={setInspectedCharacterId}
             setShowCharacterWizard={setShowCharacterWizard}
             setCharacters={setCharacters}
             setLogEntries={setLogEntries}
-            loadCombatState={loadCombatState}
-            loadSceneTokens={loadSceneTokens}
-            loadVttState={loadVttState}
+            loadCombatState={vtt.loadCombatState}
+            loadSceneTokens={vtt.loadSceneTokens}
+            loadVttState={vtt.loadVttState}
           />
         </aside>
       </Suspense>
@@ -1303,12 +1144,12 @@ export default function App() {
         handleDeleteHandout={handleDeleteHandout}
         handleToggleTokenHidden={handleToggleTokenHidden}
         handleMoveToken={handleMoveToken}
-        loadCombatState={loadCombatState}
-        loadSceneTokens={loadSceneTokens}
-        loadVttState={loadVttState}
+        loadCombatState={vtt.loadCombatState}
+        loadSceneTokens={vtt.loadSceneTokens}
+        loadVttState={vtt.loadVttState}
         setSelectedTokenId={setSelectedTokenId}
-        setSceneTokens={setSceneTokens}
-        setSelectedSceneId={setSelectedSceneId}
+        setSceneTokens={vtt.setSceneTokens}
+        setSelectedSceneId={vtt.setSelectedSceneId}
       />
 
       {/* ── Panel Dock (minimized panels) ──────────────────────── */}
