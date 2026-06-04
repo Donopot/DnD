@@ -1,5 +1,5 @@
 import { Star, Trash2, Plus, Search, Clock, Layers } from "lucide-react";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useMemo, useState } from "react";
 
 import { authHeaders } from "../api/client";
 
