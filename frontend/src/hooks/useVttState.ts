@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   Asset,
   Combatant,
@@ -43,6 +43,10 @@ export function useVttState(
   const [, setCombatants] = useState<Combatant[]>([]);
   const [, setAssetList] = useState<Asset[]>([]);
   const [, setSelectedAssetId] = useState<string>("");
+  const vttRequestRef = useRef(0);
+  const sceneTokensRequestRef = useRef(0);
+  const combatRequestRef = useRef(0);
+  const assetsRequestRef = useRef(0);
 
   const selectedScene = useMemo(
     () => scenes.find((s) => s.id === selectedSceneId) ?? scenes[0],
@@ -51,11 +55,13 @@ export function useVttState(
 
   const loadSceneTokens = useCallback(
     async (sceneId: string) => {
+      const requestId = ++sceneTokensRequestRef.current;
       try {
-        setSceneTokens(
-          await apiRequest<SceneToken[]>(`/api/scenes/${sceneId}/tokens`, token),
-        );
+        const data = await apiRequest<SceneToken[]>(`/api/scenes/${sceneId}/tokens`, token);
+        if (requestId !== sceneTokensRequestRef.current) return;
+        setSceneTokens(data);
       } catch (error) {
+        if (requestId !== sceneTokensRequestRef.current) return;
         opts?.onError?.(error instanceof Error ? error.message : "Unable to load scene tokens");
       }
     },
@@ -64,11 +70,13 @@ export function useVttState(
 
   const loadVttState = useCallback(
     async (campaignId: string) => {
+      const requestId = ++vttRequestRef.current;
       try {
         const data = await apiRequest<Scene[]>(
           `/api/campaigns/${campaignId}/scenes`,
           token,
         );
+        if (requestId !== vttRequestRef.current) return;
         setScenes(data);
 
         if (data.length === 0) {
@@ -82,6 +90,7 @@ export function useVttState(
         setSelectedSceneId(effectiveScene.id);
         await loadSceneTokens(effectiveScene.id);
       } catch (error) {
+        if (requestId !== vttRequestRef.current) return;
         opts?.onError?.(error instanceof Error ? error.message : "Unable to load VTT state");
       }
     },
@@ -227,14 +236,16 @@ export function useVttState(
   );
 
   const loadEncounterDetail = useCallback(
-    async (encounterId: string) => {
+    async (encounterId: string, requestId = combatRequestRef.current) => {
       try {
         const detail = await apiRequest<EncounterDetail>(
           `/api/encounters/${encounterId}`,
           token,
         );
+        if (requestId !== combatRequestRef.current) return;
         updateEncounterFromDetail(detail);
       } catch (error) {
+        if (requestId !== combatRequestRef.current) return;
         opts?.onError?.(error instanceof Error ? error.message : "Unable to load encounter detail");
       }
     },
@@ -243,11 +254,13 @@ export function useVttState(
 
   const loadCombatState = useCallback(
     async (campaignId: string) => {
+      const requestId = ++combatRequestRef.current;
       try {
         const data = await apiRequest<Encounter[]>(
           `/api/campaigns/${campaignId}/encounters`,
           token,
         );
+        if (requestId !== combatRequestRef.current) return;
         setEncounters(data);
 
         if (data.length === 0) {
@@ -259,8 +272,10 @@ export function useVttState(
         const effectiveEncounter =
           data.find((e) => e.id === selectedEncounterId) ?? data[0];
         setSelectedEncounterId(effectiveEncounter.id);
-        await loadEncounterDetail(effectiveEncounter.id);
+        if (requestId !== combatRequestRef.current) return;
+        await loadEncounterDetail(effectiveEncounter.id, requestId);
       } catch (error) {
+        if (requestId !== combatRequestRef.current) return;
         opts?.onError?.(error instanceof Error ? error.message : "Unable to load combat state");
       }
     },
@@ -269,14 +284,17 @@ export function useVttState(
 
   const loadAssets = useCallback(
     async (campaignId: string) => {
+      const requestId = ++assetsRequestRef.current;
       try {
         const data = await apiRequest<Asset[]>(
           `/api/campaigns/${campaignId}/assets`,
           token,
         );
+        if (requestId !== assetsRequestRef.current) return;
         setAssetList(data);
         setSelectedAssetId((current) => current || data[0]?.id || "");
       } catch (error) {
+        if (requestId !== assetsRequestRef.current) return;
         opts?.onError?.(error instanceof Error ? error.message : "Unable to load assets");
       }
     },
@@ -284,6 +302,10 @@ export function useVttState(
   );
 
   const clearVttState = useCallback(() => {
+    vttRequestRef.current += 1;
+    sceneTokensRequestRef.current += 1;
+    combatRequestRef.current += 1;
+    assetsRequestRef.current += 1;
     setScenes([]);
     setSelectedSceneId("");
     setSceneTokens([]);

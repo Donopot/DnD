@@ -1,4 +1,4 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles/index.css";
 import { AuthPage } from "./components/AuthPage";
 import { type CampaignView } from "./components/CampaignViewTabs";
@@ -24,7 +24,6 @@ import { useTokenActions } from "./hooks/useTokenActions";
 import { useRealtimeSession } from "./hooks/useRealtimeSession";
 import { useSessionJournal } from "./hooks/useSessionJournal";
 import { useHandouts } from "./hooks/useHandouts";
-import { ensureStorageVersion } from "./utils/storageVersion";
 
 import { apiRequest } from "./api/client";
 import type {
@@ -38,9 +37,6 @@ import type {
 const MAP_PANEL_ID = "campaign-map";
 
 export default function App() {
-  // Ensure localStorage schema version — clear stale data on mismatch
-  ensureStorageVersion();
-
   const auth = useAuthSession();
   const { token, user, login } = auth;
   const authLogout = auth.logout;
@@ -71,26 +67,10 @@ export default function App() {
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [gmView, setGmView] = useState<CampaignView>("live");
+  const characterLoadRef = useRef(0);
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
-
-  const ws = useRealtimeSession({
-    token,
-    campaignId: selectedCampaign?.id,
-    selectedSceneId: selectedScene?.id,
-    onError: setMessage,
-    onSessionSceneToken: () => { void vtt.loadVttState(selectedCampaign!.id); },
-    onSessionEncounter: () => { void vtt.loadCombatState(selectedCampaign!.id); },
-    onSessionHandout: () => { void loadHandouts(selectedCampaign!.id); },
-    onSessionLog: () => { void loadSessionLog(selectedCampaign!.id); },
-    onTokenMoved: (tokenId, x, y) => {
-      vtt.setSceneTokens((current) =>
-        current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
-      );
-    },
-  });
-  const { presenceCount, realtimeStatus } = ws;
 
   const journal = useSessionJournal({
     token,
@@ -108,6 +88,64 @@ export default function App() {
     onBusyEnd: () => setIsBusy(false),
   });
   const { handouts, loadHandouts, createHandout, revealHandout, deleteHandout } = handoutsHook;
+
+  const activeCampaignId = selectedCampaign?.id;
+
+  const loadCharacters = useCallback(
+    async (campaignId: string) => {
+      const requestId = ++characterLoadRef.current;
+      try {
+        const data = await apiRequest<Character[]>(
+          `/api/campaigns/${campaignId}/characters`,
+          token,
+        );
+        if (requestId !== characterLoadRef.current) return;
+        setCharacters(data);
+        setSelectedCharacterId((current) => current || data[0]?.id || "");
+      } catch (error) {
+        if (requestId !== characterLoadRef.current) return;
+        setMessage(error instanceof Error ? error.message : "Unable to load characters");
+      }
+    },
+    [token],
+  );
+
+  const reloadVttState = useCallback(() => {
+    if (!activeCampaignId) return;
+    void vtt.loadVttState(activeCampaignId);
+  }, [activeCampaignId, vtt.loadVttState]);
+
+  const reloadCombatState = useCallback(() => {
+    if (!activeCampaignId) return;
+    void vtt.loadCombatState(activeCampaignId);
+  }, [activeCampaignId, vtt.loadCombatState]);
+
+  const reloadHandouts = useCallback(() => {
+    if (!activeCampaignId) return;
+    void loadHandouts(activeCampaignId);
+  }, [activeCampaignId, loadHandouts]);
+
+  const reloadSessionLog = useCallback(() => {
+    if (!activeCampaignId) return;
+    void loadSessionLog(activeCampaignId);
+  }, [activeCampaignId, loadSessionLog]);
+
+  const ws = useRealtimeSession({
+    token,
+    campaignId: activeCampaignId,
+    selectedSceneId: selectedScene?.id,
+    onError: setMessage,
+    onSessionSceneToken: reloadVttState,
+    onSessionEncounter: reloadCombatState,
+    onSessionHandout: reloadHandouts,
+    onSessionLog: reloadSessionLog,
+    onTokenMoved: (tokenId, x, y) => {
+      vtt.setSceneTokens((current) =>
+        current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
+      );
+    },
+  });
+  const { presenceCount, realtimeStatus } = ws;
 
   const tokenActions = useTokenActions({
     token,
@@ -130,6 +168,24 @@ export default function App() {
   const isMapFloating = useMemo(
     () => fp.panels.some((p) => p.id === MAP_PANEL_ID),
     [fp.panels],
+  );
+
+  const handleMapTokenAction = useCallback(
+    async (action: string, tokenToAct: SceneToken, value?: number) => {
+      if (action === "add-combat") {
+        setMessage("Ajout au combat : ouvre le Generateur de rencontres pour ajouter ce token.");
+        return;
+      }
+      await tokenActions.wrapSingle(action, tokenToAct, value);
+    },
+    [tokenActions],
+  );
+
+  const handleMapTokenBatchAction = useCallback(
+    async (action: string, tokens: SceneToken[], value?: number) => {
+      await tokenActions.wrapBatch(action, tokens, value);
+    },
+    [tokenActions],
   );
 
   const campaignMapProps = useMemo(() => {
@@ -169,9 +225,9 @@ export default function App() {
       onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
       onMoveToken: (t: SceneToken, dx: number, dy: number) => void tokenActions.moveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
-        void handleTokenAction(action, t, v),
+        void handleMapTokenAction(action, t, v),
       onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
-        void handleTokenBatchAction(action, ts, v),
+        void handleMapTokenBatchAction(action, ts, v),
     };
   }, [
     sceneTokens,
@@ -184,6 +240,12 @@ export default function App() {
     selectedSceneId,
     sceneBackgroundObjectUrl,
     selectedTokenId,
+    ws.wsRef,
+    vtt.setSelectedSceneId,
+    vtt.loadSceneTokens,
+    tokenActions.moveToken,
+    handleMapTokenAction,
+    handleMapTokenBatchAction,
   ]);
 
   // Auto-convert message state to toast notifications only after authentication.
@@ -237,9 +299,13 @@ export default function App() {
       campaign.clearMembers();
       setCharacters([]);
       clearJournal();
+      vtt.clearVttState();
+      setSelectedTokenId("");
       return;
     }
     campaign.selectCampaign(selectedCampaign.id);
+    vtt.clearVttState();
+    setSelectedTokenId("");
     void campaign.loadMembers(selectedCampaign.id);
     void loadCharacters(selectedCampaign.id);
     void loadSessionLog(selectedCampaign.id);
@@ -247,7 +313,7 @@ export default function App() {
     void vtt.loadAssets(selectedCampaign.id);
     void vtt.loadCombatState(selectedCampaign.id);
     void loadHandouts(selectedCampaign.id);
-  }, [token, selectedCampaign?.id]);
+  }, [token, selectedCampaign?.id, loadCharacters]);
 
   // ── Escape → close modals ──
   useEffect(() => {
@@ -271,16 +337,6 @@ export default function App() {
     } catch (error) {
       campaign.clearCampaigns();
       setMessage(error instanceof Error ? error.message : "Unable to load campaigns");
-    }
-  }
-
-  async function loadCharacters(campaignId: string) {
-    try {
-      const data = await request<Character[]>(`/api/campaigns/${campaignId}/characters`);
-      setCharacters(data);
-      setSelectedCharacterId((current) => current || data[0]?.id || "");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to load characters");
     }
   }
 

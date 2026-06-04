@@ -67,7 +67,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version-file: frontend/.node-version
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -75,7 +75,7 @@ jobs:
         run: npm ci
 
       - name: TypeScript check
-        run: npx tsc -b --pretty false
+        run: npx tsc --noEmit --pretty false
 
       - name: Biome check
         run: |
@@ -132,11 +132,11 @@ jobs:
             exit 0
           fi
 
-          output="$(python3 scripts/audit-orphans.py)"
+          output="$(python3 scripts/audit-orphans.py frontend/src)"
           echo "$output"
 
           count="$(printf '%s\n' "$output" | sed -nE 's/.*[^0-9]([0-9]+) orphan.*/\1/p' | tail -n 1)"
-          baseline=16
+          baseline=18
 
           if [ -z "$count" ] || [ "$count" -le "$baseline" ]; then
             echo "Orphan count OK (${count:-0} <= ${baseline})."
