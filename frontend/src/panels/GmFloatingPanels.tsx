@@ -28,6 +28,9 @@ export function GmFloatingPanels() {
           onBringToFront={() => panel.fp.bringToFront(p.id)}
           onMove={(x, y) => panel.fp.updatePosition(p.id, x, y)}
           onResize={(w, h) => panel.fp.updateSize(p.id, w, h)}
+          onTogglePin={() => panel.fp.togglePin(p.id)}
+          onToggleLock={() => panel.fp.toggleLock(p.id)}
+          onToggleMaximize={() => panel.fp.toggleMaximize(p.id)}
         >
           <Suspense fallback={<PanelFallback />}>
             {renderGmPanelContent(p.id, {

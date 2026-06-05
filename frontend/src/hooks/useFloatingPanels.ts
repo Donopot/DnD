@@ -10,10 +10,15 @@ export type FloatingPanelState = {
   width: number;
   height: number;
   minimized: boolean;
+  pinned: boolean;
+  locked: boolean;
+  maximized: boolean;
   zIndex: number;
+  /** Saved position/size before maximize, restored on un-maximize */
+  _saved?: { x: number; y: number; width: number; height: number };
 };
 
-type PersistedState = Omit<FloatingPanelState, "zIndex" | "minimized">;
+type PersistedState = Omit<FloatingPanelState, "zIndex" | "minimized" | "_saved">;
 
 const STORAGE_KEY_PREFIX = "dnd_fp_v1";
 const DEFAULT_WIDTH = 340;
@@ -30,6 +35,9 @@ function loadPanels(key: string): FloatingPanelState[] {
     const saved: PersistedState[] = JSON.parse(raw);
     return saved.map((p, i) => ({
       ...p,
+      pinned: p.pinned ?? false,
+      locked: p.locked ?? false,
+      maximized: false,
       minimized: false,
       zIndex: 1000 + i * 10,
     }));
@@ -40,13 +48,16 @@ function loadPanels(key: string): FloatingPanelState[] {
 
 function savePanels(key: string, panels: FloatingPanelState[]): void {
   try {
-    const toSave: PersistedState[] = panels.map(({ id, title, x, y, width, height }) => ({
-      id,
-      title,
-      x,
-      y,
-      width,
-      height,
+    const toSave: PersistedState[] = panels.map((p) => ({
+      id: p.id,
+      title: p.title,
+      x: p.x,
+      y: p.y,
+      width: p.width,
+      height: p.height,
+      pinned: p.pinned,
+      locked: p.locked,
+      maximized: p.maximized,
     }));
     localStorage.setItem(key, JSON.stringify(toSave));
   } catch {
@@ -107,6 +118,9 @@ export function useFloatingPanels(campaignId?: string) {
           y: y ?? Math.max(50, (vh - h) / 2),
           width: w,
           height: h,
+          pinned: false,
+          locked: false,
+          maximized: false,
           minimized: false,
           zIndex: Math.max(...prev.map((p) => p.zIndex), 1000) + 10,
         };
@@ -143,6 +157,45 @@ export function useFloatingPanels(campaignId?: string) {
     );
   }, []);
 
+  const togglePin = useCallback((id: string) => {
+    setPanels((prev) => prev.map((p) => (p.id === id ? { ...p, pinned: !p.pinned } : p)));
+  }, []);
+
+  const toggleLock = useCallback((id: string) => {
+    setPanels((prev) => prev.map((p) => (p.id === id ? { ...p, locked: !p.locked } : p)));
+  }, []);
+
+  const toggleMaximize = useCallback((id: string) => {
+    setPanels((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        if (p.maximized) {
+          // Restore saved position/size
+          const saved = p._saved;
+          return {
+            ...p,
+            maximized: false,
+            x: saved?.x ?? p.x,
+            y: saved?.y ?? p.y,
+            width: saved?.width ?? p.width,
+            height: saved?.height ?? p.height,
+            _saved: undefined,
+          };
+        }
+        // Save current position/size and maximize
+        return {
+          ...p,
+          maximized: true,
+          _saved: { x: p.x, y: p.y, width: p.width, height: p.height },
+          x: 0,
+          y: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      }),
+    );
+  }, []);
+
   return {
     panels,
     open,
@@ -151,6 +204,9 @@ export function useFloatingPanels(campaignId?: string) {
     bringToFront,
     updatePosition,
     updateSize,
+    togglePin,
+    toggleLock,
+    toggleMaximize,
     reset,
   };
 }

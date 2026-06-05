@@ -379,13 +379,29 @@ select {
   transform: translateX(-50%);
   z-index: 150;
   display: flex;
-  gap: 4px;
-  padding: 6px 10px;
+  align-items: center;
+  gap: 0;
+  padding: 0;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-color);
   border-bottom: none;
   border-radius: 8px 8px 0 0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
+  min-width: 160px;
+  max-width: 80vw;
+  overflow: hidden;
+}
+
+.panel-dock.resizing {
+  user-select: none;
+}
+
+.panel-dock-items {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  overflow-x: auto;
+  flex: 1;
 }
 
 .panel-dock-item {
@@ -402,11 +418,59 @@ select {
   transition:
     background 0.15s,
     color 0.15s;
+  white-space: nowrap;
+  position: relative;
 }
 
 .panel-dock-item:hover {
   background: var(--accent-dim);
   color: var(--text-strong);
+}
+
+.panel-dock-emoji {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.panel-dock-label {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-dock-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 999px;
+}
+
+.panel-dock-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 100%;
+  min-height: 32px;
+  cursor: ew-resize;
+  color: var(--text-muted);
+  border-left: 1px solid var(--border-color);
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.panel-dock-resize-handle:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* End Phase 10-3E final GM play cleanup */
