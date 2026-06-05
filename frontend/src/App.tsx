@@ -3,10 +3,36 @@ import "./styles/index.css";
 
 import { apiRequest } from "./api/client";
 import type { AuthResponse, Character, Handout, SceneToken } from "./api/types";
+import { GmWorkspace } from "./app/GmWorkspace";
+import { AuthPage } from "./components/AuthPage";
+import type { CampaignView } from "./components/CampaignViewTabs";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { GmLobby } from "./components/GmLobby";
+import { InvitePage } from "./components/InvitePage";
+import { PlayerLobby } from "./components/PlayerLobby";
+import { PlayerView } from "./components/PlayerView";
+import {
+  SESSION_LIVE_MODES,
+  SESSION_LIVE_PANEL_SETS,
+  type SessionLiveMode,
+} from "./config/sessionLiveModes";
+import { GmWorkspaceProvider } from "./contexts";
+import { useAuthSession } from "./hooks/useAuthSession";
+import { useCampaignData } from "./hooks/useCampaignData";
+import { useFloatingPanels } from "./hooks/useFloatingPanels";
+import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
+import { useHandouts } from "./hooks/useHandouts";
+import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import { useSceneBackground } from "./hooks/useSceneBackground";
+import { useSessionJournal } from "./hooks/useSessionJournal";
+import { useTheme } from "./hooks/useTheme";
+import { useToast } from "./hooks/useToast";
+import { useTokenActions } from "./hooks/useTokenActions";
+import { useVttState } from "./hooks/useVttState";
 
 // ── Persistance mode de session ────────────────────────────────────────────
 const MODE_STORAGE_KEY = "dnd_active_mode_v1";
-const VALID_MODES = new Set(["exploration", "combat", "roleplay", "quick-prep", "minimal"]);
+const VALID_MODES: Set<string> = new Set(SESSION_LIVE_MODES.map((m) => m.id));
 
 function readStoredMode(): SessionLiveMode {
   try {
@@ -25,28 +51,6 @@ function writeStoredMode(mode: SessionLiveMode): void {
     // silencieux
   }
 }
-import { GmWorkspace } from "./app/GmWorkspace";
-import { AuthPage } from "./components/AuthPage";
-import type { CampaignView } from "./components/CampaignViewTabs";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { GmLobby } from "./components/GmLobby";
-import { InvitePage } from "./components/InvitePage";
-import { PlayerLobby } from "./components/PlayerLobby";
-import { PlayerView } from "./components/PlayerView";
-import { SESSION_LIVE_PANEL_SETS, type SessionLiveMode } from "./config/sessionLiveModes";
-import { GmWorkspaceProvider } from "./contexts";
-import { useAuthSession } from "./hooks/useAuthSession";
-import { useCampaignData } from "./hooks/useCampaignData";
-import { useFloatingPanels } from "./hooks/useFloatingPanels";
-import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
-import { useHandouts } from "./hooks/useHandouts";
-import { useRealtimeSession } from "./hooks/useRealtimeSession";
-import { useSceneBackground } from "./hooks/useSceneBackground";
-import { useSessionJournal } from "./hooks/useSessionJournal";
-import { useTheme } from "./hooks/useTheme";
-import { useToast } from "./hooks/useToast";
-import { useTokenActions } from "./hooks/useTokenActions";
-import { useVttState } from "./hooks/useVttState";
 
 const MAP_PANEL_ID = "campaign-map";
 
