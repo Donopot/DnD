@@ -8,6 +8,7 @@ import bcrypt
 import jwt
 from fastapi import HTTPException
 from fastapi import status
+from jwt import InvalidTokenError
 from jwt import PyJWTError
 
 from app.config import get_settings
@@ -40,8 +41,15 @@ def create_access_token(user_id: UUID) -> str:
     return jwt.encode(payload, settings.backend_secret_key, algorithm=ALGORITHM)
 
 
+def _reject_unsupported_critical_headers(token: str) -> None:
+    headers = jwt.get_unverified_header(token)
+    if "crit" in headers:
+        raise InvalidTokenError("Unsupported critical header parameter")
+
+
 def decode_access_token(token: str) -> UUID:
     try:
+        _reject_unsupported_critical_headers(token)
         payload = jwt.decode(token, settings.backend_secret_key, algorithms=[ALGORITHM])
         return UUID(payload["sub"])
     except PyJWTError as exc:

@@ -8,6 +8,8 @@ Requires env vars to be set before import — see conftest.py or run with:
 
 import os
 from datetime import UTC
+from datetime import datetime
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
@@ -67,6 +69,30 @@ class TestJWT:
         tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
         with pytest.raises(HTTPException) as exc:
             decode_access_token(tampered)
+        assert exc.value.status_code == 401
+
+    def test_rejects_critical_header_extension(self, user_id):
+        import jwt
+
+        from app.security import ALGORITHM
+        from app.security import decode_access_token
+        from app.security import settings
+
+        now = datetime.now(UTC)
+        token = jwt.encode(
+            {
+                "sub": str(user_id),
+                "iat": int(now.timestamp()),
+                "exp": int((now + timedelta(minutes=5)).timestamp()),
+            },
+            settings.backend_secret_key,
+            algorithm=ALGORITHM,
+            headers={"crit": ["x-custom-policy"], "x-custom-policy": "require-mfa"},
+        )
+
+        with pytest.raises(HTTPException) as exc:
+            decode_access_token(token)
+
         assert exc.value.status_code == 401
 
 
