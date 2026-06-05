@@ -1,5 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { BestiaryCreature } from "../api/types";
 
 type BestiaryPanelProps = {
@@ -71,12 +73,8 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
       if (environment) params.set("environment", environment);
       params.set("limit", "50");
 
-      const res = await fetch(`/api/bestiary?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setCreatures(await res.json());
-      }
+      const data = await apiRequest<BestiaryCreature[]>(`/api/bestiary?${params}`, token);
+      setCreatures(data);
     } catch {
       /* ignore */
     } finally {
@@ -97,14 +95,9 @@ export function BestiaryPanel({ token }: BestiaryPanelProps) {
       params.set("limit", "50");
       params.set("offset", String(newOffset));
 
-      const res = await fetch(`/api/bestiary?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const more = await res.json();
-        setCreatures((prev) => [...prev, ...more]);
-        setOffset(newOffset);
-      }
+      const more = await apiRequest<BestiaryCreature[]>(`/api/bestiary?${params}`, token);
+      setCreatures((prev) => [...prev, ...more]);
+      setOffset(newOffset);
     } catch {
       /* ignore */
     }

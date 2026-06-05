@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authHeaders } from "../api/client";
+import { apiRequest } from "../api/client";
 import type { Scene } from "../api/types";
 
 type ScenePanelProps = {
@@ -25,9 +25,8 @@ export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesC
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/scenes`, {
+      await apiRequest(`/api/campaigns/${campaignId}/scenes`, token, {
         method: "POST",
-        headers: { ...authHeaders(token), "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
           description: description.trim(),
@@ -36,10 +35,6 @@ export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesC
           height,
         }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.detail ?? "Erreur création scène");
-      }
       setName("");
       setDescription("");
       setShowCreate(false);

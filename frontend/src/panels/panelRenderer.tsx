@@ -8,6 +8,8 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
+
+import { apiRequest } from "../api/client";
 import type {
   Campaign,
   Character,
@@ -222,16 +224,12 @@ function refreshSessionLog(props: GmPanelRenderProps, category?: string) {
       }
 
       const suffix = category ? `&category=${encodeURIComponent(category)}` : "";
-      const response = await fetch(
+      const entries = await apiRequest<GameLogEntry[]>(
         `/api/campaigns/${campaign.id}/log?limit=100${suffix}`,
-        {
-          headers: { Authorization: `Bearer ${props.token}` },
-          signal: controller.signal,
-        },
+        props.token,
+        { signal: controller.signal },
       );
-      if (response.ok) {
-        setLogEntries(await response.json());
-      }
+      setLogEntries(entries);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
     }

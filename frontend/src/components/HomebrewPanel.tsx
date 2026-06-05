@@ -1,5 +1,7 @@
 import { Download, FlaskConical, Plus, Swords, Trash2, Upload } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Encounter, HomebrewCreature, HomebrewItem, Scene } from "../api/types";
 
 type HomebrewPanelProps = {

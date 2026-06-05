@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authHeaders } from "../api/client";
+import { apiRequest } from "../api/client";
 
 interface NpcAppearance {
   taille: string;
@@ -48,10 +48,7 @@ export default function NpcGenerator() {
       if (race !== "Aléatoire") params.set("race", race);
       if (genre !== "Aléatoire") params.set("genre", genre);
       const qs = params.toString();
-      const res = await fetch(`/api/npc/generate${qs ? "?" + qs : ""}`, {
-        headers: authHeaders(token),
-      });
-      const data = await res.json() as NpcData;
+      const data = await apiRequest<NpcData>(`/api/npc/generate${qs ? "?" + qs : ""}`, token);
       setNpc(data);
       setHistory((prev) => [data, ...prev].slice(0, 10));
       setShowSecret(false);

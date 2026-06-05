@@ -1,5 +1,6 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { apiRequest } from "../api/client";
 import type { Spell } from "../api/types";
 
 type SpellbookPanelProps = {
@@ -40,10 +41,8 @@ export function SpellbookPanel({ token }: SpellbookPanelProps) {
       if (spellClass) params.set("class", spellClass);
       params.set("limit", "100");
 
-      const res = await fetch(`/api/spells?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) setSpells(await res.json());
+      const spells = await apiRequest<Spell[]>(`/api/spells?${params}`, token);
+      setSpells(spells);
     } catch {
       /* ignore */
     } finally {
