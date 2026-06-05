@@ -422,6 +422,18 @@
   background: var(--bg-active);
   color: var(--accent);
   border-color: var(--accent);
+  position: relative;
+}
+
+.session-live-mode-buttons.compact button.active::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 5px;
+  vertical-align: middle;
 }
 
 .focus-map-btn {

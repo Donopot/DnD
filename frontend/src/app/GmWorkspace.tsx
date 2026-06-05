@@ -178,6 +178,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                 key={m.id}
                 className={activeSessionLiveMode === m.id ? "active" : ""}
                 onClick={() => setActiveSessionLiveMode(m.id)}
+                title={m.description}
                 type="button"
               >
                 {m.label}
