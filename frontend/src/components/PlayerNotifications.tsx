@@ -22,12 +22,12 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
   async function loadAll() {
     setLoading(true);
     try {
-      const [inboxData, annData] = await Promise.all([
+      const results = await Promise.allSettled([
         apiRequest<GmMessage[]>(`/api/campaigns/${campaignId}/inbox`, token),
         apiRequest<GmMessage[]>(`/api/campaigns/${campaignId}/announcements`, token),
       ]);
-      setInbox(inboxData);
-      setAnnouncements(annData);
+      setInbox(results[0].status === "fulfilled" ? results[0].value : []);
+      setAnnouncements(results[1].status === "fulfilled" ? results[1].value : []);
     } catch {
       // silent
     } finally {

@@ -35,11 +35,14 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
   async function loadStats() {
     setLoading(true);
     try {
-      const [rolls, log, sessions] = await Promise.all([
+      const results = await Promise.allSettled([
         apiRequest<Roll[]>(`/api/campaigns/${campaignId}/rolls?limit=500`, token),
         apiRequest<GameLogEntry[]>(`/api/campaigns/${campaignId}/log?limit=500`, token),
         apiRequest<Array<{ label: string; at: string }>>(`/api/campaigns/${campaignId}/log/sessions`, token),
       ]);
+      const rolls = results[0].status === "fulfilled" ? results[0].value : [];
+      const log = results[1].status === "fulfilled" ? results[1].value : [];
+      const sessions = results[2].status === "fulfilled" ? results[2].value : [];
 
       // Compute stats
       const totals = rolls.filter((r) => r.total > 0);
