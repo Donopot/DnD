@@ -431,4 +431,4 @@ Frontend repris après chaque phase : BE-1 (Notes MJ serveur), BE-2 (sauvegarde 
 - `docs/backend-roadmap.md` — Roadmap complète
 - `docs/backend-smoke-tests.md` — Détail BE-0
 - `scripts/smoke-backend.sh` / `scripts/wait-api.sh`
-- `AGENTS.md`, `docs/agent-coordination.md`, `docs/developer-toolchain.md`
+- `AGENTS.md`, `docs/deployment-ops.md`

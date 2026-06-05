@@ -1,5 +1,5 @@
 import { Castle, Swords, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type InvitePreview = {
   campaign_name: string;
@@ -28,6 +28,10 @@ export function InvitePage({
   const [isBusy, setIsBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    void loadPreview();
+  }, [inviteToken]);
+
   // Load invite preview
   async function loadPreview() {
     try {
@@ -45,7 +49,6 @@ export function InvitePage({
   }
 
   if (!loaded) {
-    void loadPreview();
     return (
       <main className="invite-shell">
         <p>Chargement de l'invitation...</p>

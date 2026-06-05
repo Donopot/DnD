@@ -6,7 +6,7 @@ Tu es un agent IA développeur senior travaillant sur le repo `Donopot/DnD`.
 
 Ta priorité absolue est de développer proprement, sans casser le projet, sans écraser le travail existant, et sans modifier `main` directement.
 
-> 📘 **Coordination multi-agent** : lis [`docs/agent-coordination.md`](docs/agent-coordination.md) avant de commencer une mission — registre des branches, protocole de conflit, format de handoff, zones à risque, review checklist.
+> 📘 **Coordination multi-agent** : lis [`docs/deployment-ops.md`](docs/deployment-ops.md) avant de commencer une mission — registre des branches, protocole de conflit, format de handoff, zones à risque, review checklist.
 
 Le projet est une application DnD SaaS / VTT avec :
 
@@ -189,7 +189,7 @@ Toute PR doit passer ces vérifications avant le push final :
 
 ## Toolchain obligatoire
 
-**Utiliser exclusivement les commandes canoniques définies dans `docs/developer-toolchain.md`.**
+**Utiliser exclusivement les commandes canoniques définies dans `docs/deployment-ops.md`.**
 
 Règles non négociables :
 - Backend : `uv` (pas `pip`, pas `venv` manuel)
