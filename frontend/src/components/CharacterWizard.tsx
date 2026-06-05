@@ -272,7 +272,7 @@ export function CharacterWizard({ token, campaignId, onCreated }: CharacterWizar
       const ac = 10 + Math.floor((form.stats.dex - 10) / 2);
       const spd = form.race?.includes("Nain") ? 25 : 30;
 
-      const updated = await apiRequest<Character>(`/api/campaigns/${campaignId}/characters`, token, {
+      await apiRequest<Character>(`/api/campaigns/${campaignId}/characters`, token, {
         method: "POST",
         body: JSON.stringify({
           name: form.name,

@@ -66,7 +66,7 @@ export function PersonalCharactersSection({
     setSubmittingId(character.id);
     setSubmitMessage("");
     try {
-      const data = await apiRequest<{ detail?: string }>(`/api/characters/${character.id}/submit`, token, {
+      await apiRequest<{ detail?: string }>(`/api/characters/${character.id}/submit`, token, {
         method: "POST",
         body: JSON.stringify({ campaign_id: campaignId }),
       });
