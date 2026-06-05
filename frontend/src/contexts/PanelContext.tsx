@@ -19,6 +19,8 @@ export interface PanelContextValue {
   setIsPanelsHidden: React.Dispatch<React.SetStateAction<boolean>>;
   isFocusMap: boolean;
   setIsFocusMap: React.Dispatch<React.SetStateAction<boolean>>;
+  isPlayerView: boolean;
+  setIsPlayerView: React.Dispatch<React.SetStateAction<boolean>>;
   fp: ReturnType<typeof useFloatingPanels>;
   selectedCharacterId: string;
   setSelectedCharacterId: React.Dispatch<React.SetStateAction<string>>;

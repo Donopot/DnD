@@ -71,6 +71,16 @@ class CampaignPublic(BaseModel):
     member_count: int
     created_at: datetime
     updated_at: datetime
+    gm_settings: dict = {}
+
+
+class GmSettingsUpdate(BaseModel):
+    allow_player_token_move: bool | None = None
+    show_player_hp: bool | None = None
+    fog_enabled: bool | None = None
+    player_fog_reveal: bool | None = None
+    show_initiative_to_players: bool | None = None
+    allow_player_map_pan: bool | None = None
 
 
 class CampaignMemberPublic(BaseModel):

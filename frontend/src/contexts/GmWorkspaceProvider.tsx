@@ -97,6 +97,7 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
       panel.liveModePanelIds,
       panel.isPanelsHidden,
       panel.isFocusMap,
+      panel.isPlayerView,
       panel.fp,
       panel.selectedCharacterId,
       panel.inspectedCharacterId,

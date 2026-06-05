@@ -79,6 +79,7 @@ export default function App() {
     useState<SessionLiveMode>(readStoredMode);
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
+  const [isPlayerView, setIsPlayerView] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [gmView, setGmView] = useState<CampaignView>("live");
@@ -235,7 +236,7 @@ export default function App() {
         .map((t) => t.id),
     );
     return {
-      isGM: true as const,
+      isGM: !isPlayerView,
       wsRef: ws.wsRef,
       permissions: {
         canSelectToken: () => true,
@@ -273,6 +274,7 @@ export default function App() {
     selectedSceneId,
     sceneBackgroundObjectUrl,
     selectedTokenId,
+    isPlayerView,
     ws.wsRef,
     vtt.setSelectedSceneId,
     vtt.loadSceneTokens,
@@ -735,6 +737,8 @@ export default function App() {
           setIsPanelsHidden,
           isFocusMap,
           setIsFocusMap,
+          isPlayerView,
+          setIsPlayerView,
           fp,
           selectedCharacterId,
           setSelectedCharacterId,

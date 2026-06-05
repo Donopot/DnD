@@ -1,5 +1,7 @@
 import {
   DoorOpen,
+  Eye,
+  EyeOff,
   Maximize2,
   Minimize2,
   PanelRightClose,
@@ -74,6 +76,8 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     setIsPanelsHidden,
     isFocusMap,
     setIsFocusMap,
+    isPlayerView,
+    setIsPlayerView,
     fp,
     showCharacterWizard,
     setShowCharacterWizard,
@@ -193,6 +197,15 @@ export function GmWorkspace(props: GmWorkspaceProps) {
             type="button"
           >
             {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+          <button
+            className="focus-map-btn"
+            onClick={() => setIsPlayerView((prev) => !prev)}
+            title={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
+            type="button"
+            style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
+          >
+            {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
           </button>
           <button
             className="focus-map-btn"
