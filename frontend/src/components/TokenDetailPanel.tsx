@@ -1,6 +1,7 @@
 import { ArrowDownToLine, ArrowUpToLine, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useState } from "react";
 
+import { apiRequest } from "../api/client";
 import type { Character, Scene, SceneToken } from "../api/types";
 import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
 import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
@@ -60,27 +61,15 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
   const [editValue, setEditValue] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const headers = useMemo(
-    () => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
-    }),
-    [authToken],
-  );
-
   async function patchToken(payload: Partial<SceneToken>) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}`, {
+      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}`, authToken, {
         method: "PATCH",
-        headers,
         body: JSON.stringify(payload),
       });
-      if (res.ok) {
-        const updated = await res.json() as SceneToken;
-        onTokenUpdated?.(updated);
-      }
+      onTokenUpdated?.(updated);
     } catch {
       // silent
     } finally {
@@ -123,13 +112,8 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}`, {
-        method: "DELETE",
-        headers,
-      });
-      if (res.ok) {
-        onDeselectToken();
-      }
+      await apiRequest(`/api/tokens/${selectedToken.id}`, authToken, { method: "DELETE" });
+      onDeselectToken();
     } catch {
       // silent
     } finally {
@@ -141,14 +125,8 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/duplicate`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const updated = await res.json() as SceneToken;
-        onTokenUpdated?.(updated);
-      }
+      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/duplicate`, authToken, { method: "POST" });
+      onTokenUpdated?.(updated);
     } catch {
       // silent
     } finally {
@@ -160,14 +138,8 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/bring-forward`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const updated = await res.json() as SceneToken;
-        onTokenUpdated?.(updated);
-      }
+      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/bring-forward`, authToken, { method: "POST" });
+      onTokenUpdated?.(updated);
     } catch {
       // silent
     } finally {
@@ -179,14 +151,8 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tokens/${selectedToken.id}/send-backward`, {
-        method: "POST",
-        headers,
-      });
-      if (res.ok) {
-        const updated = await res.json() as SceneToken;
-        onTokenUpdated?.(updated);
-      }
+      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/send-backward`, authToken, { method: "POST" });
+      onTokenUpdated?.(updated);
     } catch {
       // silent
     } finally {

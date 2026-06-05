@@ -1,7 +1,7 @@
 import { Star, Trash2, Plus, Search, Clock, Layers } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { authHeaders } from "../api/client";
+import { apiRequest } from "../api/client";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -118,9 +118,8 @@ export function TokenLibraryPanel({
     setError("");
 
     try {
-      const res = await fetch(`/api/scenes/${selectedSceneId}/tokens`, {
+      await apiRequest(`/api/scenes/${selectedSceneId}/tokens`, token, {
         method: "POST",
-        headers: { ...authHeaders(token), "Content-Type": "application/json" },
         body: JSON.stringify({
           name: tpl.name,
           x: 0,
@@ -130,12 +129,6 @@ export function TokenLibraryPanel({
         }),
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.detail ?? "Erreur ajout token");
-      }
-
-      // Mark as used
       persist(
         templates.map((t) =>
           t.id === tpl.id ? { ...t, lastUsedAt: new Date().toISOString() } : t,
