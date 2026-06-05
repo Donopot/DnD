@@ -9,13 +9,14 @@ export type MapPermissions = {
   canEditFog: boolean;
   canMultiSelect: boolean;
 };
+
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
 import { FogLayer } from "./FogLayer";
 import { MapMinimap } from "./MapMinimap";
 import { MapTokensLayer } from "./MapTokensLayer";
-import { MapTools } from "./MapTools";
 import { MapToolbar } from "./MapToolbar";
+import { MapTools } from "./MapTools";
 import { TokenContextMenu } from "./TokenContextMenu";
 import { WeatherLayer, type WeatherType } from "./WeatherLayer";
 
@@ -40,13 +41,7 @@ type TokenActionHandler = (
   value?: number,
 ) => void;
 type TokenBatchActionHandler = (
-  action:
-    | "duplicate"
-    | "delete"
-    | "hide"
-    | "reveal"
-    | "front"
-    | "back",
+  action: "duplicate" | "delete" | "hide" | "reveal" | "front" | "back",
   tokens: SceneToken[],
   value?: number,
 ) => void;
@@ -105,14 +100,7 @@ export function CampaignMap({
 }: CampaignMapProps) {
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const {
-    scrollRef,
-    zoom,
-    zoomIn,
-    zoomOut,
-    recenter,
-    setViewportState,
-  } = useMapViewport({
+  const { scrollRef, zoom, zoomIn, zoomOut, recenter, setViewportState } = useMapViewport({
     sceneWidth: selectedScene?.width ?? 2800,
     sceneHeight: selectedScene?.height ?? 2100,
     sceneId: selectedSceneId,
@@ -127,9 +115,9 @@ export function CampaignMap({
     startY: number;
     origins: Record<string, { x: number; y: number }>;
   } | null>(null);
-  const [previewPositions, setPreviewPositions] = useState<Record<string, { x: number; y: number }>>(
-    {},
-  );
+  const [previewPositions, setPreviewPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
   const [localSelectedTokenId, setLocalSelectedTokenId] = useState("");
   const [selectedTokenIds, setSelectedTokenIds] = useState<Set<string>>(new Set());
   const [showGrid, setShowGrid] = useState(true);
@@ -178,7 +166,9 @@ export function CampaignMap({
 
   useEffect(() => {
     if (controlledSelectedTokenId === undefined) return;
-    setSelectedTokenIds(controlledSelectedTokenId ? new Set([controlledSelectedTokenId]) : new Set());
+    setSelectedTokenIds(
+      controlledSelectedTokenId ? new Set([controlledSelectedTokenId]) : new Set(),
+    );
   }, [controlledSelectedTokenId]);
 
   useEffect(() => {
@@ -328,7 +318,7 @@ export function CampaignMap({
                   }
                   return;
                 case "h":
-                case "H":
+                case "H": {
                   e.preventDefault();
                   // If any selected token is visible → hide all, otherwise reveal all
                   const shouldHide = targets.some((t) => !t.is_hidden);
@@ -339,6 +329,7 @@ export function CampaignMap({
                     onTokenAction(toggleAction, targets[0]);
                   }
                   return;
+                }
               }
             }
 
@@ -440,7 +431,6 @@ export function CampaignMap({
 
   // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
-
     if (event.button === 1) {
       return;
     }

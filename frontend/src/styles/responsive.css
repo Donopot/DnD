@@ -33,8 +33,7 @@
     max-width: 100%;
   }
 
-
-/* ── GM Campaign: sidebar collapses to top bar on narrow screens ── */
+  /* ── GM Campaign: sidebar collapses to top bar on narrow screens ── */
   /* GM Campaign: sidebar collapses to top bar on narrow screens */
   .gm-campaign-shell {
     grid-template-columns: 1fr;
@@ -71,8 +70,7 @@
     grid-row: 2;
   }
 
-
-/* ── GM map toolbar: scroll horizontally if needed ── */
+  /* ── GM map toolbar: scroll horizontally if needed ── */
   /* GM map toolbar: scroll horizontally if needed */
   .campaign-map-toolbar {
     overflow-x: auto;
@@ -110,7 +108,6 @@
     grid-template-columns: 1fr;
   }
 }
-
 
 /* ── Responsive: Mobile (< 600px) ── */
 /* ── Responsive: Mobile (< 600px) ───────────────────────────────────────── */
@@ -208,4 +205,3 @@
     padding: 1rem;
   }
 }
-

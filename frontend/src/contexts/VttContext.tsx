@@ -1,7 +1,7 @@
+import type React from "react";
 import { createContext, useContext } from "react";
 import type { Scene, SceneToken } from "../api/types";
 import type { CampaignMapProps } from "../components/CampaignMap";
-import type React from "react";
 
 /**
  * VTT-specific state — everything touching the map and tokens.

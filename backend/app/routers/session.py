@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from contextlib import suppress
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -10,23 +11,6 @@ from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
-
-logger = logging.getLogger(__name__)
-
-# Rate limiting per WebSocket connection
-MAX_WS_MSG_PER_WINDOW = 20
-WS_RATE_WINDOW_SECONDS = 10
-WS_MAX_MSG_SIZE = 4096  # bytes
-
-
-def _validate_coords(x, y, label: str = "") -> None:
-    """Reject non-finite or extreme coordinate values."""
-    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
-        raise ValueError(f"{label} coordinates must be numbers")
-    if not (-1_000_000 <= x <= 1_000_000) or not (-1_000_000 <= y <= 1_000_000):
-        raise ValueError(f"{label} coordinates out of range")
-
-
 from jwt import PyJWTError
 
 from app.db import get_pool
@@ -41,6 +25,23 @@ from app.schemas import RollPublic
 from app.schemas import SessionMarkerRequest
 from app.security import decode_access_token
 from app.utils import decode_json
+
+logger = logging.getLogger(__name__)
+
+# Rate limiting per WebSocket connection
+MAX_WS_MSG_PER_WINDOW = 20
+WS_RATE_WINDOW_SECONDS = 10
+WS_MAX_MSG_SIZE = 4096  # bytes
+
+
+def _validate_coords(x, y, label: str = "") -> None:
+    """Reject non-finite or extreme coordinate values."""
+    if not isinstance(x, int | float) or not isinstance(y, int | float):
+        raise ValueError(f"{label} coordinates must be numbers")
+    if not (-1_000_000 <= x <= 1_000_000) or not (-1_000_000 <= y <= 1_000_000):
+        raise ValueError(f"{label} coordinates out of range")
+
+
 
 router = APIRouter(prefix="/api", tags=["session"])
 ws_router = APIRouter(tags=["realtime"])
@@ -541,10 +542,10 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     size = message.get("size", 30)
                     angle = message.get("angle", 0)
                     _validate_coords(x, y, "aoe_shape")
-                    if not isinstance(size, (int, float)) or not (1 <= size <= 2000):
+                    if not isinstance(size, int | float) or not (1 <= size <= 2000):
                         await websocket.send_json({"type": "error", "detail": "AoE size must be 1-2000 feet"})
                         continue
-                    if not isinstance(angle, (int, float)) or not (0 <= angle <= 360):
+                    if not isinstance(angle, int | float) or not (0 <= angle <= 360):
                         await websocket.send_json({"type": "error", "detail": "AoE angle must be 0-360"})
                         continue
                     await manager.broadcast(
@@ -562,10 +563,8 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
 
             except (ValueError, TypeError) as exc:
                 logger.warning("WebSocket handler error for user %s: %s", user_id, exc)
-                try:
+                with suppress(Exception):
                     await websocket.send_json({"type": "error", "detail": str(exc)})
-                except Exception:
-                    pass  # client may have already disconnected
 
     except WebSocketDisconnect:
         pass

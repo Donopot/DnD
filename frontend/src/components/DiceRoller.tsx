@@ -30,8 +30,8 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
     (f: string): { count: number; type: string; modifier: number } => {
       const match = f.match(/^(\d+)d(\d+)([+-]\d+)?$/);
       if (!match) return { count: 1, type: "d20", modifier: 0 };
-      const mod = match[3] ? parseInt(match[3]) : 0;
-      return { count: parseInt(match[1]), type: `d${match[2]}`, modifier: mod };
+      const mod = match[3] ? parseInt(match[3], 10) : 0;
+      return { count: parseInt(match[1], 10), type: `d${match[2]}`, modifier: mod };
     },
     [],
   );
@@ -81,7 +81,7 @@ export function DiceRoller({ onRoll }: DiceRollerProps) {
     } else {
       const results: number[] = [];
       for (let i = 0; i < count; i++)
-        results.push(Math.floor(Math.random() * parseInt(type.slice(1))) + 1);
+        results.push(Math.floor(Math.random() * parseInt(type.slice(1), 10)) + 1);
       const total = results.reduce((s, r) => s + r, 0) + modifier;
 
       const newDice: RollingDie[] = results.map((r, i) => ({

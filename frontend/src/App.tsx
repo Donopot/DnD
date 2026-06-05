@@ -1,38 +1,30 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles/index.css";
+
+import { apiRequest } from "./api/client";
+import type { AuthResponse, Character, Handout, SceneToken } from "./api/types";
+import { GmWorkspace } from "./app/GmWorkspace";
 import { AuthPage } from "./components/AuthPage";
-import { type CampaignView } from "./components/CampaignViewTabs";
+import type { CampaignView } from "./components/CampaignViewTabs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmLobby } from "./components/GmLobby";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
-import { GmWorkspace } from "./app/GmWorkspace";
+import { SESSION_LIVE_PANEL_SETS, type SessionLiveMode } from "./config/sessionLiveModes";
 import { GmWorkspaceProvider } from "./contexts";
-import {
-  SESSION_LIVE_PANEL_SETS,
-  type SessionLiveMode,
-} from "./config/sessionLiveModes";
-import { useFloatingPanels } from "./hooks/useFloatingPanels";
-import { useSceneBackground } from "./hooks/useSceneBackground";
-import { useTheme } from "./hooks/useTheme";
-import { useToast } from "./hooks/useToast";
-import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
-import { useVttState } from "./hooks/useVttState";
-import { useTokenActions } from "./hooks/useTokenActions";
-import { useRealtimeSession } from "./hooks/useRealtimeSession";
-import { useSessionJournal } from "./hooks/useSessionJournal";
+import { useFloatingPanels } from "./hooks/useFloatingPanels";
+import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import { useHandouts } from "./hooks/useHandouts";
-
-import { apiRequest } from "./api/client";
-import type {
-  AuthResponse,
-  Character,
-  Handout,
-  SceneToken,
-} from "./api/types";
+import { useRealtimeSession } from "./hooks/useRealtimeSession";
+import { useSceneBackground } from "./hooks/useSceneBackground";
+import { useSessionJournal } from "./hooks/useSessionJournal";
+import { useTheme } from "./hooks/useTheme";
+import { useToast } from "./hooks/useToast";
+import { useTokenActions } from "./hooks/useTokenActions";
+import { useVttState } from "./hooks/useVttState";
 
 const MAP_PANEL_ID = "campaign-map";
 
@@ -45,10 +37,7 @@ export default function App() {
   const { campaigns, selectedCampaign, members, latestInvite, activeInvites } = campaign;
 
   const vtt = useVttState(token);
-  const {
-    scenes, selectedSceneId, selectedScene, sceneTokens,
-    encounters,
-  } = vtt;
+  const { scenes, selectedSceneId, selectedScene, sceneTokens, encounters } = vtt;
 
   const [characters, setCharacters] = useState<Character[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string>("");
@@ -76,17 +65,31 @@ export default function App() {
     token,
     onError: setMessage,
     onMessage: setMessage,
-    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyStart: () => {
+      setIsBusy(true);
+      setMessage("");
+    },
     onBusyEnd: () => setIsBusy(false),
   });
-  const { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal } =
-    journal;
+  const {
+    rolls,
+    logEntries,
+    setLogEntries,
+    loadSessionLog,
+    doRoll,
+    quickRoll,
+    addLogNote,
+    clearJournal,
+  } = journal;
 
   const handoutsHook = useHandouts({
     token,
     onError: setMessage,
     onMessage: setMessage,
-    onBusyStart: () => { setIsBusy(true); setMessage(""); },
+    onBusyStart: () => {
+      setIsBusy(true);
+      setMessage("");
+    },
     onBusyEnd: () => setIsBusy(false),
   });
   const { handouts, loadHandouts, createHandout, revealHandout, deleteHandout } = handoutsHook;
@@ -142,9 +145,7 @@ export default function App() {
     onSessionHandout: reloadHandouts,
     onSessionLog: reloadSessionLog,
     onTokenMoved: (tokenId, x, y) => {
-      vtt.setSceneTokens((current) =>
-        current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)),
-      );
+      vtt.setSceneTokens((current) => current.map((t) => (t.id === tokenId ? { ...t, x, y } : t)));
     },
   });
   const { presenceCount, realtimeStatus } = ws;
@@ -156,7 +157,10 @@ export default function App() {
     performTokenAction: vtt.performTokenAction,
     onError: setMessage,
     onMessage: setMessage,
-    onStart: () => { setIsBusy(true); setMessage(""); },
+    onStart: () => {
+      setIsBusy(true);
+      setMessage("");
+    },
     onEnd: () => setIsBusy(false),
   });
 
@@ -167,10 +171,7 @@ export default function App() {
 
   const sceneBackgroundObjectUrl = useSceneBackground(selectedScene, token);
 
-  const isMapFloating = useMemo(
-    () => fp.panels.some((p) => p.id === MAP_PANEL_ID),
-    [fp.panels],
-  );
+  const isMapFloating = useMemo(() => fp.panels.some((p) => p.id === MAP_PANEL_ID), [fp.panels]);
 
   const handleMapTokenAction = useCallback(
     async (action: string, tokenToAct: SceneToken, value?: number) => {
@@ -193,14 +194,12 @@ export default function App() {
   const campaignMapProps = useMemo(() => {
     const playerIds = new Set(
       sceneTokens
-        .filter((t) =>
-          t.character_id &&
-          characters.some(
-            (c) =>
-              c.id === t.character_id &&
-              c.owner_user_id &&
-              c.owner_user_id !== user?.id,
-          ),
+        .filter(
+          (t) =>
+            t.character_id &&
+            characters.some(
+              (c) => c.id === t.character_id && c.owner_user_id && c.owner_user_id !== user?.id,
+            ),
         )
         .map((t) => t.id),
     );
@@ -225,7 +224,8 @@ export default function App() {
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
       onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
-      onMoveToken: (t: SceneToken, dx: number, dy: number) => void tokenActions.moveToken(t, dx, dy),
+      onMoveToken: (t: SceneToken, dx: number, dy: number) =>
+        void tokenActions.moveToken(t, dx, dy),
       onTokenAction: (action: string, t: SceneToken, v?: number) =>
         void handleMapTokenAction(action, t, v),
       onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
@@ -346,12 +346,9 @@ export default function App() {
     try {
       await vtt.handleToggleTokenHidden(tokenToToggle);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Impossible de changer la visibilité",
-      );
+      setMessage(error instanceof Error ? error.message : "Impossible de changer la visibilité");
     }
   }
-
 
   async function handleCreateHandout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -372,17 +369,13 @@ export default function App() {
     await deleteHandout(handout);
   }
 
-
   async function handleCreateCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
     try {
-      await campaign.createCampaign(
-        String(form.get("name")),
-        String(form.get("description")),
-      );
+      await campaign.createCampaign(String(form.get("name")), String(form.get("description")));
       campaign.clearLatestInvite();
       setCharacters([]);
       clearJournal();
@@ -734,10 +727,7 @@ export default function App() {
           dismissToast,
         }}
       >
-        <GmWorkspace
-          campaignMapProps={campaignMapProps}
-          isMapFloating={isMapFloating}
-        />
+        <GmWorkspace campaignMapProps={campaignMapProps} isMapFloating={isMapFloating} />
       </GmWorkspaceProvider>
     </ErrorBoundary>
   );

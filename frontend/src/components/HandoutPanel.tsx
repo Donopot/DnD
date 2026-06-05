@@ -2,9 +2,9 @@ import { BookOpen, Clock, Eye, EyeOff, Globe, Lock, Plus, Trash2, Users } from "
 import { type FormEvent, useContext, useEffect, useMemo, useState } from "react";
 
 import type { Handout, Scene } from "../api/types";
-import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
-import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
 import { PanelContext } from "../contexts/PanelContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
 
 // ── Reveal history (localStorage) ─────────────────────────────────────────
 
@@ -123,10 +123,7 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
     void onRevealHandout(handout);
   }
 
-  const revealedCount = useMemo(
-    () => handouts.filter((h) => h.is_revealed).length,
-    [handouts],
-  );
+  const revealedCount = useMemo(() => handouts.filter((h) => h.is_revealed).length, [handouts]);
 
   return (
     <div className="gm-panel-content handout-panel" data-vtt-panel>
@@ -140,11 +137,7 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
         </header>
 
         <div className="gm-panel-actions">
-          <button
-            disabled={isBusy}
-            onClick={() => setShowCreate(!showCreate)}
-            type="button"
-          >
+          <button disabled={isBusy} onClick={() => setShowCreate(!showCreate)} type="button">
             <Plus size={12} />
             {showCreate ? "Annuler" : "Nouveau document"}
           </button>
@@ -168,12 +161,7 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
           <form className="gm-panel-section" onSubmit={onCreateHandout}>
             <label>
               Titre
-              <input
-                name="title"
-                required
-                maxLength={200}
-                placeholder="Titre du document"
-              />
+              <input name="title" required maxLength={200} placeholder="Titre du document" />
             </label>
             <label>
               Contenu
@@ -227,9 +215,7 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
               <div className="gm-panel-row" key={i}>
                 <span>
                   <strong>{entry.handoutTitle}</strong>
-                  <small>
-                    {new Date(entry.revealedAt).toLocaleString()}
-                  </small>
+                  <small>{new Date(entry.revealedAt).toLocaleString()}</small>
                 </span>
               </div>
             ))}
@@ -258,9 +244,7 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
                   <span>
                     <strong>{handout.title}</strong>
                     <small>
-                      {visibilityIcon(handout.visibility)}
-                      {" "}
-                      {visibilityLabel(handout.visibility)}
+                      {visibilityIcon(handout.visibility)} {visibilityLabel(handout.visibility)}
                       {handout.is_revealed && " · Révélé"}
                       {handout.scene_id && " · Lié à une scène"}
                     </small>
@@ -268,7 +252,10 @@ export function HandoutPanel(props: HandoutPanelProps = {}) {
                 </header>
 
                 {handout.content && (
-                  <p className="gm-panel-muted" style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>
+                  <p
+                    className="gm-panel-muted"
+                    style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}
+                  >
                     {handout.content.length > 120
                       ? handout.content.slice(0, 120) + "..."
                       : handout.content}

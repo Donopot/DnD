@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
-import type { Scene, SceneToken } from "../api/types";
 import { apiRequest } from "../api/client";
+import type { Scene, SceneToken } from "../api/types";
 
 export interface UseTokenActionsOptions {
   token: string;
@@ -19,21 +19,11 @@ export interface UseTokenActionsOptions {
 
 export interface UseTokenActionsReturn {
   moveToken: (tokenToMove: SceneToken, dx: number, dy: number) => Promise<void>;
-  wrapSingle: (
-    action: string,
-    token: SceneToken,
-    value?: number,
-  ) => Promise<void>;
-  wrapBatch: (
-    action: string,
-    tokens: SceneToken[],
-    value?: number,
-  ) => Promise<void>;
+  wrapSingle: (action: string, token: SceneToken, value?: number) => Promise<void>;
+  wrapBatch: (action: string, tokens: SceneToken[], value?: number) => Promise<void>;
 }
 
-export function useTokenActions(
-  opts: UseTokenActionsOptions,
-): UseTokenActionsReturn {
+export function useTokenActions(opts: UseTokenActionsOptions): UseTokenActionsReturn {
   const {
     token,
     selectedScene,
@@ -50,17 +40,13 @@ export function useTokenActions(
     async (tokenToMove: SceneToken, dx: number, dy: number) => {
       onStart();
       try {
-        const updated = await apiRequest<SceneToken>(
-          `/api/tokens/${tokenToMove.id}/move`,
-          token,
-          {
-            method: "PATCH",
-            body: JSON.stringify({
-              x: Math.max(0, tokenToMove.x + dx),
-              y: Math.max(0, tokenToMove.y + dy),
-            }),
-          },
-        );
+        const updated = await apiRequest<SceneToken>(`/api/tokens/${tokenToMove.id}/move`, token, {
+          method: "PATCH",
+          body: JSON.stringify({
+            x: Math.max(0, tokenToMove.x + dx),
+            y: Math.max(0, tokenToMove.y + dy),
+          }),
+        });
 
         setSceneTokens((current) =>
           current.map((item) => (item.id === updated.id ? updated : item)),
@@ -75,27 +61,21 @@ export function useTokenActions(
           const gridSize = selectedScene.grid_size ?? 50;
           const centerX = updated.x + (updated.size * gridSize) / 2;
           const centerY = updated.y + (updated.size * gridSize) / 2;
-          apiRequest(
-            `/api/tokens/${tokenToMove.id}/reveal`,
-            token,
-            {
-              method: "POST",
-              body: JSON.stringify({
-                center_x: centerX,
-                center_y: centerY,
-                radius_ft: visionRadius,
-              }),
-              signal: controller.signal,
-            },
-          ).catch((err) => {
+          apiRequest(`/api/tokens/${tokenToMove.id}/reveal`, token, {
+            method: "POST",
+            body: JSON.stringify({
+              center_x: centerX,
+              center_y: centerY,
+              radius_ft: visionRadius,
+            }),
+            signal: controller.signal,
+          }).catch((err) => {
             if (err?.name === "AbortError") return;
             onError("Révélation automatique du brouillard impossible.");
           });
         }
       } catch (error) {
-        onError(
-          error instanceof Error ? error.message : "Unable to move token",
-        );
+        onError(error instanceof Error ? error.message : "Unable to move token");
       } finally {
         onEnd();
       }
@@ -109,11 +89,7 @@ export function useTokenActions(
       try {
         await performTokenAction(action, tokenToAct, value);
       } catch (error) {
-        onError(
-          error instanceof Error
-            ? error.message
-            : `Unable to ${action} token`,
-        );
+        onError(error instanceof Error ? error.message : `Unable to ${action} token`);
       } finally {
         onEnd();
       }
@@ -132,11 +108,7 @@ export function useTokenActions(
           onMessage?.(`${tokens.length} token(s) supprimé(s).`);
         }
       } catch (error) {
-        onError(
-          error instanceof Error
-            ? error.message
-            : `Unable to ${action} tokens`,
-        );
+        onError(error instanceof Error ? error.message : `Unable to ${action} tokens`);
       } finally {
         onEnd();
       }

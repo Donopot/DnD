@@ -7,10 +7,7 @@ import { useEffect, useRef } from "react";
  * Multiple components can call useGlobalKeyboard — each gets its own
  * listener. For a single dispatcher pattern, use useKeyboardDispatch instead.
  */
-export function useGlobalKeyboard(
-  handler: (e: KeyboardEvent) => void,
-  deps: unknown[] = [],
-) {
+export function useGlobalKeyboard(handler: (e: KeyboardEvent) => void, deps: unknown[] = []) {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 

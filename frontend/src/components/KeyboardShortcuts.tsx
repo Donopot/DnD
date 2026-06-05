@@ -9,7 +9,10 @@ const SHORTCUTS: ShortcutCategory[] = [
   {
     title: "Tokens",
     shortcuts: [
-      { keys: "↑ ↓ ← → / W A S D", description: "Déplacer le(s) token(s) sélectionné(s) d'une cellule" },
+      {
+        keys: "↑ ↓ ← → / W A S D",
+        description: "Déplacer le(s) token(s) sélectionné(s) d'une cellule",
+      },
       { keys: "Shift + ↑ ↓ ← →", description: "Déplacer de 5 cellules (traversée rapide)" },
       { keys: "Shift + Clic", description: "Ajouter/retirer un token de la sélection multiple" },
       { keys: "Clic-droit", description: "Menu contextuel (dupliquer, supprimer, dégâts…)" },

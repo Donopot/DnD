@@ -1,4 +1,4 @@
-import { Star, Trash2, Plus, Search, Clock, Layers } from "lucide-react";
+import { Clock, Layers, Plus, Search, Star, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { apiRequest } from "../api/client";
@@ -57,9 +57,7 @@ export function TokenLibraryPanel({
   selectedSceneId,
   onTokensChanged,
 }: TokenLibraryPanelProps) {
-  const [templates, setTemplates] = useState<TokenTemplate[]>(() =>
-    readTemplates(campaignId),
-  );
+  const [templates, setTemplates] = useState<TokenTemplate[]>(() => readTemplates(campaignId));
   const [search, setSearch] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
@@ -101,9 +99,7 @@ export function TokenLibraryPanel({
   }
 
   function toggleFavorite(id: string) {
-    persist(
-      templates.map((t) => (t.id === id ? { ...t, favorite: !t.favorite } : t)),
-    );
+    persist(templates.map((t) => (t.id === id ? { ...t, favorite: !t.favorite } : t)));
   }
 
   // ── Add to scene ────────────────────────────────────────────────────────
@@ -275,11 +271,7 @@ export function TokenLibraryPanel({
                 title="Taille (cases)"
                 aria-label="Taille en cases"
               />
-              <button
-                onClick={createTemplate}
-                disabled={!newName.trim()}
-                type="button"
-              >
+              <button onClick={createTemplate} disabled={!newName.trim()} type="button">
                 Créer
               </button>
             </div>

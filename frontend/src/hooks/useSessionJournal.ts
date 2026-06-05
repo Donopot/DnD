@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import type { GameLogEntry, Roll } from "../api/types";
 import { apiRequest } from "../api/client";
+import type { GameLogEntry, Roll } from "../api/types";
 
 export interface UseSessionJournalOptions {
   onMessage?: (msg: string) => void;
@@ -34,9 +34,7 @@ export interface UseSessionJournalReturn {
   clearJournal: () => void;
 }
 
-export function useSessionJournal(
-  opts: UseSessionJournalOptions,
-): UseSessionJournalReturn {
+export function useSessionJournal(opts: UseSessionJournalOptions): UseSessionJournalReturn {
   const { token, onError, onMessage, onBusyStart, onBusyEnd } = opts;
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [logEntries, setLogEntries] = useState<GameLogEntry[]>([]);
@@ -131,5 +129,14 @@ export function useSessionJournal(
     [token, onError, onBusyStart, onBusyEnd, loadSessionLog],
   );
 
-  return { rolls, logEntries, setLogEntries, loadSessionLog, doRoll, quickRoll, addLogNote, clearJournal };
+  return {
+    rolls,
+    logEntries,
+    setLogEntries,
+    loadSessionLog,
+    doRoll,
+    quickRoll,
+    addLogNote,
+    clearJournal,
+  };
 }

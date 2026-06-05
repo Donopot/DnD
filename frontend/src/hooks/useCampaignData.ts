@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import type { Campaign, Invite, Member } from "../api/types";
 import { apiRequest } from "../api/client";
+import type { Campaign, Invite, Member } from "../api/types";
 
 export interface UseCampaignDataReturn {
   campaigns: Campaign[];
@@ -71,10 +71,7 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
 
   const loadMembers = useCallback(
     async (campaignId: string) => {
-      const data = await apiRequest<Member[]>(
-        `/api/campaigns/${campaignId}/members`,
-        token,
-      );
+      const data = await apiRequest<Member[]>(`/api/campaigns/${campaignId}/members`, token);
       setMembers(data);
     },
     [token],
@@ -89,10 +86,7 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
       const cid = campaignId || selectedCampaignId;
       if (!cid) return;
       try {
-        const invites = await apiRequest<Invite[]>(
-          `/api/campaigns/${cid}/invites`,
-          token,
-        );
+        const invites = await apiRequest<Invite[]>(`/api/campaigns/${cid}/invites`, token);
         setActiveInvites(invites);
       } catch {
         // Silently ignore — user may not be GM
@@ -105,14 +99,10 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
     if (!selectedCampaignId) {
       throw new Error("No campaign selected");
     }
-    const invite = await apiRequest<Invite>(
-      `/api/campaigns/${selectedCampaignId}/invites`,
-      token,
-      {
-        method: "POST",
-        body: JSON.stringify({ role: "player", expires_in_days: 14, max_uses: 10 }),
-      },
-    );
+    const invite = await apiRequest<Invite>(`/api/campaigns/${selectedCampaignId}/invites`, token, {
+      method: "POST",
+      body: JSON.stringify({ role: "player", expires_in_days: 14, max_uses: 10 }),
+    });
     setLatestInvite(invite);
     void loadInvites();
     return invite;
@@ -120,11 +110,7 @@ export function useCampaignData(token: string): UseCampaignDataReturn {
 
   const revokeInvite = useCallback(
     async (inviteToken: string) => {
-      await apiRequest<void>(
-        `/api/invites/${inviteToken}/revoke`,
-        token,
-        { method: "POST" },
-      );
+      await apiRequest<void>(`/api/invites/${inviteToken}/revoke`, token, { method: "POST" });
       setActiveInvites((prev) => prev.filter((inv) => inv.token !== inviteToken));
       setLatestInvite((prev) => (prev?.token === inviteToken ? null : prev));
     },

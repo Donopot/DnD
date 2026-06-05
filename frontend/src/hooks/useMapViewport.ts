@@ -57,11 +57,7 @@ function saveViewport(sceneId: string, state: ViewportState): void {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
-export function useMapViewport({
-  sceneWidth,
-  sceneHeight,
-  sceneId,
-}: UseMapViewportParams) {
+export function useMapViewport({ sceneWidth, sceneHeight, sceneId }: UseMapViewportParams) {
   // ── Refs ──────────────────────────────────────────────────────────────
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -131,11 +127,7 @@ export function useMapViewport({
   // ── Zoom toward cursor ────────────────────────────────────────────────
 
   const zoomAt = useCallback(
-    (
-      delta: number,
-      cursorX: number,
-      cursorY: number,
-    ) => {
+    (delta: number, cursorX: number, cursorY: number) => {
       setViewportStateRaw((prev) => {
         const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev.zoom + delta));
         if (newZoom === prev.zoom) return prev;

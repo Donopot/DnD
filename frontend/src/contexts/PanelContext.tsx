@@ -1,9 +1,9 @@
+import type React from "react";
 import { createContext, useContext } from "react";
+import type { Character, GameLogEntry } from "../api/types";
 import type { CampaignView } from "../components/CampaignViewTabs";
 import type { SessionLiveMode } from "../config/sessionLiveModes";
 import type { useFloatingPanels } from "../hooks/useFloatingPanels";
-import type { Character, GameLogEntry } from "../api/types";
-import type React from "react";
 
 /**
  * Panel & layout state — tabs, modes, visibility, floating panels.

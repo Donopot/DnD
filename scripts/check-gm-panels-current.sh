@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # check-gm-panels-current.sh
-# Vérifie la cohérence entre le registre gmPanels.ts et l'implémentation App.tsx.
+# Vérifie la cohérence entre le registre gmPanels.ts et l'implémentation.
+# Post-PanelRenderer: vérifie panelRenderer.tsx + GmWorkspace.tsx + GmFloatingPanels.tsx.
 # PANEL-1 — créé avec le registre unique gmPanels.ts.
 set -euo pipefail
 
@@ -8,9 +9,11 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ERRORS=0
 
 REGISTRY="$ROOT/frontend/src/config/gmPanels.ts"
-APP="$ROOT/frontend/src/App.tsx"
+RENDERER="$ROOT/frontend/src/panels/panelRenderer.tsx"
+WORKSPACE="$ROOT/frontend/src/app/GmWorkspace.tsx"
+FLOATING="$ROOT/frontend/src/panels/GmFloatingPanels.tsx"
 
-for f in "$REGISTRY" "$APP"; do
+for f in "$REGISTRY" "$RENDERER" "$WORKSPACE" "$FLOATING"; do
   if [[ ! -f "$f" ]]; then
     echo "❌ Fichier manquant : $f"
     exit 1
@@ -18,6 +21,8 @@ for f in "$REGISTRY" "$APP"; do
 done
 
 echo "🔍 Vérification des panneaux GM..."
+echo ""
+echo "   Architecture: PanelRenderer + GmWorkspace + GmFloatingPanels"
 echo ""
 
 # ── Helpers ────────────────────────────────────────────────────────────
@@ -35,21 +40,33 @@ extract_legacy_map() {
 # ── Données ─────────────────────────────────────────────────────────────
 
 REGISTRY_IDS=$(extract_registry_ids)
-APP_OPEN_IDS=$(grep -oP 'fp\.open\("\K[^"]+' "$APP" | sort -u)
-APP_RENDER_IDS=$(grep -oP 'panel\.id === "\K[^"]+' "$APP" | sort -u)
-APP_ALL_IDS=$( { echo "$APP_OPEN_IDS"; echo "$APP_RENDER_IDS"; } | sort -u)
+
+# PanelRenderer.tsx → switch/case panelId
+RENDERER_IDS=$(grep -oP 'case\s+"\K[^"]+' "$RENDERER" 2>/dev/null | sort -u || true)
+
+# GmWorkspace.tsx → fp.open(id)
+FP_OPEN_IDS=$(grep -oP 'fp\.open\(\"\K[^\"]+' "$WORKSPACE" 2>/dev/null | sort -u || true)
+
+# GmFloatingPanels.tsx → floating panel IDs (case "id")
+FLOAT_IDS=$(grep -oP 'case\s+"\K[^"]+' "$FLOATING" 2>/dev/null | sort -u || true)
+
+# Tous les IDs rendus / ouverts (union des 3 sources)
+ALL_IDS=$( { echo "$RENDERER_IDS"; echo "$FP_OPEN_IDS"; echo "$FLOAT_IDS"; } | sort -u)
+
 LEGACY_TARGETS=$(extract_legacy_map || true)
 
-# Détection sidebar : panneaux non-détachables vérifiés par présence dans App.tsx
+# Détection sidebar : panneaux non-détachables vérifiés par présence dans le registre
 sidebar_only_ids="characters campaign-info"
 
-echo "   Registre : $(echo "$REGISTRY_IDS" | wc -l) IDs"
-echo "   App.tsx  : $(echo "$APP_ALL_IDS" | wc -l) IDs utilisés"
+echo "   Registre       : $(echo "$REGISTRY_IDS" | wc -l) IDs"
+echo "   PanelRenderer  : $(echo "$RENDERER_IDS" | wc -l) panels"
+echo "   GmWorkspace    : $(echo "$FP_OPEN_IDS" | wc -l) fp.open()"
+echo "   Floating       : $(echo "$FLOAT_IDS" | wc -l) floating panels"
 echo ""
 
-# ── 1. Cohérence registre ↔ App.tsx ──────────────────────────────────
+# ── 1. Cohérence registre ↔ implémentation ──────────────────────────
 
-echo "─── 1. Panneaux actifs vs App.tsx ───"
+echo "─── 1. Panneaux actifs vs implémentation ───"
 
 # Extraire les IDs avec status "active" depuis GM_PANELS
 active_ids=$(
@@ -69,21 +86,21 @@ for id_, status in entries:
 " 2>/dev/null
 )
 
-legacy_in_app=""
-missing_from_app=""
+legacy_in_impl=""
+missing_from_impl=""
 while IFS=' ' read -r id status; do
   [[ -z "$id" ]] && continue
-  # Vérifier si cet ID ou son alias legacy est dans App.tsx
+  # Vérifier si cet ID ou son alias legacy est présent dans l'implémentation
   found=0
-  if echo "$APP_ALL_IDS" | grep -qFx "$id"; then
+  if echo "$ALL_IDS" | grep -qFx "$id"; then
     found=1
   fi
   # Chercher dans le mapping legacy inverse
   for legacy_id in quickactions sessionlog dice encounter messages dungeon stats; do
     target=$(grep -oP "$legacy_id:\s*\"\K[^\"]+" "$REGISTRY" 2>/dev/null || echo "")
-    if [[ "$target" == "$id" ]] && echo "$APP_ALL_IDS" | grep -qFx "$legacy_id"; then
+    if [[ "$target" == "$id" ]] && echo "$ALL_IDS" | grep -qFx "$legacy_id"; then
       found=1
-      legacy_in_app="$legacy_in_app    ⚠️  $id ← via legacy '$legacy_id' (à migrer en PANEL-2)\n"
+      legacy_in_impl="$legacy_in_impl    ⚠️  $id ← via legacy '$legacy_id' (à migrer en PANEL-2)\n"
     fi
   done
   # Chercher dans les IDs sidebar-only
@@ -92,18 +109,18 @@ while IFS=' ' read -r id status; do
   fi
 
   if [[ $found -eq 0 ]] && [[ "$status" == "active" ]] && [[ "$id" != "settings-placeholder" ]]; then
-    missing_from_app="$missing_from_app    ❌ $id ($status) — absent d'App.tsx\n"
+    missing_from_impl="$missing_from_impl    ❌ $id ($status) — absent de l'implémentation\n"
   fi
 done <<< "$active_ids"
 
-if [[ -n "$legacy_in_app" ]]; then
-  echo -e "$legacy_in_app"
+if [[ -n "$legacy_in_impl" ]]; then
+  echo -e "$legacy_in_impl"
 fi
-if [[ -n "$missing_from_app" ]]; then
-  echo -e "$missing_from_app"
+if [[ -n "$missing_from_impl" ]]; then
+  echo -e "$missing_from_impl"
   ERRORS=$((ERRORS + 1))
 else
-  echo "   ✅ Tous les panneaux actifs sont présents dans App.tsx"
+  echo "   ✅ Tous les panneaux actifs sont présents dans l'implémentation"
 fi
 
 # ── 2. IDs dupliqués ─────────────────────────────────────────────────
@@ -125,18 +142,22 @@ echo ""
 echo "─── 3. Cohérence fp.open() ↔ panel.id ───"
 
 # Panneaux non-détachables (sidebar uniquement) — pas de fp.open attendu
-# Liste maintenue manuellement (3 panneaux avec detachable: false dans gmPanels.ts)
+# Liste maintenue manuellement (panneaux avec detachable: false dans gmPanels.ts)
 sidebar_only_ids="characters campaign-info settings-placeholder"
 
 float_ok=1
-for id in $APP_OPEN_IDS; do
-  if ! echo "$APP_RENDER_IDS" | grep -qFx "$id"; then
+for id in $FP_OPEN_IDS; do
+  # Vérifier que chaque fp.open() a un rendu correspondant (PanelRenderer ou Floating)
+  found_render=0
+  if echo "$RENDERER_IDS" | grep -qFx "$id"; then found_render=1; fi
+  if echo "$FLOAT_IDS" | grep -qFx "$id"; then found_render=1; fi
+  if [[ $found_render -eq 0 ]]; then
     echo "   ❌ fp.open(\"$id\") sans rendu JSX correspondant"
     float_ok=0
   fi
 done
-for id in $APP_RENDER_IDS; do
-  if ! echo "$APP_OPEN_IDS" | grep -qFx "$id"; then
+for id in $RENDERER_IDS $FLOAT_IDS; do
+  if ! echo "$FP_OPEN_IDS" | grep -qFx "$id"; then
     # Vérifier si c'est un panneau non-detachable (normal)
     if echo "$sidebar_only_ids" | grep -qFw "$id"; then
       : # ok — panneau sidebar-only
@@ -188,7 +209,7 @@ if [[ -f "$LIVE_SETS" ]]; then
   # Extraire tous les IDs de SESSION_LIVE_PANEL_SETS
   live_ids=$(
     python3 -c "
-import re, json
+import re
 with open('$LIVE_SETS') as f:
     text = f.read()
 # Trouver la constante SESSION_LIVE_PANEL_SETS
@@ -218,8 +239,7 @@ for pid in sorted(panel_ids):
 " 2>/dev/null
   )
 
-  # Vérifier que chaque ID de live mode est un panneau actif
-  # Extraire les IDs actifs du registre (cherche id: dans les 5 lignes avant "active")
+  # Extraire les IDs actifs du registre
   active_ids_py=$(grep -B5 '"active"' "$REGISTRY" | grep -oP 'id:\s*"\K[^"]+' | sort -u | tr '\n' ' ')
 
   live_bad=""
@@ -237,7 +257,6 @@ for pid in sorted(panel_ids):
   fi
 
   # Vérifier qu'aucun panneau actif détachable n'est orphelin
-  # Extraire les IDs actifs + détachables du registre
   detachable_active=$(grep -B5 '"active"' "$REGISTRY" | grep -B3 'detachable: true' | grep -oP 'id:\s*"\K[^"]+' | sort -u | tr '\n' ' ' || true)
 
   orphan_panels=""

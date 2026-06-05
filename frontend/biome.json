@@ -21,13 +21,15 @@
       "recommended": true,
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "warn"
       },
       "style": {
         "noNonNullAssertion": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",
+        "noArrayIndexKey": "warn",
         "useIterableCallbackReturn": "off"
       },
       "a11y": {

@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.cache import close_cache
 from app.cache import cache_ping
+from app.cache import close_cache
 from app.cache import init_cache
 from app.config import get_settings
 from app.db import close_db

@@ -30,10 +30,7 @@ export type UseFogOfWarReturn = {
   isInFogZone: (px: number, py: number, zone: FogZone) => boolean;
 };
 
-export function useFogOfWar({
-  selectedSceneId,
-  wsRef,
-}: UseFogOfWarInput): UseFogOfWarReturn {
+export function useFogOfWar({ selectedSceneId, wsRef }: UseFogOfWarInput): UseFogOfWarReturn {
   // ── Fog zone state ────────────────────────────────────────
   const [fogZones, setFogZones] = useState<FogZone[]>([]);
   const fogZonesRef = useRef(fogZones);
@@ -66,11 +63,9 @@ export function useFogOfWar({
     const controller = new AbortController();
     fogAbortRef.current = controller;
 
-    apiRequest<{ fog_zones: FogZone[] }>(
-      `/scenes/${selectedSceneId}/fog`,
-      getAuthToken(),
-      { signal: controller.signal },
-    )
+    apiRequest<{ fog_zones: FogZone[] }>(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+      signal: controller.signal,
+    })
       .then((d) => setFogZones(d.fog_zones || []))
       .catch((err) => {
         if (err?.name === "AbortError") return;
@@ -88,15 +83,11 @@ export function useFogOfWar({
       fogSaveAbortRef.current = controller;
 
       try {
-        await apiRequest(
-          `/scenes/${selectedSceneId}/fog`,
-          getAuthToken(),
-          {
-            method: "PATCH",
-            body: JSON.stringify({ fog_zones: newZones }),
-            signal: controller.signal,
-          },
-        );
+        await apiRequest(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+          method: "PATCH",
+          body: JSON.stringify({ fog_zones: newZones }),
+          signal: controller.signal,
+        });
 
         previousFogZonesRef.current = null;
         ignoreNextFogWsRef.current = true;
@@ -183,11 +174,9 @@ export function useFogOfWar({
           const controller = new AbortController();
           fogSyncAbortRef.current = controller;
 
-          apiRequest<{ fog_zones: FogZone[] }>(
-            `/scenes/${selectedSceneId}/fog`,
-            getAuthToken(),
-            { signal: controller.signal },
-          )
+          apiRequest<{ fog_zones: FogZone[] }>(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+            signal: controller.signal,
+          })
             .then((d) => setFogZones(d.fog_zones || []))
             .catch((err) => {
               if (err?.name === "AbortError") return;
@@ -206,18 +195,15 @@ export function useFogOfWar({
   }, [wsRef, selectedSceneId]);
 
   // ── Helper: is a point inside a fog zone? ────────────────
-  const isInFogZone = useCallback(
-    (px: number, py: number, zone: FogZone) => {
-      if (zone.shape === "circle") {
-        const cx = zone.x + zone.width / 2;
-        const cy = zone.y + zone.height / 2;
-        const r = zone.width / 2;
-        return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
-      }
-      return px >= zone.x && px <= zone.x + zone.width && py >= zone.y && py <= zone.y + zone.height;
-    },
-    [],
-  );
+  const isInFogZone = useCallback((px: number, py: number, zone: FogZone) => {
+    if (zone.shape === "circle") {
+      const cx = zone.x + zone.width / 2;
+      const cy = zone.y + zone.height / 2;
+      const r = zone.width / 2;
+      return (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
+    }
+    return px >= zone.x && px <= zone.x + zone.width && py >= zone.y && py <= zone.y + zone.height;
+  }, []);
 
   return {
     fogZones,

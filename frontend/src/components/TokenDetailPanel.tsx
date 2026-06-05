@@ -3,9 +3,9 @@ import { useContext, useState } from "react";
 
 import { apiRequest } from "../api/client";
 import type { Character, Scene, SceneToken } from "../api/types";
-import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
-import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
 import { VttContext } from "../contexts/VttContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
 
 type TokenPosition = {
   x: number;
@@ -41,18 +41,20 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
   const selectedToken =
     props.selectedToken ?? state?.sceneTokens.find((t) => t.id === selectedTokenId);
   const selectedScene = props.selectedScene ?? state?.selectedScene;
-  const selectedTokenCharacter = props.selectedTokenCharacter ?? (
-    selectedToken?.character_id
+  const selectedTokenCharacter =
+    props.selectedTokenCharacter ??
+    (selectedToken?.character_id
       ? state?.characters.find((c) => c.id === selectedToken.character_id)
-      : undefined
-  );
-  const selectedTokenPosition = props.selectedTokenPosition ?? (
-    selectedToken ? { x: selectedToken.x, y: selectedToken.y } : undefined
-  );
+      : undefined);
+  const selectedTokenPosition =
+    props.selectedTokenPosition ??
+    (selectedToken ? { x: selectedToken.x, y: selectedToken.y } : undefined);
   const onDeselectToken = props.onDeselectToken ?? (() => vtt?.setSelectedTokenId(""));
-  const onNudgeSelectedToken = props.onNudgeSelectedToken ?? ((dx: number, dy: number) => {
-    if (selectedToken) void actions?.handleMoveToken(selectedToken, dx, dy);
-  });
+  const onNudgeSelectedToken =
+    props.onNudgeSelectedToken ??
+    ((dx: number, dy: number) => {
+      if (selectedToken) void actions?.handleMoveToken(selectedToken, dx, dy);
+    });
   const onTokenUpdated = props.onTokenUpdated;
 
   const step = selectedScene?.grid_size ?? 50;
@@ -125,7 +127,11 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/duplicate`, authToken, { method: "POST" });
+      const updated = await apiRequest<SceneToken>(
+        `/api/tokens/${selectedToken.id}/duplicate`,
+        authToken,
+        { method: "POST" },
+      );
       onTokenUpdated?.(updated);
     } catch {
       // silent
@@ -138,7 +144,11 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/bring-forward`, authToken, { method: "POST" });
+      const updated = await apiRequest<SceneToken>(
+        `/api/tokens/${selectedToken.id}/bring-forward`,
+        authToken,
+        { method: "POST" },
+      );
       onTokenUpdated?.(updated);
     } catch {
       // silent
@@ -151,7 +161,11 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
     if (!selectedToken) return;
     setBusy(true);
     try {
-      const updated = await apiRequest<SceneToken>(`/api/tokens/${selectedToken.id}/send-backward`, authToken, { method: "POST" });
+      const updated = await apiRequest<SceneToken>(
+        `/api/tokens/${selectedToken.id}/send-backward`,
+        authToken,
+        { method: "POST" },
+      );
       onTokenUpdated?.(updated);
     } catch {
       // silent
@@ -196,9 +210,7 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>🔍 {selectedToken.name || "Token"}</strong>
-          <small>
-            {selectedTokenCharacter?.name ?? "Sans personnage"}
-          </small>
+          <small>{selectedTokenCharacter?.name ?? "Sans personnage"}</small>
         </header>
 
         <div className="gm-panel-actions">
@@ -220,6 +232,7 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <span>Label</span>
             {editingField === "label" ? (
               <input
+                // biome-ignore lint/a11y/noAutofocus: intentional UX — auto-focus inline edit field when editing starts
                 autoFocus
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
@@ -242,6 +255,7 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <span>Taille</span>
             {editingField === "size" ? (
               <input
+                // biome-ignore lint/a11y/noAutofocus: intentional UX — auto-focus inline edit field
                 autoFocus
                 type="number"
                 min={1}
@@ -289,8 +303,14 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
                   key={opt.value}
                   className={`token-detail-toggle ${(selectedToken.metadata?.hostility as string) === opt.value ? "active" : ""}`}
                   style={{
-                    borderColor: (selectedToken.metadata?.hostility as string) === opt.value ? opt.color : undefined,
-                    color: (selectedToken.metadata?.hostility as string) === opt.value ? opt.color : undefined,
+                    borderColor:
+                      (selectedToken.metadata?.hostility as string) === opt.value
+                        ? opt.color
+                        : undefined,
+                    color:
+                      (selectedToken.metadata?.hostility as string) === opt.value
+                        ? opt.color
+                        : undefined,
                   }}
                   onClick={() => updateField("hostility", opt.value)}
                   type="button"
@@ -339,22 +359,24 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <div
               className="gm-panel-progress-fill"
               style={{
-                width: `${Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    ((hpCurrent ?? 0) / hpMax) * 100,
-                  ),
-                )}%`,
+                width: `${Math.max(0, Math.min(100, ((hpCurrent ?? 0) / hpMax) * 100))}%`,
               }}
             />
           </div>
 
           <div className="gm-panel-actions">
-            <button disabled={busy} onClick={() => applyHP(-5)} type="button">-5</button>
-            <button disabled={busy} onClick={() => applyHP(-1)} type="button">-1</button>
-            <button disabled={busy} onClick={() => applyHP(1)} type="button">+1</button>
-            <button disabled={busy} onClick={() => applyHP(5)} type="button">+5</button>
+            <button disabled={busy} onClick={() => applyHP(-5)} type="button">
+              -5
+            </button>
+            <button disabled={busy} onClick={() => applyHP(-1)} type="button">
+              -1
+            </button>
+            <button disabled={busy} onClick={() => applyHP(1)} type="button">
+              +1
+            </button>
+            <button disabled={busy} onClick={() => applyHP(5)} type="button">
+              +5
+            </button>
           </div>
         </section>
       )}
@@ -371,32 +393,16 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
         </header>
 
         <div className="token-detail-nudge-grid">
-          <button
-            onClick={() => onNudgeSelectedToken(0, -step)}
-            type="button"
-            title="Haut"
-          >
+          <button onClick={() => onNudgeSelectedToken(0, -step)} type="button" title="Haut">
             <ArrowUpToLine size={14} />
           </button>
-          <button
-            onClick={() => onNudgeSelectedToken(-step, 0)}
-            type="button"
-            title="Gauche"
-          >
+          <button onClick={() => onNudgeSelectedToken(-step, 0)} type="button" title="Gauche">
             ←
           </button>
-          <button
-            onClick={() => onNudgeSelectedToken(step, 0)}
-            type="button"
-            title="Droite"
-          >
+          <button onClick={() => onNudgeSelectedToken(step, 0)} type="button" title="Droite">
             →
           </button>
-          <button
-            onClick={() => onNudgeSelectedToken(0, step)}
-            type="button"
-            title="Bas"
-          >
+          <button onClick={() => onNudgeSelectedToken(0, step)} type="button" title="Bas">
             <ArrowDownToLine size={14} />
           </button>
         </div>
@@ -431,10 +437,20 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
           <button disabled={busy} onClick={() => void duplicateToken()} type="button">
             <Plus size={12} /> Dupliquer
           </button>
-          <button disabled={busy} onClick={() => void bringForward()} type="button" title="Mettre au premier plan">
+          <button
+            disabled={busy}
+            onClick={() => void bringForward()}
+            type="button"
+            title="Mettre au premier plan"
+          >
             <ArrowUpToLine size={12} /> Devant
           </button>
-          <button disabled={busy} onClick={() => void sendBackward()} type="button" title="Mettre a l'arriere-plan">
+          <button
+            disabled={busy}
+            onClick={() => void sendBackward()}
+            type="button"
+            title="Mettre a l'arriere-plan"
+          >
             <ArrowDownToLine size={12} /> Derriere
           </button>
           <button

@@ -16,9 +16,7 @@ import { expect, test } from "@playwright/test";
 const BASE = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:8090";
 
 test.describe("Smoke — flux GM", () => {
-  test("login → campagne → carte → sélection token → déplacement", async ({
-    page,
-  }) => {
+  test("login → campagne → carte → sélection token → déplacement", async ({ page }) => {
     // ── 1. Login page ──────────────────────────────────────
     await page.goto(BASE);
     // L'application redirige vers /login si non authentifié
@@ -39,7 +37,7 @@ test.describe("Smoke — flux GM", () => {
     await campaignLink.click();
 
     // Attendre que l'interface GM se charge
-    await expect(page.locator('[data-vtt-panel]').first()).toBeVisible({
+    await expect(page.locator("[data-vtt-panel]").first()).toBeVisible({
       timeout: 15_000,
     });
 

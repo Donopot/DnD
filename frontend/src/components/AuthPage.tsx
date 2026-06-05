@@ -124,11 +124,17 @@ export function AuthPage({ inviteToken, isBusy, message, onSubmit }: AuthPagePro
 
         <div className="auth-help-box">
           {mode === "login" ? (
-            <small>Connecte-toi avec ton email et ton mot de passe. Si tu viens de nettoyer la base, crée un nouveau compte.</small>
+            <small>
+              Connecte-toi avec ton email et ton mot de passe. Si tu viens de nettoyer la base, crée
+              un nouveau compte.
+            </small>
           ) : accountType === "player" ? (
             <small>Un compte Joueur nécessite un code d’invitation fourni par le MJ.</small>
           ) : (
-            <small>Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule et un chiffre.</small>
+            <small>
+              Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule et
+              un chiffre.
+            </small>
           )}
         </div>
 

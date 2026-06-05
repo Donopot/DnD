@@ -3,7 +3,6 @@
 /* ── Phase 12 — Visibility controls ── */
 /* Phase 12 — Visibility controls */
 
-
 .visibility-bulk-actions .ghost-button {
   display: flex;
   align-items: center;
@@ -11,7 +10,6 @@
   font-size: 0.72rem;
   padding: 4px 10px;
 }
-
 
 .visibility-token-actions .ghost-button.compact {
   padding: 2px 6px;
@@ -26,7 +24,6 @@
   align-items: center;
   gap: 8px;
 }
-
 
 /* ── Edit Character Sheet (Phase 13) ── */
 /* ── Edit Character Sheet (Phase 13) ───────────────────────────────────── */
@@ -186,7 +183,6 @@
   color: #2d6a4f;
 }
 
-
 /* ── Journal Enhancement (Phase 15) ── */
 /* ── Journal Enhancement (Phase 15) ────────────────────────────────────── */
 
@@ -269,7 +265,6 @@
   display: block;
   margin-top: 2px;
 }
-
 
 /* ── Homebrew Panel (Phase 13 frontend) ── */
 /* ── Homebrew Panel (Phase 13 frontend) ─────────────────────────────── */
@@ -470,7 +465,6 @@
     grid-template-columns: 1fr;
   }
 }
-
 
 /* ── Personal Characters Section (shared: PlayerLobby + GmLobby) ── */
 /* ── Personal Characters Section (shared: PlayerLobby + GmLobby) ────────── */
@@ -685,7 +679,6 @@
 .spin {
   animation: spin 0.8s linear infinite;
 }
-
 
 /* ── GmCharacterInspector modal ── */
 /* ── GmCharacterInspector modal ─────────────────────────────────────────── */
@@ -966,7 +959,6 @@
   font-size: 0.8rem;
 }
 
-
 /* ── Dice Roller (visual) ── */
 /* ── Dice Roller (visual) ───────────────────────────────────────────────── */
 
@@ -1025,7 +1017,7 @@
 .dice-face {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #070B0A;
+  color: #070b0a;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
@@ -1235,7 +1227,6 @@
   transform: none;
 }
 
-
 /* ── Session Stats ── */
 /* ── Session Stats ─────────────────────────────────────────────────────── */
 
@@ -1317,7 +1308,6 @@
   font-weight: 700;
   color: var(--text-secondary);
 }
-
 
 /* ── Lazy loading fallback ── */
 /* ── Lazy loading fallback ──────────────────────────────────────────── */
@@ -1432,7 +1422,6 @@
     opacity: 0.8;
   }
 }
-
 
 /* ── Bestiary Panel ── */
 /* ====== Bestiary Panel ============================================== */
@@ -1690,7 +1679,6 @@
   text-align: right;
 }
 
-
 /* ── Dungeon Generator ── */
 /* ====== Dungeon Generator =========================================== */
 
@@ -1770,7 +1758,6 @@
   font-size: 0.7rem;
   color: var(--text-muted);
 }
-
 
 /* ── Character Wizard ── */
 /* ====== Character Wizard ============================================ */
@@ -1981,4 +1968,3 @@
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--border-color);
 }
-

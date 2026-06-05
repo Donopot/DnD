@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import type { User } from "../api/types";
 import { apiRequest } from "../api/client";
+import type { User } from "../api/types";
 
 const TOKEN_STORAGE_KEY = "dnd_access_token";
 
@@ -17,9 +17,7 @@ export interface UseAuthSessionReturn {
 }
 
 export function useAuthSession(): UseAuthSessionReturn {
-  const [token, setToken] = useState(
-    () => localStorage.getItem(TOKEN_STORAGE_KEY) ?? "",
-  );
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) ?? "");
   const [user, setUser] = useState<User | null>(null);
 
   const status: AuthStatus = !token ? "anonymous" : !user ? "checking" : "authenticated";

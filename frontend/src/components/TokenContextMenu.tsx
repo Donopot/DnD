@@ -1,6 +1,6 @@
 import {
-  Crosshair,
   Copy,
+  Crosshair,
   Eye,
   EyeOff,
   Heart,
@@ -82,10 +82,7 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
     <div className="token-context-menu" ref={ref} style={menuStyle}>
       {/* Token name */}
       <div className="token-context-header">
-        <span
-          className="token-context-swatch"
-          style={{ background: token.color }}
-        />
+        <span className="token-context-swatch" style={{ background: token.color }} />
         <strong>{token.name}</strong>
       </div>
 
@@ -129,17 +126,13 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
           ) : (
             <div className="token-context-damage">
               <div className="damage-row">
-                <button
-                  type="button"
-                  onClick={() => setDamageValue((v) => Math.max(0, v - 5))}
-                >
+                <button type="button" onClick={() => setDamageValue((v) => Math.max(0, v - 5))}>
                   <Minus size={12} />
                 </button>
-                <span className="damage-value">{damageValue > 0 ? `-${damageValue}` : `+${-damageValue}`}</span>
-                <button
-                  type="button"
-                  onClick={() => setDamageValue((v) => v + 5)}
-                >
+                <span className="damage-value">
+                  {damageValue > 0 ? `-${damageValue}` : `+${-damageValue}`}
+                </span>
+                <button type="button" onClick={() => setDamageValue((v) => v + 5)}>
                   <Plus size={12} />
                 </button>
               </div>
@@ -169,7 +162,9 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
                 type="button"
                 className="damage-apply"
                 disabled={damageValue === 0}
-                onClick={() => doAction(damageValue >= 0 ? "damage" : "heal", Math.abs(damageValue))}
+                onClick={() =>
+                  doAction(damageValue >= 0 ? "damage" : "heal", Math.abs(damageValue))
+                }
               >
                 Appliquer
               </button>
@@ -180,11 +175,7 @@ export function TokenContextMenu({ token, x, y, onClose, onAction }: Props) {
 
       <div className="token-context-divider" />
 
-      <button
-        type="button"
-        className="token-context-danger"
-        onClick={() => doAction("delete")}
-      >
+      <button type="button" className="token-context-danger" onClick={() => doAction("delete")}>
         <Trash2 size={13} /> Supprimer
       </button>
     </div>

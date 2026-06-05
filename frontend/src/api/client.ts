@@ -26,9 +26,7 @@ export async function apiRequest<T>(
   // retains full abort control.
   const externalSignal = options.signal;
   const controller = externalSignal ? null : new AbortController();
-  const timeout = controller
-    ? window.setTimeout(() => controller.abort(), timeoutMs)
-    : null;
+  const timeout = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
   let response: Response;
 
   try {
@@ -57,7 +55,9 @@ export async function apiRequest<T>(
       const message = body.detail
         .map((item: { msg?: string; loc?: string[] }) => {
           const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "";
-          return field ? `${field}: ${item.msg ?? "Erreur de validation"}` : item.msg ?? "Erreur de validation";
+          return field
+            ? `${field}: ${item.msg ?? "Erreur de validation"}`
+            : (item.msg ?? "Erreur de validation");
         })
         .join(" · ");
 

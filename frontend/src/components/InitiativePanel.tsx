@@ -75,9 +75,15 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
     }
   }
 
-  function startEncounter() { if (selectedId) void call(`/api/encounters/${selectedId}/start`); }
-  function nextTurn() { if (selectedId) void call(`/api/encounters/${selectedId}/next-turn`); }
-  function endEncounter() { if (selectedId) void call(`/api/encounters/${selectedId}/end`); }
+  function startEncounter() {
+    if (selectedId) void call(`/api/encounters/${selectedId}/start`);
+  }
+  function nextTurn() {
+    if (selectedId) void call(`/api/encounters/${selectedId}/next-turn`);
+  }
+  function endEncounter() {
+    if (selectedId) void call(`/api/encounters/${selectedId}/end`);
+  }
 
   async function toggleDefeated(combatantId: string, currentDefeated: boolean) {
     try {
@@ -99,14 +105,8 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
   const isEnded = detail?.status === "ended";
   const isDraft = detail?.status === "draft";
 
-  const activeCombatants = useMemo(
-    () => combatants.filter((c) => !c.is_defeated),
-    [combatants],
-  );
-  const defeatedCombatants = useMemo(
-    () => combatants.filter((c) => c.is_defeated),
-    [combatants],
-  );
+  const activeCombatants = useMemo(() => combatants.filter((c) => !c.is_defeated), [combatants]);
+  const defeatedCombatants = useMemo(() => combatants.filter((c) => c.is_defeated), [combatants]);
 
   // ── Render ───────────────────────────────────────────────────────────
 
@@ -123,13 +123,13 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
       {/* ── Encounter selector ────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Swords size={12} /> Combat</strong>
+          <strong>
+            <Swords size={12} /> Combat
+          </strong>
         </header>
 
         {encounters.length === 0 ? (
-          <p className="gm-panel-muted">
-            Aucun combat. Créez un combat dans le panneau Combat.
-          </p>
+          <p className="gm-panel-muted">Aucun combat. Créez un combat dans le panneau Combat.</p>
         ) : (
           <div className="gm-panel-actions">
             {encounters.map((e) => (
@@ -139,7 +139,13 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
                 type="button"
                 className={selectedId === e.id ? "active" : ""}
               >
-                {e.status === "active" ? <Play size={12} /> : e.status === "ended" ? <Square size={12} /> : <Users size={12} />}{" "}
+                {e.status === "active" ? (
+                  <Play size={12} />
+                ) : e.status === "ended" ? (
+                  <Square size={12} />
+                ) : (
+                  <Users size={12} />
+                )}{" "}
                 {e.name}
               </button>
             ))}
@@ -163,7 +169,11 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
           {/* ── Controls ──────────────────────────────────────────── */}
           <div className="gm-panel-actions">
             {isDraft && (
-              <button disabled={busy || combatants.length === 0} onClick={startEncounter} type="button">
+              <button
+                disabled={busy || combatants.length === 0}
+                onClick={startEncounter}
+                type="button"
+              >
                 <Play size={12} /> Démarrer le combat
               </button>
             )}
@@ -189,13 +199,19 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
       {/* ── Combatants ─────────────────────────────────────────────── */}
       {combatants.length === 0 ? (
         <p className="gm-panel-muted">
-          {detail ? "Aucun combattant dans ce combat." : busy ? "Chargement…" : "Sélectionnez un combat."}
+          {detail
+            ? "Aucun combattant dans ce combat."
+            : busy
+              ? "Chargement…"
+              : "Sélectionnez un combat."}
         </p>
       ) : (
         <section className="gm-panel-section">
           <header className="gm-panel-section-header">
             <strong>Combattants</strong>
-            <small>{activeCombatants.length} actif(s) · {defeatedCombatants.length} vaincu(s)</small>
+            <small>
+              {activeCombatants.length} actif(s) · {defeatedCombatants.length} vaincu(s)
+            </small>
           </header>
 
           <div className="gm-panel-list">
@@ -203,13 +219,8 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
             {activeCombatants.map((c) => {
               const isCurrentTurn = isActive && c.id === activeId;
               return (
-                <article
-                  className={`gm-panel-row ${isCurrentTurn ? "selected" : ""}`}
-                  key={c.id}
-                >
-                  <span className="initiative-badge">
-                    {c.initiative}
-                  </span>
+                <article className={`gm-panel-row ${isCurrentTurn ? "selected" : ""}`} key={c.id}>
+                  <span className="initiative-badge">{c.initiative}</span>
                   <span>
                     <strong>{c.name}</strong>
                     <small>
@@ -236,11 +247,7 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
 
             {/* Defeated combatants */}
             {defeatedCombatants.map((c) => (
-              <article
-                className="gm-panel-row"
-                key={c.id}
-                style={{ opacity: 0.55 }}
-              >
+              <article className="gm-panel-row" key={c.id} style={{ opacity: 0.55 }}>
                 <span className="initiative-badge">—</span>
                 <span>
                   <strong style={{ textDecoration: "line-through" }}>{c.name}</strong>

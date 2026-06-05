@@ -490,6 +490,36 @@ Pour chaque panneau actif, exécuter ces actions et vérifier le comportement :
 
 ---
 
+## Architecture post-PanelRenderer (juin 2026)
+
+### Contextes domaine
+
+L'architecture a été découpée en 5 contextes React spécialisés (plus de prop-drilling monolithique) :
+
+| Contexte | Fichier | Rôle |
+|----------|---------|------|
+| `WorkspaceStateContext` | `contexts/WorkspaceStateContext.tsx` | Données en lecture seule : campaigns, characters, scenes, tokens, handouts, encounters, members, rolls, invitations, user |
+| `WorkspaceActionsContext` | `contexts/WorkspaceActionsContext.tsx` | Callbacks stables : handleQuickRoll, handleRoll, handleCreateHandout, handleMoveToken, handleToggleTokenHidden, loadCharacters, selectCampaign, etc. |
+| `VttContext` | `contexts/VttContext.tsx` | État VTT : selectedTokenId, selectedSceneId, sceneTokens, loadCombatState, loadSceneTokens, loadVttState |
+| `PanelContext` | `contexts/PanelContext.tsx` | UI des panneaux : isBusy, gmView, activeSessionLiveMode, liveModePanelIds, floating panels (fp.open/close/minimize), modals, logs |
+| `SessionContext` | `contexts/SessionContext.tsx` | Session temps réel : wsRef, presenceCount, realtimeStatus, theme, toasts |
+
+Ces contextes sont fournis par `GmWorkspaceProvider.tsx` et consommés par `GmWorkspace.tsx`, `GmDockedPanels.tsx` et `GmFloatingPanels.tsx`.
+
+### PanelRenderer
+
+Le rendu des panneaux est centralisé dans `panels/panelRenderer.tsx` (671 lignes) :
+- Un switch/case mappe chaque `panelId` vers son composant lazy-loadé
+- Les composants reçoivent leurs props depuis `GmPanelRenderProps` (construit à partir des contextes)
+- `renderDockedPanel()` gère le rendu docké (avec bouton détacher si `detachable`)
+- `GmFloatingPanels.tsx` réutilise le même `renderGmPanelContent()` pour les panneaux flottants
+
+### Filtrage par mode
+
+Les modes de session (Exploration, Combat, Roleplay, Quick-Prep, Minimal) sont définis dans `config/sessionLiveModes.ts`. Chaque mode liste les IDs de panneaux visibles via `SESSION_LIVE_PANEL_SETS`. Le filtre est appliqué dans `GmDockedPanels.tsx` via `getDockedPanelsForView()`.
+
+---
+
 ## Références
 
 | Document source                  | Contenu principal                                  |

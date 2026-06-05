@@ -1,9 +1,9 @@
 import { useRef } from "react";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { useVttContext } from "../contexts/VttContext";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";
+import { useVttContext } from "../contexts/VttContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
 import { getDockedPanelsForView, renderDockedPanel } from "./panelRenderer";
 
 /** Docked panels read all data from contexts — no more Giant Props Bag. */
@@ -64,9 +64,5 @@ export function GmDockedPanels() {
     logRefreshAbortRef,
   };
 
-  return (
-    <>
-      {panels.map((panel) => renderDockedPanel(panel, renderProps))}
-    </>
-  );
+  return <>{panels.map((panel) => renderDockedPanel(panel, renderProps))}</>;
 }

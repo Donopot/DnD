@@ -1,7 +1,7 @@
 import type { PointerEvent } from "react";
 import type { SceneToken } from "../api/types";
-import type { FogZone } from "./FogLayer";
 import type { MapPermissions } from "./CampaignMap";
+import type { FogZone } from "./FogLayer";
 
 const CONDITION_EMOJI: Record<string, string> = {
   blinded: "👁️‍🗨️",
@@ -70,8 +70,7 @@ export function MapTokensLayer({
       {sceneTokens.map((token) => {
         const hpPercent = token.metadata?.hp_max
           ? Math.round(
-              (((token.metadata?.hp_current as number) ?? 0) /
-                (token.metadata.hp_max as number)) *
+              (((token.metadata?.hp_current as number) ?? 0) / (token.metadata.hp_max as number)) *
                 100,
             )
           : null;
@@ -88,9 +87,7 @@ export function MapTokensLayer({
         if (!isGM && fogZones.length > 0) {
           const tokenCenterX = token.x + (token.size * gridSize) / 2;
           const tokenCenterY = token.y + (token.size * gridSize) / 2;
-          const isRevealed = fogZones.some((zone) =>
-            isInFogZone(tokenCenterX, tokenCenterY, zone),
-          );
+          const isRevealed = fogZones.some((zone) => isInFogZone(tokenCenterX, tokenCenterY, zone));
           if (!isRevealed) return null;
         }
 
@@ -99,9 +96,7 @@ export function MapTokensLayer({
         if (isGM && fogZones.length > 0 && !isManuallyHidden) {
           const tokenCenterX = token.x + (token.size * gridSize) / 2;
           const tokenCenterY = token.y + (token.size * gridSize) / 2;
-          isFogHidden = !fogZones.some((zone) =>
-            isInFogZone(tokenCenterX, tokenCenterY, zone),
-          );
+          isFogHidden = !fogZones.some((zone) => isInFogZone(tokenCenterX, tokenCenterY, zone));
         }
 
         const isBloodied = hpPercent !== null && hpPercent <= 50 && hpPercent > 0;
@@ -120,6 +115,7 @@ export function MapTokensLayer({
             : [];
 
         return (
+          // biome-ignore lint/a11y/useSemanticElements: token wrapper needs drag+click, semantic button breaks layout
           <div
             className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""} ${isManuallyHidden ? "token-hidden-from-players" : ""}`}
             key={token.id}
@@ -158,11 +154,7 @@ export function MapTokensLayer({
               e.stopPropagation();
               const rect = boardRef.current?.getBoundingClientRect();
               if (!rect) return;
-              onContextMenu(
-                token,
-                (e.clientX - rect.left) / zoom,
-                (e.clientY - rect.top) / zoom,
-              );
+              onContextMenu(token, (e.clientX - rect.left) / zoom, (e.clientY - rect.top) / zoom);
             }}
             style={{
               left: previewPositions[token.id]?.x ?? token.x,

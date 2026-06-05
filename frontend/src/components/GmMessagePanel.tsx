@@ -79,10 +79,14 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
         label: label.trim() || "Jet secret",
       };
       if (recipientId) body.recipient_id = recipientId;
-      const data = await apiRequest<{ detail?: string; roll_data?: { total: number } }>(`/api/campaigns/${campaignId}/secret-roll`, token, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
+      const data = await apiRequest<{ detail?: string; roll_data?: { total: number } }>(
+        `/api/campaigns/${campaignId}/secret-roll`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
       setStatusMsg(`🎲 Résultat : ${data.roll_data?.total ?? "?"}`);
       resetForm();
     } catch (err: unknown) {

@@ -34,10 +34,7 @@ export function VisibilityInspectorPanel({
     [sceneTokens],
   );
 
-  const hiddenTokens = useMemo(
-    () => sceneTokens.filter((token) => token.is_hidden),
-    [sceneTokens],
-  );
+  const hiddenTokens = useMemo(() => sceneTokens.filter((token) => token.is_hidden), [sceneTokens]);
 
   const filteredTokens = useMemo(() => {
     if (filter === "visible") return visibleTokens;
@@ -46,9 +43,7 @@ export function VisibilityInspectorPanel({
   }, [filter, hiddenTokens, sceneTokens, visibleTokens]);
 
   const playerVisiblePercent =
-    sceneTokens.length > 0
-      ? Math.round((visibleTokens.length / sceneTokens.length) * 100)
-      : 0;
+    sceneTokens.length > 0 ? Math.round((visibleTokens.length / sceneTokens.length) * 100) : 0;
 
   function copyVisibilitySummary() {
     const summary = [
@@ -167,18 +162,12 @@ export function VisibilityInspectorPanel({
             )}
             {visibleTokens.length === sceneTokens.length &&
               sceneTokens.length > 0 &&
-              fogHiddenCount === 0 && (
-                <li>Tous les tokens de la scène sont visibles.</li>
-              )}
+              fogHiddenCount === 0 && <li>Tous les tokens de la scène sont visibles.</li>}
             {selectedToken?.is_hidden && (
-              <li>
-                Le token sélectionné est caché : attention avant de le décrire publiquement.
-              </li>
+              <li>Le token sélectionné est caché : attention avant de le décrire publiquement.</li>
             )}
             {fogHiddenCount > 0 && (
-              <li>
-                {fogHiddenCount} token(s) masqué(s) par le brouillard de guerre.
-              </li>
+              <li>{fogHiddenCount} token(s) masqué(s) par le brouillard de guerre.</li>
             )}
           </ul>
         )}
@@ -224,10 +213,7 @@ export function VisibilityInspectorPanel({
         ) : (
           <div className="gm-panel-list visibility-token-list">
             {filteredTokens.map((token) => (
-              <article
-                className={`gm-panel-row ${token.is_hidden ? "hidden" : ""}`}
-                key={token.id}
-              >
+              <article className={`gm-panel-row ${token.is_hidden ? "hidden" : ""}`} key={token.id}>
                 <header>
                   <span>
                     <strong>{token.name}</strong>

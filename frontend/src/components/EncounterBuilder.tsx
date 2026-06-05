@@ -275,8 +275,8 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
     if (!match) return 1;
     const [, num, sides] = match;
     let total = 0;
-    for (let i = 0; i < parseInt(num); i++) {
-      total += Math.floor(Math.random() * parseInt(sides)) + 1;
+    for (let i = 0; i < parseInt(num, 10); i++) {
+      total += Math.floor(Math.random() * parseInt(sides, 10)) + 1;
     }
     return total;
   }
@@ -303,10 +303,14 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
     setBusy(true);
     setMessage("");
     try {
-      const encounter = await apiRequest<{ id: string; name: string }>(`/api/campaigns/${campaignId}/encounters`, token, {
-        method: "POST",
-        body: JSON.stringify({ name: `Rencontre ${environment}` }),
-      });
+      const encounter = await apiRequest<{ id: string; name: string }>(
+        `/api/campaigns/${campaignId}/encounters`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({ name: `Rencontre ${environment}` }),
+        },
+      );
 
       for (const m of monsters) {
         for (let i = 0; i < m.count; i++) {
