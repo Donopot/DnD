@@ -12,6 +12,7 @@ RACES = [
 
 GENRES = ["Masculin", "Féminin", "Non-binaire"]
 
+# ruff: noqa: E501 — name data arrays below have legitimate long lines
 NOMS = {
     "Humain": {
         "Masculin": ["Aldric", "Cedric", "Darian", "Edmund", "Garret", "Hugo", "Lothar", "Merek", "Orin", "Percival", "Roderick", "Theobald", "Ulric", "Victor", "Willem"],

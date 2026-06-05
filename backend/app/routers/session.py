@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from contextlib import suppress
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -10,6 +11,20 @@ from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
+from jwt import PyJWTError
+
+from app.db import get_pool
+from app.deps import get_current_user
+from app.deps import require_campaign_role
+from app.dice import roll_with_mode
+from app.realtime import manager
+from app.schemas import GameLogEntryPublic
+from app.schemas import GameLogNoteRequest
+from app.schemas import RollCreateRequest
+from app.schemas import RollPublic
+from app.schemas import SessionMarkerRequest
+from app.security import decode_access_token
+from app.utils import decode_json
 
 logger = logging.getLogger(__name__)
 
@@ -27,20 +42,6 @@ def _validate_coords(x, y, label: str = "") -> None:
         raise ValueError(f"{label} coordinates out of range")
 
 
-from jwt import PyJWTError
-
-from app.db import get_pool
-from app.deps import get_current_user
-from app.deps import require_campaign_role
-from app.dice import roll_with_mode
-from app.realtime import manager
-from app.schemas import GameLogEntryPublic
-from app.schemas import GameLogNoteRequest
-from app.schemas import RollCreateRequest
-from app.schemas import RollPublic
-from app.schemas import SessionMarkerRequest
-from app.security import decode_access_token
-from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["session"])
 ws_router = APIRouter(tags=["realtime"])
@@ -562,10 +563,8 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
 
             except (ValueError, TypeError) as exc:
                 logger.warning("WebSocket handler error for user %s: %s", user_id, exc)
-                try:
+                with suppress(Exception):
                     await websocket.send_json({"type": "error", "detail": str(exc)})
-                except Exception:
-                    pass  # client may have already disconnected
 
     except WebSocketDisconnect:
         pass

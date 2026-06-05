@@ -132,9 +132,8 @@ class TestTokenOwnership:
         role = "gm"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert not blocked, "GM should not be blocked from modifying NPC token"
 
@@ -147,12 +146,8 @@ class TestTokenOwnership:
         role = "player"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
-            elif existing["character_id"]:
-                # Would check ownership here
-                pass
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert blocked, "Player should be blocked from moving NPC/unlinked token"
 
@@ -162,9 +157,8 @@ class TestTokenOwnership:
         role = "gm"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert not blocked, "GM should not be blocked from moving NPC token"
 
@@ -179,10 +173,8 @@ class TestTokenOwnership:
         current_user_id = "user-me"
 
         blocked = False
-        if role == "player":
-            if existing["character_id"]:
-                if token_owner_user_id != current_user_id:
-                    blocked = True
+        if role == "player" and existing["character_id"] and token_owner_user_id != current_user_id:
+            blocked = True
 
         assert blocked, "Player should be blocked from modifying another player's token"
 
@@ -195,10 +187,9 @@ class TestTokenOwnership:
 
         blocked = False
         if role == "player":
-            if existing["character_id"]:
-                if token_owner_user_id != current_user_id:
-                    blocked = True
-            else:
+            if existing["character_id"] and token_owner_user_id != current_user_id:
+                blocked = True
+            elif not existing["character_id"]:
                 blocked = True  # no character_id → blocked
 
         assert not blocked, "Player should be able to modify their own token"
@@ -209,9 +200,8 @@ class TestTokenOwnership:
         role = "co_gm"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert not blocked, "Co-GM should not be blocked from modifying any token"
 
@@ -336,9 +326,8 @@ class TestFogRevealOwnership:
         role = "player"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert blocked, "Player should be blocked from revealing fog around NPC token"
 
@@ -350,9 +339,8 @@ class TestFogRevealOwnership:
         current_user_id = "user-me"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"] or token_owner_user_id != current_user_id:
-                blocked = True
+        if role == "player" and (not existing["character_id"] or token_owner_user_id != current_user_id):
+            blocked = True
 
         assert blocked, "Player should be blocked from revealing fog around another player's token"
 
@@ -362,9 +350,8 @@ class TestFogRevealOwnership:
         role = "gm"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"]:
-                blocked = True
+        if role == "player" and not existing["character_id"]:
+            blocked = True
 
         assert not blocked, "GM should not be blocked from revealing fog around any token"
 
@@ -376,9 +363,8 @@ class TestFogRevealOwnership:
         current_user_id = "user-me"
 
         blocked = False
-        if role == "player":
-            if not existing["character_id"] or token_owner_user_id != current_user_id:
-                blocked = True
+        if role == "player" and (not existing["character_id"] or token_owner_user_id != current_user_id):
+            blocked = True
 
         assert not blocked, "Player should be able to reveal fog around their own token"
 
