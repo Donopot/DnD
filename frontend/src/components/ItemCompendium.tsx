@@ -1,5 +1,6 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { apiRequest } from "../api/client";
 import type { Item } from "../api/types";
 
 type ItemCompendiumProps = { token: string };
@@ -36,10 +37,8 @@ export function ItemCompendium({ token }: ItemCompendiumProps) {
       if (rarity) params.set("rarity", rarity);
       params.set("limit", "50");
 
-      const res = await fetch(`/api/items?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) setItems(await res.json());
+      const items = await apiRequest<Item[]>(`/api/items?${params}`, token);
+      setItems(items);
     } catch {
       /* ignore */
     } finally {

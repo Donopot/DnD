@@ -307,12 +307,8 @@ export function PlayerView({
         const gridSize = playerScene.grid_size ?? 50;
         const centerX = updated.x + (updated.size * gridSize) / 2;
         const centerY = updated.y + (updated.size * gridSize) / 2;
-        fetch(`/api/tokens/${tokenToMove.id}/reveal`, {
+        apiRequest(`/api/tokens/${tokenToMove.id}/reveal`, token, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             center_x: centerX,
             center_y: centerY,

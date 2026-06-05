@@ -1,5 +1,6 @@
 import { Dice1, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiRequest } from "../api/client";
 
 type DungeonData = {
   seed: number;
@@ -45,12 +46,8 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
       setLoading(true);
       try {
         const [w, h] = SIZES[sizeIdx].slice(1) as [number, number];
-        const res = await fetch("/api/dungeon/generate", {
+        const dungeon = await apiRequest<DungeonData>("/api/dungeon/generate", token, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             width: w,
             height: h,
@@ -59,10 +56,9 @@ export function DungeonGenerator({ token }: DungeonGeneratorProps) {
             theme,
           }),
         });
-        if (res.ok) {
-          const data = await res.json();
-          setDungeon(data);
-          setSeed(data.seed);
+        if (dungeon) {
+          setDungeon(dungeon);
+          if (!newSeed) setSeed(dungeon.seed);
         }
       } catch {
         /* ignore */
