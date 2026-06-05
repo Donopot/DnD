@@ -137,9 +137,7 @@ export function AmbiancePanel({ isGM }: AmbiancePanelProps) {
               >
                 <span className="ambiance-emoji">{p.emoji}</span>
                 <span className="ambiance-label">{p.label}</span>
-                {active === p.name && playing && (
-                  <span className="ambiance-playing-indicator" />
-                )}
+                {active === p.name && playing && <span className="ambiance-playing-indicator" />}
               </button>
             ))}
           </div>
@@ -150,8 +148,8 @@ export function AmbiancePanel({ isGM }: AmbiancePanelProps) {
             </div>
           )}
           <div className="ambiance-hint">
-            💡 Ajoutez vos propres pistes audio dans <code>public/audio/</code> ou
-            utilisez des liens YouTube/Spotify.
+            💡 Ajoutez vos propres pistes audio dans <code>public/audio/</code> ou utilisez des
+            liens YouTube/Spotify.
           </div>
         </>
       )}

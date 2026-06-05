@@ -100,7 +100,8 @@ export function GmNotesPanel({ campaignId, selectedScene, selectedToken }: GmNot
       </footer>
 
       <p className="gm-panel-muted">
-        Version locale : ces notes sont privées dans ce navigateur. Une sauvegarde backend pourra être ajoutée plus tard.
+        Version locale : ces notes sont privées dans ce navigateur. Une sauvegarde backend pourra
+        être ajoutée plus tard.
       </p>
     </div>
   );

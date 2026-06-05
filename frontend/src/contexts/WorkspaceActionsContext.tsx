@@ -1,5 +1,5 @@
-import { createContext, useContext } from "react";
 import type { FormEvent } from "react";
+import { createContext, useContext } from "react";
 import type { Handout, SceneToken } from "../api/types";
 
 /**
@@ -15,7 +15,11 @@ export interface WorkspaceActions {
 
   // Dice & Journal
   handleRoll: (e: FormEvent<HTMLFormElement>) => void;
-  handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
+  handleQuickRoll: (
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+  ) => void;
   handleLogNote: (e: FormEvent<HTMLFormElement>) => void;
 
   // Tokens

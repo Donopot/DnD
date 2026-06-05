@@ -96,7 +96,9 @@ export function QuickActions({ onRoll }: QuickActionsProps) {
       {/* ── Macros ─────────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Zap size={12} /> Macros</strong>
+          <strong>
+            <Zap size={12} /> Macros
+          </strong>
         </header>
 
         <div className="qa-bar">

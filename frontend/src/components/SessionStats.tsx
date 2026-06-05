@@ -38,7 +38,10 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
       const results = await Promise.allSettled([
         apiRequest<Roll[]>(`/api/campaigns/${campaignId}/rolls?limit=500`, token),
         apiRequest<GameLogEntry[]>(`/api/campaigns/${campaignId}/log?limit=500`, token),
-        apiRequest<Array<{ label: string; at: string }>>(`/api/campaigns/${campaignId}/log/sessions`, token),
+        apiRequest<Array<{ label: string; at: string }>>(
+          `/api/campaigns/${campaignId}/log/sessions`,
+          token,
+        ),
       ]);
       const rolls = results[0].status === "fulfilled" ? results[0].value : [];
       const log = results[1].status === "fulfilled" ? results[1].value : [];

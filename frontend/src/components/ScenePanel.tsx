@@ -10,7 +10,13 @@ type ScenePanelProps = {
   onScenesChanged: () => void;
 };
 
-export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesChanged }: ScenePanelProps) {
+export function ScenePanel({
+  campaignId,
+  token,
+  scenes,
+  onSelectScene,
+  onScenesChanged,
+}: ScenePanelProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -115,12 +121,43 @@ export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesC
             maxLength={2000}
           />
           <div className="grid-row">
-            <label>Grille <input type="number" value={gridSize} min={16} max={200} onChange={(e) => setGridSize(Number(e.target.value))} /></label>
-            <label>Largeur <input type="number" value={width} min={200} max={10000} onChange={(e) => setWidth(Number(e.target.value))} /></label>
-            <label>Hauteur <input type="number" value={height} min={200} max={10000} onChange={(e) => setHeight(Number(e.target.value))} /></label>
+            <label>
+              Grille{" "}
+              <input
+                type="number"
+                value={gridSize}
+                min={16}
+                max={200}
+                onChange={(e) => setGridSize(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              Largeur{" "}
+              <input
+                type="number"
+                value={width}
+                min={200}
+                max={10000}
+                onChange={(e) => setWidth(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              Hauteur{" "}
+              <input
+                type="number"
+                value={height}
+                min={200}
+                max={10000}
+                onChange={(e) => setHeight(Number(e.target.value))}
+              />
+            </label>
           </div>
           <div className="btn-row" style={{ marginTop: 8 }}>
-            <button className="btn btn-primary" onClick={createScene} disabled={saving || !name.trim()}>
+            <button
+              className="btn btn-primary"
+              onClick={createScene}
+              disabled={saving || !name.trim()}
+            >
               {saving ? "Création..." : "Créer la scène"}
             </button>
             <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>
@@ -132,7 +169,14 @@ export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesC
 
       <div className="scene-list" style={{ marginTop: showCreate ? 10 : 0 }}>
         {scenes.length === 0 && (
-          <div style={{ color: "var(--text-muted, #6a7a6e)", fontSize: 13, padding: 12, textAlign: "center" }}>
+          <div
+            style={{
+              color: "var(--text-muted, #6a7a6e)",
+              fontSize: 13,
+              padding: 12,
+              textAlign: "center",
+            }}
+          >
             Aucune scène. Créez-en une !
           </div>
         )}
@@ -146,7 +190,12 @@ export function ScenePanel({ campaignId, token, scenes, onSelectScene, onScenesC
               {scene.name}
               {scene.is_active && <span className="active-badge">active</span>}
             </div>
-            {scene.description && <div className="scene-desc">{scene.description.slice(0, 80)}{scene.description.length > 80 ? "…" : ""}</div>}
+            {scene.description && (
+              <div className="scene-desc">
+                {scene.description.slice(0, 80)}
+                {scene.description.length > 80 ? "…" : ""}
+              </div>
+            )}
             <div className="scene-meta">
               {scene.width}×{scene.height} — grille {scene.grid_size}px
             </div>

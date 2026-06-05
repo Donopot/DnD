@@ -26,8 +26,16 @@ interface NpcData {
 }
 
 const RACES = [
-  "Aléatoire", "Humain", "Elfe", "Nain", "Halfelin", "Gnome",
-  "Demi-elfe", "Demi-orc", "Tieffelin", "Dragonné",
+  "Aléatoire",
+  "Humain",
+  "Elfe",
+  "Nain",
+  "Halfelin",
+  "Gnome",
+  "Demi-elfe",
+  "Demi-orc",
+  "Tieffelin",
+  "Dragonné",
 ];
 
 const GENRES = ["Aléatoire", "Masculin", "Féminin", "Non-binaire"];
@@ -93,11 +101,7 @@ export default function NpcGenerator() {
             <option key={g}>{g}</option>
           ))}
         </select>
-        <button
-          className="btn btn-primary"
-          onClick={generateNpc}
-          disabled={loading}
-        >
+        <button className="btn btn-primary" onClick={generateNpc} disabled={loading}>
           {loading ? "⚂ Génération…" : "🎲 Générer un PNJ"}
         </button>
         <button className="btn" onClick={() => generateNpc()} title="Générer 5 PNJ">
@@ -123,14 +127,11 @@ export default function NpcGenerator() {
             <div className="npc-section">
               <h4>🎭 Apparence</h4>
               <p>
-                {npc.apparence.taille}, carrure {npc.apparence.carrure}.
-                Cheveux {npc.apparence.cheveux.toLowerCase()}, yeux{" "}
-                {npc.apparence.yeux.toLowerCase()}, peau{" "}
+                {npc.apparence.taille}, carrure {npc.apparence.carrure}. Cheveux{" "}
+                {npc.apparence.cheveux.toLowerCase()}, yeux {npc.apparence.yeux.toLowerCase()}, peau{" "}
                 {npc.apparence.peau.toLowerCase()}.
               </p>
-              <p className="npc-quirk">
-                ✦ {npc.apparence.signe_distinctif}
-              </p>
+              <p className="npc-quirk">✦ {npc.apparence.signe_distinctif}</p>
             </div>
 
             <div className="npc-section">
@@ -180,7 +181,10 @@ export default function NpcGenerator() {
               <button
                 key={i}
                 className="npc-history-item"
-                onClick={() => { setNpc(h); setShowSecret(false); }}
+                onClick={() => {
+                  setNpc(h);
+                  setShowSecret(false);
+                }}
               >
                 <strong>{h.nom}</strong> — {h.race}, {h.occupation}
               </button>

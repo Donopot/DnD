@@ -11,6 +11,7 @@ import {
   Upload,
 } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { apiRequest } from "../api/client";
 import type {
   Campaign,
   Character,
@@ -22,7 +23,6 @@ import type {
   Scene,
   SceneToken,
 } from "../api/types";
-import { apiRequest } from "../api/client";
 import { useSceneBackground } from "../hooks/useSceneBackground";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
@@ -1219,15 +1219,15 @@ export function PlayerView({
             permissions={{
               canSelectToken: (tokenId) =>
                 playerTokens.some(
-                  (t) => t.id === tokenId && characters.some(
-                    (c) => c.id === t.character_id && c.owner_user_id === userId
-                  )
+                  (t) =>
+                    t.id === tokenId &&
+                    characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
                 ),
               canMoveToken: (tokenId) =>
                 playerTokens.some(
-                  (t) => t.id === tokenId && characters.some(
-                    (c) => c.id === t.character_id && c.owner_user_id === userId
-                  )
+                  (t) =>
+                    t.id === tokenId &&
+                    characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
                 ),
               canEditFog: false,
               canMultiSelect: false,
@@ -1235,10 +1235,10 @@ export function PlayerView({
             playerTokenIds={
               new Set(
                 playerTokens
-                  .filter((t) => characters.some(
-                    (c) => c.id === t.character_id && c.owner_user_id === userId
-                  ))
-                  .map((t) => t.id)
+                  .filter((t) =>
+                    characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
+                  )
+                  .map((t) => t.id),
               )
             }
             campaignId={cid}

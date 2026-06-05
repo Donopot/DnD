@@ -53,7 +53,9 @@ export function PartySummaryPanel({ characters, selectedCharacter }: PartySummar
     );
   }
 
-  const woundedCharacters = characters.filter((character) => character.hp_current < character.hp_max);
+  const woundedCharacters = characters.filter(
+    (character) => character.hp_current < character.hp_max,
+  );
   const downCharacters = characters.filter((character) => character.hp_current <= 0);
 
   return (
@@ -128,11 +130,16 @@ export function PartySummaryPanel({ characters, selectedCharacter }: PartySummar
                   </span>
                 </div>
 
-                <div className={`gm-panel-progress ${isDanger ? "danger" : ""}`} aria-label={`PV ${hpPercent}%`}>
+                <div
+                  className={`gm-panel-progress ${isDanger ? "danger" : ""}`}
+                  aria-label={`PV ${hpPercent}%`}
+                >
                   <i style={{ width: `${hpPercent}%` }} />
                 </div>
 
-                {character.notes ? <small className="gm-panel-muted">{character.notes}</small> : null}
+                {character.notes ? (
+                  <small className="gm-panel-muted">{character.notes}</small>
+                ) : null}
               </article>
             );
           })}

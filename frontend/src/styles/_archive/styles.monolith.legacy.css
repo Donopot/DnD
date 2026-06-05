@@ -6,21 +6,21 @@
 
 :root {
   /* ── Palette (dark theme default) ─────────────────────────── */
-  --bg-global: #070B0A;           /* Fond principal de l'application */
-  --bg-canvas: #0B0F17;           /* Zone de jeu / scène */
-  --bg-surface: #101816;          /* Sidebars, panneaux principaux */
-  --bg-surface-secondary: #16231F;/* Cartes, onglets, blocs */
-  --bg-surface-elevated: #1D2B26; /* Panels ouverts, menus, modales */
-  --border-subtle: #2B3A34;       /* Séparation légère */
-  --border-active: #D6A84F;       /* Élément sélectionné (or) */
-  --accent-primary: #D6A84F;      /* Or — premium, actif, important */
-  --accent-secondary: #3FBF8F;    /* Vert — succès, online, positif */
-  --text-strong: #F4EFE3;         /* Titres et texte principal */
-  --text-normal: #D7D0C2;         /* Contenu courant */
-  --text-weak: #9CA89F;           /* Labels, descriptions */
-  --danger: #D66A5E;              /* Erreurs, suppression */
-  --warning: #E0B45C;             /* Avertissements */
-  --success: #69C98F;             /* Confirmations */
+  --bg-global: #070b0a; /* Fond principal de l'application */
+  --bg-canvas: #0b0f17; /* Zone de jeu / scène */
+  --bg-surface: #101816; /* Sidebars, panneaux principaux */
+  --bg-surface-secondary: #16231f; /* Cartes, onglets, blocs */
+  --bg-surface-elevated: #1d2b26; /* Panels ouverts, menus, modales */
+  --border-subtle: #2b3a34; /* Séparation légère */
+  --border-active: #d6a84f; /* Élément sélectionné (or) */
+  --accent-primary: #d6a84f; /* Or — premium, actif, important */
+  --accent-secondary: #3fbf8f; /* Vert — succès, online, positif */
+  --text-strong: #f4efe3; /* Titres et texte principal */
+  --text-normal: #d7d0c2; /* Contenu courant */
+  --text-weak: #9ca89f; /* Labels, descriptions */
+  --danger: #d66a5e; /* Erreurs, suppression */
+  --warning: #e0b45c; /* Avertissements */
+  --success: #69c98f; /* Confirmations */
 
   /* ── Alias pour compatibilité avec l'existant ────────────── */
   --bg-primary: var(--bg-global);
@@ -36,7 +36,7 @@
   --text-tertiary: var(--text-weak);
   --text-muted: var(--text-weak);
   --text-brand: var(--accent-primary);
-  --text-inverse: #070B0A;
+  --text-inverse: #070b0a;
   --border-color: var(--border-subtle);
   --border-hover: var(--border-active);
   --border-light: rgba(255, 255, 255, 0.06);
@@ -49,32 +49,31 @@
   --success-dim: rgba(105, 201, 143, 0.15);
 
   /* ── Espacements ─────────────────────────────────────────── */
-  --space-1: 4px;                  /* micro-écarts */
-  --space-2: 8px;                  /* boutons compacts */
-  --space-3: 12px;                 /* intérieur de cartes */
-  --space-4: 16px;                 /* padding standard */
-  --space-5: 20px;                 /* panels importants */
-  --space-6: 24px;                 /* sections majeures */
+  --space-1: 4px; /* micro-écarts */
+  --space-2: 8px; /* boutons compacts */
+  --space-3: 12px; /* intérieur de cartes */
+  --space-4: 16px; /* padding standard */
+  --space-5: 20px; /* panels importants */
+  --space-6: 24px; /* sections majeures */
 
   /* ── Arrondis ────────────────────────────────────────────── */
-  --radius-sm: 6px;                /* boutons compacts */
-  --radius-md: 10px;               /* inputs, tabs */
-  --radius-lg: 14px;               /* panels */
-  --radius-xl: 18px;               /* modales / cartes principales */
+  --radius-sm: 6px; /* boutons compacts */
+  --radius-md: 10px; /* inputs, tabs */
+  --radius-lg: 14px; /* panels */
+  --radius-xl: 18px; /* modales / cartes principales */
 
   /* ── Ombres ──────────────────────────────────────────────── */
   --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.25);
   --shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.35);
-  --shadow-glow-gold: 0 0 0 1px rgba(214, 168, 79, 0.35),
-                      0 0 24px rgba(214, 168, 79, 0.08);
+  --shadow-glow-gold: 0 0 0 1px rgba(214, 168, 79, 0.35), 0 0 24px rgba(214, 168, 79, 0.08);
 
   /* ── Typographie ─────────────────────────────────────────── */
-  --text-xs: 11px;                 /* métadonnées, hints */
-  --text-sm: 12px;                 /* labels, descriptions */
-  --text-md: 14px;                 /* texte courant UI */
-  --text-lg: 16px;                 /* titres de panel */
-  --text-xl: 20px;                 /* titre de scène / section */
-  --text-2xl: 24px;                /* titre de page / campagne */
+  --text-xs: 11px; /* métadonnées, hints */
+  --text-sm: 12px; /* labels, descriptions */
+  --text-md: 14px; /* texte courant UI */
+  --text-lg: 16px; /* titres de panel */
+  --text-xl: 20px; /* titre de scène / section */
+  --text-2xl: 24px; /* titre de page / campagne */
 
   /* ── Scrollbar ───────────────────────────────────────────── */
   --scrollbar-thumb: var(--border-subtle);
@@ -174,8 +173,6 @@ button {
   cursor: pointer;
 }
 
-
-
 .brand-mark {
   display: inline-flex;
   width: fit-content;
@@ -195,8 +192,6 @@ button {
   color: #181f1b;
 }
 
-
-
 .status-strip {
   display: flex;
   flex-wrap: wrap;
@@ -211,7 +206,6 @@ button {
   color: #fff8e5;
   font-size: 0.86rem;
 }
-
 
 .auth-tabs {
   display: grid;
@@ -250,7 +244,7 @@ button {
 .primary-button {
   border: 1px solid var(--accent-primary);
   background: var(--accent-primary);
-  color: #070B0A;
+  color: #070b0a;
   font-weight: 700;
 }
 
@@ -340,7 +334,6 @@ a:focus-visible,
   background: var(--accent-dim);
 }
 
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -385,8 +378,6 @@ a:focus-visible,
   height: 42px;
   color: var(--brand-green);
 }
-
-
 
 .realtime-pill {
   display: inline-flex;
@@ -440,7 +431,6 @@ a:focus-visible,
   font-weight: 800;
 }
 
-
 .panel {
   min-height: 260px;
   padding: 22px;
@@ -464,19 +454,16 @@ a:focus-visible,
   gap: 10px;
 }
 
-
 .campaign-row.selected {
   border-color: var(--brand-green);
   background: #eef5ef;
 }
-
 
 .campaign-row small,
 .member-row small,
 .muted {
   color: var(--text-weak);
 }
-
 
 .detail-panel {
   min-height: 520px;
@@ -567,7 +554,6 @@ a:focus-visible,
   min-height: 38px;
   padding: 0 8px;
 }
-
 
 .character-list {
   display: grid;
@@ -692,17 +678,12 @@ a:focus-visible,
   border-top: 1px solid #ece5d8;
 }
 
-
-
 .roll-form,
 .log-note-form {
   display: grid;
   gap: 14px;
   align-content: start;
 }
-
-
-
 
 .roll-row,
 .log-row {
@@ -829,13 +810,6 @@ a:focus-visible,
   }
 }
 
-
-
-
-
-
-
-
 .map-board {
   position: relative;
   min-width: 100%;
@@ -867,7 +841,6 @@ a:focus-visible,
   align-content: start;
 }
 
-
 .token-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -890,8 +863,6 @@ a:focus-visible,
   color: var(--text-weak);
   font-size: 0.78rem;
 }
-
-
 
 .token-move-grid button:first-child {
   grid-column: 2;
@@ -918,14 +889,6 @@ a:focus-visible,
   }
 }
 
-
-
-
-
-
-
-
-
 .initiative-list {
   display: grid;
   gap: 8px;
@@ -951,11 +914,6 @@ a:focus-visible,
   opacity: 0.58;
 }
 
-
-
-
-
-
 @media (max-width: 980px) {
   .combat-layout {
     grid-template-columns: 1fr;
@@ -970,8 +928,6 @@ a:focus-visible,
     justify-content: flex-start;
   }
 }
-
-
 
 .map-board.with-background {
   background-image: none;
@@ -989,7 +945,6 @@ a:focus-visible,
     linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   background-size: inherit;
 }
-
 
 .map-token {
   z-index: 2;
@@ -1034,7 +989,6 @@ a:focus-visible,
   line-height: 1.25;
 }
 
-
 .detail-panel {
   max-width: none;
 }
@@ -1064,9 +1018,6 @@ a:focus-visible,
   }
 }
 
-
-
-
 .session-workspace .vtt-section,
 .session-workspace .combat-section,
 .session-workspace .session-section {
@@ -1074,10 +1025,6 @@ a:focus-visible,
   padding-top: 0;
   border-top: 0;
 }
-
-
-
-
 
 @media (max-width: 1250px) {
   .session-workspace {
@@ -1129,21 +1076,13 @@ a:focus-visible,
   padding: 12px;
 }
 
-
-
 .session-workspace .tool-card {
   box-shadow: 0 6px 16px rgba(7, 11, 10, 0.15);
 }
 
-
 .session-workspace .map-board {
   min-height: 60vh;
 }
-
-
-
-
-
 
 .combat-status.active {
   background: var(--accent-dim);
@@ -1155,19 +1094,9 @@ a:focus-visible,
   color: var(--danger);
 }
 
-
-
 .combat-action-row.compact {
   margin: 0;
 }
-
-
-
-
-
-
-
-
 
 .compact-combatant-row.active {
   border-color: var(--accent-primary);
@@ -1178,13 +1107,6 @@ a:focus-visible,
 .compact-combatant-row.defeated {
   opacity: 0.55;
 }
-
-
-
-
-
-
-
 
 @media (max-width: 980px) {
   .combat-command-header,
@@ -1356,7 +1278,6 @@ body {
     linear-gradient(135deg, #f7f2e6 0%, #efe6d2 48%, #e6ddc9 100%);
 }
 
-
 .sidebar {
   position: sticky;
   top: 0;
@@ -1419,8 +1340,6 @@ body {
   letter-spacing: -0.04em;
 }
 
-
-
 .panel {
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
@@ -1443,7 +1362,6 @@ body {
   max-height: calc(100vh - 150px);
   overflow: auto;
 }
-
 
 .campaign-row.selected {
   box-shadow: inset 4px 0 0 var(--accent-primary);
@@ -1470,7 +1388,6 @@ body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-
 .section-heading {
   margin-bottom: 14px;
 }
@@ -1490,7 +1407,6 @@ body {
   border-radius: 16px;
 }
 
-
 .map-board {
   box-shadow: inset 0 0 0 1px rgba(37, 48, 40, 0.16);
 }
@@ -1499,9 +1415,6 @@ body {
   box-shadow: 0 8px 18px rgba(7, 11, 10, 0.25);
   border: 2px solid var(--border-subtle);
 }
-
-
-
 
 .session-side-zone::-webkit-scrollbar,
 .campaign-list::-webkit-scrollbar,
@@ -1546,7 +1459,9 @@ input,
 textarea,
 select {
   border-radius: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .message.docked {
@@ -1631,18 +1546,11 @@ select {
 
 /* R4-7 session quick actions */
 
-
-
-
-
-
-
 .quick-action-buttons .ghost-button,
 .quick-action-buttons .primary-button {
   min-height: 40px;
   padding: 8px 12px;
 }
-
 
 @media (max-width: 900px) {
   .session-quick-actions {
@@ -1658,22 +1566,11 @@ select {
 
 /* Phase 9-1 map drag, snap and zoom */
 
-
-
-
-
-
-
 .snap-toggle.active {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
-
-
-
 
 .map-board {
   transform-origin: top left;
@@ -1743,7 +1640,6 @@ select {
   color: var(--brand-green);
 }
 
-
 .map-scroll.pan-mode {
   cursor: grab;
 }
@@ -1769,8 +1665,6 @@ select {
 
 /* Phase 9-4 map keyboard shortcuts */
 
-
-
 .keyboard-help summary::-webkit-details-marker {
   display: none;
 }
@@ -1778,10 +1672,6 @@ select {
 .keyboard-help[open] summary {
   border-bottom: 1px solid var(--border-subtle);
 }
-
-
-
-
 
 @media (max-width: 760px) {
   .keyboard-help {
@@ -1793,14 +1683,6 @@ select {
 
 /* Phase 9-5 map overview mini-map */
 
-
-
-
-
-
-
-
-
 .map-overview-token.selected {
   width: 13px;
   height: 13px;
@@ -1809,7 +1691,6 @@ select {
     0 0 0 3px rgba(245, 197, 66, 0.28),
     0 4px 10px rgba(35, 48, 40, 0.34);
 }
-
 
 @media (max-width: 760px) {
   .map-overview-map {
@@ -1833,28 +1714,9 @@ select {
   max-width: none;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 .map-board {
   margin: 0;
 }
-
-
-
-
-
-
 
 .map-overview-token.selected {
   width: 15px;
@@ -1934,14 +1796,9 @@ select {
   color: var(--brand-green);
 }
 
-
-
-
-
 .floating-widget-resize-handle:hover {
   opacity: 1;
 }
-
 
 .floating-widget.token-detail-panel,
 .floating-widget.tool-card {
@@ -1959,23 +1816,13 @@ select {
 
 /* Phase 10-2A floating panel toolbar */
 
-
-
-
-
 .floating-widget-toolbar-actions button:hover {
   background: rgba(7, 11, 10, 0.22);
 }
 
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
-
-
 
 @media (max-width: 760px) {
   .floating-widget-toolbar {
@@ -1992,25 +1839,19 @@ select {
 
 /* Phase 10-2B floating panels menu */
 
-
 .vtt-panels-menu.active {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
 
-
 .vtt-panels-menu summary::-webkit-details-marker {
   display: none;
 }
-
-
 
 .vtt-panels-menu-content button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
 
 @media (max-width: 760px) {
   .vtt-panels-menu {
@@ -2027,9 +1868,6 @@ select {
 /* End Phase 10-2B floating panels menu */
 
 /* Phase 10-2C floating panel presets */
-
-
-
 
 .vtt-panels-menu-group:first-child button {
   border-color: var(--accent-secondary);
@@ -2049,7 +1887,6 @@ html {
 body {
   overflow-x: hidden;
 }
-
 
 .sidebar {
   padding: 10px 8px;
@@ -2074,7 +1911,6 @@ body {
 .topbar small {
   font-size: 0.78rem;
 }
-
 
 .panel,
 .detail-panel,
@@ -2108,31 +1944,10 @@ body {
   font-size: 1rem;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .vtt-panels-menu-group .preset-button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
 
 @media (min-width: 1300px) {
   .workspace-grid {
@@ -2180,7 +1995,6 @@ body {
   overflow-x: hidden;
 }
 
-
 .sidebar {
   width: 48px;
   padding: 6px 4px;
@@ -2214,8 +2028,6 @@ body {
   font-size: 0.72rem;
 }
 
-
-
 .detail-panel {
   padding: 8px;
 }
@@ -2244,24 +2056,9 @@ body {
   margin-bottom: 5px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 .map-board {
   margin: auto;
 }
-
-
-
-
 
 .token-detail-panel {
   padding: 8px;
@@ -2277,13 +2074,6 @@ body {
 .tool-card > div {
   padding: 8px;
 }
-
-
-
-
-
-
-
 
 .form-stack,
 .scene-form,
@@ -2341,14 +2131,10 @@ select {
 
 /* Phase 10-3B clean GM play/prepare/advanced modes */
 
-
-
 .gm-mode-switch button.active {
   background: var(--brand-green);
   color: var(--text-inverse);
 }
-
-
 
 .gm-mode-play .vtt-control-panel > .tool-card {
   display: none;
@@ -2359,20 +2145,11 @@ select {
   display: grid;
 }
 
-
-
 .gm-mode-prepare .vtt-control-panel > .tool-card,
 .gm-mode-prepare .vtt-control-panel > .map-overview,
 .gm-mode-prepare .vtt-control-panel > .token-detail-panel {
   display: grid;
 }
-
-
-
-
-
-
-
 
 @media (max-width: 1250px) {
   .gm-mode-play .vtt-layout,
@@ -2393,24 +2170,11 @@ select {
 
 /* Phase 10-3C compact GM cockpit */
 
-
-
-
-
-
-
-
-
-
-
-
 .gm-cockpit-actions button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 @media (max-width: 1200px) {
   .gm-cockpit {
@@ -2443,37 +2207,19 @@ select {
   display: none;
 }
 
-
-
 .gm-mode-play .gm-cockpit-actions button:nth-child(3),
 .gm-mode-play .gm-cockpit-actions button:nth-child(5) {
   display: none;
 }
-
-
-
 
 .gm-mode-play .vtt-control-panel > .tool-card,
 .gm-mode-play .vtt-control-panel > .token-detail-panel {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .gm-mode-play .map-token {
   font-size: 0.68rem;
 }
-
-
-
-
 
 @media (min-width: 1500px) {
   .gm-mode-play .vtt-layout {
@@ -2516,10 +2262,6 @@ select {
   display: none;
 }
 
-
-
-
-
 .floating-widget.tool-card > form,
 .floating-widget.tool-card > div:not(.floating-widget-toolbar):not(.floating-widget-resize-handle) {
   padding-top: 2px;
@@ -2530,9 +2272,6 @@ select {
 .floating-widget.tool-card {
   padding-top: 0;
 }
-
-
-
 
 /* End Phase 10-3G floating panels final polish */
 
@@ -2560,14 +2299,6 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
-
-
 .vtt-panels-list button:not(:disabled) {
   border-color: var(--border-subtle);
   background: var(--bg-surface-secondary);
@@ -2579,8 +2310,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 .gm-mode-advanced .vtt-panels-menu[open] .vtt-panels-menu-content {
   top: 74px;
@@ -2601,7 +2330,6 @@ select {
 /* End Phase 10-3H intuitive GM panel manager */
 
 /* Sprint 1 Lot 1 - persistent presets and custom GM layout */
-
 
 .vtt-panels-menu[open] {
   z-index: 7000;
@@ -2625,8 +2353,6 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
 .vtt-panels-preset-grid .preset-button:last-child {
   grid-column: 1 / -1;
   border-color: var(--accent-primary);
@@ -2634,16 +2360,12 @@ select {
   color: var(--accent-primary);
 }
 
-
-
-
 .save-layout-button:hover:not(:disabled),
 .vtt-panels-preset-grid .preset-button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 @media (max-width: 760px) {
   .vtt-panels-menu[open] .vtt-panels-menu-content {
@@ -2661,20 +2383,15 @@ select {
 
 /* Sprint 1 Lot 2 - floating widget dock */
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 @media (max-width: 760px) {
   .floating-widget-dock {
@@ -2700,7 +2417,6 @@ select {
 
 /* Sprint 1 - GM panel system stabilization */
 
-
 .vtt-panels-menu[open] {
   z-index: 8000;
 }
@@ -2723,20 +2439,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -2745,7 +2453,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -2756,26 +2463,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -2859,7 +2553,6 @@ select {
 
 /* Sprint 1 - GM panel system stabilization */
 
-
 .vtt-panels-menu[open] {
   z-index: 8000;
 }
@@ -2882,20 +2575,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -2904,7 +2589,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -2915,26 +2599,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -3011,8 +2682,6 @@ select {
   display: none;
 }
 
-
-
 /* End Sprint 1 - standardized GM panels */
 
 /* Sprint 1 - GM main interface tabs */
@@ -3051,7 +2720,6 @@ select {
   display: block;
 }
 
-
 .campaign-view-tabs {
   position: sticky;
   top: 0;
@@ -3088,7 +2756,6 @@ select {
 
 /* Sprint 1 - GM panel system stabilization */
 
-
 .vtt-panels-menu[open] {
   z-index: 8000;
 }
@@ -3111,20 +2778,12 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
 
 .vtt-panels-preset-grid .preset-button:hover,
 .vtt-panels-list button:hover,
@@ -3133,7 +2792,6 @@ select {
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
 
 .floating-widget.tool-card > summary {
   display: none;
@@ -3144,26 +2802,13 @@ select {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button:hover {
   border-color: var(--accent-primary);
@@ -3260,9 +2905,6 @@ select {
   display: grid;
 }
 
-
-
-
 @media (max-width: 1300px) {
   .gm-workspace-tabs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3279,7 +2921,6 @@ select {
 
 /* Sprint GM-2A - Session Live modes */
 
-
 .detail-panel.campaign-view-live .session-live-mode-bar {
   display: grid;
   gap: 12px;
@@ -3289,8 +2930,6 @@ select {
   border-radius: 12px;
   background: var(--bg-surface-secondary);
 }
-
-
 
 .session-live-mode-buttons {
   display: grid;
@@ -3378,7 +3017,6 @@ select {
 
 /* Sprint GM-2C retry - visible GM Notes panel */
 
-
 .gm-notes-panel {
   display: grid;
   gap: 10px;
@@ -3406,42 +3044,25 @@ select {
   line-height: 1.45;
 }
 
-
-
-
 .gm-notes-footer button:hover:not(:disabled) {
   border-color: var(--danger);
   background: var(--danger-dim);
   color: var(--danger);
 }
 
-
 /* End Sprint GM-2C retry - visible GM Notes panel */
 
 /* Sprint GM-2D - Party summary panel */
-
 
 .party-summary-panel {
   display: grid;
   gap: 10px;
 }
 
-
-
 .party-summary-row.selected {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
 }
-
-
-
-
-
-
-
-
-
-
 
 @media (max-width: 760px) {
   .party-summary-stats {
@@ -3452,7 +3073,6 @@ select {
 /* End Sprint GM-2D - Party summary panel */
 
 /* Sprint GM-2E - Initiative panel */
-
 
 .initiative-panel {
   display: grid;
@@ -3593,25 +3213,11 @@ select {
 
 /* Sprint GM-2F - Quick actions panel */
 
-
-
-
-
-
-
-
-
-
-
 .quick-actions-panel button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--accent-primary);
 }
-
-
-
-
 
 @media (max-width: 760px) {
   .quick-actions-context,
@@ -3624,7 +3230,6 @@ select {
 /* End Sprint GM-2F - Quick actions panel */
 
 /* Sprint GM-2G - Visibility inspector panel */
-
 
 .visibility-inspector-panel {
   display: grid;
@@ -3783,7 +3388,6 @@ select {
 
 /* Phase 12 — Visibility controls */
 
-
 .visibility-bulk-actions .ghost-button {
   display: flex;
   align-items: center;
@@ -3791,7 +3395,6 @@ select {
   font-size: 0.72rem;
   padding: 4px 10px;
 }
-
 
 .visibility-token-actions .ghost-button.compact {
   padding: 2px 6px;
@@ -3808,7 +3411,6 @@ select {
 }
 
 /* Stabilisation UI panneaux GM */
-
 
 .vtt-panels-menu[open] {
   z-index: 8000;
@@ -3832,12 +3434,6 @@ select {
   backdrop-filter: blur(12px);
 }
 
-
-
-
-
-
-
 .vtt-panels-preset-grid .preset-button:last-child,
 .save-layout-button {
   border-color: var(--accent-primary);
@@ -3853,8 +3449,6 @@ select {
   color: var(--brand-green);
 }
 
-
-
 .floating-widget[data-vtt-panel] {
   max-width: calc(100vw - 24px);
   max-height: calc(100vh - 24px);
@@ -3867,29 +3461,17 @@ select {
   display: none;
 }
 
-
 .floating-widget[data-vtt-panel] .floating-widget-toolbar {
   margin: -1px -1px 7px;
 }
-
-
-
-
-
-
-
 
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
@@ -3937,15 +3519,10 @@ select {
 
 /* Stabilisation UI panneaux GM - reset centralisé */
 
-
-
-
-
 .vtt-panels-manager-footer .danger-lite:hover:not(:disabled) {
   border-color: var(--danger);
   background: #f7d7d0;
 }
-
 
 /* End Stabilisation UI panneaux GM - reset centralisé */
 
@@ -3970,15 +3547,9 @@ select {
 
 /* Menu panneaux plus lisible. */
 
-
-
-
 /* End Stabilisation UI panneaux GM - passe 2 */
 
 /* GM panel standardization fix */
-
-
-
 
 .floating-widget[data-vtt-panel] > summary,
 .floating-widget[data-vtt-panel] .map-overview-header,
@@ -3992,13 +3563,9 @@ select {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
@@ -4006,42 +3573,15 @@ select {
   color: var(--danger);
 }
 
-
 /* End GM panel standardization fix */
 
 /* Quick Actions compact stabilization */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 .quick-actions-panel-compact button:hover {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
-
-
-
 
 @media (max-width: 760px) {
   .quick-actions-context-card,
@@ -4121,9 +3661,6 @@ select {
   display: none;
 }
 
-
-
-
 @media (max-width: 1300px) {
   .gm-workspace-tabs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4140,14 +3677,6 @@ select {
 
 /* GM roadmap 0B - Standardized panel system */
 
-
-
-
-
-
-
-
-
 .floating-widget[data-vtt-panel] > summary,
 .floating-widget[data-vtt-panel] .map-overview-header,
 .floating-widget[data-vtt-panel] .token-detail-heading,
@@ -4160,20 +3689,15 @@ select {
   display: none;
 }
 
-
 .floating-widget-dock[hidden] {
   display: none;
 }
-
-
-
 
 .floating-widget-dock-list button[data-floating-dock-state="fermé"] {
   border-color: var(--danger);
   background: var(--danger-dim);
   color: var(--danger);
 }
-
 
 @media (max-width: 760px) {
   .vtt-panels-preset-grid {
@@ -4199,16 +3723,11 @@ select {
 
 /* GM-2C - Notes MJ */
 
-
 .gm-notes-panel {
   display: grid;
   gap: 10px;
   min-width: 0;
 }
-
-
-
-
 
 .gm-notes-panel textarea {
   min-height: 150px;
@@ -4229,17 +3748,11 @@ select {
   outline: 2px solid var(--border-subtle);
 }
 
-
-
-
-
 .gm-notes-footer button:hover:not(:disabled) {
   border-color: var(--accent-primary);
   background: var(--accent-dim);
   color: var(--brand-green);
 }
-
-
 
 @media (max-width: 760px) {
   .gm-notes-context {
@@ -4256,18 +3769,11 @@ select {
 
 /* GM-2D - Résumé du groupe */
 
-
 .party-summary-panel {
   display: grid;
   gap: 10px;
   min-width: 0;
 }
-
-
-
-
-
-
 
 .party-summary-row.selected {
   border-color: var(--accent-primary);
@@ -4280,24 +3786,14 @@ select {
   background: var(--danger-dim);
 }
 
-
-
-
-
-
 .party-summary-row.danger b {
   background: #f7d7d0;
   color: var(--danger);
 }
 
-
-
-
-
 .party-summary-row.danger .party-summary-health i {
   background: var(--danger);
 }
-
 
 @media (max-width: 760px) {
   .party-summary-overview {
@@ -4532,7 +4028,10 @@ select {
 .gm-panel-button,
 .gm-panel-actions button,
 .gm-panel-content button {
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .gm-panel-button:hover:not(:disabled),
@@ -4630,7 +4129,6 @@ select {
 
 /* GM-2D-CSS-P2 - Token detail standard layout */
 
-
 .token-detail-panel-standard {
   min-width: 0;
 }
@@ -4693,7 +4191,9 @@ select {
 }
 
 .token-detail-nudge-grid button {
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .token-detail-nudge-grid button:hover {
@@ -4803,7 +4303,9 @@ select {
 }
 
 .handout-row-actions button.danger {
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .handout-row-actions button.danger:hover {
@@ -4814,7 +4316,6 @@ select {
 /* End GM-2D-CSS-P2 - Token detail standard layout */
 
 /* ── Player View ──────────────────────────────────────────────────────── */
-
 
 /* Campaign header */
 .player-campaign-header {
@@ -5937,8 +5438,6 @@ select {
 
 /* ── Landing Page ───────────────────────────────────────────────────────── */
 
-
-
 .landing-hero .brand-mark.large {
   flex-direction: column;
   gap: 1rem;
@@ -5951,9 +5450,6 @@ select {
   letter-spacing: 0.04em;
   color: #f8f4e8;
 }
-
-
-
 
 .landing-choice:hover {
   transform: translateY(-2px);
@@ -5969,30 +5465,9 @@ select {
   background: rgba(124, 58, 237, 0.08);
 }
 
-
-
-
-
-
-
 /* ── AuthView updated: role badge, header ───────────────────────────────── */
 
-
-
-
 /* ── Player: Map tab ────────────────────────────────────────────────────── */
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* Player tokens on map */
 
@@ -9447,7 +8922,7 @@ select {
 .dice-face {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #070B0A;
+  color: #070b0a;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 

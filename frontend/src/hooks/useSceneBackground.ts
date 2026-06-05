@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Scene } from "../api/types";
 import { authHeaders } from "../api/client";
+import type { Scene } from "../api/types";
 
 /**
  * Loads a scene background image as a blob URL.

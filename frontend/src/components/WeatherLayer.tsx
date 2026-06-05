@@ -102,8 +102,12 @@ export function WeatherLayer({ type, intensity, width, height, enabled }: Weathe
       } else if (type === "night") {
         // Dark overlay with vignette
         const gradient = ctx.createRadialGradient(
-          width / 2, height / 2, width * 0.2,
-          width / 2, height / 2, width * 0.8,
+          width / 2,
+          height / 2,
+          width * 0.2,
+          width / 2,
+          height / 2,
+          width * 0.8,
         );
         gradient.addColorStop(0, `rgba(10, 15, 30, 0)`);
         gradient.addColorStop(0.5, `rgba(10, 15, 30, ${0.2 + intensity * 0.005})`);

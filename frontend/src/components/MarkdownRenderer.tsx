@@ -1,5 +1,5 @@
-import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { useMemo } from "react";
 
 // Configure marked for safe rendering
@@ -23,13 +23,38 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
     if (!content) return "";
     try {
       const raw = marked.parse(content) as string;
-      return DOMPurify.sanitize(raw, { ALLOWED_TAGS: [
-        "h1","h2","h3","h4","h5","h6","p","br","hr",
-        "ul","ol","li","blockquote","pre","code",
-        "strong","em","del","a","img",
-        "table","thead","tbody","tr","th","td",
-        "span","div",
-      ]});
+      return DOMPurify.sanitize(raw, {
+        ALLOWED_TAGS: [
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "p",
+          "br",
+          "hr",
+          "ul",
+          "ol",
+          "li",
+          "blockquote",
+          "pre",
+          "code",
+          "strong",
+          "em",
+          "del",
+          "a",
+          "img",
+          "table",
+          "thead",
+          "tbody",
+          "tr",
+          "th",
+          "td",
+          "span",
+          "div",
+        ],
+      });
     } catch {
       return content;
     }

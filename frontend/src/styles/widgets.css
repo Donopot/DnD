@@ -3,23 +3,13 @@
 /* ── Phase 10-2A floating panel toolbar ── */
 /* Phase 10-2A floating panel toolbar */
 
-
-
-
-
 .floating-widget-toolbar-actions button:hover {
   background: rgba(7, 11, 10, 0.22);
 }
 
-
-
-
-
 .floating-widget-collapsed > :not(.floating-widget-toolbar) {
   display: none;
 }
-
-
 
 @media (max-width: 760px) {
   .floating-widget-toolbar {
@@ -34,7 +24,6 @@
 
 /* End Phase 10-2A floating panel toolbar */
 
-
 /* ── Phase 10-2E compact density and centered main map ── */
 /* Phase 10-2E compact density and centered main map */
 
@@ -45,7 +34,6 @@ html {
 body {
   overflow-x: hidden;
 }
-
 
 .sidebar {
   width: 48px;
@@ -80,8 +68,6 @@ body {
   font-size: 0.72rem;
 }
 
-
-
 .detail-panel {
   padding: 8px;
 }
@@ -110,24 +96,9 @@ body {
   margin-bottom: 5px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 .map-board {
   margin: auto;
 }
-
-
-
-
 
 .token-detail-panel {
   padding: 8px;
@@ -143,13 +114,6 @@ body {
 .tool-card > div {
   padding: 8px;
 }
-
-
-
-
-
-
-
 
 .form-stack,
 .scene-form,
@@ -205,18 +169,13 @@ select {
 
 /* End Phase 10-2E compact density and centered main map */
 
-
 /* ── Phase 10-3B clean GM play/prepare/advanced modes ── */
 /* Phase 10-3B clean GM play/prepare/advanced modes */
-
-
 
 .gm-mode-switch button.active {
   background: var(--brand-green);
   color: var(--text-inverse);
 }
-
-
 
 .gm-mode-play .vtt-control-panel > .tool-card {
   display: none;
@@ -227,20 +186,11 @@ select {
   display: grid;
 }
 
-
-
 .gm-mode-prepare .vtt-control-panel > .tool-card,
 .gm-mode-prepare .vtt-control-panel > .map-overview,
 .gm-mode-prepare .vtt-control-panel > .token-detail-panel {
   display: grid;
 }
-
-
-
-
-
-
-
 
 @media (max-width: 1250px) {
   .gm-mode-play .vtt-layout,
@@ -259,7 +209,6 @@ select {
 
 /* End Phase 10-3B clean GM play/prepare/advanced modes */
 
-
 /* ── Phase 10-3E final GM play cleanup ── */
 /* Phase 10-3E final GM play cleanup */
 
@@ -267,37 +216,19 @@ select {
   display: none;
 }
 
-
-
 .gm-mode-play .gm-cockpit-actions button:nth-child(3),
 .gm-mode-play .gm-cockpit-actions button:nth-child(5) {
   display: none;
 }
-
-
-
 
 .gm-mode-play .vtt-control-panel > .tool-card,
 .gm-mode-play .vtt-control-panel > .token-detail-panel {
   display: none;
 }
 
-
-
-
-
-
-
-
-
-
 .gm-mode-play .map-token {
   font-size: 0.68rem;
 }
-
-
-
-
 
 @media (min-width: 1500px) {
   .gm-mode-play .vtt-layout {
@@ -372,7 +303,9 @@ select {
   font-size: 1.1rem;
   padding: 4px;
 }
-.shortcuts-close:hover { color: var(--text-strong); }
+.shortcuts-close:hover {
+  color: var(--text-strong);
+}
 
 .shortcuts-category {
   margin-bottom: 16px;
@@ -466,7 +399,9 @@ select {
   border-radius: 4px;
   color: var(--text-normal);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .panel-dock-item:hover {
@@ -475,4 +410,3 @@ select {
 }
 
 /* End Phase 10-3E final GM play cleanup */
-

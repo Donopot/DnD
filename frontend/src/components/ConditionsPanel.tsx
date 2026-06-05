@@ -133,7 +133,10 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
 
   async function loadEncounterDetail(encounterId: string) {
     try {
-      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, token);
+      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(
+        `/api/encounters/${encounterId}`,
+        token,
+      );
       setActiveEncounter(detail);
       setCombatants(detail.combatants ?? []);
       setAddingFor(null);
@@ -168,19 +171,23 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     if (!activeEncounter || !newCondition) return;
 
     try {
-      const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/apply`, token, {
-        method: "POST",
-        body: JSON.stringify({
-          combatant_id: combatantId,
-          condition: {
-            name: newCondition,
-            duration: newDuration,
-            duration_unit: newDuration === null ? null : "rounds",
-            source: null,
-            is_concentration: newCondition === "Concentration",
-          },
-        }),
-      });
+      const updated = await apiRequest<Combatant>(
+        `/api/encounters/${activeEncounter.id}/conditions/apply`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            combatant_id: combatantId,
+            condition: {
+              name: newCondition,
+              duration: newDuration,
+              duration_unit: newDuration === null ? null : "rounds",
+              source: null,
+              is_concentration: newCondition === "Concentration",
+            },
+          }),
+        },
+      );
 
       updateCombatant(updated);
       setNewCondition("");
@@ -195,13 +202,17 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     if (!activeEncounter) return;
 
     try {
-      const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/remove`, token, {
-        method: "POST",
-        body: JSON.stringify({
-          combatant_id: combatantId,
-          condition_name: conditionName,
-        }),
-      });
+      const updated = await apiRequest<Combatant>(
+        `/api/encounters/${activeEncounter.id}/conditions/remove`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            combatant_id: combatantId,
+            condition_name: conditionName,
+          }),
+        },
+      );
 
       updateCombatant(updated);
     } catch {
@@ -258,14 +269,18 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
     );
   }
 
-  const hasConditions = combatants.some((combatant) => getCombatantConditions(combatant).length > 0);
+  const hasConditions = combatants.some(
+    (combatant) => getCombatantConditions(combatant).length > 0,
+  );
 
   return (
     <div className="gm-panel-content conditions-panel" data-vtt-panel>
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>États & Conditions</strong>
-          <small>{activeEncounter ? `Combat : ${activeEncounter.name}` : "Aucun combat actif"}</small>
+          <small>
+            {activeEncounter ? `Combat : ${activeEncounter.name}` : "Aucun combat actif"}
+          </small>
         </header>
 
         {hasConditions && (

@@ -34,9 +34,7 @@ type RealtimePayload = {
   y?: number | string;
 };
 
-export function useRealtimeSession(
-  opts: UseRealtimeSessionOptions,
-): UseRealtimeSessionReturn {
+export function useRealtimeSession(opts: UseRealtimeSessionOptions): UseRealtimeSessionReturn {
   const { token, campaignId } = opts;
 
   const [presenceCount, setPresenceCount] = useState(0);
@@ -138,7 +136,7 @@ export function useRealtimeSession(
 
       if (reconnectAttempts.current < MAX_RECONNECT) {
         reconnectAttempts.current += 1;
-        const delay = Math.pow(2, reconnectAttempts.current - 1) * 1000;
+        const delay = 2 ** (reconnectAttempts.current - 1) * 1000;
         onError(`WebSocket disconnected — retrying in ${delay / 1000}s…`);
         reconnectTimer.current = window.setTimeout(() => {
           connect();

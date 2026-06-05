@@ -39,7 +39,10 @@ export function CombatTracker({ campaignId, token, onEncounterChange }: CombatTr
   async function loadEncounterDetail(encounterId: string) {
     setBusy(true);
     try {
-      const data = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, token);
+      const data = await apiRequest<Encounter & { combatants?: Combatant[] }>(
+        `/api/encounters/${encounterId}`,
+        token,
+      );
       setActiveEncounter(data);
       setCombatants(data.combatants || []);
     } catch {

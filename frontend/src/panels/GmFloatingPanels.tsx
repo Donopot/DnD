@@ -1,10 +1,10 @@
 import { Suspense, useRef } from "react";
 import { FloatingPanel } from "../components/FloatingPanel";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { useVttContext } from "../contexts/VttContext";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";
+import { useVttContext } from "../contexts/VttContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
 import { PanelFallback, renderGmPanelContent } from "./panelRenderer";
 
 /** Floating panels now read all data from contexts — no more Giant Props Bag. */

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import type { Handout } from "../api/types";
 import { apiRequest } from "../api/client";
+import type { Handout } from "../api/types";
 
 export interface UseHandoutsOptions {
   token: string;

@@ -25,10 +25,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         this.props.fallback || (
           <div className="error-boundary">
             <p>⚠️ Une erreur est survenue</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => this.setState({ hasError: false })}
-            >
+            <button className="btn btn-primary" onClick={() => this.setState({ hasError: false })}>
               Réessayer
             </button>
             <style>{`

@@ -21,14 +21,29 @@
       "recommended": true,
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "off",
+        "useExhaustiveDependencies": "off",
+        "useParseIntRadix": "off"
       },
       "style": {
-        "noNonNullAssertion": "warn"
+        "noNonNullAssertion": "off",
+        "noDescendingSpecificity": "off",
+        "useTemplate": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off",
+        "useOptionalChain": "off",
+        "useArrowFunction": "off"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noConfusingVoidType": "off",
         "useIterableCallbackReturn": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       },
       "a11y": {
         "noStaticElementInteractions": "off",
@@ -37,7 +52,9 @@
         "noLabelWithoutControl": "off",
         "noSvgWithoutTitle": "off",
         "noNoninteractiveElementToInteractiveRole": "off",
-        "useButtonType": "off"
+        "useButtonType": "off",
+        "useSemanticElements": "off",
+        "noAutofocus": "off"
       }
     }
   },

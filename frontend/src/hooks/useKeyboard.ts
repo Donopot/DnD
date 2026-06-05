@@ -25,8 +25,7 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
     if (!active || !ref.current) return;
 
     const container = ref.current;
-    const focusable =
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusable = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
@@ -83,7 +82,7 @@ export function useNudgeSelectedToken(
   options?: { step?: number; gridSize?: number; enabled?: boolean },
 ) {
   const gridSize = options?.gridSize;
-  const baseStep = options?.step ?? (gridSize ?? 1);
+  const baseStep = options?.step ?? gridSize ?? 1;
   const enabled = options?.enabled ?? true;
   const cooldownRef = useRef(0);
 

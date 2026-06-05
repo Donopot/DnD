@@ -1,13 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type {
-  Asset,
-  Combatant,
-  Encounter,
-  EncounterDetail,
-  Scene,
-  SceneToken,
-} from "../api/types";
 import { apiRequest } from "../api/client";
+import type { Asset, Combatant, Encounter, EncounterDetail, Scene, SceneToken } from "../api/types";
 
 export interface UseVttStateReturn {
   scenes: Scene[];
@@ -72,10 +65,7 @@ export function useVttState(
     async (campaignId: string) => {
       const requestId = ++vttRequestRef.current;
       try {
-        const data = await apiRequest<Scene[]>(
-          `/api/campaigns/${campaignId}/scenes`,
-          token,
-        );
+        const data = await apiRequest<Scene[]>(`/api/campaigns/${campaignId}/scenes`, token);
         if (requestId !== vttRequestRef.current) return;
         setScenes(data);
 
@@ -85,8 +75,7 @@ export function useVttState(
           return;
         }
 
-        const effectiveScene =
-          data.find((s) => s.id === selectedSceneId) ?? data[0];
+        const effectiveScene = data.find((s) => s.id === selectedSceneId) ?? data[0];
         setSelectedSceneId(effectiveScene.id);
         await loadSceneTokens(effectiveScene.id);
       } catch (error) {
@@ -100,11 +89,7 @@ export function useVttState(
   // ── Token operations ──────────────────────────────────────
 
   const performTokenAction = useCallback(
-    async (
-      action: string,
-      tokenToAct: SceneToken,
-      value?: number,
-    ): Promise<SceneToken | void> => {
+    async (action: string, tokenToAct: SceneToken, value?: number): Promise<SceneToken | void> => {
       switch (action) {
         case "duplicate": {
           const dup = await apiRequest<SceneToken>(
@@ -124,17 +109,11 @@ export function useVttState(
         }
         case "hide":
         case "reveal": {
-          const updated = await apiRequest<SceneToken>(
-            `/api/tokens/${tokenToAct.id}`,
-            token,
-            {
-              method: "PATCH",
-              body: JSON.stringify({ is_hidden: action === "hide" }),
-            },
-          );
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === updated.id ? updated : t)),
-          );
+          const updated = await apiRequest<SceneToken>(`/api/tokens/${tokenToAct.id}`, token, {
+            method: "PATCH",
+            body: JSON.stringify({ is_hidden: action === "hide" }),
+          });
+          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
           return updated;
         }
         case "front": {
@@ -143,9 +122,7 @@ export function useVttState(
             token,
             { method: "POST" },
           );
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === fwd.id ? fwd : t)),
-          );
+          setSceneTokens((current) => current.map((t) => (t.id === fwd.id ? fwd : t)));
           return fwd;
         }
         case "back": {
@@ -154,9 +131,7 @@ export function useVttState(
             token,
             { method: "POST" },
           );
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === bwd.id ? bwd : t)),
-          );
+          setSceneTokens((current) => current.map((t) => (t.id === bwd.id ? bwd : t)));
           return bwd;
         }
         case "damage":
@@ -168,19 +143,13 @@ export function useVttState(
             action === "damage"
               ? Math.max(0, hpCurrent - amount)
               : Math.min(hpMax, hpCurrent + amount);
-          const updated = await apiRequest<SceneToken>(
-            `/api/tokens/${tokenToAct.id}`,
-            token,
-            {
-              method: "PATCH",
-              body: JSON.stringify({
-                metadata: { ...tokenToAct.metadata, hp_current: newHp },
-              }),
-            },
-          );
-          setSceneTokens((current) =>
-            current.map((t) => (t.id === updated.id ? updated : t)),
-          );
+          const updated = await apiRequest<SceneToken>(`/api/tokens/${tokenToAct.id}`, token, {
+            method: "PATCH",
+            body: JSON.stringify({
+              metadata: { ...tokenToAct.metadata, hp_current: newHp },
+            }),
+          });
+          setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
           return updated;
         }
       }
@@ -190,58 +159,46 @@ export function useVttState(
 
   const handleToggleTokenHidden = useCallback(
     async (tokenToToggle: SceneToken) => {
-      const updated = await apiRequest<SceneToken>(
-        `/api/tokens/${tokenToToggle.id}`,
-        token,
-        {
-          method: "PATCH",
-          body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
-        },
-      );
-      setSceneTokens((current) =>
-        current.map((t) => (t.id === updated.id ? updated : t)),
-      );
+      const updated = await apiRequest<SceneToken>(`/api/tokens/${tokenToToggle.id}`, token, {
+        method: "PATCH",
+        body: JSON.stringify({ is_hidden: !tokenToToggle.is_hidden }),
+      });
+      setSceneTokens((current) => current.map((t) => (t.id === updated.id ? updated : t)));
     },
     [token],
   );
 
   // ── Combat state ──────────────────────────────────────────
 
-  const updateEncounterFromDetail = useCallback(
-    (detail: EncounterDetail) => {
-      setEncounters((current) => {
-        const summary: Encounter = {
-          id: detail.id,
-          campaign_id: detail.campaign_id,
-          scene_id: detail.scene_id,
-          name: detail.name,
-          status: detail.status,
-          round_number: detail.round_number,
-          turn_index: detail.turn_index,
-          active_combatant_id: detail.active_combatant_id,
-          created_at: detail.created_at,
-          updated_at: detail.updated_at,
-        };
+  const updateEncounterFromDetail = useCallback((detail: EncounterDetail) => {
+    setEncounters((current) => {
+      const summary: Encounter = {
+        id: detail.id,
+        campaign_id: detail.campaign_id,
+        scene_id: detail.scene_id,
+        name: detail.name,
+        status: detail.status,
+        round_number: detail.round_number,
+        turn_index: detail.turn_index,
+        active_combatant_id: detail.active_combatant_id,
+        created_at: detail.created_at,
+        updated_at: detail.updated_at,
+      };
 
-        if (current.some((item) => item.id === detail.id)) {
-          return current.map((item) => (item.id === detail.id ? summary : item));
-        }
+      if (current.some((item) => item.id === detail.id)) {
+        return current.map((item) => (item.id === detail.id ? summary : item));
+      }
 
-        return [summary, ...current];
-      });
+      return [summary, ...current];
+    });
 
-      setCombatants(detail.combatants);
-    },
-    [],
-  );
+    setCombatants(detail.combatants);
+  }, []);
 
   const loadEncounterDetail = useCallback(
     async (encounterId: string, requestId = combatRequestRef.current) => {
       try {
-        const detail = await apiRequest<EncounterDetail>(
-          `/api/encounters/${encounterId}`,
-          token,
-        );
+        const detail = await apiRequest<EncounterDetail>(`/api/encounters/${encounterId}`, token);
         if (requestId !== combatRequestRef.current) return;
         updateEncounterFromDetail(detail);
       } catch (error) {
@@ -269,8 +226,7 @@ export function useVttState(
           return;
         }
 
-        const effectiveEncounter =
-          data.find((e) => e.id === selectedEncounterId) ?? data[0];
+        const effectiveEncounter = data.find((e) => e.id === selectedEncounterId) ?? data[0];
         setSelectedEncounterId(effectiveEncounter.id);
         if (requestId !== combatRequestRef.current) return;
         await loadEncounterDetail(effectiveEncounter.id, requestId);
@@ -286,10 +242,7 @@ export function useVttState(
     async (campaignId: string) => {
       const requestId = ++assetsRequestRef.current;
       try {
-        const data = await apiRequest<Asset[]>(
-          `/api/campaigns/${campaignId}/assets`,
-          token,
-        );
+        const data = await apiRequest<Asset[]>(`/api/campaigns/${campaignId}/assets`, token);
         if (requestId !== assetsRequestRef.current) return;
         setAssetList(data);
         setSelectedAssetId((current) => current || data[0]?.id || "");

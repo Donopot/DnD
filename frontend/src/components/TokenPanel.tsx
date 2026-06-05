@@ -12,7 +12,13 @@ type TokenPanelProps = {
 
 const DEFAULT_COLOR = "#7c3aed";
 
-export function TokenPanel({ campaignId, token, sceneId, tokens, onTokensChanged }: TokenPanelProps) {
+export function TokenPanel({
+  campaignId,
+  token,
+  sceneId,
+  tokens,
+  onTokensChanged,
+}: TokenPanelProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [x, setX] = useState(0);
@@ -25,7 +31,9 @@ export function TokenPanel({ campaignId, token, sceneId, tokens, onTokensChanged
   if (!sceneId) {
     return (
       <div className="gm-panel-content gm-token-panel">
-        <header className="gm-panel-section-header"><strong>Tokens</strong></header>
+        <header className="gm-panel-section-header">
+          <strong>Tokens</strong>
+        </header>
         <div className="empty-hint">Sélectionnez une scène pour gérer ses tokens.</div>
       </div>
     );
@@ -132,31 +140,68 @@ export function TokenPanel({ campaignId, token, sceneId, tokens, onTokensChanged
             maxLength={120}
           />
           <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
-            <input type="number" placeholder="X" value={x} min={0} max={10000} onChange={(e) => setX(Number(e.target.value))} style={{ width: 80 }} />
-            <input type="number" placeholder="Y" value={y} min={0} max={10000} onChange={(e) => setY(Number(e.target.value))} style={{ width: 80 }} />
-            <input type="number" placeholder="Taille" value={size} min={1} max={8} onChange={(e) => setSize(Number(e.target.value))} style={{ width: 80 }} />
-            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} title="Couleur" />
+            <input
+              type="number"
+              placeholder="X"
+              value={x}
+              min={0}
+              max={10000}
+              onChange={(e) => setX(Number(e.target.value))}
+              style={{ width: 80 }}
+            />
+            <input
+              type="number"
+              placeholder="Y"
+              value={y}
+              min={0}
+              max={10000}
+              onChange={(e) => setY(Number(e.target.value))}
+              style={{ width: 80 }}
+            />
+            <input
+              type="number"
+              placeholder="Taille"
+              value={size}
+              min={1}
+              max={8}
+              onChange={(e) => setSize(Number(e.target.value))}
+              style={{ width: 80 }}
+            />
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              title="Couleur"
+            />
           </div>
           <div className="btn-row">
-            <button className="btn btn-primary" onClick={createToken} disabled={saving || !name.trim()}>
+            <button
+              className="btn btn-primary"
+              onClick={createToken}
+              disabled={saving || !name.trim()}
+            >
               {saving ? "Création..." : "Ajouter"}
             </button>
-            <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>Annuler</button>
+            <button className="btn btn-secondary" onClick={() => setShowCreate(false)}>
+              Annuler
+            </button>
           </div>
         </div>
       )}
 
       <div className="token-list" style={{ marginTop: showCreate ? 10 : 0 }}>
-        {tokens.length === 0 && (
-          <div className="empty-hint">Aucun token dans cette scène.</div>
-        )}
+        {tokens.length === 0 && <div className="empty-hint">Aucun token dans cette scène.</div>}
         {tokens.map((t) => (
           <div key={t.id} className="token-row">
             <span className="token-swatch" style={{ backgroundColor: t.color }} />
             <span className="token-name">{t.name}</span>
             {t.is_hidden && <span className="hidden-badge">caché</span>}
-            <span className="token-pos">({t.x}, {t.y}) ×{t.size}</span>
-            <button className="token-del" onClick={() => deleteToken(t.id)} title="Supprimer">×</button>
+            <span className="token-pos">
+              ({t.x}, {t.y}) ×{t.size}
+            </span>
+            <button className="token-del" onClick={() => deleteToken(t.id)} title="Supprimer">
+              ×
+            </button>
           </div>
         ))}
       </div>

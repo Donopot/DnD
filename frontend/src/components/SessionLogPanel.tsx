@@ -1,11 +1,11 @@
 import { Bookmark, Dices, Filter, Pin, PinOff } from "lucide-react";
-import { useContext, type FormEvent } from "react";
+import { type FormEvent, useContext } from "react";
 
 import { apiRequest } from "../api/client";
 import type { Character, GameLogEntry, Roll } from "../api/types";
-import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
-import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
 import { PanelContext } from "../contexts/PanelContext";
+import { WorkspaceActionsContext } from "../contexts/WorkspaceActionsContext";
+import { WorkspaceStateContext } from "../contexts/WorkspaceStateContext";
 
 const CATEGORIES = [
   { id: "general", label: "General", emoji: "📝" },
@@ -98,7 +98,9 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
       {/* ── Quick Roll ─────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Dices size={14} /> Lancer un dé</strong>
+          <strong>
+            <Dices size={14} /> Lancer un dé
+          </strong>
         </header>
         <form className="gm-panel-section" onSubmit={onRoll}>
           <label>
@@ -155,9 +157,7 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
             <p>
               <strong>{latestRoll.label || latestRoll.formula}</strong>
               {" → "}
-              <span style={{ fontSize: "1.2rem", fontWeight: 800 }}>
-                {latestRoll.total}
-              </span>
+              <span style={{ fontSize: "1.2rem", fontWeight: 800 }}>{latestRoll.total}</span>
             </p>
           </div>
         </section>
@@ -213,7 +213,9 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
       {/* ── Category filters ──────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Filter size={12} /> Filtrer</strong>
+          <strong>
+            <Filter size={12} /> Filtrer
+          </strong>
         </header>
         <div className="category-filter-list">
           <button className="ghost-button compact" onClick={() => onRefresh?.()} type="button">
@@ -236,7 +238,9 @@ export function SessionLogPanel(props: SessionLogPanelProps = {}) {
       {pinnedEntries.length > 0 && (
         <section className="gm-panel-section">
           <header className="gm-panel-section-header">
-            <strong><Pin size={12} /> Épinglés</strong>
+            <strong>
+              <Pin size={12} /> Épinglés
+            </strong>
           </header>
           <div className="gm-panel-list">
             {pinnedEntries.map((e) => (

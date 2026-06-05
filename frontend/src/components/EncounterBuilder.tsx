@@ -303,10 +303,14 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
     setBusy(true);
     setMessage("");
     try {
-      const encounter = await apiRequest<{ id: string; name: string }>(`/api/campaigns/${campaignId}/encounters`, token, {
-        method: "POST",
-        body: JSON.stringify({ name: `Rencontre ${environment}` }),
-      });
+      const encounter = await apiRequest<{ id: string; name: string }>(
+        `/api/campaigns/${campaignId}/encounters`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({ name: `Rencontre ${environment}` }),
+        },
+      );
 
       for (const m of monsters) {
         for (let i = 0; i < m.count; i++) {

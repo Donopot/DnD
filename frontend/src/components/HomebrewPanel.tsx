@@ -1,6 +1,6 @@
 import { Download, FlaskConical, Plus, Swords, Trash2, Upload } from "lucide-react";
-import { apiRequest } from "../api/client";
 import { type FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "../api/client";
 
 import type { Encounter, HomebrewCreature, HomebrewItem, Scene } from "../api/types";
 
@@ -105,29 +105,33 @@ export function HomebrewPanel({
   async function createCreature(e: FormEvent) {
     e.preventDefault();
     try {
-      const c = await apiRequest<HomebrewCreature>(`/api/campaigns/${campaignId}/homebrew/creatures`, token, {
-        method: "POST",
-        body: JSON.stringify({
-          name: creatureForm.name,
-          description: creatureForm.description,
-          armor_class: creatureForm.armor_class,
-          hp_max: creatureForm.hp_max,
-          speed: creatureForm.speed,
-          attributes: {
-            str: creatureForm.str,
-            dex: creatureForm.dex,
-            con: creatureForm.con,
-            int: creatureForm.int,
-            wis: creatureForm.wis,
-            cha: creatureForm.cha,
-          },
-          attacks: creatureForm.attacks ? JSON.parse(creatureForm.attacks) : [],
-          spells: creatureForm.spells ? JSON.parse(creatureForm.spells) : [],
-          size: creatureForm.size,
-          challenge_rating: creatureForm.challenge_rating,
-          type: creatureForm.type,
-        }),
-      });
+      const c = await apiRequest<HomebrewCreature>(
+        `/api/campaigns/${campaignId}/homebrew/creatures`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: creatureForm.name,
+            description: creatureForm.description,
+            armor_class: creatureForm.armor_class,
+            hp_max: creatureForm.hp_max,
+            speed: creatureForm.speed,
+            attributes: {
+              str: creatureForm.str,
+              dex: creatureForm.dex,
+              con: creatureForm.con,
+              int: creatureForm.int,
+              wis: creatureForm.wis,
+              cha: creatureForm.cha,
+            },
+            attacks: creatureForm.attacks ? JSON.parse(creatureForm.attacks) : [],
+            spells: creatureForm.spells ? JSON.parse(creatureForm.spells) : [],
+            size: creatureForm.size,
+            challenge_rating: creatureForm.challenge_rating,
+            type: creatureForm.type,
+          }),
+        },
+      );
       setCreatures((prev) => [c, ...prev]);
       setCreatureForm(EMPTY_CREATURE);
       setMessage(`${c.name} creee.`);
@@ -152,16 +156,20 @@ export function HomebrewPanel({
   async function createItem(e: FormEvent) {
     e.preventDefault();
     try {
-      const item = await apiRequest<HomebrewItem>(`/campaigns/${campaignId}/homebrew/items`, token, {
-        method: "POST",
-        body: JSON.stringify({
-          name: itemForm.name,
-          description: itemForm.description,
-          item_type: itemForm.item_type,
-          rarity: itemForm.rarity,
-          properties: itemForm.properties ? JSON.parse(itemForm.properties) : {},
-        }),
-      });
+      const item = await apiRequest<HomebrewItem>(
+        `/campaigns/${campaignId}/homebrew/items`,
+        token,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: itemForm.name,
+            description: itemForm.description,
+            item_type: itemForm.item_type,
+            rarity: itemForm.rarity,
+            properties: itemForm.properties ? JSON.parse(itemForm.properties) : {},
+          }),
+        },
+      );
       setItems((prev) => [item, ...prev]);
       setItemForm(EMPTY_ITEM);
       setMessage(`${item.name} cree.`);

@@ -11,8 +11,8 @@ import type {
   SceneToken,
   User,
 } from "../api/types";
-import type { FloatingPanelState } from "../hooks/useFloatingPanels";
 import type { CampaignMapProps } from "../components/CampaignMap";
+import type { FloatingPanelState } from "../hooks/useFloatingPanels";
 
 // ── Shared context for panel rendering ────────────────────────────────
 
@@ -68,7 +68,11 @@ export type GmFloatingPanelsProps = {
   selectedScene: Scene | undefined;
   sceneTokens: SceneToken[];
   campaignMapProps: CampaignMapProps;
-  handleQuickRoll: (formula: string, label: string, mode: "normal" | "advantage" | "disadvantage") => void;
+  handleQuickRoll: (
+    formula: string,
+    label: string,
+    mode: "normal" | "advantage" | "disadvantage",
+  ) => void;
   handleRoll: (e: FormEvent<HTMLFormElement>) => void;
   handleLogNote: (e: FormEvent<HTMLFormElement>) => void;
   handleCreateHandout: (e: FormEvent<HTMLFormElement>) => void;

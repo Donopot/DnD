@@ -250,8 +250,7 @@ export function FogLayer({
 
   if (!_sceneId) return null;
 
-  const cursor =
-    fogInteractive && eraseMode ? "pointer" : fogInteractive ? "crosshair" : "default";
+  const cursor = fogInteractive && eraseMode ? "pointer" : fogInteractive ? "crosshair" : "default";
 
   return (
     <div

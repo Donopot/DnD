@@ -1,5 +1,17 @@
 import { createContext, useContext } from "react";
-import type { Campaign, Character, Encounter, GameLogEntry, Handout, Invite, Member, Roll, Scene, SceneToken, User } from "../api/types";
+import type {
+  Campaign,
+  Character,
+  Encounter,
+  GameLogEntry,
+  Handout,
+  Invite,
+  Member,
+  Roll,
+  Scene,
+  SceneToken,
+  User,
+} from "../api/types";
 
 /**
  * Read-only workspace state — stable until campaign/scene changes.

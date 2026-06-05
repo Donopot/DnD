@@ -3,21 +3,21 @@
 
 :root {
   /* ── Palette (dark theme default) ─────────────────────────── */
-  --bg-global: #070B0A;           /* Fond principal de l'application */
-  --bg-canvas: #0B0F17;           /* Zone de jeu / scène */
-  --bg-surface: #101816;          /* Sidebars, panneaux principaux */
-  --bg-surface-secondary: #16231F;/* Cartes, onglets, blocs */
-  --bg-surface-elevated: #1D2B26; /* Panels ouverts, menus, modales */
-  --border-subtle: #2B3A34;       /* Séparation légère */
-  --border-active: #D6A84F;       /* Élément sélectionné (or) */
-  --accent-primary: #D6A84F;      /* Or — premium, actif, important */
-  --accent-secondary: #3FBF8F;    /* Vert — succès, online, positif */
-  --text-strong: #F4EFE3;         /* Titres et texte principal */
-  --text-normal: #D7D0C2;         /* Contenu courant */
-  --text-weak: #9CA89F;           /* Labels, descriptions */
-  --danger: #D66A5E;              /* Erreurs, suppression */
-  --warning: #E0B45C;             /* Avertissements */
-  --success: #69C98F;             /* Confirmations */
+  --bg-global: #070b0a; /* Fond principal de l'application */
+  --bg-canvas: #0b0f17; /* Zone de jeu / scène */
+  --bg-surface: #101816; /* Sidebars, panneaux principaux */
+  --bg-surface-secondary: #16231f; /* Cartes, onglets, blocs */
+  --bg-surface-elevated: #1d2b26; /* Panels ouverts, menus, modales */
+  --border-subtle: #2b3a34; /* Séparation légère */
+  --border-active: #d6a84f; /* Élément sélectionné (or) */
+  --accent-primary: #d6a84f; /* Or — premium, actif, important */
+  --accent-secondary: #3fbf8f; /* Vert — succès, online, positif */
+  --text-strong: #f4efe3; /* Titres et texte principal */
+  --text-normal: #d7d0c2; /* Contenu courant */
+  --text-weak: #9ca89f; /* Labels, descriptions */
+  --danger: #d66a5e; /* Erreurs, suppression */
+  --warning: #e0b45c; /* Avertissements */
+  --success: #69c98f; /* Confirmations */
 
   /* ── Alias pour compatibilité avec l'existant ────────────── */
   --bg-primary: var(--bg-global);
@@ -33,7 +33,7 @@
   --text-tertiary: var(--text-weak);
   --text-muted: var(--text-weak);
   --text-brand: var(--accent-primary);
-  --text-inverse: #070B0A;
+  --text-inverse: #070b0a;
   --border-color: var(--border-subtle);
   --border-hover: var(--border-active);
   --border-light: rgba(255, 255, 255, 0.06);
@@ -46,32 +46,31 @@
   --success-dim: rgba(105, 201, 143, 0.15);
 
   /* ── Espacements ─────────────────────────────────────────── */
-  --space-1: 4px;                  /* micro-écarts */
-  --space-2: 8px;                  /* boutons compacts */
-  --space-3: 12px;                 /* intérieur de cartes */
-  --space-4: 16px;                 /* padding standard */
-  --space-5: 20px;                 /* panels importants */
-  --space-6: 24px;                 /* sections majeures */
+  --space-1: 4px; /* micro-écarts */
+  --space-2: 8px; /* boutons compacts */
+  --space-3: 12px; /* intérieur de cartes */
+  --space-4: 16px; /* padding standard */
+  --space-5: 20px; /* panels importants */
+  --space-6: 24px; /* sections majeures */
 
   /* ── Arrondis ────────────────────────────────────────────── */
-  --radius-sm: 6px;                /* boutons compacts */
-  --radius-md: 10px;               /* inputs, tabs */
-  --radius-lg: 14px;               /* panels */
-  --radius-xl: 18px;               /* modales / cartes principales */
+  --radius-sm: 6px; /* boutons compacts */
+  --radius-md: 10px; /* inputs, tabs */
+  --radius-lg: 14px; /* panels */
+  --radius-xl: 18px; /* modales / cartes principales */
 
   /* ── Ombres ──────────────────────────────────────────────── */
   --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.25);
   --shadow-panel: 0 12px 40px rgba(0, 0, 0, 0.35);
-  --shadow-glow-gold: 0 0 0 1px rgba(214, 168, 79, 0.35),
-                      0 0 24px rgba(214, 168, 79, 0.08);
+  --shadow-glow-gold: 0 0 0 1px rgba(214, 168, 79, 0.35), 0 0 24px rgba(214, 168, 79, 0.08);
 
   /* ── Typographie ─────────────────────────────────────────── */
-  --text-xs: 11px;                 /* métadonnées, hints */
-  --text-sm: 12px;                 /* labels, descriptions */
-  --text-md: 14px;                 /* texte courant UI */
-  --text-lg: 16px;                 /* titres de panel */
-  --text-xl: 20px;                 /* titre de scène / section */
-  --text-2xl: 24px;                /* titre de page / campagne */
+  --text-xs: 11px; /* métadonnées, hints */
+  --text-sm: 12px; /* labels, descriptions */
+  --text-md: 14px; /* texte courant UI */
+  --text-lg: 16px; /* titres de panel */
+  --text-xl: 20px; /* titre de scène / section */
+  --text-2xl: 24px; /* titre de page / campagne */
 
   /* ── Scrollbar ───────────────────────────────────────────── */
   --scrollbar-thumb: var(--border-subtle);
@@ -170,8 +169,6 @@ button {
   cursor: pointer;
 }
 
-
-
 .brand-mark {
   display: inline-flex;
   width: fit-content;
@@ -191,8 +188,6 @@ button {
   color: #181f1b;
 }
 
-
-
 .status-strip {
   display: flex;
   flex-wrap: wrap;
@@ -207,7 +202,6 @@ button {
   color: #fff8e5;
   font-size: 0.86rem;
 }
-
 
 .auth-tabs {
   display: grid;
@@ -246,7 +240,7 @@ button {
 .primary-button {
   border: 1px solid var(--accent-primary);
   background: var(--accent-primary);
-  color: #070B0A;
+  color: #070b0a;
   font-weight: 700;
 }
 
@@ -336,7 +330,6 @@ a:focus-visible,
   background: var(--accent-dim);
 }
 
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -381,8 +374,6 @@ a:focus-visible,
   height: 42px;
   color: var(--brand-green);
 }
-
-
 
 .realtime-pill {
   display: inline-flex;
@@ -436,7 +427,6 @@ a:focus-visible,
   font-weight: 800;
 }
 
-
 .panel {
   min-height: 260px;
   padding: 22px;
@@ -460,19 +450,16 @@ a:focus-visible,
   gap: 10px;
 }
 
-
 .campaign-row.selected {
   border-color: var(--brand-green);
   background: #eef5ef;
 }
-
 
 .campaign-row small,
 .member-row small,
 .muted {
   color: var(--text-weak);
 }
-
 
 .detail-panel {
   min-height: 520px;
@@ -563,7 +550,6 @@ a:focus-visible,
   min-height: 38px;
   padding: 0 8px;
 }
-
 
 .character-list {
   display: grid;
@@ -688,17 +674,12 @@ a:focus-visible,
   border-top: 1px solid #ece5d8;
 }
 
-
-
 .roll-form,
 .log-note-form {
   display: grid;
   gap: 14px;
   align-content: start;
 }
-
-
-
 
 .roll-row,
 .log-row {
@@ -825,13 +806,6 @@ a:focus-visible,
   }
 }
 
-
-
-
-
-
-
-
 .map-board {
   position: relative;
   min-width: 100%;
@@ -863,7 +837,6 @@ a:focus-visible,
   align-content: start;
 }
 
-
 .token-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -886,8 +859,6 @@ a:focus-visible,
   color: var(--text-weak);
   font-size: 0.78rem;
 }
-
-
 
 .token-move-grid button:first-child {
   grid-column: 2;
@@ -914,15 +885,6 @@ a:focus-visible,
   }
 }
 
-
-
-
-
-
-
-
-
-
 .combatant-row {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) auto;
@@ -943,11 +905,6 @@ a:focus-visible,
   opacity: 0.58;
 }
 
-
-
-
-
-
 @media (max-width: 980px) {
   .combat-layout {
     grid-template-columns: 1fr;
@@ -962,8 +919,6 @@ a:focus-visible,
     justify-content: flex-start;
   }
 }
-
-
 
 .map-board.with-background {
   background-image: none;
@@ -981,7 +936,6 @@ a:focus-visible,
     linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
   background-size: inherit;
 }
-
 
 .map-token {
   z-index: 2;
@@ -1026,7 +980,6 @@ a:focus-visible,
   line-height: 1.25;
 }
 
-
 .detail-panel {
   max-width: none;
 }
@@ -1056,9 +1009,6 @@ a:focus-visible,
   }
 }
 
-
-
-
 .session-workspace .vtt-section,
 .session-workspace .combat-section,
 .session-workspace .session-section {
@@ -1066,10 +1016,6 @@ a:focus-visible,
   padding-top: 0;
   border-top: 0;
 }
-
-
-
-
 
 @media (max-width: 1250px) {
   .session-workspace {
@@ -1121,21 +1067,13 @@ a:focus-visible,
   padding: 12px;
 }
 
-
-
 .session-workspace .tool-card {
   box-shadow: 0 6px 16px rgba(7, 11, 10, 0.15);
 }
 
-
 .session-workspace .map-board {
   min-height: 60vh;
 }
-
-
-
-
-
 
 .combat-status.active {
   background: var(--accent-dim);
@@ -1147,19 +1085,9 @@ a:focus-visible,
   color: var(--danger);
 }
 
-
-
 .combat-action-row.compact {
   margin: 0;
 }
-
-
-
-
-
-
-
-
 
 .compact-combatant-row.active {
   border-color: var(--accent-primary);
@@ -1170,13 +1098,6 @@ a:focus-visible,
 .compact-combatant-row.defeated {
   opacity: 0.55;
 }
-
-
-
-
-
-
-
 
 @media (max-width: 980px) {
   .combat-command-header,

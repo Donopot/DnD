@@ -109,7 +109,10 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     const requestToken = latestTokenRef.current;
 
     try {
-      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(`/api/encounters/${encounterId}`, requestToken);
+      const detail = await apiRequest<Encounter & { combatants?: Combatant[] }>(
+        `/api/encounters/${encounterId}`,
+        requestToken,
+      );
 
       if (
         requestId !== detailRequestIdRef.current ||
@@ -173,14 +176,16 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
     () => combatants.filter((c) => c.is_hidden && !c.is_defeated),
     [combatants],
   );
-  const defeatedCombatants = useMemo(
-    () => combatants.filter((c) => c.is_defeated),
-    [combatants],
-  );
+  const defeatedCombatants = useMemo(() => combatants.filter((c) => c.is_defeated), [combatants]);
 
-  const statusLabel = activeEncounter?.status === "active" ? "En cours" :
-    activeEncounter?.status === "draft" ? "Préparation" :
-      activeEncounter?.status === "ended" ? "Terminé" : "";
+  const statusLabel =
+    activeEncounter?.status === "active"
+      ? "En cours"
+      : activeEncounter?.status === "draft"
+        ? "Préparation"
+        : activeEncounter?.status === "ended"
+          ? "Terminé"
+          : "";
 
   // ── Render ───────────────────────────────────────────────────────────
 
@@ -195,9 +200,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
   if (!activeEncounter) {
     return (
       <div className="gm-panel-content" data-vtt-panel>
-        <p className="gm-panel-muted">
-          Aucun combat. Créez un combat dans le panneau Combat.
-        </p>
+        <p className="gm-panel-muted">Aucun combat. Créez un combat dans le panneau Combat.</p>
       </div>
     );
   }
@@ -208,7 +211,9 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>{activeEncounter.name}</strong>
-          <small>Round {activeEncounter.round_number} · {statusLabel}</small>
+          <small>
+            Round {activeEncounter.round_number} · {statusLabel}
+          </small>
         </header>
 
         <div className="gm-panel-actions">
@@ -279,9 +284,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
               <article className="gm-panel-row" key={c.id} style={{ opacity: 0.6 }}>
                 <header>
                   <span>
-                    <strong style={{ textDecoration: "line-through" }}>
-                      {c.name}
-                    </strong>
+                    <strong style={{ textDecoration: "line-through" }}>{c.name}</strong>
                     <small>Vaincu</small>
                   </span>
                 </header>
@@ -294,11 +297,10 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       {/* ── Objectives ────────────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Target size={12} /> Objectifs</strong>
-          <button
-            type="button"
-            onClick={() => toggleEditing("objectives")}
-          >
+          <strong>
+            <Target size={12} /> Objectifs
+          </strong>
+          <button type="button" onClick={() => toggleEditing("objectives")}>
             {editing === "objectives" ? "Annuler" : notes.objectives ? "Modifier" : "Ajouter"}
           </button>
         </header>
@@ -329,12 +331,15 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       {/* ── Victory conditions ────────────────────────────────────── */}
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
-          <strong><Trophy size={12} /> Conditions de victoire</strong>
-          <button
-            type="button"
-            onClick={() => toggleEditing("victoryConditions")}
-          >
-            {editing === "victoryConditions" ? "Annuler" : notes.victoryConditions ? "Modifier" : "Ajouter"}
+          <strong>
+            <Trophy size={12} /> Conditions de victoire
+          </strong>
+          <button type="button" onClick={() => toggleEditing("victoryConditions")}>
+            {editing === "victoryConditions"
+              ? "Annuler"
+              : notes.victoryConditions
+                ? "Modifier"
+                : "Ajouter"}
           </button>
         </header>
 
@@ -365,10 +370,7 @@ export function ActiveEncounterPanel({ campaignId, token }: ActiveEncounterPanel
       <section className="gm-panel-section">
         <header className="gm-panel-section-header">
           <strong>🏆 Loot</strong>
-          <button
-            type="button"
-            onClick={() => toggleEditing("loot")}
-          >
+          <button type="button" onClick={() => toggleEditing("loot")}>
             {editing === "loot" ? "Annuler" : notes.loot ? "Modifier" : "Ajouter"}
           </button>
         </header>

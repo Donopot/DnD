@@ -1,16 +1,24 @@
-import { DoorOpen, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Swords, UserPlus } from "lucide-react";
-import { Suspense, lazy } from "react";
+import {
+  DoorOpen,
+  Maximize2,
+  Minimize2,
+  PanelRightClose,
+  PanelRightOpen,
+  Swords,
+  UserPlus,
+} from "lucide-react";
+import { lazy, Suspense } from "react";
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
 import { PanelDock } from "../components/PanelDock";
-import { GmDockedPanels } from "../panels/GmDockedPanels";
-import { GmFloatingPanels } from "../panels/GmFloatingPanels";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
-import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { GmDockedPanels } from "../panels/GmDockedPanels";
+import { GmFloatingPanels } from "../panels/GmFloatingPanels";
 
 // ── Props (kept lean — data comes from contexts) ──────────────────────────
 
@@ -52,21 +60,9 @@ export function GmWorkspace(props: GmWorkspaceProps) {
   const panel = usePanelContext();
   const session = useSessionContext();
 
-  const {
-    token,
-    campaigns,
-    selectedCampaign,
-    members,
-    characters,
-    latestInvite,
-  } = state;
+  const { token, campaigns, selectedCampaign, members, characters, latestInvite } = state;
 
-  const {
-    handleCreateInvite,
-    onLogout,
-    selectCampaign,
-    loadCharacters,
-  } = actions;
+  const { handleCreateInvite, onLogout, selectCampaign, loadCharacters } = actions;
 
   const {
     gmView,
@@ -88,14 +84,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     setCharacters,
   } = panel;
 
-  const {
-    presenceCount,
-    realtimeStatus,
-    theme,
-    toggleTheme,
-    toasts,
-    dismissToast,
-  } = session;
+  const { presenceCount, realtimeStatus, theme, toggleTheme, toasts, dismissToast } = session;
 
   return (
     <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
@@ -233,9 +222,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
 
         <CampaignViewTabs activeView={gmView} onChange={setGmView} />
 
-        {!isMapFloating && (
-          <CampaignMap {...campaignMapProps} />
-        )}
+        {!isMapFloating && <CampaignMap {...campaignMapProps} />}
       </section>
 
       {/* ── Droite — Panneaux dockés ─────────────────────────── */}

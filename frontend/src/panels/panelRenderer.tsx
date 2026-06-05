@@ -23,8 +23,8 @@ import type {
   SceneToken,
   User,
 } from "../api/types";
-import { GM_PANELS, type GmPanelDefinition } from "../config/gmPanels";
 import type { CampaignMapProps } from "../components/CampaignMap";
+import { GM_PANELS, type GmPanelDefinition } from "../config/gmPanels";
 
 const ActiveEncounterPanel = lazy(() =>
   import("../components/ActiveEncounterPanel").then((m) => ({ default: m.ActiveEncounterPanel })),
@@ -190,9 +190,7 @@ export function getDockedPanelsForView(category: string, visiblePanelIds: Set<st
 
   return GM_PANELS.filter(
     (panel) =>
-      panel.status === "active" &&
-      panel.category === category &&
-      visiblePanelIds.has(panel.id),
+      panel.status === "active" && panel.category === category && visiblePanelIds.has(panel.id),
   );
 }
 
@@ -409,9 +407,7 @@ function renderCharacters(props: GmPanelRenderProps) {
           isBusy={props.isBusy}
           onSave={(updated) =>
             props.setCharacters?.((characters) =>
-              characters.map((character) =>
-                character.id === updated.id ? updated : character,
-              ),
+              characters.map((character) => (character.id === updated.id ? updated : character)),
             )
           }
         />
@@ -630,10 +626,7 @@ function isPanelOpenByDefault(panelId: string) {
   );
 }
 
-export function renderDockedPanel(
-  panel: GmPanelDefinition,
-  props: GmPanelRenderProps,
-): ReactNode {
+export function renderDockedPanel(panel: GmPanelDefinition, props: GmPanelRenderProps): ReactNode {
   const content = renderGmPanelContent(panel.id, props);
   if (!content) return null;
 

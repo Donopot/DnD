@@ -80,11 +80,8 @@
 
 /* End Player View CSS */
 
-
 /* ── Landing Page ── */
 /* ── Landing Page ───────────────────────────────────────────────────────── */
-
-
 
 .landing-hero .brand-mark.large {
   flex-direction: column;
@@ -98,9 +95,6 @@
   letter-spacing: 0.04em;
   color: #f8f4e8;
 }
-
-
-
 
 .landing-choice:hover {
   transform: translateY(-2px);
@@ -116,19 +110,8 @@
   background: rgba(124, 58, 237, 0.08);
 }
 
-
-
-
-
-
-
-
 /* ── AuthView updated: role badge, header ── */
 /* ── AuthView updated: role badge, header ───────────────────────────────── */
-
-
-
-
 
 /* ── AuthPage: unified login/register ── */
 /* ── AuthPage: unified login/register ───────────────────────────────────── */
@@ -412,7 +395,6 @@
   color: #e8d48a;
 }
 
-
 /* ── Responsive AuthPage ── */
 /* ── Responsive AuthPage ─────────────────────────────────────────────────── */
 
@@ -437,7 +419,6 @@
     padding: 1.5rem 1.25rem;
   }
 }
-
 
 /* ── Lobby: shared base ── */
 /* ── Lobby: shared base ─────────────────────────────────────────────────── */
@@ -544,7 +525,6 @@
   font-size: 0.82rem;
 }
 
-
 /* ── Invite Preview Card ── */
 /* ── Invite Preview Card ─────────────────────────────────────────────────── */
 
@@ -584,4 +564,3 @@
 .invite-preview-card .error-text {
   color: #cc6644;
 }
-

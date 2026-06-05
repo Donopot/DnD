@@ -115,12 +115,5 @@ export function MapMinimap({
     }
   }, [selectedScene, sceneTokens, zoom, fogZones, isGM, gridSize, isInFogZone, scrollRef]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="campaign-map-minimap"
-      width={160}
-      height={120}
-    />
-  );
+  return <canvas ref={canvasRef} className="campaign-map-minimap" width={160} height={120} />;
 }
