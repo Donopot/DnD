@@ -114,6 +114,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               key={c.id}
               onClick={() => selectCampaign(c.id)}
               type="button"
+              data-testid="campaign-card"
               aria-label={`${c.name} — ${c.member_count} membres`}
               aria-current={selectedCampaign?.id === c.id ? "true" : undefined}
             >

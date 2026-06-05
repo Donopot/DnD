@@ -13,7 +13,7 @@ import { expect, test } from "@playwright/test";
  *       TEST_CAMPAIGN_ID      (ID de la campagne test)
  */
 
-const BASE = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5173";
+const BASE = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:8090";
 
 test.describe("Smoke — flux GM", () => {
   test("login → campagne → carte → sélection token → déplacement", async ({
@@ -34,7 +34,7 @@ test.describe("Smoke — flux GM", () => {
 
     // ── 2. Dashboard → campagne ────────────────────────────
     // Cliquer sur la première campagne disponible
-    const campaignLink = page.locator('[data-testid="campaign-card"] a').first();
+    const campaignLink = page.locator('[data-testid="campaign-card"]').first();
     await expect(campaignLink).toBeVisible({ timeout: 10_000 });
     await campaignLink.click();
 

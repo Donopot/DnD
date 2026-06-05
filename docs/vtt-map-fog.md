@@ -454,6 +454,6 @@ docker compose config --quiet
 - `docs/archive/phase-8-map-assets.md` — gestion des images de fond de carte.
 - `docs/archive/phase-9-map-ux.md` — UX carte avancée (drag, zoom, mini-map).
 - `docs/archive/phase-6-vtt-session.md` — sessions VTT, scènes, tokens.
-- `docs/agent-coordination.md` — coordination multi-agent et registre des branches.
+- `docs/deployment-ops.md` — coordination multi-agent et registre des branches.
 - `docs/frontend-panels.md` — architecture des panneaux UI.
 - `docs/gm-panel-stabilization.md` — stabilisation des panneaux MJ.

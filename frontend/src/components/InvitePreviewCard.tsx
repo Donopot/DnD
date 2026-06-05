@@ -1,5 +1,5 @@
 import { Castle, Swords, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { apiRequest } from "../api/client";
 
@@ -22,8 +22,7 @@ export function InvitePreviewCard({ inviteToken, authToken, onJoined }: InvitePr
   const [isBusy, setIsBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Load invite preview on mount
-  if (!loaded) {
+  useEffect(() => {
     void (async () => {
       try {
         const res = await fetch(`/api/invites/${inviteToken}`);
@@ -38,6 +37,9 @@ export function InvitePreviewCard({ inviteToken, authToken, onJoined }: InvitePr
         setLoaded(true);
       }
     })();
+  }, [inviteToken]);
+
+  if (!loaded) {
     return <p>Chargement de l'invitation...</p>;
   }
 
