@@ -36,7 +36,7 @@ WS_MAX_MSG_SIZE = 4096  # bytes
 
 def _validate_coords(x, y, label: str = "") -> None:
     """Reject non-finite or extreme coordinate values."""
-    if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+    if not isinstance(x, int | float) or not isinstance(y, int | float):
         raise ValueError(f"{label} coordinates must be numbers")
     if not (-1_000_000 <= x <= 1_000_000) or not (-1_000_000 <= y <= 1_000_000):
         raise ValueError(f"{label} coordinates out of range")
@@ -542,10 +542,10 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     size = message.get("size", 30)
                     angle = message.get("angle", 0)
                     _validate_coords(x, y, "aoe_shape")
-                    if not isinstance(size, (int, float)) or not (1 <= size <= 2000):
+                    if not isinstance(size, int | float) or not (1 <= size <= 2000):
                         await websocket.send_json({"type": "error", "detail": "AoE size must be 1-2000 feet"})
                         continue
-                    if not isinstance(angle, (int, float)) or not (0 <= angle <= 360):
+                    if not isinstance(angle, int | float) or not (0 <= angle <= 360):
                         await websocket.send_json({"type": "error", "detail": "AoE angle must be 0-360"})
                         continue
                     await manager.broadcast(
