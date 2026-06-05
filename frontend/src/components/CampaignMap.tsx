@@ -11,7 +11,7 @@ export type MapPermissions = {
 };
 import { useNudgeSelectedToken } from "../hooks/useKeyboard";
 import { useMapViewport } from "../hooks/useMapViewport";
-import { FogLayer, type FogZone } from "./FogLayer";
+import { FogLayer } from "./FogLayer";
 import { MapMinimap } from "./MapMinimap";
 import { MapTokensLayer } from "./MapTokensLayer";
 import { MapTools } from "./MapTools";
@@ -440,7 +440,6 @@ export function CampaignMap({
 
   // ── Token interaction (GM only, snap-to-grid) ───────────────────────────
   function handleTokenPointerDown(event: PointerEvent, token: SceneToken) {
-    const canInteractWithToken = permissions.canSelectToken(token.id);
 
     if (event.button === 1) {
       return;
