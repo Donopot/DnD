@@ -73,6 +73,7 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
       actions.handleRevokeInvite,
       actions.onLogout,
       actions.selectCampaign,
+      actions.loadCampaigns,
       actions.loadCharacters,
     ],
   );

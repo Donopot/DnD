@@ -2149,6 +2149,10 @@
   padding: 0;
   border: none;
   border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
 }
 
 /* ═══════════════════════════════════════════════════════

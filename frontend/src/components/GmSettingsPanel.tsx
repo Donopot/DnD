@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
 
 export function GmSettingsPanel() {
   const { selectedCampaign, campaigns, token } = useWorkspaceState();
+  const { loadCampaigns } = useWorkspaceActions();
   const campaignId = selectedCampaign?.id;
 
   const campaign = campaigns.find((c) => c.id === campaignId) ?? selectedCampaign;
-  const settings: Record<string, boolean> =
-    (campaign as Record<string, unknown> & { gm_settings?: Record<string, boolean> })
-      ?.gm_settings ?? {};
+  const settings: Record<string, boolean> = campaign?.gm_settings ?? {};
 
   const [draft, setDraft] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -39,6 +39,7 @@ export function GmSettingsPanel() {
         method: "PATCH",
         body: JSON.stringify(draft),
       });
+      await loadCampaigns();
       setMessage("Paramètres enregistrés.");
     } catch {
       setMessage("Erreur lors de l'enregistrement.");

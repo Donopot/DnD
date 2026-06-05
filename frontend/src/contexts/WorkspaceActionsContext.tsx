@@ -38,6 +38,7 @@ export interface WorkspaceActions {
 
   // Campaign
   selectCampaign: (id: string) => void;
+  loadCampaigns: () => Promise<void>;
 
   // Data loading
   loadCharacters: (campaignId: string) => Promise<void>;
