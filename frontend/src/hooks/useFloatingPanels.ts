@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -15,30 +15,31 @@ export type FloatingPanelState = {
 
 type PersistedState = Omit<FloatingPanelState, "zIndex" | "minimized">;
 
-const STORAGE_KEY = "dnd_floating_panels";
+const STORAGE_KEY_PREFIX = "dnd_fp_v1";
 const DEFAULT_WIDTH = 340;
 const DEFAULT_HEIGHT = 420;
 
-// ─── Hook ──────────────────────────────────────────────────────────────────
+function storageKey(campaignId?: string): string {
+  return campaignId ? `${STORAGE_KEY_PREFIX}_${campaignId}` : STORAGE_KEY_PREFIX;
+}
 
-export function useFloatingPanels() {
-  const [panels, setPanels] = useState<FloatingPanelState[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const saved: PersistedState[] = JSON.parse(raw);
-      return saved.map((p, i) => ({
-        ...p,
-        minimized: false,
-        zIndex: 1000 + i * 10,
-      }));
-    } catch {
-      return [];
-    }
-  });
+function loadPanels(key: string): FloatingPanelState[] {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const saved: PersistedState[] = JSON.parse(raw);
+    return saved.map((p, i) => ({
+      ...p,
+      minimized: false,
+      zIndex: 1000 + i * 10,
+    }));
+  } catch {
+    return [];
+  }
+}
 
-  // Persist positions/sizes (exclude zIndex and minimized)
-  useEffect(() => {
+function savePanels(key: string, panels: FloatingPanelState[]): void {
+  try {
     const toSave: PersistedState[] = panels.map(({ id, title, x, y, width, height }) => ({
       id,
       title,
@@ -47,8 +48,36 @@ export function useFloatingPanels() {
       width,
       height,
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  }, [panels]);
+    localStorage.setItem(key, JSON.stringify(toSave));
+  } catch {
+    // silencieux
+  }
+}
+
+// ─── Hook ──────────────────────────────────────────────────────────────────
+
+export function useFloatingPanels(campaignId?: string) {
+  const key = storageKey(campaignId);
+  const prevKeyRef = useRef(key);
+
+  const [panels, setPanels] = useState<FloatingPanelState[]>(() => loadPanels(key));
+
+  // Persist positions/sizes (exclude zIndex and minimized)
+  useEffect(() => {
+    savePanels(key, panels);
+  }, [key, panels]);
+
+  // Reload panels when campaign changes (key change = campaign switch)
+  useEffect(() => {
+    if (prevKeyRef.current !== key) {
+      prevKeyRef.current = key;
+      setPanels(loadPanels(key));
+    }
+  }, [key]);
+
+  const reset = useCallback(() => {
+    setPanels([]);
+  }, []);
 
   const open = useCallback(
     (id: string, title: string, x?: number, y?: number, width?: number, height?: number) => {
@@ -122,5 +151,6 @@ export function useFloatingPanels() {
     bringToFront,
     updatePosition,
     updateSize,
+    reset,
   };
 }

@@ -83,7 +83,7 @@ export default function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [gmView, setGmView] = useState<CampaignView>("live");
   const characterLoadRef = useRef(0);
-  const fp = useFloatingPanels();
+  const fp = useFloatingPanels(selectedCampaign?.id);
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
 

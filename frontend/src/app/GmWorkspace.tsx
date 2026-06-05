@@ -4,6 +4,7 @@ import {
   Minimize2,
   PanelRightClose,
   PanelRightOpen,
+  RotateCcw,
   Swords,
   UserPlus,
 } from "lucide-react";
@@ -192,6 +193,14 @@ export function GmWorkspace(props: GmWorkspaceProps) {
             type="button"
           >
             {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+          <button
+            className="focus-map-btn"
+            onClick={() => fp.reset()}
+            title="Réinitialiser la disposition des panneaux"
+            type="button"
+          >
+            <RotateCcw size={16} />
           </button>
           <button
             className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
