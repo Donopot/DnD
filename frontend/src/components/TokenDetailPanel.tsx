@@ -232,6 +232,7 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <span>Label</span>
             {editingField === "label" ? (
               <input
+                // biome-ignore lint/a11y/noAutofocus: intentional UX — auto-focus inline edit field when editing starts
                 autoFocus
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
@@ -254,6 +255,7 @@ export function TokenDetailPanel(props: TokenDetailPanelProps = {}) {
             <span>Taille</span>
             {editingField === "size" ? (
               <input
+                // biome-ignore lint/a11y/noAutofocus: intentional UX — auto-focus inline edit field
                 autoFocus
                 type="number"
                 min={1}

@@ -275,8 +275,8 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
     if (!match) return 1;
     const [, num, sides] = match;
     let total = 0;
-    for (let i = 0; i < parseInt(num); i++) {
-      total += Math.floor(Math.random() * parseInt(sides)) + 1;
+    for (let i = 0; i < parseInt(num, 10); i++) {
+      total += Math.floor(Math.random() * parseInt(sides, 10)) + 1;
     }
     return total;
   }

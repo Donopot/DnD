@@ -162,6 +162,7 @@ export function RulesReference() {
                       <p
                         key={i}
                         className="rules-line"
+                        // biome-ignore lint/security/noDangerouslySetInnerHtml: static D&D rules text with bold tags only
                         dangerouslySetInnerHTML={{ __html: boldLine }}
                       />
                     );

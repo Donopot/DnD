@@ -115,6 +115,7 @@ export function MapTokensLayer({
             : [];
 
         return (
+          // biome-ignore lint/a11y/useSemanticElements: token wrapper needs drag+click, semantic button breaks layout
           <div
             className={`campaign-map-token ${selectedTokenId === token.id ? "selected" : ""} ${selectedTokenIds.has(token.id) && selectedTokenId !== token.id ? "group-selected" : ""} ${dragTokenId === token.id ? "dragging" : ""} ${isPlayerToken && isGM ? "player-owned" : ""} ${isBloodied ? "token-bloodied" : ""} ${isDefeated ? "token-defeated" : ""} ${isConcentrating ? "token-concentrating" : ""} ${isFogHidden ? "fog-hidden" : ""} ${isManuallyHidden ? "token-hidden-from-players" : ""}`}
             key={token.id}

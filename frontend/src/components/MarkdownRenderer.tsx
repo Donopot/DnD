@@ -65,6 +65,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   return (
     <div
       className={`markdown-rendered${className ? ` ${className}` : ""}`}
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: markdown already sanitized via DOMPurify
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

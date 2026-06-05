@@ -12,31 +12,30 @@ RACES = [
 
 GENRES = ["Masculin", "Féminin", "Non-binaire"]
 
-# ruff: noqa: E501 — name data arrays below have legitimate long lines
 NOMS = {
     "Humain": {
-        "Masculin": ["Aldric", "Cedric", "Darian", "Edmund", "Garret", "Hugo", "Lothar", "Merek", "Orin", "Percival", "Roderick", "Theobald", "Ulric", "Victor", "Willem"],
-        "Féminin": ["Alys", "Beatrice", "Cecily", "Elena", "Gwen", "Isolde", "Lianna", "Margot", "Rosalind", "Seraphina", "Tessa", "Yvaine"],
+        "Masculin": ["Aldric", "Cedric", "Darian", "Edmund", "Garret", "Hugo", "Lothar", "Merek", "Orin", "Percival", "Roderick", "Theobald", "Ulric", "Victor", "Willem"],  # noqa: E501
+        "Féminin": ["Alys", "Beatrice", "Cecily", "Elena", "Gwen", "Isolde", "Lianna", "Margot", "Rosalind", "Seraphina", "Tessa", "Yvaine"],  # noqa: E501
         "Non-binaire": ["Ariel", "Caelan", "Darian", "Ellis", "Kai", "Morgan", "Quinn", "Ren", "Sage", "Val"],
     },
     "Elfe": {
-        "Masculin": ["Aelar", "Elrond", "Felaern", "Ilphas", "Laeron", "Myrin", "Nylas", "Orist", "Sylas", "Theron", "Vaelin", "Zylrien"],
-        "Féminin": ["Aeris", "Caelynn", "Elara", "Faenys", "Ilyana", "Lirael", "Miralys", "Naevys", "Sylphine", "Thalia", "Valyra", "Yllawen"],
+        "Masculin": ["Aelar", "Elrond", "Felaern", "Ilphas", "Laeron", "Myrin", "Nylas", "Orist", "Sylas", "Theron", "Vaelin", "Zylrien"],  # noqa: E501
+        "Féminin": ["Aeris", "Caelynn", "Elara", "Faenys", "Ilyana", "Lirael", "Miralys", "Naevys", "Sylphine", "Thalia", "Valyra", "Yllawen"],  # noqa: E501
         "Non-binaire": ["Aeris", "Caelum", "Ilian", "Lareth", "Myrin", "Sylvan", "Vaeril", "Zephyr"],
     },
     "Nain": {
-        "Masculin": ["Balin", "Dain", "Durin", "Farin", "Gimli", "Gloin", "Kazador", "Morgrim", "Orin", "Rurik", "Thorin", "Torvin"],
-        "Féminin": ["Arna", "Brynhild", "Dagmar", "Eldeth", "Gerta", "Helga", "Ingrid", "Kathra", "Sigrid", "Thyra", "Yrsa"],
+        "Masculin": ["Balin", "Dain", "Durin", "Farin", "Gimli", "Gloin", "Kazador", "Morgrim", "Orin", "Rurik", "Thorin", "Torvin"],  # noqa: E501
+        "Féminin": ["Arna", "Brynhild", "Dagmar", "Eldeth", "Gerta", "Helga", "Ingrid", "Kathra", "Sigrid", "Thyra", "Yrsa"],  # noqa: E501
         "Non-binaire": ["Bryn", "Dain", "Korg", "Magni", "Ragna", "Sten", "Torvald"],
     },
     "Halfelin": {
-        "Masculin": ["Alton", "Corrin", "Dell", "Errich", "Finnan", "Garret", "Lyle", "Merric", "Milo", "Ned", "Perrin", "Reed"],
-        "Féminin": ["Andry", "Bree", "Cora", "Euphemia", "Jillian", "Lavinia", "Lidda", "Merla", "Nyx", "Portia", "Seraphina", "Verna"],
+        "Masculin": ["Alton", "Corrin", "Dell", "Errich", "Finnan", "Garret", "Lyle", "Merric", "Milo", "Ned", "Perrin", "Reed"],  # noqa: E501
+        "Féminin": ["Andry", "Bree", "Cora", "Euphemia", "Jillian", "Lavinia", "Lidda", "Merla", "Nyx", "Portia", "Seraphina", "Verna"],  # noqa: E501
         "Non-binaire": ["Cory", "Finley", "Merry", "Riley", "Robin", "Shiloh", "Tavi"],
     },
     "Gnome": {
-        "Masculin": ["Alvyn", "Boddynock", "Dimble", "Eldon", "Frug", "Gimble", "Namfoodle", "Orryn", "Roondar", "Sindri", "Tock", "Zook"],
-        "Féminin": ["Banxi", "Carlin", "Ellywick", "Jelenneth", "Lilli", "Loopmottin", "Mardnab", "Roywyn", "Shamil", "Tana", "Zanna"],
+        "Masculin": ["Alvyn", "Boddynock", "Dimble", "Eldon", "Frug", "Gimble", "Namfoodle", "Orryn", "Roondar", "Sindri", "Tock", "Zook"],  # noqa: E501
+        "Féminin": ["Banxi", "Carlin", "Ellywick", "Jelenneth", "Lilli", "Loopmottin", "Mardnab", "Roywyn", "Shamil", "Tana", "Zanna"],  # noqa: E501
         "Non-binaire": ["Bimpnottin", "Cade", "Fizz", "Jinx", "Nix", "Sprocket", "Tink"],
     },
     "Demi-elfe": {
@@ -50,12 +49,12 @@ NOMS = {
         "Non-binaire": ["Dorn", "Karn", "Morg", "Rath", "Skarr", "Thokk"],
     },
     "Tieffelin": {
-        "Masculin": ["Akmenos", "Cairn", "Damakos", "Ekemon", "Iados", "Kairon", "Leucis", "Melech", "Morthos", "Pelius", "Skamos", "Zairon"],
-        "Féminin": ["Akta", "Anakis", "Bryseis", "Criella", "Damaia", "Ea", "Kallista", "Lerissa", "Makaria", "Nemeia", "Orianna", "Phelaia", "Rieta"],
+        "Masculin": ["Akmenos", "Cairn", "Damakos", "Ekemon", "Iados", "Kairon", "Leucis", "Melech", "Morthos", "Pelius", "Skamos", "Zairon"],  # noqa: E501
+        "Féminin": ["Akta", "Anakis", "Bryseis", "Criella", "Damaia", "Ea", "Kallista", "Lerissa", "Makaria", "Nemeia", "Orianna", "Phelaia", "Rieta"],  # noqa: E501
         "Non-binaire": ["Cairn", "Lyris", "Morthos", "Raziel", "Sariel", "Zephon"],
     },
     "Dragonné": {
-        "Masculin": ["Arjhan", "Balasar", "Bharash", "Donaar", "Ghesh", "Kriv", "Medrash", "Nadarr", "Pandjed", "Torinn", "Ugin"],
+        "Masculin": ["Arjhan", "Balasar", "Bharash", "Donaar", "Ghesh", "Kriv", "Medrash", "Nadarr", "Pandjed", "Torinn", "Ugin"],  # noqa: E501
         "Féminin": ["Akra", "Biri", "Daar", "Harann", "Jheri", "Kava", "Korinn", "Perra", "Sora", "Thava", "Vera"],
         "Non-binaire": ["Ash", "Clax", "Kurn", "Ophir", "Rath", "Skaas", "Torinn"],
     },
@@ -64,7 +63,7 @@ NOMS = {
 APPARENCES = {
     "taille": ["Très petit", "Petit", "Dans la moyenne", "Grand", "Très grand", "Imposant"],
     "carrure": ["Frêle", "Svelte", "Athlétique", "Trapu", "Corpulent", "Musculeux", "Décharné"],
-    "cheveux": ["Noirs", "Bruns", "Blonds", "Roux", "Blancs", "Gris", "Chauve", "Rasés", "Longs et tressés", "En bataille"],
+    "cheveux": ["Noirs", "Bruns", "Blonds", "Roux", "Blancs", "Gris", "Chauve", "Rasés", "Longs et tressés", "En bataille"],  # noqa: E501
     "yeux": ["Noirs", "Marron", "Bleus", "Verts", "Gris", "Noisette", "Vairons", "Ambrés", "Pâles", "Perçants"],
     "peau": ["Claire", "Mate", "Bronzée", "Sombre", "Pâle", "Tannée", "Cicatrisée", "Tatouée"],
     "signe_distinctif": [
