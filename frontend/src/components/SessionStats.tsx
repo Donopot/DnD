@@ -1,5 +1,7 @@
 import { BarChart3, Dice1, Swords, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { GameLogEntry, Roll } from "../api/types";
 
 type SessionStatsProps = {
@@ -33,21 +35,14 @@ export function SessionStats({ campaignId, token }: SessionStatsProps) {
   async function loadStats() {
     setLoading(true);
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-
-      // Load rolls
-      const rollsRes = await fetch(`/api/campaigns/${campaignId}/rolls?limit=500`, { headers });
-      const rolls: Roll[] = rollsRes.ok ? await rollsRes.json() : [];
-
-      // Load log
-      const logRes = await fetch(`/api/campaigns/${campaignId}/log?limit=500`, { headers });
-      const log: GameLogEntry[] = logRes.ok ? await logRes.json() : [];
-
-      // Sessions
-      const sessionsRes = await fetch(`/api/campaigns/${campaignId}/log/sessions`, { headers });
-      const sessions: Array<{ label: string; at: string }> = sessionsRes.ok
-        ? await sessionsRes.json()
-        : [];
+      const results = await Promise.allSettled([
+        apiRequest<Roll[]>(`/api/campaigns/${campaignId}/rolls?limit=500`, token),
+        apiRequest<GameLogEntry[]>(`/api/campaigns/${campaignId}/log?limit=500`, token),
+        apiRequest<Array<{ label: string; at: string }>>(`/api/campaigns/${campaignId}/log/sessions`, token),
+      ]);
+      const rolls = results[0].status === "fulfilled" ? results[0].value : [];
+      const log = results[1].status === "fulfilled" ? results[1].value : [];
+      const sessions = results[2].status === "fulfilled" ? results[2].value : [];
 
       // Compute stats
       const totals = rolls.filter((r) => r.total > 0);

@@ -1,5 +1,7 @@
 import { Bell, Mail, Megaphone } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { GmMessage } from "../api/types";
 
 type PlayerNotificationsProps = {
@@ -20,16 +22,12 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
   async function loadAll() {
     setLoading(true);
     try {
-      const [inboxRes, annRes] = await Promise.all([
-        fetch(`/api/campaigns/${campaignId}/inbox`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`/api/campaigns/${campaignId}/announcements`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const results = await Promise.allSettled([
+        apiRequest<GmMessage[]>(`/api/campaigns/${campaignId}/inbox`, token),
+        apiRequest<GmMessage[]>(`/api/campaigns/${campaignId}/announcements`, token),
       ]);
-      if (inboxRes.ok) setInbox(await inboxRes.json());
-      if (annRes.ok) setAnnouncements(await annRes.json());
+      setInbox(results[0].status === "fulfilled" ? results[0].value : []);
+      setAnnouncements(results[1].status === "fulfilled" ? results[1].value : []);
     } catch {
       // silent
     } finally {
@@ -46,10 +44,7 @@ export function PlayerNotifications({ campaignId, token, userId }: PlayerNotific
   async function markRead(msg: GmMessage) {
     if (msg.read_at) return;
     try {
-      await fetch(`/api/messages/${msg.id}/read`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await apiRequest(`/api/messages/${msg.id}/read`, token, { method: "POST" });
       setInbox((prev) =>
         prev.map((m) => (m.id === msg.id ? { ...m, read_at: new Date().toISOString() } : m)),
       );

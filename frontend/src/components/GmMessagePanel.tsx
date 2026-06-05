@@ -1,5 +1,7 @@
 import { Dice1, Megaphone, MessageSquare, Send } from "lucide-react";
 import { type FormEvent, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Member } from "../api/types";
 
 type GmMessagePanelProps = {
@@ -34,15 +36,10 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
     setIsBusy(true);
     setStatusMsg("");
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/messages`, {
+      await apiRequest(`/api/campaigns/${campaignId}/messages`, token, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ recipient_id: recipientId, content: content.trim() }),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
       setStatusMsg("✅ Message envoyé !");
       resetForm();
     } catch (err: unknown) {
@@ -58,15 +55,10 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
     setIsBusy(true);
     setStatusMsg("");
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/announce`, {
+      await apiRequest(`/api/campaigns/${campaignId}/announce`, token, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ content: content.trim() }),
       });
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
       setStatusMsg("📢 Annonce diffusée !");
       resetForm();
     } catch (err: unknown) {
@@ -87,16 +79,10 @@ export function GmMessagePanel({ campaignId, token, members }: GmMessagePanelPro
         label: label.trim() || "Jet secret",
       };
       if (recipientId) body.recipient_id = recipientId;
-      const res = await fetch(`/api/campaigns/${campaignId}/secret-roll`, {
+      const data = await apiRequest<{ detail?: string; roll_data?: { total: number } }>(`/api/campaigns/${campaignId}/secret-roll`, token, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || `Erreur ${res.status}`);
       setStatusMsg(`🎲 Résultat : ${data.roll_data?.total ?? "?"}`);
       resetForm();
     } catch (err: unknown) {
