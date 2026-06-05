@@ -179,7 +179,7 @@ jobs:
         run: |
           # Wait for backend to be ready
           for i in $(seq 1 30); do
-            if curl -sf http://localhost:8000/health >/dev/null 2>&1; then break; fi
+            if curl -sf http://localhost:8091/api/health >/dev/null 2>&1; then break; fi
             sleep 2
           done
           # Seed a test user + campaign if a seed script exists
@@ -191,7 +191,7 @@ jobs:
         working-directory: frontend
         run: npx playwright test --project=chromium
         env:
-          PLAYWRIGHT_BASE_URL: http://localhost:5173
+          PLAYWRIGHT_BASE_URL: http://localhost:8090
           TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
 
