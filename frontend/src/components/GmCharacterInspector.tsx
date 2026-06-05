@@ -1,5 +1,7 @@
 import { Heart, Plus, Shield, Swords, Trash2, Zap } from "lucide-react";
 import { type FormEvent, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Character } from "../api/types";
 
 const CONDITIONS_LIST = [
@@ -57,27 +59,16 @@ export function GmCharacterInspector({
   const [itemQty, setItemQty] = useState(1);
   const [itemDesc, setItemDesc] = useState("");
 
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-
   async function apiCall<T>(path: string, body: unknown): Promise<T | null> {
     setBusy(true);
     setMessage("");
     try {
-      const res = await fetch(`/api${path}`, {
+      const data = await apiRequest<T>(`/api${path}`, token, {
         method: "PATCH",
-        headers,
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Erreur" }));
-        throw new Error(err.detail ?? "Erreur");
-      }
-      const data = await res.json();
       onCharacterUpdated(data as Character);
-      return data as T;
+      return data;
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Erreur");
       return null;

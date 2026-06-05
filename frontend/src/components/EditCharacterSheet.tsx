@@ -1,5 +1,7 @@
 import { Edit2, Save, X } from "lucide-react";
 import { type FormEvent, useState } from "react";
+
+import { apiRequest } from "../api/client";
 import type { Character } from "../api/types";
 
 type EditCharacterSheetProps = {
@@ -108,12 +110,8 @@ export function EditCharacterSheet({ character, token, isBusy, onSave }: EditCha
     const pb = Math.max(2, Math.ceil(form.level / 4) + 1);
 
     try {
-      const response = await fetch(`/api/characters/${character.id}`, {
+      const updated = await apiRequest<Character>(`/api/characters/${character.id}`, token, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           name: form.name,
           ancestry: form.ancestry,
@@ -140,12 +138,6 @@ export function EditCharacterSheet({ character, token, isBusy, onSave }: EditCha
         }),
       });
 
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({ detail: "Save failed" }));
-        throw new Error(body.detail ?? "Save failed");
-      }
-
-      const updated = (await response.json()) as Character;
       onSave?.(updated);
       setEditing(false);
       setMessage("Personnage sauvegarde.");
