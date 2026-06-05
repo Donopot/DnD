@@ -173,7 +173,8 @@ jobs:
       - name: Start services
         run: |
           cp .env.example .env
-          docker compose up -d --wait
+          docker compose up -d
+          bash scripts/wait-for-services.sh 120
 
       - name: Seed test data
         run: |

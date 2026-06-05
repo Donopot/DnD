@@ -10,6 +10,12 @@ services:
       - dnd-backend
     networks:
       - dnd_internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   dnd-backend:
     build:
@@ -31,6 +37,12 @@ services:
       - ./logs/backend:/app/logs
     networks:
       - dnd_internal
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   dnd-postgres:
     image: postgres:16-alpine
@@ -59,6 +71,12 @@ services:
       - dnd_minio_data:/data
     networks:
       - dnd_internal
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   dnd-minio-init:
     image: minio/mc:RELEASE.2025-08-13T08-35-41Z
@@ -85,6 +103,11 @@ services:
       - dnd_redis_data:/data
     networks:
       - dnd_internal
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   dnd_postgres_data:
