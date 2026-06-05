@@ -4,6 +4,61 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.12] — Refonte App.tsx, contexts, API centralisation (2026-06-04/05)
+
+### 🔧 PR #67–69 — PanelRenderer + ErrorBoundary
+- PanelRenderer centralisé pour le lazy-loading des 26 panneaux GM
+- Extraction GmDockedPanels (−924 lignes App.tsx)
+- GmFloatingPanels avec ErrorBoundary
+
+### ⚡ PR #70–71 — Performances
+- **P1**: AbortController unifié, keydown debounce, localStorage versioning
+- **P2**: SQL parameterized queries + CSS split
+
+### 🧩 PR #72 — Extraction AppWorkspace
+- GmWorkspace extrait hors App.tsx (−220 lignes)
+
+### 🎣 PR #73–78 — Extraction hooks métier
+- `useAuthSession` — token/user state + cold-start bootstrap
+- `useCampaignData` — campaigns, invites, members
+- `useVttState` — core VTT, tokens, combat, assets
+- `useTokenActions` — moveToken + fog reveal
+- `useRealtimeSession` — WebSocket connection
+- `useSessionJournal` — rolls, logEntries, doRoll, quickRoll
+- `useHandouts` — CRUD handouts, reveal
+
+### 🏗 PR #80A–#86 — Migration contexts v2
+- 5 domain contexts: WorkspaceState, WorkspaceActions, Vtt, Panel, Session
+- GmWorkspaceProvider wrappe les 5 providers
+- GmDockedPanels/GmFloatingPanels → 0 props, lecture depuis contexts
+- PanelRenderer utilisé partout, App.tsx réduit à 677 lignes
+
+### 🔌 PR #87 — Stabilité WebSocket
+- Remplacement systématique `onmessage =` → `addEventListener`
+- ChatPanel, useRealtimeSession, PlayerView — zéro race condition
+
+### 🗺 PR #88 — Extraction CampaignMap
+- MapToolbar (234 lignes), MapMinimap (126 lignes), useFogOfWar (246 lignes)
+- CampaignMap: 1329 → 777 lignes (−42%)
+
+### 🔗 PR #89 — Centralisation API client
+- `apiRequest()` respecte AbortSignals externes
+- `getAuthToken()` helper dans `api/token.ts`
+- `useFogOfWar` → apiRequest, `PlayerView` → apiRequest
+- Extraction MapTokensLayer (233 lignes)
+
+### 🧪 PR #90–91 — CI Smoke + Backend async
+- Playwright smoke test (login → campagne → carte → token)
+- Job CI smoke test dans le workflow
+- Backend assets: boto3 → `asyncio.to_thread`, Cache-Control, ETag, pagination
+
+### 📊 Metrics
+- Frontend: tsc 0, build ~650ms
+- Backend: 121/121 tests
+- 55 composants, 15 hooks, 118 endpoints, 26 migrations, 72 schémas
+
+---
+
 ## [v0.11] — Toolchain, sécurité, fog polish (2026-06-03)
 
 ### Phase 41 — Documentation toolchain

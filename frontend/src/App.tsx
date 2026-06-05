@@ -342,20 +342,6 @@ export default function App() {
     }
   }
 
-  // Per-token action wrapper (handles "add-combat" locally)
-  async function handleTokenAction(action: string, tokenToAct: SceneToken, value?: number) {
-    if (action === "add-combat") {
-      setMessage("Ajout au combat : ouvre le Générateur de rencontres pour ajouter ce token.");
-      return;
-    }
-    await tokenActions.wrapSingle(action, tokenToAct, value);
-  }
-
-  // Sequential batch action handler
-  async function handleTokenBatchAction(action: string, tokens: SceneToken[], value?: number) {
-    await tokenActions.wrapBatch(action, tokens, value);
-  }
-
   async function handleToggleTokenHidden(tokenToToggle: SceneToken) {
     try {
       await vtt.handleToggleTokenHidden(tokenToToggle);

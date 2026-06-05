@@ -189,10 +189,10 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 ### 4.1 Métriques finales
 
 **Backend :**
-- 114 endpoints, 18 routeurs, 25 migrations, 68+ schémas, 118 tests
+- 118 endpoints, 18 routeurs, 26 migrations, 72 schémas, 121 tests
 
 **Frontend :**
-- 47 composants React, ~10 800 lignes CSS, 1798 modules Vite
+- 55 composants React, ~10 800 lignes CSS, 1798 modules Vite
 - Build : 677ms, 433 kB (gzip 128 kB)
 
 **Contenu SRD :**
@@ -219,14 +219,14 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 
 ### 4.3 Faiblesses à adresser
 
-- Gestion des tokens encore trop limitée (pas de suppression/duplication confortable)
-- Pas de véritable interface joueur dédiée
-- Pas de visibilité MJ/joueur fine sur tous les éléments
-- Pas de brouillard de guerre (fog manuel partiel)
+- ~~Pas de véritable interface joueur dédiée~~ → PlayerView + PlayerWorkspace (Phase 14)
+- ~~Pas de visibilité MJ/joueur fine~~ → VisibilityInspectorPanel (Phase 12)
+- ~~Pas de brouillard de guerre~~ → Fog of War avec zones, cercle/rect, auto-révélation (Phase 16+39)
+- ~~Pas d'aperçu joueur ni de mode focus carte complet~~ → focus mode F, minimap (Phase 34-37)
+- ~~Gestion des tokens~~ → supprimer, dupliquer, éditer, z-index, groupes, menu clic droit (PR #62-65)
 - Pas de notes de scène avancées
 - Pas de PNJ/factions
 - Pas de moteur combat avancé
-- Pas d'aperçu joueur ni de mode focus carte complet
 - Pas de sauvegarde de layout par campagne/scène
 
 ---

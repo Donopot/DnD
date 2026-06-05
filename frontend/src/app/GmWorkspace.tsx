@@ -1,5 +1,5 @@
 import { DoorOpen, Maximize2, Minimize2, PanelRightClose, PanelRightOpen, Swords, UserPlus } from "lucide-react";
-import { Suspense, lazy, useMemo } from "react";
+import { Suspense, lazy } from "react";
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
@@ -9,7 +9,6 @@ import { GmFloatingPanels } from "../panels/GmFloatingPanels";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
 import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
-import { useVttContext } from "../contexts/VttContext";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";
 
@@ -50,18 +49,15 @@ export function GmWorkspace(props: GmWorkspaceProps) {
   // Read from contexts — GmWorkspace is inside GmWorkspaceProvider
   const state = useWorkspaceState();
   const actions = useWorkspaceActions();
-  const vtt = useVttContext();
   const panel = usePanelContext();
   const session = useSessionContext();
 
   const {
     token,
-    user,
     campaigns,
     selectedCampaign,
     members,
     characters,
-    selectedCharacter,
     latestInvite,
   } = state;
 
@@ -100,12 +96,6 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     toasts,
     dismissToast,
   } = session;
-
-  // Campaign selection needs loadInvites — handled here via context + direct fetch
-  const handleSelectCampaign = (id: string) => {
-    // Campaign selection via the state context setter
-    // For now, the sidebar onClick is handled via direct navigation pattern
-  };
 
   return (
     <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>

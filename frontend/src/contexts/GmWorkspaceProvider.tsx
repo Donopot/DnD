@@ -1,7 +1,4 @@
 import { useMemo, type ReactNode } from "react";
-import type { CampaignView } from "../components/CampaignViewTabs";
-import type { SessionLiveMode } from "../config/sessionLiveModes";
-import { useFloatingPanels } from "../hooks/useFloatingPanels";
 import { WorkspaceStateContext, type WorkspaceState } from "./WorkspaceStateContext";
 import { WorkspaceActionsContext, type WorkspaceActions } from "./WorkspaceActionsContext";
 import { VttContext, type VttContextValue } from "./VttContext";
@@ -33,7 +30,7 @@ export interface GmWorkspaceProviderProps {
  * useWorkspaceActions(), useVttContext(), usePanelContext(), useSessionContext().
  */
 export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
-  const { state, actions, vtt, campaignMapProps, isMapFloating, panel, session, children } = props;
+  const { state, actions, vtt, panel, session, children } = props;
 
   // Stabilize context values so panels only re-render when their domain changes
   const stateValue = useMemo(() => state, [
