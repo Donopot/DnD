@@ -1,5 +1,5 @@
 import { ArrowDownToLine, ArrowUpToLine, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useState } from "react";
 
 import { apiRequest } from "../api/client";
 import type { Character, Scene, SceneToken } from "../api/types";

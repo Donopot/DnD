@@ -118,7 +118,7 @@ export function TokenLibraryPanel({
     setError("");
 
     try {
-      const res = await apiRequest(`/api/scenes/${selectedSceneId}/tokens`, token, {
+      await apiRequest(`/api/scenes/${selectedSceneId}/tokens`, token, {
         method: "POST",
         body: JSON.stringify({
           name: tpl.name,
