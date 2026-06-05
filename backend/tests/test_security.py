@@ -364,7 +364,6 @@ class TestInviteListing:
 
     def test_invite_list_requires_gm(self):
         """GET /api/campaigns/{id}/invites is restricted to GM/co-GM."""
-        from app.deps import require_campaign_role
         # This endpoint requires gm or co_gm role — schema/route verification done at runtime
         # The route decorator exists and the require_campaign_role call is tested implicitly
         pass

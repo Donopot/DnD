@@ -1,7 +1,8 @@
 """Tests de validation WebSocket et permissions VTT."""
 
-import pytest
+from datetime import UTC
 
+import pytest
 
 # ============================================================================
 # WebSocket coordinate validation
@@ -37,26 +38,30 @@ class TestFogZone:
         assert z.height == 80
 
     def test_zero_width_rejected(self):
-        from app.routers.vtt import FogZone
         import pydantic
+
+        from app.routers.vtt import FogZone
         with pytest.raises(pydantic.ValidationError):
             FogZone(x=0, y=0, width=0, height=10)
 
     def test_negative_height_rejected(self):
-        from app.routers.vtt import FogZone
         import pydantic
+
+        from app.routers.vtt import FogZone
         with pytest.raises(pydantic.ValidationError):
             FogZone(x=0, y=0, width=10, height=-5)
 
     def test_nan_rejected(self):
-        from app.routers.vtt import FogZone
         import pydantic
+
+        from app.routers.vtt import FogZone
         with pytest.raises(pydantic.ValidationError):
             FogZone(x=float("nan"), y=0, width=10, height=10)
 
     def test_inf_rejected(self):
-        from app.routers.vtt import FogZone
         import pydantic
+
+        from app.routers.vtt import FogZone
         with pytest.raises(pydantic.ValidationError):
             FogZone(x=float("inf"), y=0, width=10, height=10)
 
@@ -222,44 +227,51 @@ class TestCircleRevealRequest:
         assert r.radius_ft == 30
 
     def test_nan_center_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=float("nan"), center_y=200, radius_ft=30)
 
     def test_inf_center_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=float("inf"), center_y=200, radius_ft=30)
 
     def test_negative_radius_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=0, center_y=0, radius_ft=-10)
 
     def test_zero_radius_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=0, center_y=0, radius_ft=0)
 
     def test_nan_radius_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=0, center_y=0, radius_ft=float("nan"))
 
     def test_inf_radius_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=0, center_y=0, radius_ft=float("inf"))
 
     def test_excessive_radius_rejected(self):
-        from app.routers.vtt import CircleRevealRequest
         import pydantic
+
+        from app.routers.vtt import CircleRevealRequest
         with pytest.raises(pydantic.ValidationError):
             CircleRevealRequest(center_x=0, center_y=0, radius_ft=121)
 
@@ -276,11 +288,12 @@ class TestCircleRevealRequest:
 class TestTokenPublicFiltered:
     def test_token_public_includes_metadata(self):
         """GM/co-GM token_public preserves metadata."""
-        from app.routers.vtt import token_public
-        from uuid import uuid4
-        from datetime import datetime, timezone
         import json
-        now = datetime.now(timezone.utc)
+        from datetime import datetime
+        from uuid import uuid4
+
+        from app.routers.vtt import token_public
+        now = datetime.now(UTC)
         row = {
             "id": uuid4(), "scene_id": uuid4(), "character_id": uuid4(),
             "name": "Orc", "x": 100, "y": 200, "size": 2, "color": "red",
@@ -293,11 +306,12 @@ class TestTokenPublicFiltered:
 
     def test_token_public_filtered_strips_metadata(self):
         """Player token_public_filtered returns empty metadata."""
-        from app.routers.vtt import token_public_filtered
-        from uuid import uuid4
-        from datetime import datetime, timezone
         import json
-        now = datetime.now(timezone.utc)
+        from datetime import datetime
+        from uuid import uuid4
+
+        from app.routers.vtt import token_public_filtered
+        now = datetime.now(UTC)
         row = {
             "id": uuid4(), "scene_id": uuid4(), "character_id": uuid4(),
             "name": "Hero", "x": 100, "y": 200, "size": 2, "color": "blue",
@@ -337,9 +351,7 @@ class TestFogRevealOwnership:
 
         blocked = False
         if role == "player":
-            if not existing["character_id"]:
-                blocked = True
-            elif token_owner_user_id != current_user_id:
+            if not existing["character_id"] or token_owner_user_id != current_user_id:
                 blocked = True
 
         assert blocked, "Player should be blocked from revealing fog around another player's token"
@@ -365,9 +377,7 @@ class TestFogRevealOwnership:
 
         blocked = False
         if role == "player":
-            if not existing["character_id"]:
-                blocked = True
-            elif token_owner_user_id != current_user_id:
+            if not existing["character_id"] or token_owner_user_id != current_user_id:
                 blocked = True
 
         assert not blocked, "Player should be able to reveal fog around their own token"
@@ -387,6 +397,7 @@ class TestCacheBeforeRoleCheck:
     def test_get_scene_role_check_before_cache(self):
         """get_scene must fetch the scene row and check role before cache_get."""
         import inspect
+
         from app.routers.vtt import get_scene
 
         src = inspect.getsource(get_scene)
@@ -403,6 +414,7 @@ class TestCacheBeforeRoleCheck:
     def test_get_fog_role_check_before_cache(self):
         """get_fog must fetch the scene row and check role before cache_get."""
         import inspect
+
         from app.routers.vtt import get_fog
 
         src = inspect.getsource(get_fog)
@@ -427,6 +439,7 @@ class TestHandoutCacheKey:
     def test_list_handouts_cache_key_includes_role(self):
         """The cache key in list_handouts must segment by role."""
         import inspect
+
         from app.routers.handouts import list_handouts
 
         src = inspect.getsource(list_handouts)

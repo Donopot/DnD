@@ -758,23 +758,22 @@ async def send_token_backward(
     existing = await get_token_or_404(token_id)
     await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm"})
 
-    async with get_pool().acquire() as conn:
-        async with conn.transaction():
-            await conn.execute(
-                """
+    async with get_pool().acquire() as conn, conn.transaction():
+        await conn.execute(
+            """
                 update scene_tokens
                 set z_index = z_index + 1,
                     updated_at = now()
                 where scene_id = $1
                   and id <> $2
                 """,
-                existing["scene_id"],
-                token_id,
-            )
-            row = await conn.fetchrow(
-                "update scene_tokens set z_index = 0, updated_at = now() where id = $1 returning *",
-                token_id,
-            )
+            existing["scene_id"],
+            token_id,
+        )
+        row = await conn.fetchrow(
+            "update scene_tokens set z_index = 0, updated_at = now() where id = $1 returning *",
+            token_id,
+        )
 
     token = token_public(row)
     await cache_invalidate(f"scene:{existing['scene_id']}*")

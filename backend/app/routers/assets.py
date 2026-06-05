@@ -1,5 +1,4 @@
 import asyncio
-import hashlib
 import re
 from uuid import UUID
 from uuid import uuid4
