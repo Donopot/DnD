@@ -1,5 +1,5 @@
 import { Clock, Plus, SkipForward, Timer, Trash2, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { apiRequest } from "../api/client";
 import type { Combatant, Encounter } from "../api/types";
@@ -167,49 +167,61 @@ export function ConditionsPanel({ campaignId, token }: ConditionsPanelProps) {
   async function addCondition(combatantId: string) {
     if (!activeEncounter || !newCondition) return;
 
-    const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/apply`, token, {
-      method: "POST",
-      body: JSON.stringify({
-        combatant_id: combatantId,
-        condition: {
-          name: newCondition,
-          duration: newDuration,
-          duration_unit: newDuration === null ? null : "rounds",
-          source: null,
-          is_concentration: newCondition === "Concentration",
-        },
-      }),
-    });
+    try {
+      const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/apply`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          combatant_id: combatantId,
+          condition: {
+            name: newCondition,
+            duration: newDuration,
+            duration_unit: newDuration === null ? null : "rounds",
+            source: null,
+            is_concentration: newCondition === "Concentration",
+          },
+        }),
+      });
 
-    updateCombatant(updated);
-    setNewCondition("");
-    setNewDuration(null);
-    setAddingFor(null);
+      updateCombatant(updated);
+      setNewCondition("");
+      setNewDuration(null);
+      setAddingFor(null);
+    } catch {
+      // apiRequest handles error display
+    }
   }
 
   async function removeCondition(combatantId: string, conditionName: string) {
     if (!activeEncounter) return;
 
-    const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/remove`, token, {
-      method: "POST",
-      body: JSON.stringify({
-        combatant_id: combatantId,
-        condition_name: conditionName,
-      }),
-    });
+    try {
+      const updated = await apiRequest<Combatant>(`/api/encounters/${activeEncounter.id}/conditions/remove`, token, {
+        method: "POST",
+        body: JSON.stringify({
+          combatant_id: combatantId,
+          condition_name: conditionName,
+        }),
+      });
 
-    updateCombatant(updated);
+      updateCombatant(updated);
+    } catch {
+      // apiRequest handles error display
+    }
   }
 
   async function saveCombatantConditions(combatantId: string, nextConditions: ConditionEntry[]) {
-    const updated = await apiRequest<Combatant>(`/api/combatants/${combatantId}`, token, {
-      method: "PATCH",
-      body: JSON.stringify({
-        conditions: nextConditions.map(serializeCondition),
-      }),
-    });
+    try {
+      const updated = await apiRequest<Combatant>(`/api/combatants/${combatantId}`, token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          conditions: nextConditions.map(serializeCondition),
+        }),
+      });
 
-    updateCombatant(updated);
+      updateCombatant(updated);
+    } catch {
+      // apiRequest handles error display
+    }
   }
 
   async function advanceTurn() {
