@@ -21,6 +21,10 @@ export function InvitePreviewCard({ inviteToken, authToken, onJoined }: InvitePr
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // Reset stale state before re-loading on token change
+    setLoaded(false);
+    setError("");
+    setPreview(null);
     void (async () => {
       try {
         const res = await fetch(`/api/invites/${inviteToken}`);

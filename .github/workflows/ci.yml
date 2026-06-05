@@ -182,10 +182,11 @@ jobs:
             if curl -sf http://localhost:8091/api/health >/dev/null 2>&1; then break; fi
             sleep 2
           done
-          # Seed a test user + campaign if a seed script exists
-          if [ -f scripts/seed-test-data.sh ]; then
-            bash scripts/seed-test-data.sh
-          fi
+          # Seed a test user + campaign
+          bash scripts/seed-test-data.sh
+        env:
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
 
       - name: Run Playwright smoke tests
         working-directory: frontend

@@ -1,4 +1,5 @@
 import { Download, FlaskConical, Plus, Swords, Trash2, Upload } from "lucide-react";
+import { apiRequest } from "../api/client";
 import { type FormEvent, useEffect, useState } from "react";
 
 import type { Encounter, HomebrewCreature, HomebrewItem, Scene } from "../api/types";
@@ -65,23 +66,6 @@ const EMPTY_ITEM: ItemForm = {
   properties: "",
 };
 
-async function api<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: "API error" }));
-    throw new Error(body.detail ?? "API error");
-  }
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
-}
-
 export function HomebrewPanel({
   campaignId,
   token,
@@ -101,8 +85,8 @@ export function HomebrewPanel({
   async function load() {
     try {
       const [c, i] = await Promise.all([
-        api<HomebrewCreature[]>(`/campaigns/${campaignId}/homebrew/creatures`, token),
-        api<HomebrewItem[]>(`/campaigns/${campaignId}/homebrew/items`, token),
+        apiRequest<HomebrewCreature[]>(`/api/campaigns/${campaignId}/homebrew/creatures`, token),
+        apiRequest<HomebrewItem[]>(`/api/campaigns/${campaignId}/homebrew/items`, token),
       ]);
       setCreatures(c);
       setItems(i);
@@ -121,7 +105,7 @@ export function HomebrewPanel({
   async function createCreature(e: FormEvent) {
     e.preventDefault();
     try {
-      const c = await api<HomebrewCreature>(`/campaigns/${campaignId}/homebrew/creatures`, token, {
+      const c = await apiRequest<HomebrewCreature>(`/api/campaigns/${campaignId}/homebrew/creatures`, token, {
         method: "POST",
         body: JSON.stringify({
           name: creatureForm.name,
@@ -155,7 +139,7 @@ export function HomebrewPanel({
   async function deleteCreature(id: string) {
     if (!confirm("Supprimer cette creature ?")) return;
     try {
-      await api<void>(`/homebrew/creatures/${id}`, token, { method: "DELETE" });
+      await apiRequest<void>(`/homebrew/creatures/${id}`, token, { method: "DELETE" });
       setCreatures((prev) => prev.filter((c) => c.id !== id));
       if (selectedCreature?.id === id) setSelectedCreature(null);
       setMessage("Creature supprimee.");
@@ -168,7 +152,7 @@ export function HomebrewPanel({
   async function createItem(e: FormEvent) {
     e.preventDefault();
     try {
-      const item = await api<HomebrewItem>(`/campaigns/${campaignId}/homebrew/items`, token, {
+      const item = await apiRequest<HomebrewItem>(`/campaigns/${campaignId}/homebrew/items`, token, {
         method: "POST",
         body: JSON.stringify({
           name: itemForm.name,
@@ -189,7 +173,7 @@ export function HomebrewPanel({
   async function deleteItem(id: string) {
     if (!confirm("Supprimer cet objet ?")) return;
     try {
-      await api<void>(`/homebrew/items/${id}`, token, { method: "DELETE" });
+      await apiRequest<void>(`/homebrew/items/${id}`, token, { method: "DELETE" });
       setItems((prev) => prev.filter((i) => i.id !== id));
       if (selectedItem?.id === id) setSelectedItem(null);
       setMessage("Objet supprime.");
@@ -201,7 +185,7 @@ export function HomebrewPanel({
   // Creature actions
   async function addToScene(creature: HomebrewCreature, sceneId: string) {
     try {
-      await api(`/homebrew/creatures/${creature.id}/to-token`, token, {
+      await apiRequest(`/api/homebrew/creatures/${creature.id}/to-token`, token, {
         method: "POST",
         body: JSON.stringify({ scene_id: sceneId, x: 100, y: 100 }),
       });
@@ -213,7 +197,7 @@ export function HomebrewPanel({
 
   async function addToCombat(creature: HomebrewCreature, encounterId: string) {
     try {
-      await api(`/homebrew/creatures/${creature.id}/to-combatant`, token, {
+      await apiRequest(`/api/homebrew/creatures/${creature.id}/to-combatant`, token, {
         method: "POST",
         body: JSON.stringify({
           encounter_id: encounterId,
@@ -229,7 +213,7 @@ export function HomebrewPanel({
   // Export / Import
   async function exportHomebrew() {
     try {
-      const data = await api<unknown>(`/campaigns/${campaignId}/homebrew/export`, token);
+      const data = await apiRequest<unknown>(`/campaigns/${campaignId}/homebrew/export`, token);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -253,7 +237,7 @@ export function HomebrewPanel({
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      await api(`/campaigns/${campaignId}/homebrew/import`, token, {
+      await apiRequest(`/api/campaigns/${campaignId}/homebrew/import`, token, {
         method: "POST",
         body: JSON.stringify(data),
       });

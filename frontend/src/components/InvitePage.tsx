@@ -29,6 +29,10 @@ export function InvitePage({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    // Reset stale state before re-loading on token change
+    setLoaded(false);
+    setError("");
+    setPreview(null);
     void loadPreview();
   }, [inviteToken]);
 
