@@ -1,6 +1,7 @@
 import { Play, SkipForward, Square, Swords, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { apiRequest } from "../api/client";
 import type { Encounter, EncounterDetail } from "../api/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -18,24 +19,13 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
   const [detail, setDetail] = useState<EncounterDetail | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const headers = useMemo(
-    () => ({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    }),
-    [token],
-  );
-
   // ── Load encounters ──────────────────────────────────────────────────
 
   async function loadEncounters() {
     if (!campaignId) return;
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/encounters`, { headers });
-      if (!res.ok) return;
-      const data: Encounter[] = await res.json();
+      const data: Encounter[] = await apiRequest(`/api/campaigns/${campaignId}/encounters`, token);
       setEncounters(data);
-      // Auto-select active encounter, then first non-ended
       const active = data.find((e) => e.status === "active");
       if (active) {
         setSelectedId(active.id);
@@ -57,9 +47,7 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
     if (!encounterId) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/encounters/${encounterId}`, { headers });
-      if (!res.ok) return;
-      const data: EncounterDetail = await res.json();
+      const data: EncounterDetail = await apiRequest(`/api/encounters/${encounterId}`, token);
       setDetail(data);
     } catch {
       /* ignore */
@@ -77,13 +65,9 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
   async function call(endpoint: string, method = "POST") {
     setBusy(true);
     try {
-      const res = await fetch(endpoint, { method, headers });
-      if (res.ok) {
-        const data: EncounterDetail = await res.json();
-        setDetail(data);
-        // Refresh encounter list to update status
-        void loadEncounters();
-      }
+      const data: EncounterDetail = await apiRequest(endpoint, token, { method });
+      setDetail(data);
+      void loadEncounters();
     } catch {
       /* ignore */
     } finally {
@@ -97,12 +81,11 @@ export function InitiativePanel({ campaignId, token }: InitiativePanelProps) {
 
   async function toggleDefeated(combatantId: string, currentDefeated: boolean) {
     try {
-      const res = await fetch(`/api/combatants/${combatantId}`, {
+      await apiRequest(`/api/combatants/${combatantId}`, token, {
         method: "PATCH",
-        headers,
         body: JSON.stringify({ is_defeated: !currentDefeated }),
       });
-      if (res.ok && selectedId) void loadDetail(selectedId);
+      if (selectedId) void loadDetail(selectedId);
     } catch {
       /* ignore */
     }

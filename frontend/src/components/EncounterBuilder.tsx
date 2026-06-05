@@ -1,6 +1,8 @@
 import { Dice1, Plus, Swords } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 
+import { apiRequest } from "../api/client";
+
 // D&D 5e XP thresholds per character level
 const XP_THRESHOLDS: Record<string, Record<number, number>> = {
   easy: {
@@ -301,22 +303,15 @@ export function EncounterBuilder({ campaignId, token }: EncounterBuilderProps) {
     setBusy(true);
     setMessage("");
     try {
-      const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-      // Create encounter
-      const encRes = await fetch(`/api/campaigns/${campaignId}/encounters`, {
+      const encounter = await apiRequest<{ id: string; name: string }>(`/api/campaigns/${campaignId}/encounters`, token, {
         method: "POST",
-        headers,
         body: JSON.stringify({ name: `Rencontre ${environment}` }),
       });
-      if (!encRes.ok) throw new Error("Erreur création encounter");
-      const encounter = await encRes.json();
 
-      // Add combatants
       for (const m of monsters) {
         for (let i = 0; i < m.count; i++) {
-          await fetch(`/api/encounters/${encounter.id}/combatants`, {
+          await apiRequest(`/api/encounters/${encounter.id}/combatants`, token, {
             method: "POST",
-            headers,
             body: JSON.stringify({
               name: m.count > 1 ? `${m.name} #${i + 1}` : m.name,
               initiative: 0,
