@@ -11,7 +11,11 @@ import { GmLobby } from "./components/GmLobby";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 import { PlayerView } from "./components/PlayerView";
-import { SESSION_LIVE_PANEL_SETS, type SessionLiveMode } from "./config/sessionLiveModes";
+import {
+  SESSION_LIVE_MODES,
+  SESSION_LIVE_PANEL_SETS,
+  type SessionLiveMode,
+} from "./config/sessionLiveModes";
 import { GmWorkspaceProvider } from "./contexts";
 import { useAuthSession } from "./hooks/useAuthSession";
 import { useCampaignData } from "./hooks/useCampaignData";
@@ -25,6 +29,28 @@ import { useTheme } from "./hooks/useTheme";
 import { useToast } from "./hooks/useToast";
 import { useTokenActions } from "./hooks/useTokenActions";
 import { useVttState } from "./hooks/useVttState";
+
+// ── Persistance mode de session ────────────────────────────────────────────
+const MODE_STORAGE_KEY = "dnd_active_mode_v1";
+const VALID_MODES: Set<string> = new Set(SESSION_LIVE_MODES.map((m) => m.id));
+
+function readStoredMode(): SessionLiveMode {
+  try {
+    const stored = localStorage.getItem(MODE_STORAGE_KEY);
+    if (stored && VALID_MODES.has(stored)) return stored as SessionLiveMode;
+  } catch {
+    // localStorage indisponible (navigateur privé, etc.)
+  }
+  return "exploration";
+}
+
+function writeStoredMode(mode: SessionLiveMode): void {
+  try {
+    localStorage.setItem(MODE_STORAGE_KEY, mode);
+  } catch {
+    // silencieux
+  }
+}
 
 const MAP_PANEL_ID = "campaign-map";
 
@@ -50,7 +76,7 @@ export default function App() {
     return match ? match[1] : null;
   });
   const [activeSessionLiveMode, setActiveSessionLiveMode] =
-    useState<SessionLiveMode>("exploration");
+    useState<SessionLiveMode>(readStoredMode);
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
@@ -60,6 +86,11 @@ export default function App() {
   const fp = useFloatingPanels();
   const { theme, toggle: toggleTheme } = useTheme();
   const { toasts, show: showToast, dismiss: dismissToast } = useToast();
+
+  // ── Persister le mode de session dans localStorage à chaque changement
+  useEffect(() => {
+    writeStoredMode(activeSessionLiveMode);
+  }, [activeSessionLiveMode]);
 
   const journal = useSessionJournal({
     token,
