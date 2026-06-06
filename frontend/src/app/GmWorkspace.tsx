@@ -1,6 +1,5 @@
 import {
   Bookmark,
-  ChevronDown,
   DoorOpen,
   Maximize2,
   Minimize2,

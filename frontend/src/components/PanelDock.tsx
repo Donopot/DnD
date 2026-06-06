@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { type PointerEvent as ReactPointerEvent, useCallback, useRef, useState } from "react";
 import { getGmPanelLabel } from "../config/gmPanels";
 import { GM_PANELS } from "../config/gmPanels";
