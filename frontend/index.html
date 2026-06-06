@@ -17,7 +17,7 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js").catch(function() {});
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
       }
     </script>
   </body>

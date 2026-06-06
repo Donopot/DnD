@@ -699,7 +699,9 @@ export function PlayerView({
                   </small>
                 </span>
                 <em>
-                  <HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}
+                  {campaign.gm_settings?.show_player_hp !== false ? (
+                    <><HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}</>
+                  ) : null}
                 </em>
               </button>
             ))
@@ -1223,12 +1225,14 @@ export function PlayerView({
                     t.id === tokenId &&
                     characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
                 ),
-              canMoveToken: (tokenId) =>
-                playerTokens.some(
+              canMoveToken: (tokenId) => {
+                if (campaign.gm_settings?.allow_player_token_move === false) return false;
+                return playerTokens.some(
                   (t) =>
                     t.id === tokenId &&
                     characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
-                ),
+                );
+              },
               canEditFog: false,
               canMultiSelect: false,
             }}

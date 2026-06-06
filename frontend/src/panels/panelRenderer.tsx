@@ -65,6 +65,9 @@ const GmMessagePanel = lazy(() =>
 const GmNotesPanel = lazy(() =>
   import("../components/GmNotesPanel").then((m) => ({ default: m.GmNotesPanel })),
 );
+const GmSettingsPanel = lazy(() =>
+  import("../components/GmSettingsPanel").then((m) => ({ default: m.GmSettingsPanel })),
+);
 const HandoutPanel = lazy(() =>
   import("../components/HandoutPanel").then((m) => ({ default: m.HandoutPanel })),
 );
@@ -542,11 +545,7 @@ export function renderGmPanelContent(panelId: string, props: GmPanelRenderProps)
     case "session-stats":
       return <SessionStats campaignId={campaignId} token={props.token} />;
     case "settings-placeholder":
-      return (
-        <div className="empty-state compact-empty">
-          <p>Parametres a venir : permissions, layout, theme.</p>
-        </div>
-      );
+      return <GmSettingsPanel />;
     case "spellbook":
       return <SpellbookPanel token={props.token} />;
     case "token-detail":

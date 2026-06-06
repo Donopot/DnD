@@ -79,6 +79,7 @@ export default function App() {
     useState<SessionLiveMode>(readStoredMode);
   const [isBusy, setIsBusy] = useState(false);
   const [isFocusMap, setIsFocusMap] = useState(false);
+  const [isPlayerView, setIsPlayerView] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [gmView, setGmView] = useState<CampaignView>("live");
@@ -234,15 +235,31 @@ export default function App() {
         )
         .map((t) => t.id),
     );
+    const isPreview = isPlayerView;
+    // En mode preview joueur, les permissions sont alignées sur PlayerView
+    // et les handlers MJ (déplacement/action token) deviennent no-op.
+    const permissions = isPreview
+      ? {
+          canSelectToken: (tokenId: string) => playerIds.has(tokenId),
+          canMoveToken: (_tokenId: string) => false,
+          canEditFog: false,
+          canMultiSelect: false,
+        }
+      : {
+          canSelectToken: () => true,
+          canMoveToken: () => true,
+          canEditFog: true,
+          canMultiSelect: true,
+        };
     return {
-      isGM: true as const,
+      isGM: !isPreview,
       wsRef: ws.wsRef,
-      permissions: {
-        canSelectToken: () => true,
-        canMoveToken: () => true,
-        canEditFog: true,
-        canMultiSelect: true,
-      } as const,
+      permissions: permissions as {
+        canSelectToken: (tokenId: string) => boolean;
+        canMoveToken: (tokenId: string) => boolean;
+        canEditFog: boolean;
+        canMultiSelect: boolean;
+      },
       playerTokenIds: playerIds,
       campaignId: selectedCampaign?.id ?? "",
       token,
@@ -255,12 +272,18 @@ export default function App() {
       selectedTokenId,
       onSelectToken: setSelectedTokenId,
       onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
-      onMoveToken: (t: SceneToken, dx: number, dy: number) =>
-        void tokenActions.moveToken(t, dx, dy),
-      onTokenAction: (action: string, t: SceneToken, v?: number) =>
-        void handleMapTokenAction(action, t, v),
-      onTokenBatchAction: (action: string, ts: SceneToken[], v?: number) =>
-        void handleMapTokenBatchAction(action, ts, v),
+      onMoveToken: isPreview
+        ? () => void 0
+        : (t: SceneToken, dx: number, dy: number) =>
+            void tokenActions.moveToken(t, dx, dy),
+      onTokenAction: isPreview
+        ? () => void 0
+        : (action: string, t: SceneToken, v?: number) =>
+            void handleMapTokenAction(action, t, v),
+      onTokenBatchAction: isPreview
+        ? () => void 0
+        : (action: string, ts: SceneToken[], v?: number) =>
+            void handleMapTokenBatchAction(action, ts, v),
     };
   }, [
     sceneTokens,
@@ -273,6 +296,7 @@ export default function App() {
     selectedSceneId,
     sceneBackgroundObjectUrl,
     selectedTokenId,
+    isPlayerView,
     ws.wsRef,
     vtt.setSelectedSceneId,
     vtt.loadSceneTokens,
@@ -707,6 +731,7 @@ export default function App() {
           handleRevokeInvite,
           onLogout: logout,
           selectCampaign: campaign.selectCampaign,
+          loadCampaigns: () => campaign.loadCampaigns(),
           loadCharacters,
         }}
         vtt={{
@@ -735,6 +760,8 @@ export default function App() {
           setIsPanelsHidden,
           isFocusMap,
           setIsFocusMap,
+          isPlayerView,
+          setIsPlayerView,
           fp,
           selectedCharacterId,
           setSelectedCharacterId,

@@ -1,3 +1,4 @@
+import json
 import secrets
 from datetime import UTC
 from datetime import datetime
@@ -18,6 +19,7 @@ from app.limiter import shared_limiter
 from app.schemas import CampaignCreateRequest
 from app.schemas import CampaignMemberPublic
 from app.schemas import CampaignPublic
+from app.schemas import GmSettingsUpdate
 from app.schemas import InviteCreateRequest
 from app.schemas import InvitePreview
 from app.schemas import InvitePublic
@@ -35,6 +37,7 @@ def campaign_public(row) -> CampaignPublic:
         member_count=row["member_count"],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
+        gm_settings=row["gm_settings"] or {},
     )
 
 
@@ -47,6 +50,7 @@ async def list_campaigns(current_user=Depends(get_current_user)) -> list[Campaig
             c.owner_user_id,
             c.name,
             c.description,
+            c.gm_settings,
             cm.role,
             c.created_at,
             c.updated_at,
@@ -306,3 +310,59 @@ async def revoke_invite(token: str, current_user=Depends(get_current_user)):
         token,
     )
     return {"detail": "Invite revoked"}
+
+
+@router.patch(
+    "/campaigns/{campaign_id}/settings",
+    response_model=CampaignPublic,
+)
+async def update_campaign_settings(
+    campaign_id: UUID,
+    body: GmSettingsUpdate,
+    current_user=Depends(get_current_user),
+) -> CampaignPublic:
+    """Update GM settings for a campaign (gm / co_gm only)."""
+    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm"})
+
+    updates: dict[str, bool] = body.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="No settings provided")
+
+    row = await get_pool().fetchrow(
+        """
+        update campaigns
+        set gm_settings = gm_settings || $2::jsonb,
+            updated_at = now()
+        where id = $1
+        returning *
+        """,
+        campaign_id,
+        json.dumps(updates),
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+
+    member = await get_pool().fetchrow(
+        "select role from campaign_members where campaign_id = $1 and user_id = $2",
+        campaign_id,
+        current_user["id"],
+    )
+    role = member["role"] if member else "gm"
+
+    count_row = await get_pool().fetchrow(
+        "select count(*)::int as cnt from campaign_members where campaign_id = $1",
+        campaign_id,
+    )
+    member_count = count_row["cnt"] if count_row else 0
+
+    return CampaignPublic(
+        id=row["id"],
+        owner_user_id=row["owner_user_id"],
+        name=row["name"],
+        description=row["description"],
+        role=role,
+        member_count=member_count,
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+        gm_settings=row["gm_settings"] or {},
+    )

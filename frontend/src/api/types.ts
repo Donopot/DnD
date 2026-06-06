@@ -15,6 +15,7 @@ export type Campaign = {
   member_count: number;
   created_at: string;
   updated_at: string;
+  gm_settings?: Record<string, boolean>;
 };
 
 export type Member = {
