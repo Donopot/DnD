@@ -1,4 +1,4 @@
-import { GripHorizontal, Maximize2, Minimize2, X } from "lucide-react";
+import { GripHorizontal, Lock, Maximize2, Minimize2, Pin, X } from "lucide-react";
 import {
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
@@ -18,6 +18,9 @@ type FloatingPanelProps = {
   onBringToFront: () => void;
   onMove: (x: number, y: number) => void;
   onResize: (w: number, h: number) => void;
+  onTogglePin: () => void;
+  onToggleLock: () => void;
+  onToggleMaximize: () => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -30,6 +33,9 @@ export function FloatingPanel({
   onBringToFront,
   onMove,
   onResize,
+  onTogglePin,
+  onToggleLock,
+  onToggleMaximize,
 }: FloatingPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -91,31 +97,84 @@ export function FloatingPanel({
   }, []);
 
   // ── Render ───────────────────────────────────────────────────────────
+  const canDrag = !panel.locked && !panel.maximized;
+  const canResize = !panel.locked && !panel.maximized;
+
+  const classes = [
+    "floating-panel",
+    panel.minimized && "minimized",
+    panel.pinned && "pinned",
+    panel.locked && "locked",
+    panel.maximized && "maximized",
+    dragging && "dragging",
+    resizing && "resizing",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div
       ref={panelRef}
-      className={`floating-panel${panel.minimized ? " minimized" : ""}${dragging ? " dragging" : ""}${resizing ? " resizing" : ""}`}
+      className={classes}
       role="dialog"
       aria-label={panel.title}
       style={{
-        left: panel.x,
-        top: panel.y,
-        width: panel.width,
-        height: panel.minimized ? "auto" : panel.height,
-        zIndex: panel.zIndex,
+        left: panel.maximized ? 0 : panel.x,
+        top: panel.maximized ? 0 : panel.y,
+        width: panel.maximized ? "100vw" : panel.width,
+        height: panel.maximized
+          ? "100vh"
+          : panel.minimized
+            ? "auto"
+            : panel.height,
+        zIndex: panel.pinned ? 99999 : panel.zIndex,
       }}
-      onPointerDown={onBringToFront}
+      onPointerDown={panel.pinned ? undefined : onBringToFront}
     >
       {/* Title bar */}
       <div
         className="floating-panel-titlebar"
-        onPointerDown={onDragStart}
-        onPointerMove={onDragMove}
-        onPointerUp={onDragEnd}
+        onPointerDown={canDrag ? onDragStart : undefined}
+        onPointerMove={canDrag ? onDragMove : undefined}
+        onPointerUp={canDrag ? onDragEnd : undefined}
+        style={{ cursor: panel.locked ? "default" : undefined }}
       >
         <GripHorizontal size={14} className="drag-handle-icon" />
         <span className="floating-panel-title">{panel.title}</span>
         <div className="floating-panel-actions">
+          <button
+            className={`floating-panel-btn${panel.pinned ? " active" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin();
+            }}
+            title={panel.pinned ? "Désépingler" : "Épingler (reste au premier plan)"}
+            type="button"
+          >
+            <Pin size={14} />
+          </button>
+          <button
+            className={`floating-panel-btn${panel.locked ? " active" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleLock();
+            }}
+            title={panel.locked ? "Déverrouiller" : "Verrouiller (empêche déplacement)"}
+            type="button"
+          >
+            <Lock size={14} />
+          </button>
+          <button
+            className={`floating-panel-btn${panel.maximized ? " active" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleMaximize();
+            }}
+            title={panel.maximized ? "Restaurer" : "Plein écran"}
+            type="button"
+          >
+            {panel.maximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          </button>
           <button
             className="floating-panel-btn"
             onClick={(e) => {
@@ -145,7 +204,7 @@ export function FloatingPanel({
       {!panel.minimized && <div className="floating-panel-content">{children}</div>}
 
       {/* Resize handle */}
-      {!panel.minimized && (
+      {!panel.minimized && canResize && (
         <div
           className="floating-panel-resize-handle"
           onPointerDown={onResizeStart}

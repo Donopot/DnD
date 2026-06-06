@@ -1,4 +1,5 @@
 import {
+  Bookmark,
   DoorOpen,
   Eye,
   EyeOff,
@@ -7,16 +8,19 @@ import {
   PanelRightClose,
   PanelRightOpen,
   RotateCcw,
+  Save,
   Swords,
+  Trash2,
   UserPlus,
 } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useCallback, useRef, useState } from "react";
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
 import { PanelDock } from "../components/PanelDock";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { usePanelContext } from "../contexts/PanelContext";
+import { useLayoutPresets } from "../hooks/useLayoutPresets";
 import { useSessionContext } from "../contexts/SessionContext";
 import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
 import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
@@ -90,6 +94,46 @@ export function GmWorkspace(props: GmWorkspaceProps) {
   } = panel;
 
   const { presenceCount, realtimeStatus, theme, toggleTheme, toasts, dismissToast } = session;
+
+  // ── Layout presets ───────────────────────────────────────
+  const layoutPresets = useLayoutPresets();
+  const [presetOpen, setPresetOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+  const presetRef = useRef<HTMLDivElement>(null);
+
+  const handleSavePreset = useCallback(() => {
+    const name = presetName.trim();
+    if (!name) return;
+    layoutPresets.save(name, fp.panels, activeSessionLiveMode);
+    setPresetName("");
+    setPresetOpen(false);
+  }, [presetName, layoutPresets, fp.panels, activeSessionLiveMode]);
+
+  const handleLoadPreset = useCallback(
+    (name: string) => {
+      const preset = layoutPresets.presets.find((p) => p.name === name);
+      if (!preset) return;
+      // Restore mode
+      setActiveSessionLiveMode(preset.mode as never);
+      // Restore panels — close all, then open each from preset
+      fp.reset();
+      // Use a small timeout to let reset flush before opening
+      setTimeout(() => {
+        for (const p of preset.panels) {
+          fp.open(p.id, p.title, p.x, p.y, p.width, p.height);
+          if (p.pinned) fp.togglePin(p.id);
+          if (p.locked) fp.toggleLock(p.id);
+          if (p.minimized) fp.minimize(p.id);
+        }
+        // Maximized must be last (overrides position)
+        for (const p of preset.panels) {
+          if (p.maximized) fp.toggleMaximize(p.id);
+        }
+      }, 50);
+      setPresetOpen(false);
+    },
+    [layoutPresets.presets, fp, setActiveSessionLiveMode],
+  );
 
   return (
     <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
@@ -189,6 +233,76 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                 {m.label}
               </button>
             ))}
+          </div>
+          {/* ── Layout presets dropdown ──────────────────── */}
+          <div className="preset-selector" ref={presetRef}>
+            <button
+              className="focus-map-btn"
+              onClick={() => setPresetOpen((v) => !v)}
+              title="Dispositions sauvegardées"
+              type="button"
+            >
+              <Bookmark size={16} />
+            </button>
+            {presetOpen && (
+              <div className="preset-dropdown">
+                <div className="preset-save-row">
+                  <input
+                    className="preset-name-input"
+                    placeholder="Nom de la dispo…"
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSavePreset();
+                      if (e.key === "Escape") setPresetOpen(false);
+                    }}
+                  />
+                  <button
+                    className="compact"
+                    onClick={handleSavePreset}
+                    disabled={!presetName.trim()}
+                    type="button"
+                    title="Sauvegarder"
+                  >
+                    <Save size={14} />
+                  </button>
+                </div>
+                {layoutPresets.presets.length > 0 && (
+                  <ul className="preset-list">
+                    {layoutPresets.presets.map((p) => (
+                      <li key={p.name} className="preset-item">
+                        <button
+                          type="button"
+                          className="preset-load-btn"
+                          onClick={() => handleLoadPreset(p.name)}
+                          title={`Charger « ${p.name} »`}
+                        >
+                          <Bookmark size={12} />
+                          <span>{p.name}</span>
+                          <small>{p.mode}</small>
+                        </button>
+                        <button
+                          type="button"
+                          className="preset-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            layoutPresets.remove(p.name);
+                          }}
+                          title={`Supprimer « ${p.name} »`}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {layoutPresets.presets.length === 0 && (
+                  <p className="preset-empty">
+                    Aucune disposition sauvegardée. Ouvrez des panneaux et sauvegardez.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <button
             className="focus-map-btn"

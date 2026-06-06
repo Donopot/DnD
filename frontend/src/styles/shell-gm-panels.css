@@ -456,6 +456,113 @@
   color: var(--text-primary);
 }
 
+/* ── Layout Presets Dropdown ─────────────────────────────────── */
+.preset-selector {
+  position: relative;
+}
+
+.preset-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  width: 260px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-panel);
+  z-index: 200;
+  padding: 0.5rem;
+}
+
+.preset-save-row {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.preset-name-input {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.preset-name-input::placeholder {
+  color: var(--text-muted);
+}
+
+.preset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.preset-load-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.preset-load-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.preset-load-btn small {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.preset-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.preset-delete-btn:hover {
+  background: rgba(220, 60, 60, 0.15);
+  color: var(--danger);
+}
+
+.preset-empty {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1rem 0;
+  margin: 0;
+}
+
 /* Right panels */
 .gm-panels {
   display: flex;
@@ -597,6 +704,24 @@
   height: auto;
 }
 
+.floating-panel.maximized {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.floating-panel.locked .floating-panel-titlebar {
+  cursor: default;
+}
+
+.floating-panel.locked .drag-handle-icon {
+  opacity: 0.3;
+}
+
+.floating-panel.pinned {
+  box-shadow: 0 0 0 2px var(--accent), var(--shadow-panel);
+}
+
 .floating-panel-titlebar {
   display: flex;
   align-items: center;
@@ -649,6 +774,11 @@
 .floating-panel-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
+}
+
+.floating-panel-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--accent);
 }
 
 .floating-panel-btn-close:hover {
