@@ -40,6 +40,24 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   2.5 Permissions indicator bar
+   ───────────────────────────────────────────────────────────────── */
+.player-perms-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 16px;
+  background: rgba(197, 179, 88, 0.1);
+  border-bottom: 1px solid rgba(197, 179, 88, 0.2);
+}
+
+.perms-tag {
+  font-size: 0.72rem;
+  color: var(--accent-gold, #c5b358);
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────────
    2. Campaign Header
    ───────────────────────────────────────────────────────────────── */
 .player-campaign-header {

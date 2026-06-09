@@ -24,6 +24,7 @@ import type {
   SceneToken,
 } from "../api/types";
 import { useSceneBackground } from "../hooks/useSceneBackground";
+import { usePlayerPermissions } from "../hooks/usePlayerPermissions";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -110,7 +111,8 @@ export function PlayerView({
   const [combatNotification, setCombatNotification] = useState("");
   const [showFullSheet, setShowFullSheet] = useState(false);
 
-  // ─── Map state (scenes, tokens, background) ──────────────────────────
+  // ─── Player permissions ───────────────────────────────────────────────
+  const perms = usePlayerPermissions(campaign);
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
   const [playerScene, setPlayerScene] = useState<Scene | null>(null);
   const [playerTokens, setPlayerTokens] = useState<SceneToken[]>([]);
@@ -700,7 +702,7 @@ export function PlayerView({
                   </small>
                 </span>
                 <em>
-                  {campaign.gm_settings?.show_player_hp !== false ? (
+                  {perms.canSeeHP ? (
                     <>
                       <HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}
                     </>
@@ -1275,6 +1277,15 @@ export function PlayerView({
     <main className="player-campaign-shell">
       {campaignHeader}
 
+      {/* Permissions indicator — shown when any restriction is active */}
+      {(perms.canMoveTokenReason || perms.canSeeHPReason || perms.canPanMapReason) && (
+        <div className="player-perms-bar" role="status" aria-label="Permissions de session">
+          {perms.canMoveTokenReason && <span className="perms-tag">🚫 {perms.canMoveTokenReason}</span>}
+          {perms.canSeeHPReason && <span className="perms-tag">🙈 {perms.canSeeHPReason}</span>}
+          {perms.canPanMapReason && <span className="perms-tag">🔒 {perms.canPanMapReason}</span>}
+        </div>
+      )}
+
       <div className="player-workspace">
         {/* ── Map (left) ──────────────────────────────────────── */}
         <section className="player-map-area">
@@ -1289,7 +1300,7 @@ export function PlayerView({
                     characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
                 ),
               canMoveToken: (tokenId) => {
-                if (campaign.gm_settings?.allow_player_token_move === false) return false;
+                if (!perms.canMoveToken) return false;
                 return playerTokens.some(
                   (t) =>
                     t.id === tokenId &&
