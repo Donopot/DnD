@@ -109,6 +109,14 @@ export function PlayerView({
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [combatNotification, setCombatNotification] = useState("");
+  const [playerToast, setPlayerToast] = useState<{ text: string; type: "info" | "combat" } | null>(
+    null,
+  );
+
+  function showPlayerToast(text: string, type: "info" | "combat" = "info") {
+    setPlayerToast({ text, type });
+    setTimeout(() => setPlayerToast(null), 3500);
+  }
   const [showFullSheet, setShowFullSheet] = useState(false);
 
   // ─── Player permissions ───────────────────────────────────────────────
@@ -170,12 +178,18 @@ export function PlayerView({
           void loadSessionLog();
           if (payload.resource === "handout") {
             void loadHandouts();
+            showPlayerToast("📄 Un document a été révélé !", "info");
           }
           if (payload.resource === "encounter") {
             void loadCombatState();
             setCombatNotification("Le combat a été mis à jour !");
+            showPlayerToast("⚔️ Combat mis à jour !", "combat");
           }
-          if (payload.resource === "scene" || payload.resource === "token") {
+          if (payload.resource === "scene") {
+            void loadPlayerMapData();
+            showPlayerToast("🗺️ La scène a changé !", "info");
+          }
+          if (payload.resource === "token") {
             void loadPlayerMapData();
           }
         }
@@ -1381,6 +1395,16 @@ export function PlayerView({
       {combatNotification && (
         <div className="combat-notification" onAnimationEnd={() => setCombatNotification("")}>
           ⚔️ {combatNotification}
+        </div>
+      )}
+
+      {playerToast && (
+        <div
+          className={`player-toast-banner${playerToast.type === "combat" ? " combat" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
+          {playerToast.text}
         </div>
       )}
     </main>
