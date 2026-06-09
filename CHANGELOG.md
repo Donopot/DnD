@@ -59,6 +59,54 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.12.1] — Roadmap UX + Stabilisation CI + Audit (2026-06-06/07)
+
+### 🏗 PR #105 — Stabilité pré-UX (agent/fix/pre-ux-stability)
+- Ruff E501 inline sur 14 longues lignes npc_generator.py
+- Ruff SIM102 (if imbriqués) dans test_vtt_permissions.py
+- Biome.json restauré strict (2 warns temporaires only)
+- Script check-gm-panels-current.sh adapté à PanelRenderer/GmWorkspace
+- CI healthchecks Docker (backend, frontend, minio, redis) + wait-for-services.sh
+
+### 🎯 PR #106 — Mode presets + persistence (agent/ui/mode-presets-persistence)
+- localStorage clé `dnd_active_mode_v1` — persistance du mode live
+- Tooltips sur les boutons de mode (`title={m.description}`)
+- VALID_MODES dérivé de SESSION_LIVE_MODES (plus de hardcode)
+
+### 📐 PR #107 — Layout presets (agent/ui/layout-presets)
+- `useFloatingPanels` stockage versionné `dnd_fp_v1_{campaignId}`
+- Rechargement automatique au switch de campagne
+- Bouton « ⟳ Réinitialiser la disposition »
+
+### ⚙️ PR #108 — GM Overrides (agent/ui/gm-overrides)
+- Toggle « Vue joueur » dans topbar, `isGM` dynamique
+- GmSettingsPanel : 6 toggles (allow_player_token_move, show_player_hp, …)
+- Migration 025_gm_settings.sql + PATCH /api/campaigns/{id}/settings
+- Permissions joueur appliquées, handlers GM désactivés en vue joueur
+
+### 🪟 PR — Floating panels v2 (agent/ui/floating-panels-v2)
+- États pinned/locked/maximized dans useFloatingPanels
+- Boutons Pin/Lock/Maximize dans FloatingPanel, CSS dédié
+- Dock enrichi (emoji, badge, resize horizontal)
+- Presets nommés via useLayoutPresets.ts, dropdown 🔖 dans GmWorkspace
+
+### 🗺️ PR — Focus map + mini-map (agent/ui/focus-map-minimap)
+- Échap quitte le focus, floating panels + dock masqués
+- Mini-map toggle intégrant MapMinimap existant
+- Topbar compacte en focus : opacité réduite, boutons non-essentiels masqués
+
+### 🔍 Audit 2026-06-06
+- **P1**: Imports inutilisés supprimés (useCallback, useRef dans GmWorkspace.tsx)
+- **P2**: INEFFECTIVE_DYNAMIC_IMPORT identifiés (CampaignMap déjà statique dans GmWorkspace)
+- CHANGELOG, README et roadmap mis à jour
+
+### 📊 Metrics
+- Frontend: tsc 0, Biome 0 err, build ~700ms
+- Backend: 122/122 tests
+- 7 PRs livrées, 41 commits
+
+---
+
 ## [v0.11] — Toolchain, sécurité, fog polish (2026-06-03)
 
 ### Phase 41 — Documentation toolchain

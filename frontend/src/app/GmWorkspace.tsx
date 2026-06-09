@@ -20,10 +20,10 @@ import { CampaignViewTabs } from "../components/CampaignViewTabs";
 import { PanelDock } from "../components/PanelDock";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { usePanelContext } from "../contexts/PanelContext";
-import { useLayoutPresets } from "../hooks/useLayoutPresets";
 import { useSessionContext } from "../contexts/SessionContext";
 import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
 import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
+import { useLayoutPresets } from "../hooks/useLayoutPresets";
 import { GmDockedPanels } from "../panels/GmDockedPanels";
 import { GmFloatingPanels } from "../panels/GmFloatingPanels";
 
