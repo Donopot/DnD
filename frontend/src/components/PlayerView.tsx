@@ -108,6 +108,7 @@ export function PlayerView({
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [combatNotification, setCombatNotification] = useState("");
+  const [showFullSheet, setShowFullSheet] = useState(false);
 
   // ─── Map state (scenes, tokens, background) ──────────────────────────
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
@@ -700,7 +701,9 @@ export function PlayerView({
                 </span>
                 <em>
                   {campaign.gm_settings?.show_player_hp !== false ? (
-                    <><HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}</>
+                    <>
+                      <HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}
+                    </>
                   ) : null}
                 </em>
               </button>
@@ -729,17 +732,77 @@ export function PlayerView({
           )}
         </div>
 
-        {/* Character sheet + quick rolls */}
+        {/* Character card + quick rolls */}
         {selectedCharacter ? (
-          <>
-            <EditCharacterSheet
-              character={selectedCharacter}
-              token={token}
-              isBusy={isBusy}
-              onSave={(updated) => {
-                setCharacters((current) => current.map((c) => (c.id === updated.id ? updated : c)));
-              }}
-            />
+          <div className="player-char-detail">
+            {/* Compact stat card */}
+            <div className="player-stat-card">
+              <div className="stat-card-header">
+                <h3>{selectedCharacter.name}</h3>
+                <small>
+                  {selectedCharacter.class_name || "Aventurier"} niv.{selectedCharacter.level}
+                </small>
+              </div>
+
+              <div className="stat-card-grid">
+                <div className="stat-badge" title="Points de vie">
+                  <HeartPulse size={14} /> {selectedCharacter.hp_current}/{selectedCharacter.hp_max}
+                </div>
+                <div className="stat-badge" title="Classe d'armure">
+                  <Shield size={14} /> {selectedCharacter.armor_class}
+                </div>
+                <div className="stat-badge" title="Vitesse">
+                  🏃 {selectedCharacter.speed} ft
+                </div>
+                <div className="stat-badge" title="Bonus d'initiative">
+                  ⚡ {attrMod.dex != null ? (attrMod.dex >= 0 ? "+" : "") + attrMod.dex : "0"}
+                </div>
+                <div className="stat-badge" title="Bonus de maîtrise">
+                  🎯 +{selectedCharacter.proficiency_bonus ?? 2}
+                </div>
+              </div>
+
+              <div className="stat-card-attrs">
+                {(["str", "dex", "con", "int", "wis", "cha"] as const).map((attr) => (
+                  <span key={attr} className="attr-chip">
+                    <strong>{attr.toUpperCase()}</strong>{" "}
+                    {attrMod[attr] != null ? (attrMod[attr] >= 0 ? "+" : "") + attrMod[attr] : "0"}
+                  </span>
+                ))}
+              </div>
+
+              <div className="stat-card-actions">
+                <button
+                  className="primary-button compact"
+                  onClick={() => void quickD20(0, "Initiative")}
+                  type="button"
+                >
+                  <Dice1 size={14} /> Initiative
+                </button>
+                <button
+                  className="ghost-button compact"
+                  onClick={() => setShowFullSheet((v) => !v)}
+                  type="button"
+                >
+                  {showFullSheet ? "Masquer la fiche" : "Fiche détaillée"}
+                </button>
+              </div>
+            </div>
+
+            {/* Full sheet (togglable) */}
+            {showFullSheet && (
+              <EditCharacterSheet
+                character={selectedCharacter}
+                token={token}
+                isBusy={isBusy}
+                onSave={(updated) => {
+                  setCharacters((current) =>
+                    current.map((c) => (c.id === updated.id ? updated : c)),
+                  );
+                }}
+              />
+            )}
+
             {/* Quick attribute rolls */}
             <div className="player-quick-rolls">
               <p className="small-label">Caractéristiques</p>
@@ -776,7 +839,7 @@ export function PlayerView({
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <p className="muted">Sélectionne un personnage.</p>
         )}
