@@ -177,7 +177,7 @@ body {
 
 .vtt-panels-manager-footer .danger-lite:hover:not(:disabled) {
   border-color: var(--danger);
-  background: #f7d7d0;
+  background: var(--danger-dim);
 }
 
 /* End Stabilisation UI panneaux GM - reset centralisé */

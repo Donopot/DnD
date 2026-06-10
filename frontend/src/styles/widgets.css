@@ -450,7 +450,7 @@ select {
   line-height: 16px;
   text-align: center;
   background: var(--danger);
-  color: #fff;
+  color: var(--text-inverse);
   border-radius: 999px;
 }
 

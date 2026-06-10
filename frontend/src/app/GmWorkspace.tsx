@@ -18,6 +18,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
+import { Tooltip } from "../components/Tooltip";
 import { PanelDock } from "../components/PanelDock";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { usePanelContext } from "../contexts/PanelContext";
@@ -258,14 +259,16 @@ export function GmWorkspace(props: GmWorkspaceProps) {
           {/* Layout presets — hidden in focus */}
           {!isFocusMap && (
             <div className="preset-selector" ref={presetRef}>
-              <button
-                className="focus-map-btn"
-                onClick={() => setPresetOpen((v) => !v)}
-                title="Dispositions sauvegardées"
-                type="button"
-              >
-                <Bookmark size={16} />
-              </button>
+              <Tooltip content="Dispositions sauvegardées">
+                <button
+                  className="focus-map-btn"
+                  onClick={() => setPresetOpen((v) => !v)}
+                  aria-label="Dispositions sauvegardées"
+                  type="button"
+                >
+                  <Bookmark size={16} />
+                </button>
+              </Tooltip>
               {presetOpen && (
                 <div className="preset-dropdown">
                   <div className="preset-save-row">
@@ -279,15 +282,17 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                         if (e.key === "Escape") setPresetOpen(false);
                       }}
                     />
-                    <button
-                      className="compact"
-                      onClick={handleSavePreset}
-                      disabled={!presetName.trim()}
-                      type="button"
-                      title="Sauvegarder"
-                    >
-                      <Save size={14} />
-                    </button>
+                    <Tooltip content="Sauvegarder la disposition">
+                      <button
+                        className="compact"
+                        onClick={handleSavePreset}
+                        disabled={!presetName.trim()}
+                        aria-label="Sauvegarder la disposition"
+                        type="button"
+                      >
+                        <Save size={14} />
+                      </button>
+                    </Tooltip>
                   </div>
                   {layoutPresets.presets.length > 0 && (
                     <ul className="preset-list">
@@ -297,23 +302,25 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                             type="button"
                             className="preset-load-btn"
                             onClick={() => handleLoadPreset(p.name)}
-                            title={`Charger « ${p.name} »`}
+                            aria-label={`Charger la disposition « ${p.name} »`}
                           >
                             <Bookmark size={12} />
                             <span>{p.name}</span>
                             <small>{p.mode}</small>
                           </button>
-                          <button
-                            type="button"
-                            className="preset-delete-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              layoutPresets.remove(p.name);
-                            }}
-                            title={`Supprimer « ${p.name} »`}
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          <Tooltip content={`Supprimer « ${p.name} »`}>
+                            <button
+                              type="button"
+                              className="preset-delete-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                layoutPresets.remove(p.name);
+                              }}
+                              aria-label={`Supprimer la disposition « ${p.name} »`}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </Tooltip>
                         </li>
                       ))}
                     </ul>
@@ -330,71 +337,85 @@ export function GmWorkspace(props: GmWorkspaceProps) {
 
           {/* Mini-map toggle — only in focus */}
           {isFocusMap && (
-            <button
-              className={`focus-map-btn${showMiniMap ? " active" : ""}`}
-              onClick={() => setShowMiniMap((v) => !v)}
-              title={showMiniMap ? "Masquer la mini-carte" : "Afficher la mini-carte"}
-              type="button"
-            >
-              <Map size={16} />
-            </button>
+            <Tooltip content={showMiniMap ? "Masquer la mini-carte" : "Afficher la mini-carte"}>
+              <button
+                className={`focus-map-btn${showMiniMap ? " active" : ""}`}
+                onClick={() => setShowMiniMap((v) => !v)}
+                aria-label={showMiniMap ? "Masquer la mini-carte" : "Afficher la mini-carte"}
+                type="button"
+              >
+                <Map size={16} />
+              </button>
+            </Tooltip>
           )}
 
           {/* Focus toggle — always visible */}
-          <button
-            className={`focus-map-btn${isFocusMap ? " active" : ""}`}
-            onClick={() => setIsFocusMap((prev) => !prev)}
-            title={isFocusMap ? "Quitter plein écran (Échap)" : "Carte plein écran (F)"}
-            type="button"
-          >
-            {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
+          <Tooltip content={isFocusMap ? "Quitter plein écran (Échap)" : "Carte plein écran (F)"}>
+            <button
+              className={`focus-map-btn${isFocusMap ? " active" : ""}`}
+              onClick={() => setIsFocusMap((prev) => !prev)}
+              aria-label={isFocusMap ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
+              type="button"
+            >
+              {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+          </Tooltip>
 
           {/* Non-essential buttons — hidden in focus */}
           {!isFocusMap && (
             <>
-              <button
-                className="focus-map-btn"
-                onClick={() => setIsPlayerView((prev) => !prev)}
-                title={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
-                type="button"
-                style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
-              >
-                {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
-              </button>
-              <button
-                className="focus-map-btn"
-                onClick={() => fp.reset()}
-                title="Réinitialiser la disposition des panneaux"
-                type="button"
-              >
-                <RotateCcw size={16} />
-              </button>
-              <button
-                className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
-                onClick={() => setIsPanelsHidden((prev) => !prev)}
-                title={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
-                type="button"
-              >
-                {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
-              </button>
-              <button
-                className="focus-map-btn"
-                onClick={toggleTheme}
-                title={theme === "dark" ? "Mode clair" : "Mode sombre"}
-                type="button"
-              >
-                {theme === "dark" ? "☀️" : "🌙"}
-              </button>
-              {!isMapFloating && (
+              <Tooltip content={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}>
                 <button
                   className="focus-map-btn"
-                  onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
-                  title="Détacher la carte en panneau flottant"
+                  onClick={() => setIsPlayerView((prev) => !prev)}
+                  aria-label={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
+                  type="button"
+                  style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
+                >
+                  {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
+                </button>
+              </Tooltip>
+              <Tooltip content="Réinitialiser la disposition des panneaux">
+                <button
+                  className="focus-map-btn"
+                  onClick={() => fp.reset()}
+                  aria-label="Réinitialiser la disposition des panneaux"
                   type="button"
                 >
-                  🗺️
+                  <RotateCcw size={16} />
                 </button>
+              </Tooltip>
+              <Tooltip content={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}>
+                <button
+                  className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
+                  onClick={() => setIsPanelsHidden((prev) => !prev)}
+                  aria-label={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
+                  type="button"
+                >
+                  {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
+                </button>
+              </Tooltip>
+              <Tooltip content={theme === "dark" ? "Mode clair" : "Mode sombre"}>
+                <button
+                  className="focus-map-btn"
+                  onClick={toggleTheme}
+                  aria-label={theme === "dark" ? "Mode clair" : "Mode sombre"}
+                  type="button"
+                >
+                  {theme === "dark" ? "☀️" : "🌙"}
+                </button>
+              </Tooltip>
+              {!isMapFloating && (
+                <Tooltip content="Détacher la carte en panneau flottant">
+                  <button
+                    className="focus-map-btn"
+                    onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
+                    aria-label="Détacher la carte en panneau flottant"
+                    type="button"
+                  >
+                    🗺️
+                  </button>
+                </Tooltip>
               )}
             </>
           )}

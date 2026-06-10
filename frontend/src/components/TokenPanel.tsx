@@ -78,26 +78,26 @@ export function TokenPanel({
         .gm-token-panel .token-row {
           display: flex; align-items: center; gap: 8px;
           padding: 8px 10px; border-radius: 4px;
-          background: var(--panel-bg, #1a2a1e);
-          border: 1px solid var(--border-color, #2a3a2e);
+          background: var(--bg-surface);
+          border: 1px solid var(--border-color, var(--border-subtle));
           font-size: 13px;
         }
         .gm-token-panel .token-swatch {
           width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0;
-          border: 1px solid var(--border-color, #2a3a2e);
+          border: 1px solid var(--border-color, var(--border-subtle));
         }
-        .gm-token-panel .token-name { flex: 1; font-weight: 500; color: var(--text-primary, #d4d4c8); }
-        .gm-token-panel .token-pos { font-size: 11px; color: var(--text-muted, #6a7a6e); }
+        .gm-token-panel .token-name { flex: 1; font-weight: 500; color: var(--text-strong); }
+        .gm-token-panel .token-pos { font-size: 11px; color: var(--text-muted); }
         .gm-token-panel .token-del {
-          cursor: pointer; color: var(--text-muted, #6a7a6e); font-size: 16px;
+          cursor: pointer; color: var(--text-muted); font-size: 16px;
           padding: 2px 6px; border-radius: 3px; border: none; background: none;
         }
-        .gm-token-panel .token-del:hover { color: #e05555; background: var(--panel-hover, #223322); }
-        .gm-token-panel .create-form { padding: 10px; background: var(--panel-bg, #1a2a1e); border-radius: 6px; }
+        .gm-token-panel .token-del:hover { color: var(--danger); background: var(--bg-hover); }
+        .gm-token-panel .create-form { padding: 10px; background: var(--bg-surface); border-radius: 6px; }
         .gm-token-panel .create-form input {
           width: 100%; margin-bottom: 6px; padding: 6px 8px;
-          background: var(--input-bg, #0d1a10); color: var(--text-primary, #d4d4c8);
-          border: 1px solid var(--border-color, #2a3a2e); border-radius: 4px;
+          background: var(--bg-surface-elevated); color: var(--text-strong);
+          border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 4px;
           font-size: 13px;
         }
         .gm-token-panel .create-form input[type="color"] {
@@ -108,17 +108,17 @@ export function TokenPanel({
           padding: 6px 12px; border: none; border-radius: 4px;
           font-size: 12px; cursor: pointer;
         }
-        .gm-token-panel .btn-primary { background: var(--brand-green, #1f5f43); color: #fff; }
-        .gm-token-panel .btn-secondary { background: var(--border-color, #2a3a2e); color: var(--text-primary, #d4d4c8); }
+        .gm-token-panel .btn-primary { background: var(--accent-secondary); color: var(--text-inverse); }
+        .gm-token-panel .btn-secondary { background: var(--border-color, var(--border-subtle)); color: var(--text-strong); }
         .gm-token-panel .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .gm-token-panel .error-msg { color: #e05555; font-size: 12px; margin-bottom: 6px; }
+        .gm-token-panel .error-msg { color: var(--danger); font-size: 12px; margin-bottom: 6px; }
         .gm-token-panel .empty-hint {
-          text-align: center; color: var(--text-muted, #6a7a6e);
+          text-align: center; color: var(--text-muted);
           font-size: 13px; padding: 24px;
         }
         .gm-token-panel .hidden-badge {
           font-size: 10px; padding: 1px 4px; border-radius: 2px;
-          background: var(--border-color, #2a3a2e); color: var(--text-muted, #6a7a6e);
+          background: var(--border-color, var(--border-subtle)); color: var(--text-muted);
         }
       `}</style>
 

@@ -58,28 +58,28 @@ export function ScenePanel({
         .gm-scene-panel .scene-list { display: flex; flex-direction: column; gap: 6px; }
         .gm-scene-panel .scene-card {
           padding: 10px 12px; border-radius: 6px;
-          background: var(--panel-bg, #1a2a1e); cursor: pointer;
-          border: 1px solid var(--border-color, #2a3a2e);
+          background: var(--bg-surface); cursor: pointer;
+          border: 1px solid var(--border-color, var(--border-subtle));
           transition: border-color 0.15s;
         }
-        .gm-scene-panel .scene-card:hover { border-color: var(--brand-green, #1f5f43); }
+        .gm-scene-panel .scene-card:hover { border-color: var(--accent-secondary); }
         .gm-scene-panel .scene-card.scene-active {
-          border-color: var(--brand-green, #1f5f43);
-          background: var(--panel-hover, #223322);
+          border-color: var(--accent-secondary);
+          background: var(--bg-hover);
         }
-        .gm-scene-panel .scene-name { font-weight: 600; font-size: 14px; color: var(--text-primary, #d4d4c8); }
-        .gm-scene-panel .scene-desc { font-size: 12px; color: var(--text-muted, #6a7a6e); margin-top: 2px; }
-        .gm-scene-panel .scene-meta { font-size: 11px; color: var(--text-muted, #6a7a6e); margin-top: 4px; }
+        .gm-scene-panel .scene-name { font-weight: 600; font-size: 14px; color: var(--text-strong); }
+        .gm-scene-panel .scene-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .gm-scene-panel .scene-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
         .gm-scene-panel .active-badge {
           display: inline-block; font-size: 10px; padding: 1px 6px;
-          border-radius: 3px; background: var(--brand-green, #1f5f43);
-          color: #fff; margin-left: 6px;
+          border-radius: 3px; background: var(--accent-secondary);
+          color: var(--text-inverse); margin-left: 6px;
         }
-        .gm-scene-panel .create-form { padding: 10px; background: var(--panel-bg, #1a2a1e); border-radius: 6px; }
+        .gm-scene-panel .create-form { padding: 10px; background: var(--bg-surface); border-radius: 6px; }
         .gm-scene-panel .create-form input, .gm-scene-panel .create-form textarea {
           width: 100%; margin-bottom: 6px; padding: 6px 8px;
-          background: var(--input-bg, #0d1a10); color: var(--text-primary, #d4d4c8);
-          border: 1px solid var(--border-color, #2a3a2e); border-radius: 4px;
+          background: var(--bg-surface-elevated); color: var(--text-strong);
+          border: 1px solid var(--border-color, var(--border-subtle)); border-radius: 4px;
           font-size: 13px;
         }
         .gm-scene-panel .create-form textarea { min-height: 60px; resize: vertical; }
@@ -88,12 +88,12 @@ export function ScenePanel({
           padding: 6px 12px; border: none; border-radius: 4px;
           font-size: 12px; cursor: pointer;
         }
-        .gm-scene-panel .btn-primary { background: var(--brand-green, #1f5f43); color: #fff; }
-        .gm-scene-panel .btn-secondary { background: var(--border-color, #2a3a2e); color: var(--text-primary, #d4d4c8); }
+        .gm-scene-panel .btn-primary { background: var(--accent-secondary); color: var(--text-inverse); }
+        .gm-scene-panel .btn-secondary { background: var(--border-color, var(--border-subtle)); color: var(--text-strong); }
         .gm-scene-panel .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .gm-scene-panel .error-msg { color: #e05555; font-size: 12px; margin-top: 4px; }
+        .gm-scene-panel .error-msg { color: var(--danger); font-size: 12px; margin-top: 4px; }
         .gm-scene-panel .grid-row { display: flex; gap: 6px; }
-        .gm-scene-panel .grid-row label { font-size: 11px; color: var(--text-muted, #6a7a6e); }
+        .gm-scene-panel .grid-row label { font-size: 11px; color: var(--text-muted); }
         .gm-scene-panel .grid-row input { width: 70px; }
       `}</style>
 
@@ -171,7 +171,7 @@ export function ScenePanel({
         {scenes.length === 0 && (
           <div
             style={{
-              color: "var(--text-muted, #6a7a6e)",
+              color: "var(--text-muted)",
               fontSize: 13,
               padding: 12,
               textAlign: "center",

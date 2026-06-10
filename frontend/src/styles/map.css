@@ -30,7 +30,7 @@
 
 .map-token.selected {
   z-index: 31;
-  outline: 3px solid #f5c542;
+  outline: 3px solid var(--accent-primary);
   outline-offset: 3px;
   box-shadow:
     0 0 0 4px var(--border-subtle),
@@ -126,7 +126,7 @@
 .map-overview-token.selected {
   width: 13px;
   height: 13px;
-  border-color: #f5c542;
+  border-color: var(--accent-primary);
   box-shadow:
     0 0 0 3px rgba(245, 197, 66, 0.28),
     0 4px 10px rgba(35, 48, 40, 0.34);
@@ -285,19 +285,19 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  border: 1px solid #d4cdb8;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   background: #fff;
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  color: #5a4e3e;
+  color: var(--text-strong);
 }
 
 .fog-toggle-btn.active {
-  background: #1b4332;
-  color: #f8f4e8;
-  border-color: #1b4332;
+  background: var(--accent-secondary);
+  color: var(--text-inverse);
+  border-color: var(--accent-secondary);
 }
 
 .fog-save-error {
@@ -309,7 +309,7 @@
   border: 1px solid rgba(220, 60, 60, 0.55);
   border-radius: 6px;
   background: rgba(45, 18, 18, 0.92);
-  color: #ffd6d6;
+  color: var(--danger-dim);
   font-size: 0.72rem;
   pointer-events: none;
 }
@@ -644,7 +644,7 @@
 
 .token-condition-more {
   font-size: 8px;
-  color: #ccc;
+  color: var(--text-weak);
   font-weight: bold;
 }
 
