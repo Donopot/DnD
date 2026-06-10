@@ -515,7 +515,11 @@ curl -I http://127.0.0.1:8090
 
 ### 6.9 Ordre de priorité des branches
 
-documentation → cohérence environnement/Docker → build reproductible → refactor API client → sécurité backend → WebSocket → permissions → design tokens → layout → navigation → UX carte.
+sécurité des frontières joueur/MJ → permissions WebSocket → stabilité fog/API/paramètres → tests d'autorisation et E2E → build reproductible → navigation → design tokens → dette CSS → UX carte.
+
+Le découpage détaillé des correctifs issus de l'audit de `main` du
+2026-06-10 est suivi dans
+`docs/work-in-progress/2026-06-10-main-audit-remediation.md`.
 
 ---
 

@@ -26,10 +26,15 @@ Le socle est fonctionnel :
 
 Chantiers prioritaires :
 
-- polish design system (tooltips, contraste, palette) ;
-- interface joueur — carte filtrée, dés ;
-- réduire la dette CSS (variables, cohérence widgets) ;
+- fermer les contournements d'autorisation joueur/MJ ;
+- sécuriser les déplacements de tokens et messages privés WebSocket ;
+- réparer les parcours fog, homebrew et paramètres ;
+- rendre la CI représentative et la toolchain backend reproductible ;
+- terminer l'adoption du design system après stabilisation ;
 - maintenir une documentation consolidée.
+
+Le plan d'exécution courant est documenté dans
+[`docs/work-in-progress/2026-06-10-main-audit-remediation.md`](docs/work-in-progress/2026-06-10-main-audit-remediation.md).
 
 ---
 
