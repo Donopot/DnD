@@ -3,6 +3,7 @@ import {
   DoorOpen,
   Eye,
   EyeOff,
+  Map,
   Maximize2,
   Minimize2,
   PanelRightClose,
@@ -13,7 +14,7 @@ import {
   Trash2,
   UserPlus,
 } from "lucide-react";
-import { lazy, Suspense, useCallback, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
@@ -113,11 +114,8 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     (name: string) => {
       const preset = layoutPresets.presets.find((p) => p.name === name);
       if (!preset) return;
-      // Restore mode
       setActiveSessionLiveMode(preset.mode as never);
-      // Restore panels — close all, then open each from preset
       fp.reset();
-      // Use a small timeout to let reset flush before opening
       setTimeout(() => {
         for (const p of preset.panels) {
           fp.open(p.id, p.title, p.x, p.y, p.width, p.height);
@@ -125,7 +123,6 @@ export function GmWorkspace(props: GmWorkspaceProps) {
           if (p.locked) fp.toggleLock(p.id);
           if (p.minimized) fp.minimize(p.id);
         }
-        // Maximized must be last (overrides position)
         for (const p of preset.panels) {
           if (p.maximized) fp.toggleMaximize(p.id);
         }
@@ -134,6 +131,23 @@ export function GmWorkspace(props: GmWorkspaceProps) {
     },
     [layoutPresets.presets, fp, setActiveSessionLiveMode],
   );
+
+  // ── Focus map: Escape to exit, mini-map toggle ────────────
+  const [showMiniMap, setShowMiniMap] = useState(false);
+
+  useEffect(() => {
+    if (!isFocusMap) {
+      setShowMiniMap(false); // P2 fix: reset on exit
+      return;
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsFocusMap(false);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isFocusMap, setIsFocusMap]);
 
   return (
     <main className={`gm-campaign-shell${isFocusMap ? " focus-map" : ""}`}>
@@ -215,165 +229,205 @@ export function GmWorkspace(props: GmWorkspaceProps) {
 
       {/* ── Centre — Carte ──────────────────────────────────── */}
       <section className="gm-map-area">
-        <div className="gm-map-topbar">
-          <div>
-            <span className="realtime-pill">{realtimeStatus}</span>
-            <span>{presenceCount} connectés</span>
-          </div>
+        <div className={`gm-map-topbar${isFocusMap ? " focus-compact" : ""}`}>
+          {!isFocusMap && (
+            <div>
+              <span className="realtime-pill">{realtimeStatus}</span>
+              <span>{presenceCount} connectés</span>
+            </div>
+          )}
           <span className="gm-campaign-name">{selectedCampaign?.name ?? "Campagne"}</span>
-          <div className="session-live-mode-buttons compact" aria-label="Modes">
-            {SESSION_LIVE_MODES.map((m) => (
+
+          {/* Mode buttons — hidden in focus */}
+          {!isFocusMap && (
+            <div className="session-live-mode-buttons compact" aria-label="Modes">
+              {SESSION_LIVE_MODES.map((m) => (
+                <button
+                  key={m.id}
+                  className={activeSessionLiveMode === m.id ? "active" : ""}
+                  onClick={() => setActiveSessionLiveMode(m.id)}
+                  title={m.description}
+                  type="button"
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Layout presets — hidden in focus */}
+          {!isFocusMap && (
+            <div className="preset-selector" ref={presetRef}>
               <button
-                key={m.id}
-                className={activeSessionLiveMode === m.id ? "active" : ""}
-                onClick={() => setActiveSessionLiveMode(m.id)}
-                title={m.description}
+                className="focus-map-btn"
+                onClick={() => setPresetOpen((v) => !v)}
+                title="Dispositions sauvegardées"
                 type="button"
               >
-                {m.label}
+                <Bookmark size={16} />
               </button>
-            ))}
-          </div>
-          {/* ── Layout presets dropdown ──────────────────── */}
-          <div className="preset-selector" ref={presetRef}>
+              {presetOpen && (
+                <div className="preset-dropdown">
+                  <div className="preset-save-row">
+                    <input
+                      className="preset-name-input"
+                      placeholder="Nom de la dispo…"
+                      value={presetName}
+                      onChange={(e) => setPresetName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSavePreset();
+                        if (e.key === "Escape") setPresetOpen(false);
+                      }}
+                    />
+                    <button
+                      className="compact"
+                      onClick={handleSavePreset}
+                      disabled={!presetName.trim()}
+                      type="button"
+                      title="Sauvegarder"
+                    >
+                      <Save size={14} />
+                    </button>
+                  </div>
+                  {layoutPresets.presets.length > 0 && (
+                    <ul className="preset-list">
+                      {layoutPresets.presets.map((p) => (
+                        <li key={p.name} className="preset-item">
+                          <button
+                            type="button"
+                            className="preset-load-btn"
+                            onClick={() => handleLoadPreset(p.name)}
+                            title={`Charger « ${p.name} »`}
+                          >
+                            <Bookmark size={12} />
+                            <span>{p.name}</span>
+                            <small>{p.mode}</small>
+                          </button>
+                          <button
+                            type="button"
+                            className="preset-delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              layoutPresets.remove(p.name);
+                            }}
+                            title={`Supprimer « ${p.name} »`}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {layoutPresets.presets.length === 0 && (
+                    <p className="preset-empty">
+                      Aucune disposition sauvegardée. Ouvrez des panneaux et sauvegardez.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mini-map toggle — only in focus */}
+          {isFocusMap && (
             <button
-              className="focus-map-btn"
-              onClick={() => setPresetOpen((v) => !v)}
-              title="Dispositions sauvegardées"
+              className={`focus-map-btn${showMiniMap ? " active" : ""}`}
+              onClick={() => setShowMiniMap((v) => !v)}
+              title={showMiniMap ? "Masquer la mini-carte" : "Afficher la mini-carte"}
               type="button"
             >
-              <Bookmark size={16} />
+              <Map size={16} />
             </button>
-            {presetOpen && (
-              <div className="preset-dropdown">
-                <div className="preset-save-row">
-                  <input
-                    className="preset-name-input"
-                    placeholder="Nom de la dispo…"
-                    value={presetName}
-                    onChange={(e) => setPresetName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSavePreset();
-                      if (e.key === "Escape") setPresetOpen(false);
-                    }}
-                  />
-                  <button
-                    className="compact"
-                    onClick={handleSavePreset}
-                    disabled={!presetName.trim()}
-                    type="button"
-                    title="Sauvegarder"
-                  >
-                    <Save size={14} />
-                  </button>
-                </div>
-                {layoutPresets.presets.length > 0 && (
-                  <ul className="preset-list">
-                    {layoutPresets.presets.map((p) => (
-                      <li key={p.name} className="preset-item">
-                        <button
-                          type="button"
-                          className="preset-load-btn"
-                          onClick={() => handleLoadPreset(p.name)}
-                          title={`Charger « ${p.name} »`}
-                        >
-                          <Bookmark size={12} />
-                          <span>{p.name}</span>
-                          <small>{p.mode}</small>
-                        </button>
-                        <button
-                          type="button"
-                          className="preset-delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            layoutPresets.remove(p.name);
-                          }}
-                          title={`Supprimer « ${p.name} »`}
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {layoutPresets.presets.length === 0 && (
-                  <p className="preset-empty">
-                    Aucune disposition sauvegardée. Ouvrez des panneaux et sauvegardez.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          )}
+
+          {/* Focus toggle — always visible */}
           <button
-            className="focus-map-btn"
+            className={`focus-map-btn${isFocusMap ? " active" : ""}`}
             onClick={() => setIsFocusMap((prev) => !prev)}
-            title={isFocusMap ? "Quitter plein écran" : "Carte plein écran"}
+            title={isFocusMap ? "Quitter plein écran (Échap)" : "Carte plein écran (F)"}
             type="button"
           >
             {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
-          <button
-            className="focus-map-btn"
-            onClick={() => setIsPlayerView((prev) => !prev)}
-            title={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
-            type="button"
-            style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
-          >
-            {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
-          </button>
-          <button
-            className="focus-map-btn"
-            onClick={() => fp.reset()}
-            title="Réinitialiser la disposition des panneaux"
-            type="button"
-          >
-            <RotateCcw size={16} />
-          </button>
-          <button
-            className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
-            onClick={() => setIsPanelsHidden((prev) => !prev)}
-            title={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
-            type="button"
-          >
-            {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
-          </button>
-          <button
-            className="focus-map-btn"
-            onClick={toggleTheme}
-            title={theme === "dark" ? "Mode clair" : "Mode sombre"}
-            type="button"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          {!isMapFloating && (
-            <button
-              className="focus-map-btn"
-              onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
-              title="Détacher la carte en panneau flottant"
-              type="button"
-            >
-              🗺️
-            </button>
+
+          {/* Non-essential buttons — hidden in focus */}
+          {!isFocusMap && (
+            <>
+              <button
+                className="focus-map-btn"
+                onClick={() => setIsPlayerView((prev) => !prev)}
+                title={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
+                type="button"
+                style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
+              >
+                {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+              <button
+                className="focus-map-btn"
+                onClick={() => fp.reset()}
+                title="Réinitialiser la disposition des panneaux"
+                type="button"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button
+                className={`gm-panels-toggle${isPanelsHidden ? " active" : ""}`}
+                onClick={() => setIsPanelsHidden((prev) => !prev)}
+                title={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
+                type="button"
+              >
+                {isPanelsHidden ? <PanelRightOpen size={16} /> : <PanelRightClose size={16} />}
+              </button>
+              <button
+                className="focus-map-btn"
+                onClick={toggleTheme}
+                title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+                type="button"
+              >
+                {theme === "dark" ? "☀️" : "🌙"}
+              </button>
+              {!isMapFloating && (
+                <button
+                  className="focus-map-btn"
+                  onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
+                  title="Détacher la carte en panneau flottant"
+                  type="button"
+                >
+                  🗺️
+                </button>
+              )}
+            </>
           )}
         </div>
 
-        <CampaignViewTabs activeView={gmView} onChange={setGmView} />
+        {/* P2 fix: hide tabs in focus */}
+        {!isFocusMap && <CampaignViewTabs activeView={gmView} onChange={setGmView} />}
 
-        {!isMapFloating && <CampaignMap {...campaignMapProps} />}
+        {/* P1 fix: show map in focus even when floating; showMiniMap guard */}
+        {(!isMapFloating || isFocusMap) && (
+          <CampaignMap {...campaignMapProps} showMiniMap={isFocusMap ? showMiniMap : undefined} />
+        )}
       </section>
 
       {/* ── Droite — Panneaux dockés ─────────────────────────── */}
       <Suspense fallback={<PanelFallback />}>
-        <aside className="gm-panels" style={{ display: isPanelsHidden ? "none" : "" }}>
+        <aside
+          className="gm-panels"
+          style={{ display: isPanelsHidden || isFocusMap ? "none" : "" }}
+        >
           <GmDockedPanels />
         </aside>
       </Suspense>
 
-      {/* ── Floating Panels ──────────────────────────────────── */}
-      <GmFloatingPanels />
+      {/* P2 fix: keep floating panels mounted, hide with CSS */}
+      <div style={{ display: isFocusMap ? "none" : undefined }}>
+        <GmFloatingPanels />
+      </div>
 
-      {/* ── Panel Dock (minimized panels) ──────────────────────── */}
-      <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
+      {/* P2 fix: keep panel dock mounted, hide with CSS */}
+      <div style={{ display: isFocusMap ? "none" : undefined }}>
+        <PanelDock panels={fp.panels} onRestore={(id) => fp.minimize(id)} />
+      </div>
 
       {/* ── Toast notifications ──────────────────────────────── */}
       <div className="toast-container">
