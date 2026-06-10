@@ -10,12 +10,12 @@ import {
   Map,
   Maximize2,
   Minimize2,
+  Moon,
   PanelRightClose,
   PanelRightOpen,
   RotateCcw,
   Save,
   Sun,
-  Moon,
   Trash2,
   UserPlus,
   X,
@@ -472,10 +472,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
         {/* ── Carte ──────────────────────────────────────── */}
         <section className="gm-map-v2">
           {(!isMapFloating || isFocusMap) && (
-            <CampaignMap
-              {...campaignMapProps}
-              showMiniMap={isFocusMap ? showMiniMap : undefined}
-            />
+            <CampaignMap {...campaignMapProps} showMiniMap={isFocusMap ? showMiniMap : undefined} />
           )}
           {isMapFloating && !isFocusMap && (
             <div className="map-floating-placeholder">

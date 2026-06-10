@@ -1,0 +1,67 @@
+/* ── IconButton — reusable icon button primitive ──────────────────────────── */
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ── Sizes ──────────────────────────────── */
+
+.icon-btn--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.icon-btn--md {
+  width: 36px;
+  height: 36px;
+}
+
+.icon-btn--lg {
+  width: 44px;
+  height: 44px;
+}
+
+/* ── Variants ───────────────────────────── */
+
+.icon-btn--primary {
+  color: var(--gold);
+}
+
+.icon-btn--primary:hover {
+  background: var(--gold-dim);
+}
+
+.icon-btn--danger {
+  color: var(--text-muted);
+}
+
+.icon-btn--danger:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+/* ── Active state ───────────────────────── */
+
+.icon-btn--active {
+  color: var(--gold);
+  background: var(--gold-dim);
+}
