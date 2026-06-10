@@ -316,16 +316,19 @@ export default function App() {
     handleMapTokenBatchAction,
   ]);
 
-  // Auto-convert message state to toast notifications only after authentication.
-  // On auth screens, keep message visible inside AuthPage.
+  // Auto-convert message state to toast notifications only in workspace (has toast container).
+  // In lobbies (no campaign selected), keep message visible inside the component.
   useEffect(() => {
     if (!message || !user) {
       return;
     }
+    if (!selectedCampaign) {
+      return; // lobby — message handled by GmLobby/PlayerLobby markup
+    }
 
     showToast(message, message.includes("Erreur") || message.includes("error") ? "error" : "info");
     setMessage("");
-  }, [message, showToast, user]);
+  }, [message, showToast, user, selectedCampaign]);
 
   // Listen for keyboard shortcut to toggle focus map (from CampaignMap)
   useEffect(() => {
