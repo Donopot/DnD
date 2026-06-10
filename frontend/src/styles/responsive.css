@@ -72,7 +72,7 @@
 
   /* ── GM map toolbar: scroll horizontally if needed ── */
   /* GM map toolbar: scroll horizontally if needed */
-  .campaign-map-toolbar {
+  .map-toolbar {
     overflow-x: auto;
     flex-wrap: nowrap;
     gap: 0.5rem;
@@ -187,15 +187,11 @@
     max-height: 45vh;
   }
 
-  .campaign-map-toolbar select {
+  .map-toolbar-scene {
     min-width: 8rem;
     font-size: 0.75rem;
   }
 
-  .campaign-map-zoom button {
-    padding: 0.1rem 0.4rem;
-    font-size: 0.75rem;
-  }
 
   .auth-page-hero h1 {
     font-size: 1.2rem;
