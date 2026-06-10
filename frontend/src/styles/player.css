@@ -12,7 +12,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: var(--bg-root);
 }
 
 .player-workspace {
@@ -30,11 +30,11 @@
 }
 
 .player-panels {
-  width: 340px;
+  width: 300px;
   flex-shrink: 0;
   overflow-y: auto;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
 }
