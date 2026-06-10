@@ -110,6 +110,11 @@ export type Scene = {
   background_url: string | null;
   background_asset_id: string | null;
   is_active: boolean;
+  is_secret: boolean;
+  snap_to_grid?: boolean;
+  view_zoom?: number;
+  view_pan_x?: number;
+  view_pan_y?: number;
   created_at: string;
   updated_at: string;
 };

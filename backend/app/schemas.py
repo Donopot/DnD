@@ -453,6 +453,7 @@ class SceneSettingsUpdateRequest(BaseModel):
     view_zoom: float | None = Field(default=None, ge=0.1, le=5.0)
     view_pan_x: int | None = Field(default=None, ge=-10000, le=10000)
     view_pan_y: int | None = Field(default=None, ge=-10000, le=10000)
+    is_secret: bool | None = None
 
 
 class HandoutCreateRequest(BaseModel):

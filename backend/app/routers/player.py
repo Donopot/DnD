@@ -118,6 +118,10 @@ async def player_scene_tokens(scene_id: UUID, current_user=Depends(get_current_u
     if scene is None:
         raise HTTPException(404, "Scene not found")
     role = await require_campaign_role(scene["campaign_id"], current_user["id"], {"player"})
+
+    # Players cannot access tokens on secret scenes
+    if scene["is_secret"]:
+        raise HTTPException(404, "Scene not found")
     await _audit(scene["campaign_id"], current_user["id"], "token", scene_id, "list", True, role)
     rows = await get_pool().fetch(
         "select * from scene_tokens where scene_id = $1 and is_hidden = false order by z_index asc, created_at asc",

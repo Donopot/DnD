@@ -1,3 +1,4 @@
+import { EyeOff, Lock } from "lucide-react";
 import { useState } from "react";
 import { apiRequest } from "../api/client";
 import type { Scene } from "../api/types";
@@ -23,6 +24,7 @@ export function ScenePanel({
   const [gridSize, setGridSize] = useState(50);
   const [width, setWidth] = useState(1600);
   const [height, setHeight] = useState(1000);
+  const [isSecret, setIsSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,16 +41,30 @@ export function ScenePanel({
           grid_size: gridSize,
           width,
           height,
+          is_secret: isSecret,
         }),
       });
       setName("");
       setDescription("");
+      setIsSecret(false);
       setShowCreate(false);
       onScenesChanged();
     } catch (err: any) {
       setError(err.message ?? "Erreur inconnue");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function toggleSceneSecret(scene: Scene) {
+    try {
+      await apiRequest(`/api/scenes/${scene.id}/settings`, token, {
+        method: "PATCH",
+        body: JSON.stringify({ is_secret: !scene.is_secret }),
+      });
+      onScenesChanged();
+    } catch (err: any) {
+      setError(err.message ?? "Erreur lors du changement de visibilité");
     }
   }
 
@@ -61,11 +77,15 @@ export function ScenePanel({
           background: var(--bg-surface); cursor: pointer;
           border: 1px solid var(--border-color, var(--border-subtle));
           transition: border-color 0.15s;
+          position: relative;
         }
         .gm-scene-panel .scene-card:hover { border-color: var(--accent-secondary); }
         .gm-scene-panel .scene-card.scene-active {
           border-color: var(--accent-secondary);
           background: var(--bg-hover);
+        }
+        .gm-scene-panel .scene-card.scene-secret {
+          border-color: rgba(230, 184, 79, 0.2);
         }
         .gm-scene-panel .scene-name { font-weight: 600; font-size: 14px; color: var(--text-strong); }
         .gm-scene-panel .scene-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
@@ -75,6 +95,26 @@ export function ScenePanel({
           border-radius: 3px; background: var(--accent-secondary);
           color: var(--text-inverse); margin-left: 6px;
         }
+        .gm-scene-panel .secret-badge {
+          display: inline-flex; align-items: center; gap: 2px;
+          font-size: 10px; padding: 1px 6px;
+          border-radius: 3px; background: rgba(230, 184, 79, 0.15);
+          color: var(--gold, #e6b84f); margin-left: 6px;
+        }
+        .gm-scene-panel .secret-toggle {
+          position: absolute; top: 8px; right: 8px;
+          background: none; border: none; cursor: pointer;
+          color: var(--text-muted); padding: 2px;
+          border-radius: 4px; display: flex;
+          transition: color 0.15s, background 0.15s;
+        }
+        .gm-scene-panel .secret-toggle:hover {
+          color: var(--gold, #e6b84f);
+          background: rgba(230, 184, 79, 0.1);
+        }
+        .gm-scene-panel .secret-toggle.active {
+          color: var(--gold, #e6b84f);
+        }
         .gm-scene-panel .create-form { padding: 10px; background: var(--bg-surface); border-radius: 6px; }
         .gm-scene-panel .create-form input, .gm-scene-panel .create-form textarea {
           width: 100%; margin-bottom: 6px; padding: 6px 8px;
@@ -83,7 +123,7 @@ export function ScenePanel({
           font-size: 13px;
         }
         .gm-scene-panel .create-form textarea { min-height: 60px; resize: vertical; }
-        .gm-scene-panel .btn-row { display: flex; gap: 6px; }
+        .gm-scene-panel .btn-row { display: flex; gap: 6px; align-items: center; }
         .gm-scene-panel .btn {
           padding: 6px 12px; border: none; border-radius: 4px;
           font-size: 12px; cursor: pointer;
@@ -95,6 +135,9 @@ export function ScenePanel({
         .gm-scene-panel .grid-row { display: flex; gap: 6px; }
         .gm-scene-panel .grid-row label { font-size: 11px; color: var(--text-muted); }
         .gm-scene-panel .grid-row input { width: 70px; }
+        .gm-scene-panel .secret-check { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+        .gm-scene-panel .secret-check label { font-size: 12px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .gm-scene-panel .secret-check input[type="checkbox"] { width: auto; margin: 0; }
       `}</style>
 
       <header className="gm-panel-section-header">
@@ -152,6 +195,16 @@ export function ScenePanel({
               />
             </label>
           </div>
+          <div className="secret-check">
+            <label>
+              <input
+                type="checkbox"
+                checked={isSecret}
+                onChange={(e) => setIsSecret(e.target.checked)}
+              />
+              <Lock size={12} /> Scène secrète (invisible aux joueurs)
+            </label>
+          </div>
           <div className="btn-row" style={{ marginTop: 8 }}>
             <button
               className="btn btn-primary"
@@ -183,12 +236,28 @@ export function ScenePanel({
         {scenes.map((scene) => (
           <div
             key={scene.id}
-            className={`scene-card ${scene.is_active ? "scene-active" : ""}`}
-            onClick={() => onSelectScene(scene.id)}
+            className={`scene-card ${scene.is_active ? "scene-active" : ""} ${scene.is_secret ? "scene-secret" : ""}`}
           >
-            <div className="scene-name">
+            <button
+              type="button"
+              className={`secret-toggle ${scene.is_secret ? "active" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleSceneSecret(scene);
+              }}
+              title={scene.is_secret ? "Rendre visible aux joueurs" : "Masquer aux joueurs"}
+              aria-label={scene.is_secret ? "Rendre visible" : "Masquer"}
+            >
+              <EyeOff size={14} />
+            </button>
+            <div className="scene-name" onClick={() => onSelectScene(scene.id)}>
               {scene.name}
               {scene.is_active && <span className="active-badge">active</span>}
+              {scene.is_secret && (
+                <span className="secret-badge">
+                  <Lock size={9} /> secrète
+                </span>
+              )}
             </div>
             {scene.description && (
               <div className="scene-desc">
