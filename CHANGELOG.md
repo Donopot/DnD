@@ -4,6 +4,45 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.12.3] — P0 fix gm_settings + GM settings enforce (2026-06-10)
+
+### 🐛 P0 — Création de campagne bloquée
+- `decode_json(row["gm_settings"])` dans `campaign_public()` — PostgreSQL retourne `"{}"` (string), Pydantic attend `{}` (dict)
+- Test authentifié `test_create_and_list_campaigns_gm_settings_decoded`
+
+### 🔒 P1 — Permissions MJ appliquées côté backend
+- `vtt.py:move_token` — vérifie `allow_player_token_move` avant d'autoriser le déplacement
+- `vtt.py:reveal_around_token` — vérifie `player_fog_reveal` avant la révélation du brouillard
+
+### 🖥 P1 — Erreurs visibles dans le lobby
+- `App.tsx` : les messages d'erreur ne sont plus convertis en toasts quand aucun toast container n'est monté
+
+### 🔧 P2 — CI wait-for-services.sh
+- MinIO vérifié via `docker exec` (port 9000 non publié)
+- Seuil relevé à 4/4 services
+
+### 📊 Metrics
+- Frontend: tsc 0, build 753ms
+- Backend: 122/122 tests
+
+---
+
+## [v0.12.2] — Player UX + Docker healthchecks + Nettoyage branches (2026-06-10)
+
+### 🎮 PR — Player UX
+- Refactor CSS player (1019 lignes → 13 sections, variables CSS)
+- CompactCharacterSheet, usePlayerPermissions, toasts WebSocket
+- PlayerView lazy-loadé (bundle MJ 329 Ko, chunk joueur 91 Ko)
+
+### 🐳 Docker healthchecks
+- Backend: python urllib remplace curl
+- Frontend: 127.0.0.1 explicite
+
+### 🧹 Nettoyage
+- 54 branches supprimées, git réduit à main
+
+---
+
 ## [v0.12] — Refonte App.tsx, contexts, API centralisation (2026-06-04/05)
 
 ### 🔧 PR #67–69 — PanelRenderer + ErrorBoundary
