@@ -23,8 +23,8 @@ import type {
   Scene,
   SceneToken,
 } from "../api/types";
-import { useSceneBackground } from "../hooks/useSceneBackground";
 import { usePlayerPermissions } from "../hooks/usePlayerPermissions";
+import { useSceneBackground } from "../hooks/useSceneBackground";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -1294,7 +1294,9 @@ export function PlayerView({
       {/* Permissions indicator — shown when any restriction is active */}
       {(perms.canMoveTokenReason || perms.canSeeHPReason || perms.canPanMapReason) && (
         <div className="player-perms-bar" role="status" aria-label="Permissions de session">
-          {perms.canMoveTokenReason && <span className="perms-tag">🚫 {perms.canMoveTokenReason}</span>}
+          {perms.canMoveTokenReason && (
+            <span className="perms-tag">🚫 {perms.canMoveTokenReason}</span>
+          )}
           {perms.canSeeHPReason && <span className="perms-tag">🙈 {perms.canSeeHPReason}</span>}
           {perms.canPanMapReason && <span className="perms-tag">🔒 {perms.canPanMapReason}</span>}
         </div>

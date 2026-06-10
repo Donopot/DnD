@@ -518,7 +518,7 @@
 }
 
 .quick-dice-btn:hover {
-  background: var(--scrollbar-thumb, rgba(255,255,255,0.08));
+  background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.08));
   color: var(--text-primary);
   border-color: var(--accent);
 }
@@ -844,13 +844,23 @@
 }
 
 @keyframes combatNotifyIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 @keyframes combatNotifyOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 /* Player toast banner (non-combat events) */
@@ -895,11 +905,19 @@
   margin: 0.6rem 0 0.3rem;
 }
 
-.markdown-rendered h1 { font-size: 1.15rem; }
-.markdown-rendered h2 { font-size: 1rem; }
-.markdown-rendered h3 { font-size: 0.9rem; }
+.markdown-rendered h1 {
+  font-size: 1.15rem;
+}
+.markdown-rendered h2 {
+  font-size: 1rem;
+}
+.markdown-rendered h3 {
+  font-size: 0.9rem;
+}
 
-.markdown-rendered p { margin: 0.3rem 0; }
+.markdown-rendered p {
+  margin: 0.3rem 0;
+}
 
 .markdown-rendered ul,
 .markdown-rendered ol {
@@ -907,7 +925,9 @@
   padding-left: 1.2rem;
 }
 
-.markdown-rendered li { margin: 0.12rem 0; }
+.markdown-rendered li {
+  margin: 0.12rem 0;
+}
 
 .markdown-rendered code {
   background: rgba(255, 255, 255, 0.06);

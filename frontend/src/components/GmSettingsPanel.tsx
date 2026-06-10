@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
-import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
 import { useWorkspaceActions } from "../contexts/WorkspaceActionsContext";
+import { useWorkspaceState } from "../contexts/WorkspaceStateContext";
 
 export function GmSettingsPanel() {
   const { selectedCampaign, campaigns, token } = useWorkspaceState();

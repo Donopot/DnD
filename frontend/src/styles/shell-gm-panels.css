@@ -743,7 +743,9 @@
 }
 
 .floating-panel.pinned {
-  box-shadow: 0 0 0 2px var(--accent), var(--shadow-panel);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--shadow-panel);
 }
 
 .floating-panel-titlebar {

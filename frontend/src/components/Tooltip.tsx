@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback, useEffect, cloneElement, isValidElement } from "react";
-import type { ReactNode, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
+import { cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Accessible tooltip component.
@@ -21,13 +21,7 @@ import type { ReactNode, ReactElement } from "react";
  * IMPORTANT: Buttons with visible text should only receive a tooltip if it adds
  * extra information. Repeating the visible text is noise for screen readers.
  */
-export function Tooltip({
-  content,
-  children,
-}: {
-  content: string;
-  children: ReactNode;
-}) {
+export function Tooltip({ content, children }: { content: string; children: ReactNode }) {
   const idRef = useRef(`tooltip-${crypto.randomUUID().slice(0, 8)}`);
   const id = idRef.current;
   const [visible, setVisible] = useState(false);
@@ -55,25 +49,42 @@ export function Tooltip({
 
   // Clone child to inject aria-describedby + event handlers
   const child = isValidElement(children)
-    ? cloneElement(children as ReactElement<{ onMouseEnter?: unknown; onMouseLeave?: unknown; onFocus?: unknown; onBlur?: unknown; "aria-describedby"?: string }>, {
-        "aria-describedby": id,
-        onMouseEnter: (e: React.MouseEvent) => {
-          (children as ReactElement<{ onMouseEnter?: (e: React.MouseEvent) => void }>).props.onMouseEnter?.(e);
-          show();
+    ? cloneElement(
+        children as ReactElement<{
+          onMouseEnter?: unknown;
+          onMouseLeave?: unknown;
+          onFocus?: unknown;
+          onBlur?: unknown;
+          "aria-describedby"?: string;
+        }>,
+        {
+          "aria-describedby": id,
+          onMouseEnter: (e: React.MouseEvent) => {
+            (
+              children as ReactElement<{ onMouseEnter?: (e: React.MouseEvent) => void }>
+            ).props.onMouseEnter?.(e);
+            show();
+          },
+          onMouseLeave: (e: React.MouseEvent) => {
+            (
+              children as ReactElement<{ onMouseLeave?: (e: React.MouseEvent) => void }>
+            ).props.onMouseLeave?.(e);
+            hide();
+          },
+          onFocus: (e: React.FocusEvent) => {
+            (children as ReactElement<{ onFocus?: (e: React.FocusEvent) => void }>).props.onFocus?.(
+              e,
+            );
+            show();
+          },
+          onBlur: (e: React.FocusEvent) => {
+            (children as ReactElement<{ onBlur?: (e: React.FocusEvent) => void }>).props.onBlur?.(
+              e,
+            );
+            hide();
+          },
         },
-        onMouseLeave: (e: React.MouseEvent) => {
-          (children as ReactElement<{ onMouseLeave?: (e: React.MouseEvent) => void }>).props.onMouseLeave?.(e);
-          hide();
-        },
-        onFocus: (e: React.FocusEvent) => {
-          (children as ReactElement<{ onFocus?: (e: React.FocusEvent) => void }>).props.onFocus?.(e);
-          show();
-        },
-        onBlur: (e: React.FocusEvent) => {
-          (children as ReactElement<{ onBlur?: (e: React.FocusEvent) => void }>).props.onBlur?.(e);
-          hide();
-        },
-      })
+      )
     : children;
 
   return (

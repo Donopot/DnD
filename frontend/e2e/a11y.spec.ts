@@ -4,8 +4,9 @@
  * Runs Axe on key views. Fails on critical or serious violations.
  * Run: npx playwright test e2e/a11y.spec.ts
  */
-import { test, expect } from "@playwright/test";
+
 import AxeBuilder from "@axe-core/playwright";
+import { expect, test } from "@playwright/test";
 
 const PAGES = [
   { name: "home", path: "/" },
@@ -25,18 +26,15 @@ for (const page of PAGES) {
       .analyze();
 
     const violations = results.violations.filter(
-      (v) => v.impact === "critical" || v.impact === "serious"
+      (v) => v.impact === "critical" || v.impact === "serious",
     );
 
     if (violations.length > 0) {
       console.log(
         `A11y violations on ${page.name}:\n`,
         violations
-          .map(
-            (v) =>
-              `  [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} nodes)`
-          )
-          .join("\n")
+          .map((v) => `  [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} nodes)`)
+          .join("\n"),
       );
     }
 
