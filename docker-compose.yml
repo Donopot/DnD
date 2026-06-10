@@ -11,7 +11,7 @@ services:
     networks:
       - dnd_internal
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,9 +38,15 @@ services:
     networks:
       - dnd_internal
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/health || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)",
+        ]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 10
       start_period: 15s
 
