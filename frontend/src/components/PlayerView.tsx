@@ -24,6 +24,7 @@ import type {
   SceneToken,
 } from "../api/types";
 import { useSceneBackground } from "../hooks/useSceneBackground";
+import { usePlayerPermissions } from "../hooks/usePlayerPermissions";
 import { CampaignMap } from "./CampaignMap";
 import { EditCharacterSheet } from "./EditCharacterSheet";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -108,8 +109,18 @@ export function PlayerView({
   const [isBusy, setIsBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [combatNotification, setCombatNotification] = useState("");
+  const [playerToast, setPlayerToast] = useState<{ text: string; type: "info" | "combat" } | null>(
+    null,
+  );
 
-  // ─── Map state (scenes, tokens, background) ──────────────────────────
+  function showPlayerToast(text: string, type: "info" | "combat" = "info") {
+    setPlayerToast({ text, type });
+    setTimeout(() => setPlayerToast(null), 3500);
+  }
+  const [showFullSheet, setShowFullSheet] = useState(false);
+
+  // ─── Player permissions ───────────────────────────────────────────────
+  const perms = usePlayerPermissions(campaign);
   const [playerScenes, setPlayerScenes] = useState<Scene[]>([]);
   const [playerScene, setPlayerScene] = useState<Scene | null>(null);
   const [playerTokens, setPlayerTokens] = useState<SceneToken[]>([]);
@@ -167,12 +178,18 @@ export function PlayerView({
           void loadSessionLog();
           if (payload.resource === "handout") {
             void loadHandouts();
+            showPlayerToast("📄 Un document a été révélé !", "info");
           }
           if (payload.resource === "encounter") {
             void loadCombatState();
             setCombatNotification("Le combat a été mis à jour !");
+            showPlayerToast("⚔️ Combat mis à jour !", "combat");
           }
-          if (payload.resource === "scene" || payload.resource === "token") {
+          if (payload.resource === "scene") {
+            void loadPlayerMapData();
+            showPlayerToast("🗺️ La scène a changé !", "info");
+          }
+          if (payload.resource === "token") {
             void loadPlayerMapData();
           }
         }
@@ -699,8 +716,10 @@ export function PlayerView({
                   </small>
                 </span>
                 <em>
-                  {campaign.gm_settings?.show_player_hp !== false ? (
-                    <><HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}</>
+                  {perms.canSeeHP ? (
+                    <>
+                      <HeartPulse size={14} aria-hidden="true" /> {char.hp_current}/{char.hp_max}
+                    </>
                   ) : null}
                 </em>
               </button>
@@ -729,17 +748,77 @@ export function PlayerView({
           )}
         </div>
 
-        {/* Character sheet + quick rolls */}
+        {/* Character card + quick rolls */}
         {selectedCharacter ? (
-          <>
-            <EditCharacterSheet
-              character={selectedCharacter}
-              token={token}
-              isBusy={isBusy}
-              onSave={(updated) => {
-                setCharacters((current) => current.map((c) => (c.id === updated.id ? updated : c)));
-              }}
-            />
+          <div className="player-char-detail">
+            {/* Compact stat card */}
+            <div className="player-stat-card">
+              <div className="stat-card-header">
+                <h3>{selectedCharacter.name}</h3>
+                <small>
+                  {selectedCharacter.class_name || "Aventurier"} niv.{selectedCharacter.level}
+                </small>
+              </div>
+
+              <div className="stat-card-grid">
+                <div className="stat-badge" title="Points de vie">
+                  <HeartPulse size={14} /> {selectedCharacter.hp_current}/{selectedCharacter.hp_max}
+                </div>
+                <div className="stat-badge" title="Classe d'armure">
+                  <Shield size={14} /> {selectedCharacter.armor_class}
+                </div>
+                <div className="stat-badge" title="Vitesse">
+                  🏃 {selectedCharacter.speed} ft
+                </div>
+                <div className="stat-badge" title="Bonus d'initiative">
+                  ⚡ {attrMod.dex != null ? (attrMod.dex >= 0 ? "+" : "") + attrMod.dex : "0"}
+                </div>
+                <div className="stat-badge" title="Bonus de maîtrise">
+                  🎯 +{selectedCharacter.proficiency_bonus ?? 2}
+                </div>
+              </div>
+
+              <div className="stat-card-attrs">
+                {(["str", "dex", "con", "int", "wis", "cha"] as const).map((attr) => (
+                  <span key={attr} className="attr-chip">
+                    <strong>{attr.toUpperCase()}</strong>{" "}
+                    {attrMod[attr] != null ? (attrMod[attr] >= 0 ? "+" : "") + attrMod[attr] : "0"}
+                  </span>
+                ))}
+              </div>
+
+              <div className="stat-card-actions">
+                <button
+                  className="primary-button compact"
+                  onClick={() => void quickD20(0, "Initiative")}
+                  type="button"
+                >
+                  <Dice1 size={14} /> Initiative
+                </button>
+                <button
+                  className="ghost-button compact"
+                  onClick={() => setShowFullSheet((v) => !v)}
+                  type="button"
+                >
+                  {showFullSheet ? "Masquer la fiche" : "Fiche détaillée"}
+                </button>
+              </div>
+            </div>
+
+            {/* Full sheet (togglable) */}
+            {showFullSheet && (
+              <EditCharacterSheet
+                character={selectedCharacter}
+                token={token}
+                isBusy={isBusy}
+                onSave={(updated) => {
+                  setCharacters((current) =>
+                    current.map((c) => (c.id === updated.id ? updated : c)),
+                  );
+                }}
+              />
+            )}
+
             {/* Quick attribute rolls */}
             <div className="player-quick-rolls">
               <p className="small-label">Caractéristiques</p>
@@ -776,7 +855,7 @@ export function PlayerView({
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <p className="muted">Sélectionne un personnage.</p>
         )}
@@ -1212,6 +1291,15 @@ export function PlayerView({
     <main className="player-campaign-shell">
       {campaignHeader}
 
+      {/* Permissions indicator — shown when any restriction is active */}
+      {(perms.canMoveTokenReason || perms.canSeeHPReason || perms.canPanMapReason) && (
+        <div className="player-perms-bar" role="status" aria-label="Permissions de session">
+          {perms.canMoveTokenReason && <span className="perms-tag">🚫 {perms.canMoveTokenReason}</span>}
+          {perms.canSeeHPReason && <span className="perms-tag">🙈 {perms.canSeeHPReason}</span>}
+          {perms.canPanMapReason && <span className="perms-tag">🔒 {perms.canPanMapReason}</span>}
+        </div>
+      )}
+
       <div className="player-workspace">
         {/* ── Map (left) ──────────────────────────────────────── */}
         <section className="player-map-area">
@@ -1226,7 +1314,7 @@ export function PlayerView({
                     characters.some((c) => c.id === t.character_id && c.owner_user_id === userId),
                 ),
               canMoveToken: (tokenId) => {
-                if (campaign.gm_settings?.allow_player_token_move === false) return false;
+                if (!perms.canMoveToken) return false;
                 return playerTokens.some(
                   (t) =>
                     t.id === tokenId &&
@@ -1307,6 +1395,16 @@ export function PlayerView({
       {combatNotification && (
         <div className="combat-notification" onAnimationEnd={() => setCombatNotification("")}>
           ⚔️ {combatNotification}
+        </div>
+      )}
+
+      {playerToast && (
+        <div
+          className={`player-toast-banner${playerToast.type === "combat" ? " combat" : ""}`}
+          role="status"
+          aria-live="polite"
+        >
+          {playerToast.text}
         </div>
       )}
     </main>
