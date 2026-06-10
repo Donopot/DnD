@@ -1,6 +1,19 @@
-import { Crosshair, Eraser, Eye, EyeOff, Grid3X3, Undo2 } from "lucide-react";
+import {
+  Circle,
+  Crosshair,
+  Eraser,
+  Eye,
+  EyeOff,
+  Grid3X3,
+  Hand,
+  Minus,
+  Plus,
+  Square,
+  Undo2,
+} from "lucide-react";
 import type { Scene } from "../api/types";
 import type { FogZone } from "./FogLayer";
+import { Tooltip } from "./Tooltip";
 
 export type MapToolbarProps = {
   scenes: Scene[];
@@ -31,6 +44,9 @@ export type MapToolbarProps = {
   saveFogZones: (zones: FogZone[]) => void;
   selectedSceneName: string;
 };
+
+const BTN = "map-toolbar-btn";
+const ACTIVE = " active";
 
 export function MapToolbar({
   scenes,
@@ -68,166 +84,185 @@ export function MapToolbar({
   };
 
   return (
-    <div className="campaign-map-toolbar">
-      {scenes.length > 1 && onSelectScene && (
-        <select
-          value={selectedSceneId}
-          onChange={(e) => {
-            onSelectScene(e.target.value);
-            onLoadSceneTokens?.(e.target.value);
-          }}
-        >
-          {scenes.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {scenes.length <= 1 && <strong>{selectedSceneName}</strong>}
-
-      <div className="campaign-map-zoom">
-        <button
-          type="button"
-          onClick={() => {
-            const { cx, cy } = zoomCenter();
-            zoomOut(cx, cy);
-          }}
-          aria-label="Zoom arrière"
-        >
-          −
-        </button>
-        <span>{zoomPercent}%</span>
-        <button
-          type="button"
-          onClick={() => {
-            const { cx, cy } = zoomCenter();
-            zoomIn(cx, cy);
-          }}
-          aria-label="Zoom avant"
-        >
-          +
-        </button>
+    <div className="map-toolbar">
+      {/* ── Scene selector ──────────────────────────────── */}
+      <div className="map-toolbar-group">
+        {scenes.length > 1 && onSelectScene ? (
+          <select
+            className="map-toolbar-scene"
+            value={selectedSceneId}
+            onChange={(e) => {
+              onSelectScene(e.target.value);
+              onLoadSceneTokens?.(e.target.value);
+            }}
+            aria-label="Scène"
+          >
+            {scenes.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="map-toolbar-scene-name">{selectedSceneName}</span>
+        )}
       </div>
 
-      {/* Grid toggle */}
-      <button
-        type="button"
-        className={`campaign-map-grid-toggle ${showGrid ? "active" : ""}`}
-        onClick={() => setShowGrid((g) => !g)}
-        title={showGrid ? "Masquer la grille" : "Afficher la grille"}
-      >
-        <Grid3X3 size={14} />
-      </button>
-
-      {/* Recenter button */}
-      <button
-        type="button"
-        className="campaign-map-recenter"
-        onClick={recenter}
-        title="Recentrer la scène"
-      >
-        <Crosshair size={14} />
-      </button>
-
-      {/* Pan toggle */}
-      <button
-        type="button"
-        className={`campaign-map-pan-toggle ${panMode ? "active" : ""}`}
-        onClick={() => {
-          setPanMode((prev) => {
-            if (!prev) {
-              // Disable fog draw/erase when entering pan mode
-              setFogDrawMode(false);
-              setFogEraseMode(false);
-              setFogDrawing(false);
-              setFogCurrentRect(null);
-            }
-            return !prev;
-          });
-        }}
-      >
-        {panMode ? "✋ Pan ON" : "✋ Pan"}
-      </button>
-
-      {/* Fog controls */}
-      {isGM && (
-        <>
+      {/* ── Navigation ──────────────────────────────────── */}
+      <div className="map-toolbar-group">
+        <Tooltip content="Zoom arrière">
           <button
             type="button"
-            className={`campaign-map-grid-toggle ${showFog ? "active" : ""}`}
+            className={BTN}
+            onClick={() => zoomOut(zoomCenter().cx, zoomCenter().cy)}
+            aria-label="Zoom arrière"
+          >
+            <Minus size={16} />
+          </button>
+        </Tooltip>
+        <span className="map-toolbar-zoom">{zoomPercent}%</span>
+        <Tooltip content="Zoom avant">
+          <button
+            type="button"
+            className={BTN}
+            onClick={() => zoomIn(zoomCenter().cx, zoomCenter().cy)}
+            aria-label="Zoom avant"
+          >
+            <Plus size={16} />
+          </button>
+        </Tooltip>
+      </div>
+
+      {/* ── View controls ──────────────────────────────── */}
+      <div className="map-toolbar-group">
+        <Tooltip content={showGrid ? "Masquer la grille" : "Afficher la grille"}>
+          <button
+            type="button"
+            className={`${BTN}${showGrid ? ACTIVE : ""}`}
+            onClick={() => setShowGrid((g) => !g)}
+            aria-label={showGrid ? "Masquer la grille" : "Afficher la grille"}
+          >
+            <Grid3X3 size={16} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Recentrer la scène">
+          <button type="button" className={BTN} onClick={recenter} aria-label="Recentrer la scène">
+            <Crosshair size={16} />
+          </button>
+        </Tooltip>
+        <Tooltip content={panMode ? "Mode déplacement actif" : "Mode déplacement"}>
+          <button
+            type="button"
+            className={`${BTN}${panMode ? ACTIVE : ""}`}
             onClick={() => {
-              setShowFog((s) => {
-                if (s) {
+              setPanMode((prev) => {
+                if (!prev) {
                   setFogDrawMode(false);
                   setFogEraseMode(false);
+                  setFogDrawing(false);
+                  setFogCurrentRect(null);
                 }
-                return !s;
+                return !prev;
               });
             }}
-            title={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
+            aria-label={panMode ? "Désactiver le déplacement" : "Activer le déplacement"}
           >
-            {showFog ? <EyeOff size={14} /> : <Eye size={14} />}
-            {showFog ? "Afficher fog" : "Masquer fog"}
+            <Hand size={16} />
           </button>
-          {showFog && (
+        </Tooltip>
+      </div>
+
+      {/* ── Fog of War (GM only) ───────────────────────── */}
+      {isGM && (
+        <div className="map-toolbar-group">
+          <Tooltip content={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}>
             <button
               type="button"
-              className={`campaign-map-grid-toggle ${fogDrawMode && !fogEraseMode ? "active" : ""}`}
+              className={`${BTN}${showFog ? ACTIVE : ""}`}
               onClick={() => {
-                setFogDrawMode((m) => !m);
-                setFogEraseMode(false);
+                setShowFog((s) => {
+                  if (s) {
+                    setFogDrawMode(false);
+                    setFogEraseMode(false);
+                  }
+                  return !s;
+                });
               }}
-              title="Dessiner le brouillard"
+              aria-label={showFog ? "Masquer le brouillard" : "Afficher le brouillard"}
             >
-              Draw
+              {showFog ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-          )}
+          </Tooltip>
+
           {showFog && (
-            <button
-              type="button"
-              className={`campaign-map-grid-toggle ${fogCircleMode ? "active" : ""}`}
-              onClick={() => setFogCircleMode((m) => !m)}
-              title={fogCircleMode ? "Mode rectangle" : "Mode cercle"}
-            >
-              {fogCircleMode ? "◯" : "▭"}
-            </button>
-          )}
-          {showFog && (
-            <button
-              type="button"
-              className={`campaign-map-grid-toggle ${fogEraseMode ? "active" : ""}`}
-              onClick={() => {
-                setFogEraseMode((m) => !m);
-                setFogDrawMode(false);
-              }}
-              title="Gomme (clic sur une zone pour l'effacer)"
-            >
-              <Eraser size={14} />
-            </button>
-          )}
-          {fogZones.length > 0 && (
             <>
-              <button
-                type="button"
-                className="campaign-map-grid-toggle"
-                onClick={() => saveFogZones(fogZones.slice(0, -1))}
-                title="Annuler dernière zone"
-              >
-                <Undo2 size={14} />
-              </button>
-              <button
-                type="button"
-                className="campaign-map-grid-toggle"
-                onClick={() => saveFogZones([])}
-                title="Reset tout le brouillard"
-              >
-                Reset
-              </button>
+              <div className="map-toolbar-sep" />
+
+              <Tooltip content="Dessiner le brouillard (rectangle)">
+                <button
+                  type="button"
+                  className={`${BTN}${fogDrawMode && !fogCircleMode ? ACTIVE : ""}`}
+                  onClick={() => {
+                    setFogDrawMode((m) => !m);
+                    setFogEraseMode(false);
+                  }}
+                  aria-label="Dessiner le brouillard"
+                >
+                  <Square size={16} />
+                </button>
+              </Tooltip>
+              <Tooltip content={fogCircleMode ? "Mode rectangle" : "Mode cercle"}>
+                <button
+                  type="button"
+                  className={`${BTN}${fogCircleMode ? ACTIVE : ""}`}
+                  onClick={() => setFogCircleMode((m) => !m)}
+                  aria-label={fogCircleMode ? "Passer en mode rectangle" : "Passer en mode cercle"}
+                >
+                  <Circle size={16} />
+                </button>
+              </Tooltip>
+              <Tooltip content="Gomme (clic pour effacer une zone)">
+                <button
+                  type="button"
+                  className={`${BTN}${fogEraseMode ? ACTIVE : ""}`}
+                  onClick={() => {
+                    setFogEraseMode((m) => !m);
+                    setFogDrawMode(false);
+                  }}
+                  aria-label="Gomme brouillard"
+                >
+                  <Eraser size={16} />
+                </button>
+              </Tooltip>
+
+              {fogZones.length > 0 && (
+                <>
+                  <div className="map-toolbar-sep" />
+                  <Tooltip content="Annuler la dernière zone">
+                    <button
+                      type="button"
+                      className={BTN}
+                      onClick={() => saveFogZones(fogZones.slice(0, -1))}
+                      aria-label="Annuler dernière zone"
+                    >
+                      <Undo2 size={16} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Effacer tout le brouillard">
+                    <button
+                      type="button"
+                      className={`${BTN} danger`}
+                      onClick={() => saveFogZones([])}
+                      aria-label="Effacer tout le brouillard"
+                    >
+                      <Eraser size={16} />
+                    </button>
+                  </Tooltip>
+                </>
+              )}
             </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
