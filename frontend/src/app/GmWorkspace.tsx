@@ -4,6 +4,7 @@ import {
   DoorOpen,
   Eye,
   EyeOff,
+  // biome-ignore lint/suspicious/noShadowRestrictedNames: Map icon from lucide-react
   Map,
   Maximize2,
   Minimize2,
@@ -11,16 +12,16 @@ import {
   PanelRightOpen,
   RotateCcw,
   Save,
-  Swords,
   Trash2,
   UserPlus,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Campaign } from "../api/types";
 import type { CampaignMapProps } from "../components/CampaignMap";
+import { GmDock } from "../components/GmDock";
 import { GmRail, type RailSection } from "../components/GmRail";
-import { Tooltip } from "../components/Tooltip";
 import { PanelDock } from "../components/PanelDock";
+import { Tooltip } from "../components/Tooltip";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";
@@ -90,7 +91,6 @@ export function GmWorkspace(props: GmWorkspaceProps) {
   const { handleCreateInvite, onLogout, selectCampaign } = actions;
 
   const {
-    gmView,
     setGmView,
     activeSessionLiveMode,
     setActiveSessionLiveMode,
@@ -355,7 +355,9 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                     onClick={() => setIsPlayerView((prev) => !prev)}
                     aria-label={isPlayerView ? "Revenir en vue MJ" : "Voir comme un joueur"}
                     type="button"
-                    style={isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined}
+                    style={
+                      isPlayerView ? { background: "var(--accent)", color: "#fff" } : undefined
+                    }
                   >
                     {isPlayerView ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
@@ -370,7 +372,9 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                     <RotateCcw size={16} />
                   </button>
                 </Tooltip>
-                <Tooltip content={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}>
+                <Tooltip
+                  content={isPanelsHidden ? "Afficher les panneaux" : "Masquer les panneaux"}
+                >
                   <button
                     className={`gm-topbar-btn${isPanelsHidden ? " active" : ""}`}
                     onClick={() => setIsPanelsHidden((prev) => !prev)}
@@ -410,7 +414,9 @@ export function GmWorkspace(props: GmWorkspaceProps) {
               <button
                 className={`gm-topbar-btn${isFocusMap ? " active" : ""}`}
                 onClick={() => setIsFocusMap((prev) => !prev)}
-                aria-label={isFocusMap ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
+                aria-label={
+                  isFocusMap ? "Quitter le mode plein écran" : "Passer en mode plein écran"
+                }
                 type="button"
               >
                 {isFocusMap ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -478,6 +484,9 @@ export function GmWorkspace(props: GmWorkspaceProps) {
             </div>
           )}
         </section>
+
+        {/* ── Dock inférieur ──────────────────────────── */}
+        {!isFocusMap && <GmDock />}
 
         {/* ── Invite link bar (if latestInvite) ─────────── */}
         {latestInvite && !isFocusMap && (

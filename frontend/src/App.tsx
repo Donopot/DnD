@@ -13,11 +13,11 @@ import "./styles/index.css";
 import { apiRequest } from "./api/client";
 import type { AuthResponse, Character, Handout, SceneToken } from "./api/types";
 import { GmWorkspace } from "./app/GmWorkspace";
-import type { RailSection } from "./components/GmRail";
 import { AuthPage } from "./components/AuthPage";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmLobby } from "./components/GmLobby";
+import type { RailSection } from "./components/GmRail";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 

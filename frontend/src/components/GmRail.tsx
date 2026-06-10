@@ -1,7 +1,7 @@
 import {
   BookOpen,
   Layers,
-  Map,
+  Map as MapIcon,
   ScrollText,
   Settings,
   Swords,
@@ -35,7 +35,7 @@ type RailEntry = {
 };
 
 const ENTRIES: RailEntry[] = [
-  { id: "map", label: "Carte", icon: <Map size={20} /> },
+  { id: "map", label: "Carte", icon: <MapIcon size={20} /> },
   { id: "scenes", label: "Scènes", icon: <Layers size={20} /> },
   { id: "combat", label: "Combat", icon: <Swords size={20} /> },
   { id: "characters", label: "Personnages", icon: <Users size={20} /> },

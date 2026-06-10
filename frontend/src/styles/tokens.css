@@ -305,7 +305,10 @@ button {
   font-weight: 600;
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
   outline: none;
   white-space: nowrap;
 }
@@ -321,13 +324,34 @@ button {
 }
 
 /* Sizes */
-.control-sm { min-height: var(--control-height-sm); padding: 0 var(--control-padding-x-sm); font-size: var(--text-xs); }
-.control-md { min-height: var(--control-height-md); padding: 0 var(--control-padding-x-md); font-size: var(--text-sm); }
-.control-lg { min-height: var(--control-height-lg); padding: 0 var(--control-padding-x-lg); font-size: var(--text-md); }
+.control-sm {
+  min-height: var(--control-height-sm);
+  padding: 0 var(--control-padding-x-sm);
+  font-size: var(--text-xs);
+}
+.control-md {
+  min-height: var(--control-height-md);
+  padding: 0 var(--control-padding-x-md);
+  font-size: var(--text-sm);
+}
+.control-lg {
+  min-height: var(--control-height-lg);
+  padding: 0 var(--control-padding-x-lg);
+  font-size: var(--text-md);
+}
 
-.btn.control-sm svg { width: var(--control-icon-sm); height: var(--control-icon-sm); }
-.btn.control-md svg { width: var(--control-icon-md); height: var(--control-icon-md); }
-.btn.control-lg svg { width: var(--control-icon-lg); height: var(--control-icon-lg); }
+.btn.control-sm svg {
+  width: var(--control-icon-sm);
+  height: var(--control-icon-sm);
+}
+.btn.control-md svg {
+  width: var(--control-icon-md);
+  height: var(--control-icon-md);
+}
+.btn.control-lg svg {
+  width: var(--control-icon-lg);
+  height: var(--control-icon-lg);
+}
 
 /* Backward compat aliases — old classes mirror new variants */
 .primary-button,
@@ -385,9 +409,17 @@ button {
   border-radius: 6px;
   font-size: 0; /* hide text */
 }
-.btn-icon.control-sm { width: var(--control-height-sm); height: var(--control-height-sm); }
-.btn-icon.control-lg { width: var(--control-height-lg); height: var(--control-height-lg); }
-.btn-icon svg { margin: 0; }
+.btn-icon.control-sm {
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+}
+.btn-icon.control-lg {
+  width: var(--control-height-lg);
+  height: var(--control-height-lg);
+}
+.btn-icon svg {
+  margin: 0;
+}
 
 /* Backward compat: combat-btn → btn */
 .combat-btn {
@@ -404,7 +436,9 @@ button {
   cursor: pointer;
   padding: 4px 12px;
   min-height: var(--control-height-md);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .combat-btn:hover {
   background: var(--bg-hover);

@@ -69,7 +69,7 @@
 /* Active state — gold left border accent */
 .gm-rail-btn.active {
   color: var(--gold, #e6b84f);
-  background: var(--gold-dim, rgba(230, 184, 79, 0.10));
+  background: var(--gold-dim, rgba(230, 184, 79, 0.1));
 }
 
 .gm-rail-btn.active::before {
