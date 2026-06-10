@@ -1,7 +1,9 @@
 import {
   Bookmark,
   ChevronDown,
+  Copy,
   DoorOpen,
+  ExternalLinkIcon,
   Eye,
   EyeOff,
   // biome-ignore lint/suspicious/noShadowRestrictedNames: Map icon from lucide-react
@@ -12,12 +14,16 @@ import {
   PanelRightOpen,
   RotateCcw,
   Save,
+  Sun,
+  Moon,
   Trash2,
   UserPlus,
+  X,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { Campaign } from "../api/types";
 import type { CampaignMapProps } from "../components/CampaignMap";
+import { CampaignMap } from "../components/CampaignMap";
 import { GmDock } from "../components/GmDock";
 import { GmRail, type RailSection } from "../components/GmRail";
 import { PanelDock } from "../components/PanelDock";
@@ -47,10 +53,6 @@ const CharacterWizard = lazy(() =>
 );
 const KeyboardShortcuts = lazy(() =>
   import("../components/KeyboardShortcuts").then((m) => ({ default: m.KeyboardShortcuts })),
-);
-
-const CampaignMap = lazy(() =>
-  import("../components/CampaignMap").then((m) => ({ default: m.CampaignMap })),
 );
 
 const MAP_PANEL_ID = "campaign-map";
@@ -391,18 +393,18 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                     aria-label={theme === "dark" ? "Mode clair" : "Mode sombre"}
                     type="button"
                   >
-                    {theme === "dark" ? "☀️" : "🌙"}
+                    {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
                   </button>
                 </Tooltip>
                 {!isMapFloating && (
                   <Tooltip content="Détacher la carte en panneau flottant">
                     <button
                       className="gm-topbar-btn"
-                      onClick={() => fp.open(MAP_PANEL_ID, "🗺️ Carte", 80, 80, 1100, 720)}
+                      onClick={() => fp.open(MAP_PANEL_ID, "Carte", 80, 80, 1100, 720)}
                       aria-label="Détacher la carte en panneau flottant"
                       type="button"
                     >
-                      🗺️
+                      <ExternalLinkIcon size={16} />
                     </button>
                   </Tooltip>
                 )}
@@ -470,12 +472,10 @@ export function GmWorkspace(props: GmWorkspaceProps) {
         {/* ── Carte ──────────────────────────────────────── */}
         <section className="gm-map-v2">
           {(!isMapFloating || isFocusMap) && (
-            <Suspense fallback={<div className="map-loading">Chargement de la carte…</div>}>
-              <CampaignMap
-                {...campaignMapProps}
-                showMiniMap={isFocusMap ? showMiniMap : undefined}
-              />
-            </Suspense>
+            <CampaignMap
+              {...campaignMapProps}
+              showMiniMap={isFocusMap ? showMiniMap : undefined}
+            />
           )}
           {isMapFloating && !isFocusMap && (
             <div className="map-floating-placeholder">
@@ -508,7 +508,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
                 }}
                 type="button"
               >
-                📋
+                <Copy size={14} />
               </button>
             </div>
           </div>
@@ -541,7 +541,7 @@ export function GmWorkspace(props: GmWorkspaceProps) {
           <div key={t.id} className={`toast-item${t.type === "error" ? " error" : ""}`}>
             <span>{t.message}</span>
             <button onClick={() => dismissToast(t.id)} type="button">
-              ✕
+              <X size={14} />
             </button>
           </div>
         ))}
