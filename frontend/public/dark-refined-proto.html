@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DnD VTT — Dark Refined (Prototype)</title>
+<style>
+/* ═══════════ DESIGN TOKENS ═══════════ */
+:root {
+  /* Background layers — deep but not flat */
+  --bg-root: #0a0c0f;
+  --bg-canvas: #0d1117;
+  --bg-surface: #111820;
+  --bg-elevated: #161e28;
+  --bg-overlay: #1a2330;
+
+  /* Accent — vibrant gold */
+  --gold: #e6b84f;
+  --gold-hover: #f0c960;
+  --gold-dim: rgba(230, 184, 79, 0.10);
+  --gold-glow: rgba(230, 184, 79, 0.18);
+
+  /* Secondary accent — teal/emerald */
+  --emerald: #3dd68c;
+  --emerald-dim: rgba(61, 214, 140, 0.10);
+
+  /* Text */
+  --text-primary: #ece8e0;
+  --text-secondary: #b0aca5;
+  --text-muted: #6b6760;
+  --text-inverse: #0a0c0f;
+
+  /* Surfaces */
+  --surface-glass: rgba(17, 24, 32, 0.92);
+  --surface-hover: rgba(230, 184, 79, 0.06);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-active: var(--gold);
+  --border-hover: rgba(255, 255, 255, 0.10);
+
+  /* Feedback */
+  --danger: #e54d4d;
+  --danger-dim: rgba(229, 77, 77, 0.10);
+  --success: #3dd68c;
+  --warning: #e6b84f;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 0 1px rgba(230, 184, 79, 0.25), 0 0 20px rgba(230, 184, 79, 0.06);
+
+  /* Typography */
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 28px;
+
+  color: var(--text-primary);
+  background: var(--bg-root);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(230, 184, 79, 0.04), transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(61, 214, 140, 0.03), transparent 50%),
+    var(--bg-root);
+  background-attachment: fixed;
+}
+
+/* ═══════════ BUTTONS ═══════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  font-weight: 600; font-size: var(--text-sm); cursor: pointer;
+  transition: all 0.15s ease; white-space: nowrap;
+  padding: 0 14px; min-height: 36px;
+  color: var(--text-secondary); background: var(--bg-elevated);
+}
+.btn:hover { background: var(--surface-hover); border-color: var(--border-hover); color: var(--text-primary); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--gold); border-color: var(--gold);
+  color: var(--text-inverse); font-weight: 700;
+}
+.btn-primary:hover { background: var(--gold-hover); border-color: var(--gold-hover); box-shadow: 0 0 20px var(--gold-glow); }
+
+.btn-ghost { background: transparent; border-color: transparent; }
+.btn-ghost:hover { background: var(--surface-hover); border-color: var(--border); }
+
+.btn-icon {
+  width: 32px; height: 32px; min-height: unset; padding: 0;
+  border-radius: var(--radius-sm); font-size: 0;
+}
+.btn-icon svg { width: 16px; height: 16px; }
+
+.btn-sm { min-height: 28px; padding: 0 10px; font-size: var(--text-xs); }
+
+/* ═══════════ INPUTS ═══════════ */
+input, select, textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg-canvas); color: var(--text-primary); outline: none;
+  font-size: var(--text-sm); transition: border-color 0.15s;
+}
+input { min-height: 40px; padding: 0 12px; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold-dim);
+}
+label { display: grid; gap: 6px; color: var(--text-secondary); font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ═══════════ AUTH / LANDING ═══════════ */
+.auth-shell {
+  display: grid; grid-template-columns: 1fr 420px;
+  min-height: 100vh; max-width: 1200px; margin: 0 auto;
+}
+
+.auth-hero {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 72px 64px; position: relative; overflow: hidden;
+}
+.auth-hero::before {
+  content: ''; position: absolute; top: -40%; right: -20%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--gold-dim), transparent 70%);
+  pointer-events: none;
+}
+.auth-logo { display: flex; align-items: center; gap: 14px; margin-bottom: var(--space-5); }
+.auth-logo svg { width: 40px; height: 40px; color: var(--gold); }
+.auth-logo span { font-size: var(--text-2xl); font-weight: 800; color: var(--gold); letter-spacing: -0.02em; }
+.auth-hero h2 { font-size: var(--text-xl); color: var(--text-primary); margin-bottom: var(--space-2); font-weight: 600; }
+.auth-hero p { color: var(--text-secondary); font-size: var(--text-md); line-height: 1.6; max-width: 360px; }
+.auth-tags { display: flex; gap: var(--space-2); margin-top: var(--space-6); flex-wrap: wrap; }
+.auth-tags span {
+  padding: 6px 12px; border-radius: 20px; background: var(--bg-elevated);
+  border: 1px solid var(--border); color: var(--text-muted);
+  font-size: var(--text-xs); font-weight: 500;
+}
+
+.auth-card {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 48px 40px;
+  background: var(--surface-glass); border-left: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+}
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-1); margin-bottom: var(--space-5); }
+.auth-tabs button {
+  padding: 10px; border: none; border-radius: var(--radius-md);
+  background: transparent; color: var(--text-muted); font-weight: 600;
+  font-size: var(--text-sm); cursor: pointer; transition: all 0.15s;
+}
+.auth-tabs button.active { background: var(--emerald-dim); color: var(--emerald); }
+.auth-tabs button:hover:not(.active) { color: var(--text-secondary); }
+.auth-card h3 { font-size: var(--text-lg); margin-bottom: var(--space-4); color: var(--text-primary); font-weight: 600; }
+.auth-form { display: grid; gap: var(--space-4); }
+.error-msg { color: var(--danger); font-size: var(--text-xs); margin-top: 2px; display: none; }
+.auth-footer { margin-top: var(--space-4); text-align: center; }
+.auth-footer a { color: var(--gold); text-decoration: none; font-weight: 600; font-size: var(--text-sm); }
+.auth-footer a:hover { text-decoration: underline; }
+
+/* ═══════════ GM WORKSPACE ═══════════ */
+.gm-shell {
+  display: grid; grid-template-columns: 56px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.gm-sidebar {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  background: var(--bg-surface); border-right: 1px solid var(--border);
+  position: sticky; top: 0; height: 100vh; z-index: 30;
+}
+.gm-sidebar .brand-icon { width: 28px; height: 28px; color: var(--gold); margin-bottom: var(--space-3); }
+.gm-sidebar .sidebar-divider { width: 28px; height: 1px; background: var(--border); margin: var(--space-1) 0; }
+.gm-sidebar .nav-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer;
+  transition: all 0.15s; border: none; background: transparent;
+}
+.gm-sidebar .nav-btn:hover { color: var(--text-primary); background: var(--surface-hover); }
+.gm-sidebar .nav-btn.active { color: var(--gold); background: var(--gold-dim); }
+.gm-sidebar .nav-btn svg { width: 18px; height: 18px; }
+
+/* Main workspace */
+.gm-workspace { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Topbar */
+.gm-topbar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 0 var(--space-4); min-height: 48px;
+  background: var(--surface-glass); border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 20;
+}
+.gm-topbar h1 { font-size: var(--text-md); font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; flex: 1; }
+.gm-topbar .topbar-actions { display: flex; align-items: center; gap: var(--space-1); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  background: var(--emerald-dim); color: var(--emerald);
+  font-size: var(--text-xs); font-weight: 600;
+}
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); }
+
+/* Map area */
+.gm-map-area {
+  flex: 1; min-height: 300px; position: relative;
+  margin: var(--space-3); border-radius: var(--radius-lg);
+  background: var(--bg-canvas); border: 1px solid var(--border);
+  overflow: hidden;
+}
+.gm-map-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.gm-map-toolbar {
+  position: absolute; top: var(--space-2); left: var(--space-2);
+  display: flex; gap: var(--space-1); z-index: 5;
+}
+
+/* Floating panels */
+.gm-panel {
+  background: var(--surface-glass); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.gm-panel-header {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);
+  cursor: grab; user-select: none;
+}
+.gm-panel-header:active { cursor: grabbing; }
+.gm-panel-header .panel-title { flex: 1; }
+.gm-panel-body { padding: var(--space-3); }
+.gm-panel-list { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* Panel row */
+.panel-row {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-elevated); border-radius: var(--radius-sm);
+  border: 1px solid transparent; transition: all 0.15s;
+}
+.panel-row:hover { border-color: var(--border-hover); }
+.panel-row.active { border-color: var(--gold); background: var(--gold-dim); }
+.panel-row .row-label { flex: 1; font-size: var(--text-sm); color: var(--text-primary); font-weight: 500; }
+.panel-row .row-meta { font-size: var(--text-xs); color: var(--text-muted); }
+
+/* Combat tracker */
+.combat-row {
+  display: grid; grid-template-columns: 40px 1fr auto; gap: var(--space-2);
+  align-items: center; padding: var(--space-2); border-radius: var(--radius-sm);
+  background: var(--bg-elevated); border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.combat-row.current { border-color: var(--gold); background: var(--gold-dim); }
+.combat-row .init-num { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); border-radius: var(--radius-sm); font-weight: 700; font-size: var(--text-sm); color: var(--gold); }
+.combat-row .combat-name { font-weight: 600; font-size: var(--text-sm); color: var(--text-primary); }
+.combat-row .combat-hp { font-size: var(--text-xs); color: var(--text-muted); }
+.combat-row .combat-hp-bar { width: 48px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.combat-row .combat-hp-bar div { height: 100%; background: var(--emerald); border-radius: 2px; }
+
+/* HP bar colors */
+.hp-green div { background: var(--emerald); }
+.hp-yellow div { background: var(--warning); }
+.hp-red div { background: var(--danger); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeIn 0.2s ease; }
+
+/* Responsive */
+@media (max-width: 860px) {
+  .auth-shell { grid-template-columns: 1fr; }
+  .auth-hero { display: none; }
+  .auth-card { border-left: none; padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ VIEW: AUTH / LANDING ═══════════ -->
+<div id="view-auth" class="auth-shell" style="display:none">
+  <div class="auth-hero">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M14.5 17.5L12 22l-2.5-4.5L5 15l4.5-2.5L12 8l2.5 4.5L19 15l-4.5 2.5z"/>
+        <line x1="12" y1="2" x2="12" y2="8"/>
+      </svg>
+      <span>DnD Tabletop</span>
+    </div>
+    <h2>Retrouve tes campagnes<br>et tes personnages.</h2>
+    <p>Un VTT sobre, rapide, conçu pour le jeu de rôle sur table.</p>
+    <div class="auth-tags">
+      <span>Auto-hébergé</span>
+      <span>Fog of War</span>
+      <span>Temps réel</span>
+    </div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button>Inscription</button>
+      <button class="active">Connexion</button>
+    </div>
+    <h3>Bienvenue</h3>
+    <form class="auth-form" onsubmit="return false">
+      <label>Email<input type="email" placeholder="pierre@example.com"></label>
+      <label>Mot de passe<input type="password" placeholder="········"></label>
+      <p class="error-msg" style="display:none">Email ou mot de passe incorrect.</p>
+      <button class="btn btn-primary" style="width:100%;min-height:44px;font-size:var(--text-md)">Se connecter</button>
+    </form>
+    <div class="auth-footer">
+      <a href="#">Pas encore de compte ? S'inscrire</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIEW: GM WORKSPACE ═══════════ -->
+<div id="view-gm" class="gm-shell">
+  <!-- Sidebar -->
+  <nav class="gm-sidebar">
+    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 17.5L12 22l-2.5-4.5L5 15l4.5-2.5L12 8l2.5 4.5L19 15l-4.5 2.5z"/></svg>
+    <button class="nav-btn active" title="Partie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button>
+    <button class="nav-btn" title="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-btn" title="Préparation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></button>
+    <button class="nav-btn" title="Bestiaire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></button>
+    <button class="nav-btn" title="Personnages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-btn" title="Paramètres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+  </nav>
+
+  <!-- Workspace -->
+  <div class="gm-workspace">
+    <!-- Topbar -->
+    <header class="gm-topbar">
+      <h1>La Forêt des Murmures</h1>
+      <span class="pill">En ligne</span>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-icon btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
+        <button class="btn btn-ghost btn-icon btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+        <span style="width:1px;height:24px;background:var(--border);margin:0 4px"></span>
+        <button class="btn btn-ghost btn-sm">Panneaux</button>
+      </div>
+    </header>
+
+    <!-- Map -->
+    <div class="gm-map-area">
+      <div class="gm-map-grid"></div>
+      <div class="gm-map-toolbar">
+        <button class="btn btn-icon btn-sm" style="background:var(--bg-elevated)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><polyline points="23,20 23,14 17,14"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg></button>
+        <button class="btn btn-icon btn-sm" style="background:var(--bg-elevated)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+        <span style="width:1px;height:20px;background:var(--border);margin:0 2px"></span>
+        <button class="btn btn-icon btn-sm" style="background:var(--bg-elevated)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button>
+      </div>
+
+      <!-- Floating panels on map -->
+      <div class="gm-panel" style="position:absolute;top:12px;right:12px;width:260px;animation:fadeIn 0.2s">
+        <div class="gm-panel-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span class="panel-title">Combat</span>
+          <button class="btn btn-icon btn-sm btn-ghost" style="width:24px;height:24px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="gm-panel-body gm-panel-list">
+          <div class="combat-row current">
+            <span class="init-num">18</span>
+            <div><div class="combat-name">Aelindra</div><div class="combat-hp">PV 34/38</div></div>
+            <div class="combat-hp-bar hp-green"><div style="width:89%"></div></div>
+          </div>
+          <div class="combat-row">
+            <span class="init-num">14</span>
+            <div><div class="combat-name">Gobelin 1</div><div class="combat-hp">PV 3/7</div></div>
+            <div class="combat-hp-bar hp-red"><div style="width:43%"></div></div>
+          </div>
+          <div class="combat-row">
+            <span class="init-num">14</span>
+            <div><div class="combat-name">Gobelin 2</div><div class="combat-hp">PV 7/7</div></div>
+            <div class="combat-hp-bar hp-green"><div style="width:100%"></div></div>
+          </div>
+          <div class="combat-row">
+            <span class="init-num">10</span>
+            <div><div class="combat-name">Thorn</div><div class="combat-hp">PV 28/45</div></div>
+            <div class="combat-hp-bar hp-yellow"><div style="width:62%"></div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px">
+            <button class="btn btn-sm" style="flex:1">Tour suivant</button>
+            <button class="btn btn-sm btn-ghost">Fin du combat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIEW SWITCHER ═══════════ -->
+<div style="position:fixed;bottom:16px;right:16px;display:flex;gap:8px;z-index:1000">
+  <button class="btn btn-sm" onclick="showView('auth')">Login</button>
+  <button class="btn btn-sm btn-primary" onclick="showView('gm')">GM Workspace</button>
+</div>
+
+<script>
+function showView(v) {
+  document.getElementById('view-auth').style.display = v === 'auth' ? '' : 'none';
+  document.getElementById('view-gm').style.display = v === 'gm' ? '' : 'none';
+}
+// Show GM by default
+showView('gm');
+</script>
+</body>
+</html>

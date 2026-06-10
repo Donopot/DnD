@@ -2,6 +2,7 @@ import type React from "react";
 import { createContext, useContext } from "react";
 import type { Character, GameLogEntry } from "../api/types";
 import type { CampaignView } from "../components/CampaignViewTabs";
+import type { RailSection } from "../components/GmRail";
 import type { SessionLiveMode } from "../config/sessionLiveModes";
 import type { useFloatingPanels } from "../hooks/useFloatingPanels";
 
@@ -31,6 +32,8 @@ export interface PanelContextValue {
   showShortcuts: boolean;
   setShowShortcuts: React.Dispatch<React.SetStateAction<boolean>>;
   isBusy: boolean;
+  railSection: RailSection;
+  setRailSection: React.Dispatch<React.SetStateAction<RailSection>>;
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   setLogEntries: React.Dispatch<React.SetStateAction<GameLogEntry[]>>;
 }

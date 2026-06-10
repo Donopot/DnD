@@ -13,6 +13,7 @@ import "./styles/index.css";
 import { apiRequest } from "./api/client";
 import type { AuthResponse, Character, Handout, SceneToken } from "./api/types";
 import { GmWorkspace } from "./app/GmWorkspace";
+import type { RailSection } from "./components/GmRail";
 import { AuthPage } from "./components/AuthPage";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -95,6 +96,7 @@ export default function App() {
   const [isPlayerView, setIsPlayerView] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [railSection, setRailSection] = useState<RailSection>("map");
   const [gmView, setGmView] = useState<CampaignView>("live");
   const characterLoadRef = useRef(0);
   const fp = useFloatingPanels(selectedCampaign?.id);
@@ -788,6 +790,8 @@ export default function App() {
           showShortcuts,
           setShowShortcuts,
           isBusy,
+          railSection,
+          setRailSection,
           setCharacters,
           setLogEntries,
         }}
