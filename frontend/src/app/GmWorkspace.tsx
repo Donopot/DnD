@@ -18,8 +18,8 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import type { Character } from "../api/types";
 import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
 import { CampaignViewTabs } from "../components/CampaignViewTabs";
-import { Tooltip } from "../components/Tooltip";
 import { PanelDock } from "../components/PanelDock";
+import { Tooltip } from "../components/Tooltip";
 import { SESSION_LIVE_MODES } from "../config/sessionLiveModes";
 import { usePanelContext } from "../contexts/PanelContext";
 import { useSessionContext } from "../contexts/SessionContext";

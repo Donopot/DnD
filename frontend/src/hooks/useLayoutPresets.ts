@@ -48,11 +48,7 @@ export function useLayoutPresets() {
   const [presets, setPresets] = useState<LayoutPreset[]>(loadPresets);
 
   const save = useCallback(
-    (
-      name: string,
-      panels: FloatingPanelState[],
-      activeMode: string,
-    ): LayoutPreset[] => {
+    (name: string, panels: FloatingPanelState[], activeMode: string): LayoutPreset[] => {
       const now = new Date().toISOString();
       const snapshot = panels.map((p) => ({
         id: p.id,
