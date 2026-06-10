@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { X } from "lucide-react";
+import { type ReactNode, useEffect } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,16 @@ export type DrawerProps = {
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function Drawer({ open, onClose, title, width = 320, children }: DrawerProps) {
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
@@ -39,7 +50,7 @@ export function Drawer({ open, onClose, title, width = 320, children }: DrawerPr
               onClick={onClose}
               aria-label="Fermer"
             >
-              ✕
+              <X size={16} />
             </button>
           </div>
         )}
