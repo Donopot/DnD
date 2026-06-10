@@ -187,19 +187,15 @@ async def list_encounters(
     campaign_id: UUID,
     current_user=Depends(get_current_user),
 ) -> list[EncounterPublic]:
-    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
 
-    rows = await get_pool().fetch(
-        """
-        select *
-        from combat_encounters
-        where campaign_id = $1
-        order by
-            case status when 'active' then 1 when 'draft' then 2 else 3 end,
-            updated_at desc
-        """,
-        campaign_id,
-    )
+    # Players only see active encounters — GM/co-GM see all
+    query = "select * from combat_encounters where campaign_id = $1"
+    if role == "player":
+        query += " and status = 'active'"
+    query += " order by case status when 'active' then 1 when 'draft' then 2 else 3 end, updated_at desc"
+
+    rows = await get_pool().fetch(query, campaign_id)
     return [encounter_public(row) for row in rows]
 
 

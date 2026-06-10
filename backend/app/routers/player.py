@@ -13,12 +13,21 @@ from app.schemas import HandoutPublic
 from app.schemas import PlayerEncounterPublic
 from app.schemas import ScenePublic
 from app.schemas import TokenPublic
+from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["player"])
 
 
 def _player_role() -> set[str]:
     return {"player"}
+
+
+async def _get_gm_settings(campaign_id: UUID) -> dict:
+    """Load campaign gm_settings, decoding JSON string → dict."""
+    row = await get_pool().fetchval(
+        "select gm_settings from campaigns where id = $1", campaign_id,
+    )
+    return decode_json(row) or {}
 
 
 # --- Audit helper (non-blocking, best-effort) ---
@@ -96,7 +105,8 @@ async def player_scenes(campaign_id: UUID, current_user=Depends(get_current_user
     role = await require_campaign_role(campaign_id, current_user["id"], {"player"})
     await _audit(campaign_id, current_user["id"], "scene", None, "list", True, role)
     rows = await get_pool().fetch(
-        "select * from campaign_scenes where campaign_id = $1 order by is_active desc, created_at asc",
+        "select * from campaign_scenes where campaign_id = $1 and is_secret = false "
+        "order by is_active desc, created_at asc",
         campaign_id,
     )
     return [ScenePublic(**dict(r)) for r in rows]
@@ -141,6 +151,10 @@ async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_
     role = await require_campaign_role(encounter["campaign_id"], current_user["id"], {"player"})
     await _audit(encounter["campaign_id"], current_user["id"], "encounter", encounter_id, "view", True, role)
 
+    gm_settings = await _get_gm_settings(encounter["campaign_id"])
+    show_hp = gm_settings.get("show_player_hp", True)
+    show_initiative = gm_settings.get("show_initiative_to_players", True)
+
     combatants = await get_pool().fetch(
         "select * from combatants where encounter_id = $1 and is_hidden = false order by initiative desc",
         encounter_id,
@@ -149,17 +163,17 @@ async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_
         id=encounter["id"],
         name=encounter["name"],
         status=encounter["status"],
-        round_number=encounter["round_number"],
-        turn_index=encounter["turn_index"],
+        round_number=encounter["round_number"] if show_initiative else 0,
+        turn_index=encounter["turn_index"] if show_initiative else 0,
         combatants=[
             {
                 "id": str(c["id"]),
                 "name": c["name"],
-                "initiative": c["initiative"],
-                "armor_class": c["armor_class"],
-                "hp_current": c["hp_current"],
-                "hp_max": c["hp_max"],
-                "conditions": c["conditions"],
+                "initiative": c["initiative"] if show_initiative else 0,
+                "armor_class": c["armor_class"] if show_hp else 0,
+                "hp_current": c["hp_current"] if show_hp else 0,
+                "hp_max": c["hp_max"] if show_hp else 0,
+                "conditions": c["conditions"] if show_hp else "[]",
                 "is_defeated": c["is_defeated"],
             }
             for c in combatants
