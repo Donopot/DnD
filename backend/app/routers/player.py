@@ -153,6 +153,10 @@ async def player_encounter(encounter_id: UUID, current_user=Depends(get_current_
     if encounter is None:
         raise HTTPException(404, "Encounter not found")
     role = await require_campaign_role(encounter["campaign_id"], current_user["id"], {"player"})
+
+    # Players can only view active encounters
+    if encounter["status"] != "active":
+        raise HTTPException(404, "Encounter not found")
     await _audit(encounter["campaign_id"], current_user["id"], "encounter", encounter_id, "view", True, role)
 
     gm_settings = await _get_gm_settings(encounter["campaign_id"])

@@ -67,6 +67,21 @@ export type Character = {
   updated_at: string;
 };
 
+/** Minimal player-facing view — returned when querying others' characters */
+export type PlayerCharacter = {
+  id: string;
+  name: string;
+  ancestry: string;
+  class_name: string;
+  level: number;
+  armor_class: number;
+  speed: number;
+  hp_current: number;
+  hp_max: number;
+  conditions: Record<string, unknown>[];
+  status: string;
+};
+
 export type Roll = {
   id: string;
   campaign_id: string;

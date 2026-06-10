@@ -186,6 +186,21 @@ class CharacterPublic(CharacterBase):
     updated_at: datetime
 
 
+class PlayerCharacterPublic(BaseModel):
+    """Minimal character view for non-owning players — no notes, spells, resources, etc."""
+    id: UUID
+    name: str
+    ancestry: str = ""
+    class_name: str = ""
+    level: int = 1
+    armor_class: int = 10
+    speed: int = 30
+    hp_current: int = 1
+    hp_max: int = 1
+    conditions: list[dict[str, Any]] = []
+    status: str = "active"
+
+
 class CharacterSubmitRequest(BaseModel):
     campaign_id: UUID
 
