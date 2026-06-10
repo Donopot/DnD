@@ -122,11 +122,7 @@ export function FloatingPanel({
         left: panel.maximized ? 0 : panel.x,
         top: panel.maximized ? 0 : panel.y,
         width: panel.maximized ? "100vw" : panel.width,
-        height: panel.maximized
-          ? "100vh"
-          : panel.minimized
-            ? "auto"
-            : panel.height,
+        height: panel.maximized ? "100vh" : panel.minimized ? "auto" : panel.height,
         zIndex: panel.pinned ? 99999 : panel.zIndex,
       }}
       onPointerDown={panel.pinned ? undefined : onBringToFront}

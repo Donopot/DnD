@@ -105,6 +105,7 @@ export function GmWorkspaceProvider(props: GmWorkspaceProviderProps) {
       panel.showCharacterWizard,
       panel.showShortcuts,
       panel.isBusy,
+      panel.railSection,
     ],
   );
 

@@ -17,6 +17,7 @@ import { AuthPage } from "./components/AuthPage";
 import type { CampaignView } from "./components/CampaignViewTabs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmLobby } from "./components/GmLobby";
+import type { RailSection } from "./components/GmRail";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
 
@@ -95,6 +96,7 @@ export default function App() {
   const [isPlayerView, setIsPlayerView] = useState(false);
   const [isPanelsHidden, setIsPanelsHidden] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [railSection, setRailSection] = useState<RailSection>("map");
   const [gmView, setGmView] = useState<CampaignView>("live");
   const characterLoadRef = useRef(0);
   const fp = useFloatingPanels(selectedCampaign?.id);
@@ -788,6 +790,8 @@ export default function App() {
           showShortcuts,
           setShowShortcuts,
           isBusy,
+          railSection,
+          setRailSection,
           setCharacters,
           setLogEntries,
         }}

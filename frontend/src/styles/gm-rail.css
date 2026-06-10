@@ -1,0 +1,91 @@
+/* ── GmRail — Navigation rail (56px, icons only) ─────────────────────────── */
+
+.gm-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+  min-width: 56px;
+  height: 100%;
+  padding: var(--space-3, 12px) 0;
+  background: var(--bg-elevated, #161e28);
+  border-right: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  gap: 0;
+}
+
+/* ── Brand mark ──────────────────────────── */
+
+.gm-rail-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: var(--space-4, 16px);
+  border-radius: var(--radius-md, 8px);
+  color: var(--gold, #e6b84f);
+}
+
+/* ── Sections list ───────────────────────── */
+
+.gm-rail-sections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+/* ── Rail button ─────────────────────────── */
+
+.gm-rail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--text-muted, #6b6760);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.gm-rail-btn:hover {
+  color: var(--text-secondary, #b0aca5);
+  background: var(--surface-hover, rgba(230, 184, 79, 0.06));
+}
+
+.gm-rail-btn:focus-visible {
+  outline: 2px solid var(--gold, #e6b84f);
+  outline-offset: 2px;
+}
+
+/* Active state — gold left border accent */
+.gm-rail-btn.active {
+  color: var(--gold, #e6b84f);
+  background: var(--gold-dim, rgba(230, 184, 79, 0.1));
+}
+
+.gm-rail-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 0 2px 2px 0;
+  background: var(--gold, #e6b84f);
+}
+
+/* ── Spacer (future: user avatar, etc.) ──── */
+
+.gm-rail-spacer {
+  flex: 0;
+}

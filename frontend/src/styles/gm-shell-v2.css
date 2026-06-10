@@ -1,0 +1,281 @@
+/* ── gm-shell-v2: Rail (56px) | Main area | Panels (320px) ─────────────── */
+
+.gm-shell-v2 {
+  display: grid;
+  grid-template-columns: 56px 1fr 320px;
+  grid-template-rows: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-root, #0a0c0f);
+}
+
+/* ── Main area (topbar + map) ─────────────────────────────────────────── */
+
+.gm-main-area {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Topbar v2 — slim, session-only ───────────────────────────────────── */
+
+.gm-topbar-v2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  height: 48px;
+  min-height: 48px;
+  padding: 0 var(--space-4, 16px);
+  background: var(--surface-glass, rgba(17, 24, 32, 0.92));
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  z-index: 20;
+}
+
+.gm-topbar-v2.focus-compact {
+  justify-content: flex-end;
+}
+
+/* Status */
+.gm-topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gm-topbar-presence {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted, #6b6760);
+}
+
+/* Campaign switcher */
+.gm-campaign-switcher {
+  position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.gm-campaign-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+  padding: 4px 10px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-elevated, #161e28);
+  color: var(--text-primary, #ece8e0);
+  font-size: var(--text-sm, 13px);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 0.15s ease;
+}
+
+.gm-campaign-current:hover {
+  border-color: var(--border-hover, rgba(255, 255, 255, 0.1));
+}
+
+.gm-campaign-current span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Campaign dropdown */
+.gm-campaign-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--space-1, 4px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius-lg, 12px);
+  background: var(--bg-elevated, #161e28);
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.45));
+  z-index: 30;
+}
+
+.gm-campaign-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--text-primary, #ece8e0);
+  font-size: var(--text-sm, 13px);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.gm-campaign-option:hover {
+  background: var(--surface-hover, rgba(230, 184, 79, 0.06));
+}
+
+.gm-campaign-option.active {
+  background: var(--gold-dim, rgba(230, 184, 79, 0.1));
+}
+
+.gm-campaign-option strong {
+  font-size: var(--text-md, 14px);
+}
+
+.gm-campaign-option small {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-muted, #6b6760);
+}
+
+/* Topbar action buttons */
+.gm-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.gm-topbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  background: transparent;
+  color: var(--text-muted, #6b6760);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gm-topbar-btn:hover {
+  color: var(--text-secondary, #b0aca5);
+  background: var(--surface-hover, rgba(230, 184, 79, 0.06));
+}
+
+.gm-topbar-btn.active {
+  color: var(--gold, #e6b84f);
+  background: var(--gold-dim, rgba(230, 184, 79, 0.1));
+}
+
+.gm-topbar-btn:focus-visible {
+  outline: 2px solid var(--gold, #e6b84f);
+  outline-offset: 2px;
+}
+
+/* Separator between action groups */
+.gm-topbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border, rgba(255, 255, 255, 0.06));
+  margin: 0 var(--space-1, 4px);
+}
+
+/* Session live mode buttons */
+.session-live-mode-buttons.compact {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.session-live-mode-buttons.compact button {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-muted, #6b6760);
+  font-size: var(--text-xs, 12px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.session-live-mode-buttons.compact button:hover {
+  color: var(--text-secondary, #b0aca5);
+  background: var(--surface-hover, rgba(230, 184, 79, 0.06));
+}
+
+.session-live-mode-buttons.compact button.active {
+  color: var(--gold, #e6b84f);
+  background: var(--gold-dim, rgba(230, 184, 79, 0.1));
+  border-color: var(--gold-dim, rgba(230, 184, 79, 0.18));
+}
+
+/* ── Map area ─────────────────────────────────────────────────────────── */
+
+.gm-map-v2 {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-canvas, #0d1117);
+}
+
+.map-floating-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4, 16px);
+  height: 100%;
+  color: var(--text-muted, #6b6760);
+}
+
+.map-floating-placeholder p {
+  font-size: var(--text-md, 14px);
+}
+
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted, #6b6760);
+  font-size: var(--text-md, 14px);
+}
+
+/* ── Invite bar (bottom of main area) ─────────────────────────────────── */
+
+.gm-invite-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px var(--space-4, 16px);
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  background: var(--bg-surface, #111820);
+  font-size: var(--text-xs, 12px);
+}
+
+.gm-invite-bar .invite-link-label {
+  color: var(--text-muted, #6b6760);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.gm-invite-bar .invite-link-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gm-invite-bar .invite-link-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-elevated, #161e28);
+  color: var(--text-secondary, #b0aca5);
+  font-size: var(--text-xs, 11px);
+  font-family: monospace;
+}
