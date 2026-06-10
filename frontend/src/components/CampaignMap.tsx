@@ -66,6 +66,8 @@ export type CampaignMapProps = {
   selectedTokenId?: string;
   onSelectToken?: (tokenId: string) => void;
   onLoadSceneTokens?: (sceneId: string) => void;
+  /** Show the minimap overlay. Defaults to true (always visible), set to false to hide. */
+  showMiniMap?: boolean;
   onMoveToken?: TokenDragHandler;
   onTokenAction?: TokenActionHandler;
   onTokenBatchAction?: TokenBatchActionHandler;
@@ -97,6 +99,7 @@ export function CampaignMap({
   onTokenBatchAction,
   selectedTokenId: controlledSelectedTokenId,
   onSelectToken,
+  showMiniMap,
 }: CampaignMapProps) {
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -750,17 +753,19 @@ export function CampaignMap({
         </div>
       </div>
 
-      {/* ── Minimap ─────────────────────────────────────────── */}
-      <MapMinimap
-        selectedScene={selectedScene}
-        sceneTokens={sceneTokens}
-        zoom={zoom}
-        fogZones={fogZones}
-        isGM={isGM}
-        gridSize={gridSize}
-        isInFogZone={isInFogZone}
-        scrollRef={scrollRef}
-      />
+      {/* ── Minimap (visible by default, hidden only when showMiniMap=false) ── */}
+      {showMiniMap !== false && (
+        <MapMinimap
+          selectedScene={selectedScene}
+          sceneTokens={sceneTokens}
+          zoom={zoom}
+          fogZones={fogZones}
+          isGM={isGM}
+          gridSize={gridSize}
+          isInFogZone={isInFogZone}
+          scrollRef={scrollRef}
+        />
+      )}
     </div>
   );
 }
