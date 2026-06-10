@@ -26,11 +26,9 @@ Le socle est fonctionnel :
 
 Chantiers prioritaires :
 
-- alléger `App.tsx` ;
-- stabiliser carte / tokens / fog ;
-- renforcer l’interface joueur ;
-- réduire la dette CSS ;
-- unifier les raccourcis clavier ;
+- polish design system (tooltips, contraste, palette) ;
+- interface joueur — carte filtrée, dés ;
+- réduire la dette CSS (variables, cohérence widgets) ;
 - maintenir une documentation consolidée.
 
 ---
@@ -320,9 +318,8 @@ scripts/    Scripts de maintenance et vérification
 
 ## Priorités techniques actuelles
 
-- Finaliser l'interface joueur (route dédiée, carte joueur, fiche compacte, dés).
-- Stabiliser les panneaux dockés/flottants (presets, verrouillage, dock enrichi).
-- Traiter la dette documentaire (CHANGELOG, roadmap, métriques à jour).
-- Nettoyer les imports inutilisés et le code splitting redondant.
-- Continuer le polish design system (tooltips, contraste, palette).
-- Maintenir les 122 tests backend et la CI verte.
+- Terminé ✅ — App.tsx allégé (677 lignes), player UX (fiche compacte, permissions, toasts), panneaux flottants v2, focus map + mini-map.
+- Polish design system (tooltips, contraste, palette, cohérence widgets).
+- Carte joueur dédiée + dés.
+- Réduire la dette CSS (variables, widgets, cohérence inter-panneaux).
+- Maintenir les 122 tests backend, Biome 0, TSC 0, CI verte.

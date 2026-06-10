@@ -4,6 +4,28 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.12.2] — Player UX + Docker healthchecks + Nettoyage branches (2026-06-10)
+
+### 🎮 PR — Player UX (agent/ui/player-ux)
+- Refactor CSS player (1019 lignes → 13 sections, variables CSS)
+- CompactCharacterSheet (HP/CA/vitesse/bonus/caractéristiques)
+- usePlayerPermissions hook (canMoveTokens, canSelectTokens, showHP)
+- Barre d'indicateurs de permissions avec icônes et tooltips
+- Toasts WebSocket (handout_revealed, scene_changed, combat_started)
+- PlayerView lazy-loadé dans App.tsx (bundle MJ 329 Ko, chunk joueur 91 Ko)
+
+### 🐳 Docker healthchecks
+- Backend : python urllib remplace curl (plus de dépendance externe)
+- Frontend : 127.0.0.1 explicite
+
+### 🧹 Nettoyage
+- 54 branches agent/* et codex/* supprimées (local + remote)
+- Git réduit à 1 seule branche active : main
+
+### 📊 Metrics
+- Frontend: tsc 0, Biome 0 err, build 4.65s
+- Backend: 122/122 tests
+
 ## [v0.12] — Refonte App.tsx, contexts, API centralisation (2026-06-04/05)
 
 ### 🔧 PR #67–69 — PanelRenderer + ErrorBoundary

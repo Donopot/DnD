@@ -1,7 +1,7 @@
 # Déploiement & Opérations — D&D Virtual Tabletop
 
 > Fusion de `deployment.md` + `developer-toolchain.md` + `agent-coordination.md`.
-> Dernière mise à jour : 2026-06-03.
+> Dernière mise à jour : 2026-06-10.
 
 ---
 
@@ -366,10 +366,10 @@ une branche/PR d'un autre agent, lancer une commande destructive.
 | Agent  | Convention                  | Exemple                          |
 |--------|-----------------------------|----------------------------------|
 | Hermes | `agent/<type>/<objectif>`   | `agent/fix/security-p1`         |
-| Codex  | `codex/<objectif-court>`    | `codex/fix-ci-workflows`        |
 
 Types : `fix`, `feature`, `ui`, `backend`, `db`, `test`, `docs`, `refactor`, `experiment`.
 Une branche = une mission. Commits explicites : `ui: simplify gm headers`, `fix: repair ws auth`.
+Branches mergées → supprimées immédiatement (remote + local).
 
 ### 7.2 Avant de créer une branche
 
