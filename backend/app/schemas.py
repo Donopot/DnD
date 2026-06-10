@@ -258,6 +258,7 @@ class SceneCreateRequest(BaseModel):
     height: int = Field(default=1000, ge=200, le=10000)
     background_url: str | None = Field(default=None, max_length=2000)
     is_active: bool = False
+    is_secret: bool = False
 
 
 class ScenePublic(BaseModel):
@@ -271,6 +272,7 @@ class ScenePublic(BaseModel):
     background_url: str | None
     background_asset_id: UUID | None = None
     is_active: bool
+    is_secret: bool = False
     snap_to_grid: bool = True
     view_zoom: float = 1.0
     view_pan_x: int = 0
