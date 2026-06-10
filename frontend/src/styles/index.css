@@ -10,6 +10,8 @@
 @import "./gm-shell-v2.css";
 @import "./gm-dock.css";
 @import "./shell-gm-panels.css";
+@import "./icon-btn.css";
+@import "./drawer.css";
 @import "./map.css";
 @import "./widgets.css";
 @import "./player.css";
