@@ -7,7 +7,7 @@ body {
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, var(--accent-dim), transparent 34rem),
-    linear-gradient(135deg, #f7f2e6 0%, #efe6d2 48%, #e6ddc9 100%);
+    linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface) 48%, var(--bg-surface-secondary) 100%);
 }
 
 .sidebar {
@@ -1231,7 +1231,7 @@ select {
 
 .visibility-inspector-panel .visibility-token-card.hidden em,
 .visibility-inspector-panel .visibility-token-list article.hidden em {
-  background: #f7d7d0;
+  background: var(--danger-dim);
   color: var(--danger);
 }
 
@@ -1643,7 +1643,7 @@ select {
 }
 
 .party-summary-row.danger b {
-  background: #f7d7d0;
+  background: var(--danger-dim);
   color: var(--danger);
 }
 
@@ -1834,7 +1834,7 @@ select {
 }
 
 .gm-panel-badge.danger {
-  background: #f7d7d0;
+  background: var(--danger-dim);
   color: var(--danger);
 }
 
@@ -1945,7 +1945,7 @@ select {
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: #eadfce;
+  background: var(--bg-surface-secondary);
 }
 
 .gm-panel-progress i {

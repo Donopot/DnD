@@ -114,7 +114,7 @@ export function FogLayer({
             0,
             Math.PI * 2,
           );
-          ctx.strokeStyle = "#D6A84F";
+          ctx.strokeStyle = "var(--accent-primary)";
           ctx.lineWidth = 2;
           ctx.setLineDash([6, 4]);
           ctx.stroke();
@@ -122,7 +122,7 @@ export function FogLayer({
           ctx.fillStyle = "rgba(214, 168, 79, 0.15)";
           ctx.fill();
         } else {
-          ctx.strokeStyle = "#D6A84F";
+          ctx.strokeStyle = "var(--accent-primary)";
           ctx.lineWidth = 2;
           ctx.setLineDash([6, 4]);
           ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);

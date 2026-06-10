@@ -53,7 +53,7 @@
 
 .perms-tag {
   font-size: 0.72rem;
-  color: var(--accent-gold, #c5b358);
+  color: var(--accent-gold, var(--accent-primary));
   font-weight: 500;
 }
 
@@ -65,8 +65,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #1b4332, #081c15);
-  color: var(--text-brand, #f8f4e8);
+  background: linear-gradient(135deg, var(--accent-secondary), var(--bg-surface-elevated));
+  color: var(--text-brand, var(--text-inverse));
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -101,7 +101,7 @@
 }
 
 .player-header-meta .ghost-button {
-  color: var(--text-brand, #f8f4e8);
+  color: var(--text-brand, var(--text-inverse));
   border-color: rgba(248, 244, 232, 0.3);
 }
 
@@ -193,7 +193,7 @@
   padding: 10px 14px;
   margin: 0;
   font-size: 0.85rem;
-  background: var(--bg-tertiary, #f3f1ea);
+  background: var(--bg-tertiary, var(--bg-surface-secondary));
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
 }
@@ -221,7 +221,7 @@
 
 .player-char-row.selected {
   background: var(--accent-dim, rgba(45, 106, 79, 0.12));
-  border-left-color: var(--accent, #2d6a4f);
+  border-left-color: var(--accent, var(--success));
   font-weight: 600;
 }
 
@@ -524,7 +524,7 @@
 }
 
 .quick-dice-btn:active {
-  background: var(--accent-dim, #1b4332);
+  background: var(--accent-dim, var(--accent-secondary));
   transform: scale(0.95);
 }
 
@@ -548,7 +548,7 @@
 }
 
 .dice-mode-toggle button.active {
-  background: var(--accent-dim, #1b4332);
+  background: var(--accent-dim, var(--accent-secondary));
   color: var(--accent);
   border-color: var(--accent);
 }
@@ -721,7 +721,7 @@
 
 /* "My turn" highlight */
 .combatant-readonly-row.my-turn {
-  border-left: 3px solid var(--accent-gold, #c5b358);
+  border-left: 3px solid var(--accent-gold, var(--accent-primary));
   padding-left: 8px;
   background: rgba(197, 179, 88, 0.06);
 }
@@ -829,7 +829,7 @@
   top: 56px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--accent-dim, #1b4332);
+  background: var(--accent-dim, var(--accent-secondary));
   border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 8px 18px;
@@ -874,7 +874,7 @@
 }
 
 .player-toast-banner.combat {
-  background: var(--accent-dim, #1b4332);
+  background: var(--accent-dim, var(--accent-secondary));
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -932,7 +932,7 @@
 }
 
 .markdown-rendered blockquote {
-  border-left: 3px solid var(--accent-gold, #c5b358);
+  border-left: 3px solid var(--accent-gold, var(--accent-primary));
   margin: 0.4rem 0;
   padding: 4px 10px;
   color: var(--text-tertiary);
