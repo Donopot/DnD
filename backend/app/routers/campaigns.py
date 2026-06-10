@@ -23,7 +23,6 @@ from app.schemas import GmSettingsUpdate
 from app.schemas import InviteCreateRequest
 from app.schemas import InvitePreview
 from app.schemas import InvitePublic
-from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["campaigns"])
 
@@ -38,7 +37,7 @@ def campaign_public(row) -> CampaignPublic:
         member_count=row["member_count"],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
-        gm_settings=decode_json(row["gm_settings"]) or {},
+        gm_settings=row["gm_settings"] or {},
     )
 
 
@@ -365,5 +364,5 @@ async def update_campaign_settings(
         member_count=member_count,
         created_at=row["created_at"],
         updated_at=row["updated_at"],
-        gm_settings=decode_json(row["gm_settings"]) or {},
+        gm_settings=row["gm_settings"] or {},
     )

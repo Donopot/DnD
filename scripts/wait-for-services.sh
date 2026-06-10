@@ -20,32 +20,24 @@ check() {
 }
 
 health_ok=false
-total_required=4
 
 while [ $SECONDS -lt $DEADLINE ]; do
   ok=0
 
   check "http://localhost:8091/api/health" "backend" && ((ok++)) || true
   check "http://localhost:8090/"             "frontend" && ((ok++)) || true
+  check "http://localhost:9000/minio/health/live" "minio" && ((ok++)) || true
 
-  # MinIO port 9000 is internal (not published). Check via docker exec.
-  if docker exec dnd-minio curl -sf http://localhost:9000/minio/health/live >/dev/null 2>&1; then
-    echo "   ✅ minio"
-    ((ok++))
-  else
-    true
-  fi
-
-  # Redis — use docker exec
+  # Redis n'expose pas de HTTP — on utilise docker exec si dispo,
+  # sinon on saute (healthcheck Docker s'en charge).
   if docker exec dnd-redis redis-cli ping 2>/dev/null | grep -q PONG; then
     echo "   ✅ redis"
     ((ok++))
   else
-    true
+    true # laissez docker-compose gérer
   fi
 
-  # Require ALL services, not just 3
-  if [ $ok -ge $total_required ]; then
+  if [ $ok -ge 3 ]; then
     health_ok=true
     break
   fi

@@ -398,15 +398,6 @@ async def move_token(
         if not owned:
             raise HTTPException(status_code=403, detail="Players can only move their own tokens")
 
-        # Check GM settings: allow_player_token_move
-        settings_row = await get_pool().fetchval(
-            "select gm_settings from campaigns where id = $1",
-            existing["campaign_id"],
-        )
-        gm_settings = decode_json(settings_row) or {}
-        if gm_settings.get("allow_player_token_move") is False:
-            raise HTTPException(status_code=403, detail="Token movement is disabled by GM")
-
     row = await get_pool().fetchrow(
         """
         update scene_tokens
@@ -475,15 +466,6 @@ async def reveal_around_token(
         )
         if not owned:
             raise HTTPException(status_code=403, detail="Players can only reveal fog around their own tokens")
-
-        # Check GM settings: player_fog_reveal
-        settings_row = await get_pool().fetchval(
-            "select gm_settings from campaigns where id = $1",
-            existing["campaign_id"],
-        )
-        gm_settings = decode_json(settings_row) or {}
-        if gm_settings.get("player_fog_reveal") is False:
-            raise HTTPException(status_code=403, detail="Fog reveal is disabled by GM")
 
     scene = await get_scene_or_404(existing["scene_id"])
     current_zones: list = decode_json(scene.get("fog_zones")) or []
