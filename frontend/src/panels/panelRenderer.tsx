@@ -23,7 +23,8 @@ import type {
   SceneToken,
   User,
 } from "../api/types";
-import type { CampaignMapProps } from "../components/CampaignMap";
+import { CampaignMap, type CampaignMapProps } from "../components/CampaignMap";
+import { EditCharacterSheet } from "../components/EditCharacterSheet";
 import { GM_PANELS, type GmPanelDefinition } from "../config/gmPanels";
 
 const ActiveEncounterPanel = lazy(() =>
@@ -34,9 +35,6 @@ const AmbiancePanel = lazy(() =>
 );
 const BestiaryPanel = lazy(() =>
   import("../components/BestiaryPanel").then((m) => ({ default: m.BestiaryPanel })),
-);
-const CampaignMap = lazy(() =>
-  import("../components/CampaignMap").then((m) => ({ default: m.CampaignMap })),
 );
 const ChatPanel = lazy(() =>
   import("../components/ChatPanel").then((m) => ({ default: m.default })),
@@ -52,9 +50,6 @@ const DiceRoller = lazy(() =>
 );
 const DungeonGenerator = lazy(() =>
   import("../components/DungeonGenerator").then((m) => ({ default: m.DungeonGenerator })),
-);
-const EditCharacterSheet = lazy(() =>
-  import("../components/EditCharacterSheet").then((m) => ({ default: m.EditCharacterSheet })),
 );
 const EncounterBuilder = lazy(() =>
   import("../components/EncounterBuilder").then((m) => ({ default: m.EncounterBuilder })),

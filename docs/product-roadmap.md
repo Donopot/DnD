@@ -1,6 +1,6 @@
 # Roadmap Produit — DnD VTT / SaaS
 
-Dernière mise à jour : 2026-06-03
+Dernière mise à jour : 2026-06-07
 
 ---
 
@@ -189,11 +189,11 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 ### 4.1 Métriques finales
 
 **Backend :**
-- 118 endpoints, 18 routeurs, 26 migrations, 72 schémas, 121 tests
+- 118 endpoints, 18 routeurs, 26 migrations, 72 schémas, 122 tests
 
 **Frontend :**
 - 55 composants React, ~10 800 lignes CSS, 1798 modules Vite
-- Build : 677ms, 433 kB (gzip 128 kB)
+- Build : ~700ms, 433 kB (gzip 128 kB)
 
 **Contenu SRD :**
 - 52 créatures, 25 sorts, 11 races, 12 classes, donjons procéduraux
@@ -220,10 +220,11 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 ### 4.3 Faiblesses à adresser
 
 - ~~Pas de véritable interface joueur dédiée~~ → PlayerView + PlayerWorkspace (Phase 14)
-- ~~Pas de visibilité MJ/joueur fine~~ → VisibilityInspectorPanel (Phase 12)
+- ~~Pas de visibilité MJ/joueur fine~~ → VisibilityInspectorPanel + GmSettingsPanel (Phase 12, PR #108)
 - ~~Pas de brouillard de guerre~~ → Fog of War avec zones, cercle/rect, auto-révélation (Phase 16+39)
-- ~~Pas d'aperçu joueur ni de mode focus carte complet~~ → focus mode F, minimap (Phase 34-37)
+- ~~Pas d'aperçu joueur ni de mode focus carte complet~~ → focus mode Escape/F, minimap toggle (v0.12.1)
 - ~~Gestion des tokens~~ → supprimer, dupliquer, éditer, z-index, groupes, menu clic droit (PR #62-65)
+- ~~Panneaux flottants instables~~ → pinned/locked/maximized, presets nommés (v0.12.1)
 - Pas de notes de scène avancées
 - Pas de PNJ/factions
 - Pas de moteur combat avancé
@@ -237,9 +238,10 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 
 #### Priorité immédiate
 
-1. **Finaliser panneaux MJ** : presets toujours accessibles, preset personnalisé, dock panneaux réduits, épingler/détacher, focus carte.
-2. **Gestion tokens** : supprimer, dupliquer, éditer, cacher/révéler, verrouiller, menu clic droit.
-3. **Interface joueur** : route joueur, carte joueur, fiche compacte, dés joueur, journal public.
+1. **Finaliser panneaux MJ** : ~~presets toujours accessibles, preset personnalisé, dock panneaux réduits, épingler/détacher, focus carte~~ → ✅ v0.12.1 (floating panels v2 + focus map/mini-map)
+2. **Gestion tokens** : ~~supprimer, dupliquer, éditer, cacher/révéler, verrouiller, menu clic droit~~ → ✅ PR #62-65 (TokenContextMenu, z-index, groupes)
+3. **Interface joueur simplifiée** : route joueur dédiée, carte filtrée, fiche compacte, dés joueur, journal public → 🔜 PR #6 (en cours)
+4. **Polish design system** : tooltips, contraste, palette cohérente → 🔜 PR #7 (en cours)
 
 #### Priorité moyenne
 
@@ -401,8 +403,9 @@ L'étape 0 (stabilisation de l'interface GM) est terminée :
 |---------|-------|-------------|
 | **v0.10.x** | Interface MJ | Interface propre, panneaux utilisables, presets, layout personnalisé, focus carte |
 | **v0.11.x** | Tokens avancés | Édition, suppression, duplication, visibilité, verrouillage, menu contextuel |
-| **v0.12.x** | Interface joueur | Vue joueur dédiée, carte joueur, fiche compacte, dés, journal public |
-| **v0.13.x** | Visibilité et secrets | Badges, aperçu joueur, historique révélations, mode panique |
+| **v0.12.x** | Refonte UX MJ ✅ | ~~App.tsx, contexts, hooks, API centralisation, panneaux flottants v2, focus map/mini-map, GM overrides~~ → Livré (06/2026) |
+| **v0.13.x** | Interface joueur | Vue joueur simplifiée, carte joueur, fiche compacte, dés, journal public |
+| **v0.14.x** | Visibilité et secrets | Badges, aperçu joueur, historique révélations, mode panique |
 | **v0.14.x** | Fog et calques MJ | Fog manuel, calques, zones cachées, aperçu joueur |
 | **v0.15.x** | Outils carte | Mesures, ping, dessin, gabarits |
 | **v0.16.x** | Combat avancé | Tracker complet, effets, dégâts, fin de combat |

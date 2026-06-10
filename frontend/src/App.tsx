@@ -1,4 +1,13 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "./styles/index.css";
 
 import { apiRequest } from "./api/client";
@@ -10,7 +19,11 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GmLobby } from "./components/GmLobby";
 import { InvitePage } from "./components/InvitePage";
 import { PlayerLobby } from "./components/PlayerLobby";
-import { PlayerView } from "./components/PlayerView";
+
+const PlayerView = lazy(() =>
+  import("./components/PlayerView").then((m) => ({ default: m.PlayerView })),
+);
+
 import {
   SESSION_LIVE_MODES,
   SESSION_LIVE_PANEL_SETS,
@@ -274,12 +287,10 @@ export default function App() {
       onLoadSceneTokens: (id: string) => void vtt.loadSceneTokens(id),
       onMoveToken: isPreview
         ? () => void 0
-        : (t: SceneToken, dx: number, dy: number) =>
-            void tokenActions.moveToken(t, dx, dy),
+        : (t: SceneToken, dx: number, dy: number) => void tokenActions.moveToken(t, dx, dy),
       onTokenAction: isPreview
         ? () => void 0
-        : (action: string, t: SceneToken, v?: number) =>
-            void handleMapTokenAction(action, t, v),
+        : (action: string, t: SceneToken, v?: number) => void handleMapTokenAction(action, t, v),
       onTokenBatchAction: isPreview
         ? () => void 0
         : (action: string, ts: SceneToken[], v?: number) =>
@@ -663,17 +674,19 @@ export default function App() {
     );
   }
 
-  // 5. Player — has campaign → PlayerView
+  // 5. Player — has campaign → PlayerView (lazy)
   if (selectedCampaign && selectedCampaign.role === "player") {
     return (
-      <PlayerView
-        campaign={selectedCampaign}
-        token={token}
-        userId={user.id}
-        userDisplayName={user.display_name}
-        presenceCount={presenceCount}
-        onLogout={logout}
-      />
+      <Suspense fallback={<div className="panel-loading">Chargement…</div>}>
+        <PlayerView
+          campaign={selectedCampaign}
+          token={token}
+          userId={user.id}
+          userDisplayName={user.display_name}
+          presenceCount={presenceCount}
+          onLogout={logout}
+        />
+      </Suspense>
     );
   }
 

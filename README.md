@@ -320,11 +320,9 @@ scripts/    Scripts de maintenance et vérification
 
 ## Priorités techniques actuelles
 
-- Réduire le monolithe `App.tsx`.
-- Extraire les responsabilités en hooks et workspaces.
-- Stabiliser les panneaux dockés/flottants.
-- Unifier les raccourcis clavier.
-- Versionner les données `localStorage`.
-- Ajouter `AbortController` sur les fetchs lourds.
-- Découper les CSS volumineux.
-- Continuer à documenter chaque changement important.
+- Finaliser l'interface joueur (route dédiée, carte joueur, fiche compacte, dés).
+- Stabiliser les panneaux dockés/flottants (presets, verrouillage, dock enrichi).
+- Traiter la dette documentaire (CHANGELOG, roadmap, métriques à jour).
+- Nettoyer les imports inutilisés et le code splitting redondant.
+- Continuer le polish design system (tooltips, contraste, palette).
+- Maintenir les 122 tests backend et la CI verte.
