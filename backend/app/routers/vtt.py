@@ -548,7 +548,6 @@ async def update_scene_settings(
     await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm"})
 
     current = dict(scene)
-    was_secret = current.get("is_secret", False)
     updates = payload.model_dump(exclude_unset=True)
     for key, value in updates.items():
         current[key] = value
@@ -582,11 +581,8 @@ async def update_scene_settings(
     result = scene_public(row)
     await cache_invalidate(f"scene:{scene_id}*")
 
-    # If scene just became secret, broadcast so player clients drop it
-    if not was_secret and current["is_secret"]:
-        await broadcast_vtt_change(scene["campaign_id"], "scene_secret", scene_id)
-    elif was_secret and not current["is_secret"]:
-        await broadcast_vtt_change(scene["campaign_id"], "scene", scene_id)
+    # Broadcast so player clients reload their map data
+    await broadcast_vtt_change(scene["campaign_id"], "scene", scene_id)
     return result
 
 
