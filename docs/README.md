@@ -37,6 +37,12 @@ Ce dossier contient la documentation active du projet.
 | `work-in-progress/` | Plans temporaires de PR ou de correction |
 | `archive/` | Anciennes notes de phase, audits, plans remplacés |
 
+## Plan actif
+
+| Document | Objectif |
+|---|---|
+| `work-in-progress/2026-06-10-main-audit-remediation.md` | Fermer les failles d'autorisation, stabiliser le temps réel et les parcours carte, renforcer la CI puis terminer le design system |
+
 ## Règle de maintenance
 
 1. Ne pas créer de nouveau fichier à la racine de `docs/` sans justification.
