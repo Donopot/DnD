@@ -27,8 +27,20 @@ from app.utils import decode_json
 
 router = APIRouter(prefix="/api", tags=["campaigns"])
 
+# ── Default GM settings (single source of truth) ──
+DEFAULT_GM_SETTINGS: dict[str, bool] = {
+    "allow_player_token_move": True,
+    "show_player_hp": True,
+    "fog_enabled": True,
+    "player_fog_reveal": True,
+    "show_initiative_to_players": True,
+    "allow_player_map_pan": True,
+}
+
 
 def campaign_public(row) -> CampaignPublic:
+    stored = decode_json(row.get("gm_settings")) or {}
+    merged = {**DEFAULT_GM_SETTINGS, **stored}  # stored overrides defaults
     return CampaignPublic(
         id=row["id"],
         owner_user_id=row["owner_user_id"],
@@ -38,7 +50,7 @@ def campaign_public(row) -> CampaignPublic:
         member_count=row["member_count"],
         created_at=row["created_at"],
         updated_at=row["updated_at"],
-        gm_settings=decode_json(row["gm_settings"]) or {},
+        gm_settings=merged,
     )
 
 
@@ -365,5 +377,5 @@ async def update_campaign_settings(
         member_count=member_count,
         created_at=row["created_at"],
         updated_at=row["updated_at"],
-        gm_settings=decode_json(row["gm_settings"]) or {},
+        gm_settings={**DEFAULT_GM_SETTINGS, **(decode_json(row["gm_settings"]) or {})},
     )
