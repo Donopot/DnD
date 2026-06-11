@@ -143,7 +143,7 @@ export function HomebrewPanel({
   async function deleteCreature(id: string) {
     if (!confirm("Supprimer cette creature ?")) return;
     try {
-      await apiRequest<void>(`/homebrew/creatures/${id}`, token, { method: "DELETE" });
+      await apiRequest<void>(`/api/homebrew/creatures/${id}`, token, { method: "DELETE" });
       setCreatures((prev) => prev.filter((c) => c.id !== id));
       if (selectedCreature?.id === id) setSelectedCreature(null);
       setMessage("Creature supprimee.");

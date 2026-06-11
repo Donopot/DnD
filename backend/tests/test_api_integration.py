@@ -197,11 +197,18 @@ async def test_create_and_list_campaigns_gm_settings_decoded(client, gm_user_row
     }, headers=auth_headers)
     assert resp.status_code == 201, f"POST failed: {resp.text}"
     body = resp.json()
-    assert body["gm_settings"] == {}, (
-        f"Expected dict, got {type(body['gm_settings'])}: {body['gm_settings']}"
+    assert body["gm_settings"] == {
+        "allow_player_token_move": True,
+        "show_player_hp": True,
+        "fog_enabled": True,
+        "player_fog_reveal": True,
+        "show_initiative_to_players": True,
+        "allow_player_map_pan": True,
+    }, (
+        f"Expected defaults merged, got: {body['gm_settings']}"
     )
 
-    # GET list — gm_settings must also be decoded
+    # GET list — gm_settings must also be decoded with defaults
     mock_pool.fetch = AsyncMock(return_value=[post_create_row])
     mock_pool.fetchrow = AsyncMock(return_value=gm_user_row)
 
@@ -209,8 +216,8 @@ async def test_create_and_list_campaigns_gm_settings_decoded(client, gm_user_row
     assert resp2.status_code == 200
     campaigns = resp2.json()
     assert len(campaigns) == 1
-    assert campaigns[0]["gm_settings"] == {}, (
-        f"List gm_settings not decoded: {campaigns[0]['gm_settings']}"
+    assert campaigns[0]["gm_settings"] == body["gm_settings"], (
+        f"List gm_settings mismatch: {campaigns[0]['gm_settings']}"
     )
 
     app.dependency_overrides.clear()
