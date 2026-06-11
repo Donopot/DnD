@@ -7,8 +7,14 @@ interface ChatMessage {
   sender_id: string;
   sender_name: string;
   sender_role: string;
-  target?: string;
+  target_user_id?: string;
   ts: number;
+}
+
+interface MemberInfo {
+  user_id: string;
+  display_name: string;
+  role: string;
 }
 
 interface ChatPanelProps {
@@ -16,17 +22,24 @@ interface ChatPanelProps {
   wsRef: React.RefObject<WebSocket | null>;
   userId?: string;
   displayName?: string;
+  role?: string;
+  members?: MemberInfo[];
 }
 
-export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps) {
+export default function ChatPanel({
+  wsRef,
+  userId,
+  displayName,
+  role,
+  members = [],
+}: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [mode, setMode] = useState<"ic" | "ooc">("ic");
-  const [whisperTarget, setWhisperTarget] = useState("");
+  const [whisperTargetId, setWhisperTargetId] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Listen for chat messages from WebSocket
   // Listen for chat messages from WebSocket — use addEventListener to avoid
   // overwriting the central handler owned by useRealtimeSession.
   useEffect(() => {
@@ -37,6 +50,16 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
       try {
         const data = JSON.parse(event.data);
         if (data.type === "chat_message") {
+          // ── Defensive client-side filtering ──
+          if (data.mode === "whisper") {
+            const isGM = role === "gm" || role === "co_gm";
+            const isSender = data.sender_id === userId;
+            const isTarget = data.target_user_id === userId;
+            // Only sender, target, and GMs can see whispers
+            if (!isSender && !isTarget && !isGM) {
+              return; // silently drop — should never happen, but defence in depth
+            }
+          }
           setMessages((prev) => [...prev, data as ChatMessage]);
         }
       } catch {
@@ -46,7 +69,7 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
 
     ws.addEventListener("message", handler);
     return () => ws.removeEventListener("message", handler);
-  }, [wsRef]);
+  }, [wsRef, userId, role]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -59,20 +82,20 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN || !input.trim()) return;
 
-    const effectiveMode = whisperTarget ? "whisper" : mode;
+    const effectiveMode = whisperTargetId ? "whisper" : mode;
 
     ws.send(
       JSON.stringify({
         type: "chat_message",
         content: input.trim(),
         mode: effectiveMode,
-        target: whisperTarget || undefined,
+        target_user_id: whisperTargetId || undefined,
         ts: Date.now(),
       }),
     );
 
     setInput("");
-    setWhisperTarget("");
+    setWhisperTargetId("");
     inputRef.current?.focus();
   };
 
@@ -100,6 +123,13 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
 
   const messagesEnd = messages.length === 0;
 
+  // Resolve target display_name for whisper showing
+  const getWhisperTargetName = (targetUserId?: string): string => {
+    if (!targetUserId) return "?";
+    const member = members.find((m) => m.user_id === targetUserId);
+    return member?.display_name ?? targetUserId.slice(0, 8);
+  };
+
   return (
     <div className="chat-panel">
       {/* Messages area */}
@@ -108,7 +138,8 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
           <div className="chat-empty">
             <p>💬 Le chat est vide</p>
             <p className="chat-hint">
-              Les messages envoyés ici sont visibles par tous les joueurs connectés.
+              Les messages envoyés ici sont visibles par tous les joueurs
+              connectés.
             </p>
           </div>
         )}
@@ -126,7 +157,9 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
               <span className={`chat-sender ${isGM ? "chat-gm" : ""}`}>
                 {msg.sender_name}
                 {isGM && " ⭐"}
-                {isWhisper && msg.target && ` → ${msg.target}`}
+                {isWhisper &&
+                  msg.target_user_id &&
+                  ` → ${getWhisperTargetName(msg.target_user_id)}`}
               </span>
               <span
                 className={`chat-content ${isOoc ? "chat-ooc" : ""} ${isWhisper ? "chat-whisper-text" : ""}`}
@@ -141,7 +174,11 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
       {/* Dice quick bar */}
       <div className="chat-dice-bar">
         {["1d20", "1d8", "1d6", "1d4", "2d6", "1d100"].map((d) => (
-          <button key={d} className="chat-dice-btn" onClick={() => rollDice(d)}>
+          <button
+            key={d}
+            className="chat-dice-btn"
+            onClick={() => rollDice(d)}
+          >
             {d}
           </button>
         ))}
@@ -162,12 +199,22 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
           >
             💬 OOC
           </button>
-          <input
-            className="chat-whisper-input"
-            placeholder="Chuchoter à…"
-            value={whisperTarget}
-            onChange={(e) => setWhisperTarget(e.target.value)}
-          />
+          {/* Whisper target: dropdown of campaign members */}
+          <select
+            className="chat-whisper-select"
+            value={whisperTargetId}
+            onChange={(e) => setWhisperTargetId(e.target.value)}
+          >
+            <option value="">Chuchoter à…</option>
+            {members
+              .filter((m) => m.user_id !== userId)
+              .map((m) => (
+                <option key={m.user_id} value={m.user_id}>
+                  {m.display_name}
+                  {m.role === "gm" || m.role === "co_gm" ? " ⭐" : ""}
+                </option>
+              ))}
+          </select>
         </div>
         <div className="chat-send-row">
           <input
@@ -177,8 +224,8 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              whisperTarget
-                ? `Chuchoter à ${whisperTarget}…`
+              whisperTargetId
+                ? `Chuchoter à ${getWhisperTargetName(whisperTargetId)}…`
                 : mode === "ic"
                   ? "Parler en personnage…"
                   : "Message hors-jeu…"
@@ -243,11 +290,11 @@ export default function ChatPanel({ wsRef, userId, displayName }: ChatPanelProps
         .chat-mode-btn.active {
           background: var(--accent-secondary); color: var(--text-inverse); border-color: var(--accent-secondary);
         }
-        .chat-whisper-input {
+        .chat-whisper-select {
           flex: 1; background: var(--bg-input, var(--bg-surface-elevated));
           border: 1px solid var(--border, var(--border-subtle));
           color: var(--text-brand); padding: 2px 6px; border-radius: 4px;
-          font-size: 11px; max-width: 130px;
+          font-size: 11px; max-width: 160px;
         }
         .chat-send-row {
           display: flex; gap: 4px; padding: 0 8px 6px;

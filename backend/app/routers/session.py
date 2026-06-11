@@ -383,7 +383,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    count = manager.register(campaign_id, websocket)
+    count = manager.register(campaign_id, websocket, user_id=user_id)
     await websocket.send_json(
         {
             "type": "connected",
@@ -481,14 +481,43 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                     )
 
                 elif msg_type == "chat_message":
-                    # Broadcast chat message to all clients in campaign
+                    # ── Chat message with private whisper routing ──
                     content = str(message.get("content", ""))[:2000]
                     mode = message.get("mode", "ic")  # ic, ooc, whisper
-                    target = message.get("target")    # display_name for whispers
 
                     if not content.strip():
                         continue
 
+                    # Resolve target: prefer target_user_id (stable), fall back to target display_name
+                    target_user_id: UUID | None = None
+                    raw_target_uid = message.get("target_user_id")
+                    raw_target_name = message.get("target")
+                    if raw_target_uid:
+                        with __import__("contextlib").suppress(ValueError, AttributeError):
+                            target_user_id = UUID(str(raw_target_uid))
+                    if target_user_id is None and raw_target_name:
+                        # Legacy fallback: resolve display_name → user_id
+                        row = await get_pool().fetchrow(
+                            "select u.id from users u "
+                            "join campaign_members cm on cm.user_id = u.id "
+                            "where cm.campaign_id = $1 and u.display_name = $2",
+                            campaign_id, str(raw_target_name),
+                        )
+                        if row:
+                            target_user_id = row["id"]
+
+                    # Handle whispers
+                    is_whisper = mode == "whisper" and target_user_id is not None
+                    if mode == "whisper" and not is_whisper:
+                        # Whisper with unresolvable target → error back to sender only
+                        with __import__("contextlib").suppress(Exception):
+                            await websocket.send_json({
+                                "type": "error",
+                                "detail": "Whisper target not found or not in campaign",
+                            })
+                        continue
+
+                    # Build payload
                     chat_payload = {
                         "type": "chat_message",
                         "content": content,
@@ -497,23 +526,39 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                         "sender_name": display_name,
                         "sender_role": role,
                         "ts": message.get("ts", 0),
+                        **({"target_user_id": str(target_user_id)} if is_whisper else {}),
                     }
-                    if target:
-                        chat_payload["target"] = target
 
-                    # Also persist to messages table
+                    # Persist (whispers logged as kind="whisper", not "chat")
+                    kind = "whisper" if is_whisper else "chat"
                     with __import__("contextlib").suppress(Exception):
                         await get_pool().execute(
-                            """insert into gm_messages
-                               (campaign_id, sender_id, content, kind, created_at)
-                               values ($1, $2, $3, $4, now())""",
-                            campaign_id,
-                            user_id,
-                            content,
-                            "chat",
+                            "insert into gm_messages (campaign_id, sender_id, content, kind, created_at) "
+                            "values ($1, $2, $3, $4, now())",
+                            campaign_id, user_id, content, kind,
                         )
 
-                    await manager.broadcast(campaign_id, chat_payload)
+                    # Route: whispers go only to sender + target + GMs
+                    if is_whisper:
+                        # 1. Send back to sender (echo)
+                        await manager.send_to_user(campaign_id, user_id, chat_payload)
+
+                        # 2. Send to target
+                        await manager.send_to_user(campaign_id, target_user_id, chat_payload)
+
+                        # 3. Notify GMs and co-GMs (but not sender/target again)
+                        gm_rows = await get_pool().fetch(
+                            "select user_id from campaign_members "
+                            "where campaign_id = $1 and role in ('gm', 'co_gm')",
+                            campaign_id,
+                        )
+                        for gm_row in gm_rows:
+                            gm_uid = gm_row["user_id"]
+                            if gm_uid not in (user_id, target_user_id):
+                                await manager.send_to_user(campaign_id, gm_uid, chat_payload)
+                    else:
+                        # Public message: broadcast to everyone
+                        await manager.broadcast(campaign_id, chat_payload)
 
                 elif msg_type == "ruler":
                     # Broadcast ruler measurement (visual only, GM and other players see it)
@@ -569,7 +614,7 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
     except WebSocketDisconnect:
         pass
     finally:
-        count = manager.disconnect(campaign_id, websocket)
+        count = manager.disconnect(campaign_id, websocket, user_id=user_id)
         await manager.broadcast(
             campaign_id,
             {
