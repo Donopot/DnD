@@ -183,7 +183,7 @@ Toute PR doit passer ces vérifications avant le push final :
 3. **Pattern panneau** — vérifier `data-vtt-panel`, `gm-panel-content`, classe de scoping, CSS scopé sous la classe du panneau.
 4. **CSS global vs scopé** — pas de sélecteurs globaux (`.mon-form { }`) quand ils appartiennent à un panneau spécifique (`.mon-panel .mon-form { }`).
 5. **Orphelins post-refactor** — après une refonte de composant, chercher les classes mortes dans TOUS les fichiers CSS importés (pas seulement `shell-gm.css`, aussi `tokens.css`, etc.).
-6. **Build + tests** — `cd frontend && npx tsc --noEmit`, `cd frontend && npm run build`, `cd backend && uv run pytest --tb=short -q`, `sh scripts/check-gm-panel-css.sh` doivent tous passer.
+6. **Build + tests** — `cd frontend && npx tsc --noEmit`, `cd frontend && npm run build`, `cd backend && uv run --no-project pytest --tb=short -q`, `sh scripts/check-gm-panel-css.sh` doivent tous passer.
 
 ---
 
@@ -202,8 +202,7 @@ Backend :
 
 ```bash
 cd backend
-uv sync
-uv run pytest --tb=short -q
+uv run --no-project pytest --tb=short -q
 ```
 
 Frontend :

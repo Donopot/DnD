@@ -189,11 +189,11 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 ### 4.1 Métriques finales
 
 **Backend :**
-- 118 endpoints, 18 routeurs, 26 migrations, 72 schémas, 122 tests
+- 119 endpoints, 18 routeurs, 28 migrations, 74 schémas, 122 tests
 
 **Frontend :**
-- 55 composants React, ~10 800 lignes CSS, 1798 modules Vite
-- Build : ~700ms, 433 kB (gzip 128 kB)
+- 58 composants React, ~10 800 lignes CSS, 1798 modules Vite
+- Build : ~750ms, 433 kB (gzip 128 kB)
 
 **Contenu SRD :**
 - 52 créatures, 25 sorts, 11 races, 12 classes, donjons procéduraux
@@ -240,8 +240,8 @@ Services Render : **dnd-api** (Docker, FastAPI + WebSocket, port 8000), **dnd-fr
 
 1. **Finaliser panneaux MJ** : ~~presets toujours accessibles, preset personnalisé, dock panneaux réduits, épingler/détacher, focus carte~~ → ✅ v0.12.1 (floating panels v2 + focus map/mini-map)
 2. **Gestion tokens** : ~~supprimer, dupliquer, éditer, cacher/révéler, verrouiller, menu clic droit~~ → ✅ PR #62-65 (TokenContextMenu, z-index, groupes)
-3. **Interface joueur simplifiée** : route joueur dédiée, carte filtrée, fiche compacte, dés joueur, journal public → 🔜 PR #6 (en cours)
-4. **Polish design system** : tooltips, contraste, palette cohérente → 🔜 PR #7 (en cours)
+3. **Interface joueur simplifiée** : route joueur dédiée, carte filtrée, fiche compacte, dés joueur, journal public → ✅ v0.12.3 (player-view-v2 PR #123 — recentrage, panneaux 300px)
+4. **Polish design system** : tooltips, contraste, palette cohérente → ✅ v0.12.3 (Dark Refined — DESIGN.md, tokens.css, a11y PR #121)
 
 #### Priorité moyenne
 
@@ -405,8 +405,7 @@ L'étape 0 (stabilisation de l'interface GM) est terminée :
 | **v0.11.x** | Tokens avancés | Édition, suppression, duplication, visibilité, verrouillage, menu contextuel |
 | **v0.12.x** | Refonte UX MJ ✅ | ~~App.tsx, contexts, hooks, API centralisation, panneaux flottants v2, focus map/mini-map, GM overrides~~ → Livré (06/2026) |
 | **v0.13.x** | Interface joueur | Vue joueur simplifiée, carte joueur, fiche compacte, dés, journal public |
-| **v0.14.x** | Visibilité et secrets | Badges, aperçu joueur, historique révélations, mode panique |
-| **v0.14.x** | Fog et calques MJ | Fog manuel, calques, zones cachées, aperçu joueur |
+| **v0.14.x** | Visibilité, secrets et fog | Badges, aperçu joueur, historique révélations, mode panique, fog manuel, calques |
 | **v0.15.x** | Outils carte | Mesures, ping, dessin, gabarits |
 | **v0.16.x** | Combat avancé | Tracker complet, effets, dégâts, fin de combat |
 | **v0.17.x** | Notes et mémoire | Notes rapides, indices, chronologie, recherche |

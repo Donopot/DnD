@@ -4,6 +4,91 @@ Toutes les modifications notables du projet DnD VTT.
 
 ---
 
+## [v0.12.3] — Dark Refined + Correctifs sécurité (2026-06-10)
+
+14 PRs mergées le 10 juin.
+
+### 🗺️ PR #111 — Focus map + mini-map (agent/ui/focus-map-minimap)
+- Mode focus map : Échap pour quitter, panneaux flottants + dock masqués
+- Mini-map toggle intégrant MapMinimap existant
+- Topbar compacte en focus : opacité réduite, boutons non-essentiels masqués
+- 3 fichiers, +230/−147
+
+### 📋 PR #112 — Audit imports + docs (agent/fix/audit-imports-docs)
+- Imports inutilisés supprimés (useCallback, useRef dans GmWorkspace.tsx)
+- INEFFECTIVE_DYNAMIC_IMPORT identifiés (CampaignMap déjà statique)
+- CHANGELOG, README, roadmap synchronisés
+- 6 fichiers, +98/−41
+
+### ⚙️ PR #113 — GM settings decode (agent/fix/p0-gm-settings-decode)
+- Correction P0 : `gm_settings` JSON string → dict (bloquait création campagne)
+- Validation `GmSettingsUpdate` schema
+- 5 fichiers, +108/−16
+
+### 🔒 PR #114 — Player data leaks (agent/fix/player-data-leaks)
+- Filtrage données visibles par les joueurs (jetons, encounters)
+- Protection endpoints joueur contre accès non autorisé
+- 4 fichiers, +41/−20
+
+### 🎨 PR #116 — Design system (agent/ui/design-system)
+- DESIGN.md : spécification du design token system
+- tokens.css : variables, couleurs, spacing, typographie, ombres
+- Drawer (Escape + Lucide `<X/>`), IconButton
+- 21 fichiers, +854/−439
+
+### 🏗️ PR #117 — Shell v2 (agent/ui/shell-v2)
+- GmRail 56px, topbar simplifiée, dropdown campagne
+- GmWorkspace, GmDockedPanels, GmFloatingPanels
+- Inspecteur token, dock, nettoyage Biome
+- 24 fichiers, +2012/−324
+
+### 🗺️ PR #118 — Carte & outils (agent/ui/map-tools-v2)
+- MapToolbar Lucide, groupes logiques, responsive CSS
+- 3 fichiers, +233/−203
+
+### 🎨 PR #119 — Design system v2 (agent/ui/design-system-v2)
+- Extension tokens.css, réorganisation index.css
+- Intégration GmWorkspace avec design system
+- 8 fichiers, +488/−70
+
+### ♿ PR #120 — Validation visuelle (agent/ui/visual-validation)
+- Playwright Axe : tests accessibilité automatisés
+- Vérification responsive multi-breakpoints
+- 1 fichier, +39/−8
+
+### ♿ PR #121 — A11y polish (agent/ui/a11y-polish)
+- prefers-reduced-motion global
+- focus-visible global
+- Nouvelles variables animation dans tokens.css
+- 1 fichier, +20
+
+### 🔐 PR #122 — Auth & lobby v2 (agent/ui/auth-lobby-v2)
+- Palette Dark Refined sur auth/lobby
+- CSS lobby-auth.css aligné design system
+- 1 fichier, +8/−7
+
+### 👤 PR #123 — Vue joueur v2 (agent/ui/player-view-v2)
+- Recentrage automatique carte au changement de scène
+- Panneaux joueur réduits 300px
+- 1 fichier, +4/−4
+
+### 🪟 PR #124 — Polish panneaux (agent/ui/panel-polish)
+- Headers panneaux uniformisés
+- États vides standardisés
+- 2 fichiers, +22/−11
+
+### 📄 PR #125 — Plan de remédiation (codex/docs/main-audit-remediation)
+- Plan 10 PR en 5 sprints (sécurité → stabilité → CI → UI)
+- Synchronisation README, roadmap, docs
+- 4 fichiers, +305/−4
+
+### 📊 Metrics
+- Frontend: tsc 0, Biome 0 err, build ~750ms
+- Backend: 122/122 tests
+- 14 PRs livrées
+
+---
+
 ## [v0.12.2] — Player UX + Docker healthchecks + Nettoyage branches (2026-06-10)
 
 ### 🎮 PR — Player UX (agent/ui/player-ux)
