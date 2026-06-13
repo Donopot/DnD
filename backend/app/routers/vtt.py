@@ -16,6 +16,7 @@ from app.cache import cache_set
 from app.db import get_pool
 from app.deps import get_current_user
 from app.deps import require_campaign_role
+from app.permissions import authorize_token_movement
 from app.realtime import manager
 from app.schemas import SceneCreateRequest
 from app.schemas import ScenePublic
@@ -396,26 +397,11 @@ async def move_token(
     existing = await get_token_or_404(token_id)
     role = await require_campaign_role(existing["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
 
-    # Players can only move tokens linked to their own characters
-    if role == "player":
-        if not existing["character_id"]:
-            raise HTTPException(status_code=403, detail="Players cannot move NPC or unlinked tokens")
-        owned = await get_pool().fetchval(
-            "select 1 from characters where id = $1 and owner_user_id = $2",
-            existing["character_id"],
-            current_user["id"],
-        )
-        if not owned:
-            raise HTTPException(status_code=403, detail="Players can only move their own tokens")
-
-        # Check GM settings: allow_player_token_move
-        settings_row = await get_pool().fetchval(
-            "select gm_settings from campaigns where id = $1",
-            existing["campaign_id"],
-        )
-        gm_settings = decode_json(settings_row) or {}
-        if gm_settings.get("allow_player_token_move") is False:
-            raise HTTPException(status_code=403, detail="Token movement is disabled by GM")
+    # Delegate to shared authorisation primitive (covers player ownership + GM settings)
+    try:
+        await authorize_token_movement(existing, current_user["id"], role)
+    except ValueError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
     row = await get_pool().fetchrow(
         """

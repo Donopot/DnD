@@ -17,6 +17,7 @@ from app.db import get_pool
 from app.deps import get_current_user
 from app.deps import require_campaign_role
 from app.dice import roll_with_mode
+from app.permissions import authorize_token_movement
 from app.realtime import manager
 from app.schemas import GameLogEntryPublic
 from app.schemas import GameLogNoteRequest
@@ -40,6 +41,38 @@ def _validate_coords(x, y, label: str = "") -> None:
         raise ValueError(f"{label} coordinates must be numbers")
     if not (-1_000_000 <= x <= 1_000_000) or not (-1_000_000 <= y <= 1_000_000):
         raise ValueError(f"{label} coordinates out of range")
+
+
+def _validate_move_payload(x, y, size, angle, label: str = "") -> None:
+    """Validate token movement fields: x, y, optional size and angle."""
+    _validate_coords(x, y, label)
+    if size is not None and (not isinstance(size, int | float) or not (1 <= size <= 20)):
+        raise ValueError(f"{label} size must be 1-20")
+    if angle is not None and (not isinstance(angle, int | float) or not (0 <= angle <= 360)):
+        raise ValueError(f"{label} angle must be 0-360")
+
+
+def _require_uuid(message: dict, key: str, label: str = "") -> UUID:
+    """Extract and validate a UUID from a WebSocket message field."""
+    raw = message.get(key)
+    if raw is None:
+        raise ValueError(f"{label} missing required field: {key}")
+    try:
+        return UUID(str(raw))
+    except (ValueError, AttributeError) as exc:
+        raise ValueError(f"{label} invalid {key}: {raw}") from exc
+
+
+async def _send_error(websocket: WebSocket, detail: str, msg_type: str = "") -> None:
+    """Send a structured error response over WebSocket."""
+    from contextlib import suppress
+
+    with suppress(Exception):
+        await websocket.send_json({
+            "type": "error",
+            "detail": detail,
+            "msg_type": msg_type,
+        })
 
 
 
@@ -441,37 +474,63 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                         },
                     )
 
-                elif msg_type == "player_move_token":
-                    # Player can only move tokens they own (player_controlled)
-                    token_id = message.get("token_id")
+                elif msg_type in ("move_token", "player_move_token"):
+                    # ── Unified token movement (REST-level permissions via WebSocket) ──
+                    token_id = _require_uuid(message, "token_id", msg_type)
                     new_x = message.get("x", 0)
                     new_y = message.get("y", 0)
-                    scene_id = message.get("scene_id")
-                    _validate_coords(new_x, new_y, "player_move_token")
+                    new_size = message.get("size")
+                    new_angle = message.get("angle")
 
-                    if role == "player":
-                        # Verify the token belongs to a character owned by this player
-                        token_row = await get_pool().fetchrow(
-                            "select st.id from scene_tokens st "
-                            "join characters c on c.id = st.character_id "
-                            "where st.id = $1 and st.scene_id = $2 and c.owner_user_id = $3",
-                            token_id,
-                            scene_id,
-                            user_id,
-                        )
-                        if not token_row:
-                            await websocket.send_json({"type": "error", "detail": "Token non autorisé"})
-                            continue
+                    # Validate coordinates
+                    _validate_move_payload(new_x, new_y, new_size, new_angle, msg_type)
 
-                    # Update token position in DB
-                    await get_pool().execute(
-                        "update scene_tokens set x = $1, y = $2, updated_at = now() where id = $3",
-                        new_x,
-                        new_y,
+                    # Load token with its campaign_id via scene join
+                    token_row = await get_pool().fetchrow(
+                        """
+                        select st.*, cs.campaign_id
+                        from scene_tokens st
+                        join campaign_scenes cs on cs.id = st.scene_id
+                        where st.id = $1
+                        """,
                         token_id,
                     )
+                    if token_row is None:
+                        await _send_error(websocket, f"Token {token_id} not found", msg_type)
+                        continue
 
-                    # Broadcast the move to all clients
+                    # Verify token's campaign matches the WebSocket campaign
+                    if str(token_row["campaign_id"]) != str(campaign_id):
+                        await _send_error(websocket, "Token does not belong to this campaign", msg_type)
+                        continue
+
+                    try:
+                        await authorize_token_movement(dict(token_row), user_id, role)
+                    except ValueError as exc:
+                        await _send_error(websocket, str(exc), msg_type)
+                        continue
+
+                    # Build update fields
+                    set_cols = ["x = $2", "y = $3"]
+                    params: list = [token_id, new_x, new_y]
+                    idx = 4
+                    if new_size is not None:
+                        set_cols.append(f"size = ${idx}")
+                        params.append(new_size)
+                        idx += 1
+                    if new_angle is not None:
+                        set_cols.append(f"angle = ${idx}")
+                        params.append(new_angle)
+                        idx += 1
+                    set_cols.append("updated_at = now()")
+                    sql = f"update scene_tokens set {', '.join(set_cols)} where id = $1 returning *"
+
+                    updated = await get_pool().fetchrow(sql, *params)
+                    if updated is None:
+                        await _send_error(websocket, "Failed to update token", msg_type)
+                        continue
+
+                    # Broadcast only after successful DB write
                     await manager.broadcast(
                         campaign_id,
                         {
@@ -479,7 +538,10 @@ async def campaign_socket(websocket: WebSocket, campaign_id: UUID) -> None:
                             "token_id": str(token_id),
                             "x": new_x,
                             "y": new_y,
+                            **({"size": new_size} if new_size is not None else {}),
+                            **({"angle": new_angle} if new_angle is not None else {}),
                             "user_id": str(user_id),
+                            "scene_id": str(token_row["scene_id"]),
                         },
                     )
 
