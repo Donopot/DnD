@@ -63,7 +63,7 @@ export function useFogOfWar({ selectedSceneId, wsRef }: UseFogOfWarInput): UseFo
     const controller = new AbortController();
     fogAbortRef.current = controller;
 
-    apiRequest<{ fog_zones: FogZone[] }>(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+    apiRequest<{ fog_zones: FogZone[] }>(`/api/scenes/${selectedSceneId}/fog`, getAuthToken(), {
       signal: controller.signal,
     })
       .then((d) => setFogZones(d.fog_zones || []))
@@ -83,7 +83,7 @@ export function useFogOfWar({ selectedSceneId, wsRef }: UseFogOfWarInput): UseFo
       fogSaveAbortRef.current = controller;
 
       try {
-        await apiRequest(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+        await apiRequest(`/api/scenes/${selectedSceneId}/fog`, getAuthToken(), {
           method: "PATCH",
           body: JSON.stringify({ fog_zones: newZones }),
           signal: controller.signal,
@@ -174,7 +174,7 @@ export function useFogOfWar({ selectedSceneId, wsRef }: UseFogOfWarInput): UseFo
           const controller = new AbortController();
           fogSyncAbortRef.current = controller;
 
-          apiRequest<{ fog_zones: FogZone[] }>(`/scenes/${selectedSceneId}/fog`, getAuthToken(), {
+          apiRequest<{ fog_zones: FogZone[] }>(`/api/scenes/${selectedSceneId}/fog`, getAuthToken(), {
             signal: controller.signal,
           })
             .then((d) => setFogZones(d.fog_zones || []))
