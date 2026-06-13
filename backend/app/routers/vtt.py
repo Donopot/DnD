@@ -176,9 +176,10 @@ async def create_scene(
         row = await connection.fetchrow(
             """
                 insert into campaign_scenes (
-                    campaign_id, name, description, grid_size, width, height, background_url, is_active
+                    campaign_id, name, description, grid_size, width, height,
+                    background_url, is_active, is_secret
                 )
-                values ($1, $2, $3, $4, $5, $6, $7, $8)
+                values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 returning *
                 """,
             campaign_id,
@@ -189,6 +190,7 @@ async def create_scene(
             payload.height,
             payload.background_url,
             is_active,
+            payload.is_secret,
         )
 
     scene = scene_public(row)
@@ -205,7 +207,11 @@ async def get_scene(
     # Always fetch the scene row first to get the campaign_id for the role check.
     # Cached results must not be returned before verifying campaign membership.
     row = await get_scene_or_404(scene_id)
-    await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    # Players cannot access secret scenes, even by UUID
+    if role == "player" and row["is_secret"]:
+        raise HTTPException(status_code=404, detail="Scene not found")
 
     cache_key = f"scene:{scene_id}"
     cached = await cache_get(cache_key)
@@ -224,6 +230,10 @@ async def list_tokens(
 ) -> list[TokenPublic]:
     scene = await get_scene_or_404(scene_id)
     role = await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    # Players cannot list tokens on secret scenes
+    if role == "player" and scene["is_secret"]:
+        raise HTTPException(status_code=404, detail="Scene not found")
 
     hidden_clause = "" if role in {"gm", "co_gm"} else "and is_hidden = false"
     rows = await get_pool().fetch(
@@ -553,6 +563,7 @@ async def update_scene_settings(
             view_zoom = $6,
             view_pan_x = $7,
             view_pan_y = $8,
+            is_secret = $9,
             updated_at = now()
         where id = $1
         returning *
@@ -565,9 +576,13 @@ async def update_scene_settings(
         current["view_zoom"],
         current["view_pan_x"],
         current["view_pan_y"],
+        current["is_secret"],
     )
     result = scene_public(row)
     await cache_invalidate(f"scene:{scene_id}*")
+
+    # Broadcast so player clients reload their map data
+    await broadcast_vtt_change(scene["campaign_id"], "scene", scene_id)
     return result
 
 
@@ -615,7 +630,11 @@ async def get_fog(
 ):
     # Always fetch the scene row first — role check must happen before cache return.
     scene = await get_scene_or_404(scene_id)
-    await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(scene["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+
+    # Players cannot read fog of war on secret scenes
+    if role == "player" and scene["is_secret"]:
+        raise HTTPException(status_code=404, detail="Scene not found")
 
     cache_key = f"fog:{scene_id}"
     cached = await cache_get(cache_key)

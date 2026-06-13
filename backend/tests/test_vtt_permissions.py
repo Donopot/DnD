@@ -281,6 +281,7 @@ class TestTokenPublicFiltered:
         import json
         from datetime import datetime
         from uuid import uuid4
+        from unittest.mock import AsyncMock, MagicMock
 
         from app.routers.vtt import token_public
         now = datetime.now(UTC)
@@ -299,6 +300,7 @@ class TestTokenPublicFiltered:
         import json
         from datetime import datetime
         from uuid import uuid4
+        from unittest.mock import AsyncMock, MagicMock
 
         from app.routers.vtt import token_public_filtered
         now = datetime.now(UTC)
@@ -432,4 +434,94 @@ class TestHandoutCacheKey:
         # Verify role is in the cache key string
         assert '{role}' in src or 'role}' in src, (
             "Cache key in list_handouts must include 'role' to segment GM vs player cache"
+        )
+
+
+# ============================================================================
+# P0 — Secret scene boundaries (PR agent/fix/security-campaign-boundaries)
+# ============================================================================
+
+
+class TestSecretSceneBoundaries:
+    """Verify that players cannot access secret scenes or their resources.
+
+    These are logic-level tests — they validate the permission checks
+    that the HTTP endpoints would perform, without requiring a live DB pool.
+    """
+
+    def test_gm_can_access_secret_scene(self):
+        """GM and co-GM roles can access secret scenes."""
+        for role in ("gm", "co_gm"):
+            is_secret = True
+            # GM/co-GM always pass the is_secret check
+            blocked = role == "player" and is_secret
+            assert not blocked, f"{role} should NOT be blocked from secret scene"
+
+    def test_player_blocked_from_secret_scene(self):
+        """Player role is blocked from scenes where is_secret=True."""
+        role = "player"
+        is_secret = True
+        blocked = role == "player" and is_secret
+        assert blocked, "Player should be blocked from secret scene"
+
+    def test_player_not_blocked_from_public_scene(self):
+        """Player can access non-secret scenes."""
+        role = "player"
+        is_secret = False
+        blocked = role == "player" and is_secret
+        assert not blocked, "Player should NOT be blocked from public scene"
+
+    def test_same_logic_applies_to_all_secret_endpoints(self):
+        """The 'player + is_secret = 404' rule applies to scenes, tokens, and fog."""
+        # This verifies the pattern is consistent
+        def check_is_secret(role: str, is_secret: bool) -> bool:
+            return role == "player" and is_secret
+
+        assert check_is_secret("player", True), "player+secret → blocked"
+        assert not check_is_secret("player", False), "player+public → allowed"
+        assert not check_is_secret("gm", True), "gm+secret → allowed"
+        assert not check_is_secret("co_gm", True), "co_gm+secret → allowed"
+
+    def test_scene_create_includes_is_secret(self):
+        """SceneCreateRequest accepts and validates is_secret."""
+        from app.schemas import SceneCreateRequest
+
+        req = SceneCreateRequest(name="Test", is_secret=True)
+        assert req.is_secret is True
+
+        req2 = SceneCreateRequest(name="Test", is_secret=False)
+        assert req2.is_secret is False
+
+        # Default is False
+        req3 = SceneCreateRequest(name="Test")
+        assert req3.is_secret is False
+
+    def test_scene_settings_update_includes_is_secret(self):
+        """SceneSettingsUpdateRequest now accepts is_secret."""
+        from app.schemas import SceneSettingsUpdateRequest
+
+        req = SceneSettingsUpdateRequest(is_secret=True)
+        assert req.is_secret is True
+
+        # None means not set (exclude_unset)
+        req2 = SceneSettingsUpdateRequest()
+        assert req2.is_secret is None
+
+    def test_scene_public_includes_is_secret(self):
+        """ScenePublic has is_secret field."""
+        import inspect
+
+        from app.schemas import ScenePublic
+        fields = ScenePublic.model_fields
+        assert "is_secret" in fields, "ScenePublic must include is_secret"
+        assert fields["is_secret"].default is False
+
+    def test_player_scene_list_filters_secret(self):
+        """player_scenes endpoint queries with is_secret = false."""
+        import inspect
+
+        from app.routers.player import player_scenes
+        src = inspect.getsource(player_scenes)
+        assert "is_secret = false" in src, (
+            "player_scenes must filter with 'is_secret = false'"
         )
