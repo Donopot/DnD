@@ -17,6 +17,7 @@ from app.schemas import CharacterUpdateRequest
 from app.schemas import ConditionsUpdateRequest
 from app.schemas import HpAdjustRequest
 from app.schemas import InventoryItemRequest
+from app.schemas import PlayerCharacterPublic
 from app.schemas import ResourceRequest
 from app.schemas import XpUpdateRequest
 from app.utils import decode_json
@@ -40,6 +41,26 @@ def character_public(row) -> CharacterPublic:
     for field in JSON_FIELDS:
         data[field] = decode_json(data[field])
     return CharacterPublic(**data)
+
+
+def _player_character_view(row, current_user_id: UUID) -> PlayerCharacterPublic | CharacterPublic:
+    """Return full CharacterPublic for owner, minimal PlayerCharacterPublic for others."""
+    if str(row["owner_user_id"]) == str(current_user_id):
+        return character_public(row)
+    conditions = decode_json(dict(row).get("conditions", "[]"))
+    return PlayerCharacterPublic(
+        id=row["id"],
+        name=row["name"],
+        ancestry=row["ancestry"] or "",
+        class_name=row["class_name"] or "",
+        level=row["level"],
+        armor_class=row["armor_class"],
+        speed=row["speed"],
+        hp_current=row["hp_current"],
+        hp_max=row["hp_max"],
+        conditions=conditions,
+        status=row["status"],
+    )
 
 
 async def get_character_or_404(character_id: UUID):
@@ -74,12 +95,12 @@ async def ensure_owner_is_campaign_member(campaign_id: UUID, owner_user_id: UUID
         raise HTTPException(status_code=400, detail="Character owner must be a campaign member")
 
 
-@router.get("/campaigns/{campaign_id}/characters", response_model=list[CharacterPublic])
+@router.get("/campaigns/{campaign_id}/characters")
 async def list_characters(
     campaign_id: UUID,
     current_user=Depends(get_current_user),
-) -> list[CharacterPublic]:
-    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+) -> list[CharacterPublic | PlayerCharacterPublic]:
+    role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
     rows = await get_pool().fetch(
         """
         select *
@@ -89,6 +110,12 @@ async def list_characters(
         """,
         campaign_id,
     )
+    # Players see only minimal DTO for characters they don't own
+    if role == "player":
+        return [
+            _player_character_view(r, current_user["id"])
+            for r in rows
+        ]
     return [character_public(row) for row in rows]
 
 
@@ -157,13 +184,16 @@ async def create_character(
     return character_public(row)
 
 
-@router.get("/characters/{character_id:uuid}", response_model=CharacterPublic)
+@router.get("/characters/{character_id:uuid}")
 async def get_character(
     character_id: UUID,
     current_user=Depends(get_current_user),
-) -> CharacterPublic:
+) -> CharacterPublic | PlayerCharacterPublic:
     row = await get_character_or_404(character_id)
-    await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(row["campaign_id"], current_user["id"], {"gm", "co_gm", "player"})
+    # Players see minimal DTO for characters they don't own
+    if role == "player":
+        return _player_character_view(row, current_user["id"])
     return character_public(row)
 
 

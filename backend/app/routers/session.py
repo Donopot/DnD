@@ -288,12 +288,15 @@ async def export_log(
     category: str | None = Query(default=None),
     current_user=Depends(get_current_user),
 ):
-    await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
+    role = await require_campaign_role(campaign_id, current_user["id"], {"gm", "co_gm", "player"})
     filters = ["campaign_id = $1"]
     params: list = [campaign_id]
     if category:
         filters.append("category = $2")
         params.append(category)
+    # Players only see public entries in export
+    if role not in {"gm", "co_gm"}:
+        filters.append("visibility = 'public'")
     where = " and ".join(filters)
     rows = await get_pool().fetch(
         f"select * from game_log_entries where {where} order by created_at asc limit 500",

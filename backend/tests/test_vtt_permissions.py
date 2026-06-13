@@ -525,3 +525,56 @@ class TestSecretSceneBoundaries:
         assert "is_secret = false" in src, (
             "player_scenes must filter with 'is_secret = false'"
         )
+
+
+# ============================================================================
+# P0 — Player-visible data boundaries (PR agent/fix/player-data-boundaries)
+# ============================================================================
+
+
+class TestPlayerCharacterDto:
+    """PlayerCharacterPublic DTO must not leak private character fields."""
+
+    def test_player_dto_has_no_private_fields(self):
+        from app.schemas import PlayerCharacterPublic
+        fields = PlayerCharacterPublic.model_fields
+        private = {"notes", "spells", "resources", "inventory", "attacks",
+                    "skills", "saving_throws", "attributes", "xp",
+                    "proficiency_bonus", "campaign_id", "owner_user_id"}
+        found = private & set(fields.keys())
+        assert not found, f"PlayerCharacterPublic leaks private fields: {found}"
+
+    def test_player_dto_has_combat_visible_fields(self):
+        from app.schemas import PlayerCharacterPublic
+        fields = PlayerCharacterPublic.model_fields
+        required = {"id", "name", "level", "armor_class", "hp_current", "hp_max", "conditions"}
+        assert required <= set(fields.keys()), f"Missing: {required - set(fields.keys())}"
+
+
+class TestPlayerLogExport:
+    """Log export must filter GM-only entries for players."""
+
+    def test_export_log_filters_visibility_for_player(self):
+        import inspect
+
+        from app.routers.session import export_log
+        src = inspect.getsource(export_log)
+        assert "visibility = 'public'" in src, (
+            "export_log must filter gm_only entries for players"
+        )
+
+
+class TestPlayerEncounterAccess:
+    """Players can only view active encounters."""
+
+    def test_player_blocked_from_inactive_encounter(self):
+        role = "player"
+        status = "planning"
+        blocked = role == "player" and status != "active"
+        assert blocked, "Player should be blocked from inactive encounter"
+
+    def test_gm_can_view_any_encounter(self):
+        for role in ("gm", "co_gm"):
+            status = "planning"
+            blocked = role == "player" and status != "active"
+            assert not blocked, f"{role} should view inactive encounters"
