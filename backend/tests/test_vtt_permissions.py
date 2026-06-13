@@ -281,7 +281,6 @@ class TestTokenPublicFiltered:
         import json
         from datetime import datetime
         from uuid import uuid4
-        from unittest.mock import AsyncMock, MagicMock
 
         from app.routers.vtt import token_public
         now = datetime.now(UTC)
@@ -300,7 +299,6 @@ class TestTokenPublicFiltered:
         import json
         from datetime import datetime
         from uuid import uuid4
-        from unittest.mock import AsyncMock, MagicMock
 
         from app.routers.vtt import token_public_filtered
         now = datetime.now(UTC)
@@ -509,7 +507,6 @@ class TestSecretSceneBoundaries:
 
     def test_scene_public_includes_is_secret(self):
         """ScenePublic has is_secret field."""
-        import inspect
 
         from app.schemas import ScenePublic
         fields = ScenePublic.model_fields

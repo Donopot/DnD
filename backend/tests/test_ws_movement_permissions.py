@@ -7,13 +7,11 @@ Covers:
 - _require_uuid (UUID extraction from WS messages)
 """
 
-import asyncio
 import json
 from unittest.mock import AsyncMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
-
 
 # ============================================================================
 # validate_move_payload — size and angle validation

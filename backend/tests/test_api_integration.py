@@ -149,10 +149,12 @@ async def test_create_campaign_no_auth(client):
 @pytest.mark.anyio
 async def test_create_and_list_campaigns_gm_settings_decoded(client, gm_user_row, auth_headers, mock_pool):
     """P0: gm_settings JSON string '{}' → dict {} by decode_json."""
+    from unittest.mock import AsyncMock
+    from unittest.mock import MagicMock
     from uuid import uuid4
+
     from app.deps import get_current_user
     from app.deps import require_gm_account
-    from unittest.mock import AsyncMock, MagicMock
 
     campaign_id = uuid4()
     campaign_row = {
