@@ -185,8 +185,7 @@ Backend :
 
 ```bash
 cd backend
-uv sync
-uv run uvicorn app.main:app --reload --port 8091
+uv run --no-project uvicorn app.main:app --reload --port 8091
 ```
 
 Frontend :
@@ -201,7 +200,7 @@ Tests :
 
 ```bash
 cd backend
-uv run pytest tests/ -v
+uv run --no-project pytest tests/ -v
 ```
 
 ```bash
@@ -321,10 +320,24 @@ scripts/    Scripts de maintenance et vérification
 
 ---
 
+## Métriques
+
+| Catégorie | Valeur | Détail |
+|-----------|--------|--------|
+| Tests backend | 122/122 | `uv run --no-project pytest --tb=short -q` |
+| Endpoints API | 119 | 18 routeurs FastAPI |
+| Schémas Pydantic | 74 | `backend/app/schemas.py` |
+| Migrations SQL | 28 | `backend/app/migrations/` |
+| Composants React | 58 | `frontend/src/components/` |
+| App.tsx | 812 lignes | +20% (infra design system vs v0.12) |
+| TypeScript | 0 erreur | `tsc --noEmit` |
+| Build | ~750ms | `npm run build` |
+| Biome CSS | 0 erreur | Linter strict |
+
 ## Priorités techniques actuelles
 
-- Terminé ✅ — App.tsx allégé (677 lignes), player UX (fiche compacte, permissions, toasts), panneaux flottants v2, focus map + mini-map.
-- Polish design system (tooltips, contraste, palette, cohérence widgets).
-- Carte joueur dédiée + dés.
-- Réduire la dette CSS (variables, widgets, cohérence inter-panneaux).
-- Maintenir les 122 tests backend, Biome 0, TSC 0, CI verte.
+- Terminé ✅ — Dark Refined : design system, shell v2, map tools, a11y, auth/lobby v2, player view v2, panel polish.
+- ✅ Design system : DESIGN.md, tokens.css, Drawer Escape + IconButton Lucide.
+- ✅ Validation visuelle : Playwright Axe, responsive.
+- 🔴 En cours — Sécurisation joueur/MJ (plan de remédiation — Sprint 1-3 : is_secret, filtrage données, WS permissions, whispers, routes fog/homebrew).
+- 🔜 Tests sécurité joueur + e2e authentifié (Sprint 4).

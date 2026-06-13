@@ -221,10 +221,9 @@ docker compose logs -f --tail=50 dnd-backend
 
 ```bash
 cd backend
-uv sync                               # installer (lock via uv.lock)
-uv run ruff check .                   # lint
-uv run python -m compileall -q app    # compilation check
-uv run pytest --tb=short -q           # tests
+uv pip install -r requirements.txt   # installer (si .venv absent)
+uv run --no-project ruff check .     # lint
+uv run --no-project pytest --tb=short -q  # tests
 ```
 
 **Interdit :** `pip install`, `python -m venv` manuel, `python3` nu → toujours `uv run python`.
@@ -327,10 +326,10 @@ Emplacement : `.hermes/handoffs/YYYY-MM-DD-<agent>-<sujet>.md`
 - [ ] Tâche 2 — en attente (raison)
 ### Fichiers modifiés
 - backend/app/routers/vtt.py — +150 lignes
-### Tests : uv run pytest → 115 passed | tsc → 0 errors | build → OK
+### Tests : uv run --no-project pytest → 115 passed | tsc → 0 errors | build → OK
 ### Points d'attention : (cache Redis à flusher, ordre migrations, etc.)
 ### Commande de reprise
-git checkout agent/<type>/<sujet> && uv run pytest --tb=short -q
+git checkout agent/<type>/<sujet> && uv run --no-project pytest --tb=short -q
 ```
 
 ### 6.4 Sessions
