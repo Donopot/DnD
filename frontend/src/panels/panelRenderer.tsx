@@ -436,6 +436,8 @@ export function renderGmPanelContent(panelId: string, props: GmPanelRenderProps)
           wsRef={props.wsRef}
           userId={props.user?.id}
           displayName={props.user?.display_name}
+          role={props.selectedCampaign?.role}
+          members={props.members}
         />
       );
     case "combat":
